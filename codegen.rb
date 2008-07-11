@@ -37,13 +37,13 @@ puts ERB.new(%q[
           FIELDS.each do |f|
             class_eval %[
               def #{f} name
-                @properties ||= []
-                @properties << [ :#{f}, name ] unless @properties.include?([:#{f}, name])
+                properties << [ :#{f}, name ] unless properties.include?([:#{f}, name])
                 attr_accessor name
               end
             ]
           end
-          attr_reader :properties
+          
+          def properties() @properties ||= [] end
 
           def id()   self::ID end
           def name() self::NAME end
@@ -54,13 +54,13 @@ puts ERB.new(%q[
             FIELDS.each do |f|
               class_eval %[
                 def #{f} name
-                  @arguments ||= []
-                  @arguments << [ :#{f}, name ] unless @arguments.include?([:#{f}, name])
+                  arguments << [ :#{f}, name ] unless arguments.include?([:#{f}, name])
                   attr_accessor name
                 end
               ]
             end
-            attr_reader :arguments
+            
+            def arguments() @arguments ||= [] end
 
             def parent() Protocol.const_get(self.to_s[/Protocol::(.+?)::/,1]) end
             def id()     self::ID end

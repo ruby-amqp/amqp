@@ -13,6 +13,10 @@ module AMQP
     class Class::Method
       def initialize *args
         opts = args.pop if args.size == 1 and args.last.is_a? Hash
+        opts ||= {}
+        
+        # XXX hack, p(obj) == '' if no instance vars are set
+        @debug = 1
         
         if args.size == 1 and args.first.is_a? Buffer
           buf = args.first
@@ -27,7 +31,7 @@ module AMQP
             val = args.shift || opts[name] || opts[name.to_s]
           end
 
-          instance_variable_set("@#{name}", val) if val
+          instance_variable_set("@#{name}", val)
         end
       end
 
@@ -47,7 +51,6 @@ module AMQP
       
       def pack type, data
         # p ['pack', type, data]
-        return '' unless data
 
         case type
           when :octet
@@ -57,21 +60,28 @@ module AMQP
           when :long
             [data].pack('N')
           when :shortstr
+            data ||= ''
             len = data.length
             [len, data].pack("Ca#{len}")
           when :longstr
             if data.is_a? Hash
-              data = pack(:table, data)
+              pack(:table, data)
+            else
+              len = data.length
+              [len, data].pack("Na#{len}")              
             end
-
-            len = data.length
-            [len, data].pack("Na#{len}")
           when :table
             pack :longstr, (data.inject('') do |str, (key, value)|
                              str + pack(:shortstr, key.to_s) + pack(:octet, ?S) + pack(:longstr, value.to_s) # XXX support other field types here
                            end)
           when :longlong
           when :bit
+            data = if data.nil? or data == false or data <= 0
+                     0
+                   else
+                     1
+                   end
+            pack(:octet, data)
         end
       end
     end
@@ -226,27 +236,40 @@ module AMQP
     end
   
     def receive_data data
-      log 'receive', data
+      # log 'receive', data
       @buffer.extract(data).each do |frame|
         log 'got a frame', frame
         
-        if frame.payload.is_a? Protocol::Connection::Start
-          send_data AMQP::Protocol::Connection::StartOk.new({:platform => 'Ruby/EventMachine',
-                                                             :product => 'AMQP',
-                                                             :information => 'http://github.com/tmm1/amqp',
-                                                             :version => '0.0.1'},
-                                                            'PLAIN',
-                                                            {:LOGIN => 'guest',
-                                                             :PASSWORD => 'guest'},
-                                                            'en_US').to_frame.to_s
-          
+        case method = frame.payload
+        when Protocol::Connection::Start
+          send Protocol::Connection::StartOk.new({:platform => 'Ruby/EventMachine',
+                                                  :product => 'AMQP',
+                                                  :information => 'http://github.com/tmm1/amqp',
+                                                  :version => '0.0.1'},
+                                                 'AMQPLAIN',
+                                                 {:LOGIN => 'guest',
+                                                  :PASSWORD => 'guest'},
+                                                 'en_US')
+
+        when Protocol::Connection::Tune
+          send Protocol::Connection::TuneOk.new :channel_max => 0,
+                                                :frame_max => 131072,
+                                                :heartbeat => 0
+
+          send Protocol::Connection::Open.new :virtual_host => '/',
+                                              :capabilities => '',
+                                              :insist => false
+
+        when Protocol::Connection::OpenOk
+          send Protocol::Channel::Open.new, 1
         end
       end
     end
   
-    def send_data data
-      # log 'send', data
-      super
+    def send data, channel = 0
+      log 'send', data
+      data = data.to_frame(channel) unless data.is_a? Frame
+      send_data data.to_binary
     end
 
     def unbind
@@ -335,7 +358,7 @@ elsif $0 =~ /bacon/
 
     should 'convert to and from frames' do
       # XXX make this Frame.parse (refactor Buffer#extract)
-      AMQP::Buffer.new(@start.to_frame.to_binary).extract.first.should == @start.to_frame
+      AMQP::Buffer.new(@start.to_frame.to_binary).extract.first.payload.should == @start
     end
   end
 end
@@ -344,10 +367,11 @@ __END__
 
 ["connected"]
 ["got a frame",
- #<AMQP::Frame:0x1190c48
+ #<AMQP::Frame:0x1079ee0
   @channel=0,
   @payload=
-   #<AMQP::Protocol::Connection::Start:0x119093c
+   #<AMQP::Protocol::Connection::Start:0x1079bac
+    @debug=1,
     @locales="en_US",
     @mechanisms="PLAIN AMQPLAIN",
     @server_properties=
@@ -359,4 +383,51 @@ __END__
        "Copyright (C) 2007-2008 LShift Ltd., Cohesive Financial Technologies LLC., and Rabbit Technologies Ltd."},
     @version_major=8,
     @version_minor=0>,
+  @type=:method>]
+["send",
+ #<AMQP::Protocol::Connection::StartOk:0x1062e84
+  @client_properties=
+   {:product=>"AMQP",
+    :information=>"http://github.com/tmm1/amqp",
+    :platform=>"Ruby/EventMachine",
+    :version=>"0.0.1"},
+  @debug=1,
+  @locale="en_US",
+  @mechanism="AMQPLAIN",
+  @response={:LOGIN=>"guest", :PASSWORD=>"guest"}>]
+["got a frame",
+ #<AMQP::Frame:0x104fff0
+  @channel=0,
+  @payload=
+   #<AMQP::Protocol::Connection::Tune:0x104fcbc
+    @channel_max=0,
+    @debug=1,
+    @frame_max=131072,
+    @heartbeat=0>,
+  @type=:method>]
+["send",
+ #<AMQP::Protocol::Connection::TuneOk:0x10453ac
+  @channel_max=0,
+  @debug=1,
+  @frame_max=131072,
+  @heartbeat=0>]
+["send",
+ #<AMQP::Protocol::Connection::Open:0x103e480
+  @capabilities="",
+  @debug=1,
+  @insist=nil,
+  @virtual_host="/">]
+["got a frame",
+ #<AMQP::Frame:0x1036fa0
+  @channel=0,
+  @payload=
+   #<AMQP::Protocol::Connection::OpenOk:0x1036c6c
+    @debug=1,
+    @known_hosts="julie.local:5672">,
+  @type=:method>]
+["send", #<AMQP::Protocol::Channel::Open:0x102e490 @debug=1, @out_of_band=nil>]
+["got a frame",
+ #<AMQP::Frame:0x10296d4
+  @channel=1,
+  @payload=#<AMQP::Protocol::Channel::OpenOk:0x10293a0 @debug=1>,
   @type=:method>]
