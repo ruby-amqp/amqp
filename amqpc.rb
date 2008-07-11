@@ -1,10 +1,6 @@
 require 'rubygems'
 require 'eventmachine'
 
-class String
-  def ord() self[0] end
-end unless "abc".respond_to? :ord # for ruby 1.9 compat
-
 require 'amqp_spec'
 
 module AMQP
@@ -36,12 +32,12 @@ module AMQP
       @channel = channel
       @type = (1..8).include?(type) ? TYPES[type] :
                                       TYPES.include?(type) ? type : raise(InvalidFrame)
-      @payload = case @type
-                 when :method
-                   Protocol.parse(payload)
-                 else
-                   payload
-                 end
+
+      if @type == :method and payload.is_a? String
+        @payload = Protocol.parse(payload)
+      else
+        @payload = payload
+      end
     end
     attr_reader :type, :channel, :payload
 
@@ -208,17 +204,17 @@ if $0 == __FILE__
 elsif $0 =~ /bacon/
   describe AMQP::Frame do
     should 'convert to binary' do
-      AMQP::Frame.new(1, 0, 'abc').to_binary.should == "\001\000\000\000\000\000\003abc\316"
+      AMQP::Frame.new(2, 0, 'abc').to_binary.should == "\002\000\000\000\000\000\003abc\316"
     end
 
     should 'return type as symbol' do
-      AMQP::Frame.new(1, 0, 'abc').type.should == :method
-      AMQP::Frame.new(:method, 0, 'abc').type.should == :method
+      AMQP::Frame.new(3, 0, 'abc').type.should == :body
+      AMQP::Frame.new(:body, 0, 'abc').type.should == :body
     end
   end
   
   describe AMQP::Buffer do
-    @frame = AMQP::Frame.new(1, 0, 'abc')
+    @frame = AMQP::Frame.new(2, 0, 'abc')
     
     should 'parse complete frames' do
       frame = AMQP::Buffer.new(@frame.to_binary).extract.first
