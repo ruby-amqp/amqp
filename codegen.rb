@@ -62,8 +62,15 @@ puts ERB.new(%q[
             end
             attr_reader :arguments
 
-            def id()   self::ID end
-            def name() self::NAME end
+            def parent() Protocol.const_get(self.to_s[/Protocol::(.+?)::/,1]) end
+            def id()     self::ID end
+            def name()   self::NAME end
+          end
+
+          def == b
+            self.class.arguments.inject(true) do |eql, (type, name)|
+              eql and __send__("#{name}") == b.__send__("#{name}")
+            end
           end
         end
       
@@ -76,7 +83,7 @@ puts ERB.new(%q[
               def self.inherited klass
                 klass.const_set(:ID, #{id})
                 klass.const_set(:NAME, :#{name.to_s.dump})
-                Protocol.const_get(klass.to_s[/Protocol::(.+?)::/,1]).methods[#{id}] = klass
+                klass.parent.methods[#{id}] = klass
               end
             ]
           end

@@ -32,7 +32,7 @@ module AMQP
       end
 
       def to_binary
-        [ self.class.parent.id, id ].pack('nn') +
+        pack(:short, self.class.parent.id) + pack(:short, self.class.id) +
           self.class.arguments.inject('') do |str, (type, name)|
             str + pack(type, instance_variable_get("@#{name}"))
           end
@@ -46,6 +46,7 @@ module AMQP
       private
       
       def pack type, data
+        # p ['pack', type, data]
         return '' unless data
 
         case type
@@ -66,9 +67,9 @@ module AMQP
             len = data.length
             [len, data].pack("Na#{len}")
           when :table
-            data.inject('') do |str, (key, value)|
-              str + pack(:shortstr, key) + pack(:octet, ?S) + pack(:longstr, value.to_s)
-            end
+            pack :longstr, (data.inject('') do |str, (key, value)|
+                             str + pack(:shortstr, key.to_s) + pack(:octet, ?S) + pack(:longstr, value.to_s) # XXX support other field types here
+                           end)
           when :longlong
           when :bit
         end
@@ -225,9 +226,21 @@ module AMQP
     end
   
     def receive_data data
-      # log 'receive', data
+      log 'receive', data
       @buffer.extract(data).each do |frame|
         log 'got a frame', frame
+        
+        if frame.payload.is_a? Protocol::Connection::Start
+          send_data AMQP::Protocol::Connection::StartOk.new({:platform => 'Ruby/EventMachine',
+                                                             :product => 'AMQP',
+                                                             :information => 'http://github.com/tmm1/amqp',
+                                                             :version => '0.0.1'},
+                                                            'PLAIN',
+                                                            {:LOGIN => 'guest',
+                                                             :PASSWORD => 'guest'},
+                                                            'en_US').to_frame.to_s
+          
+        end
       end
     end
   
@@ -291,19 +304,38 @@ elsif $0 =~ /bacon/
   end
 
   describe AMQP::Protocol do
-    @method = AMQP::Protocol::Connection::StartOk.new({:platform => 'Ruby/EventMachine',
-                                                       :product => 'AMQP',
-                                                       :information => 'http://github.com/tmm1/amqp',
-                                                       :version => '0.0.1'},
-                                                      'PLAIN',
-                                                      {:LOGIN => 'guest',
-                                                       :PASSWORD => 'guest'},
-                                                      'en_US')
+    @start = AMQP::Protocol::Connection::Start.new(:locales => 'en_US',
+                                                   :mechanisms => 'PLAIN AMQPLAIN',
+                                                   :version_major => 8,
+                                                   :version_minor => 0,
+                                                   :server_properties => {'product' => 'RabbitMQ'})
+  
+    @startok = AMQP::Protocol::Connection::StartOk.new({:platform => 'Ruby/EventMachine',
+                                                        :product => 'AMQP',
+                                                        :information => 'http://github.com/tmm1/amqp',
+                                                        :version => '0.0.1'},
+                                                       'PLAIN',
+                                                       {:LOGIN => 'guest',
+                                                        :PASSWORD => 'guest'},
+                                                       'en_US')
                                                       
     should 'generate method packets' do
       meth = AMQP::Protocol::Connection::StartOk.new :locale => 'en_US',
                                                      :mechanism => 'PLAIN'
-      meth.locale.should == @method.locale
+      meth.locale.should == @startok.locale
+    end
+
+    should 'generate method frames' do
+      @startok.to_frame.should == AMQP::Frame.new(:method, 0, @startok)
+    end
+    
+    should 'convert to and from binary' do
+      AMQP::Protocol.parse(@start.to_binary).should == @start
+    end
+
+    should 'convert to and from frames' do
+      # XXX make this Frame.parse (refactor Buffer#extract)
+      AMQP::Buffer.new(@start.to_frame.to_binary).extract.first.should == @start.to_frame
     end
   end
 end
