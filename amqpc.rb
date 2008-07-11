@@ -5,11 +5,10 @@ class String
   def ord() self[0] end
 end unless "abc".respond_to? :ord
 
+require 'amqp_spec'
+
 module AMQP
   HEADER = 'AMQP'.freeze
-  FRAME_END = "\316".freeze
-  VERSION_MAJOR = 0
-  VERSION_MINOR = 8
 
   class Frame < Struct.new(:type, :channel, :payload)
     TYPES = [ nil, :method, :header, :body, :'oob-method', :'oob-header', :'oob-body', :trace, :heartbeat ]
@@ -20,10 +19,9 @@ module AMQP
 
     def to_binary
       size = payload.length
-      [TYPES.index(type), channel, size, payload, FRAME_END.ord].pack("CnNa#{size}C")
+      [TYPES.index(type), channel, size, payload, FRAME_END].pack("CnNa#{size}C")
     end
   end
-  class Method < Struct.new(:class, :method, :size, :data); end
 
   class BufferOverflow < Exception; end
 
@@ -42,7 +40,7 @@ module AMQP
       while true
         type, channel, size = parse(:octet, :short, :long)
         payload = read(size)
-        if read(1) == FRAME_END
+        if read(1) == FRAME_END.chr
           frames << Frame.new(type, channel, payload)
         else
           log 'invalid frame'

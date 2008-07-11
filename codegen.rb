@@ -31,42 +31,56 @@ puts ERB.new(%q[
       <%- end -%>
     ]
 
-    class Class
-      class << self
-        FIELDS.each do |f|
-          class_eval %[
-            def #{f} name
-              @properties ||= []
-              @properties << [ :#{f}, name ] unless @properties.include?([:#{f}, name])
-            end
-          ]
-        end
-        attr_reader :properties
-
-        def id()   self::ID end
-        def name() self::NAME end
-      end
-
-      class Method
+    module Protocol
+      class Class
         class << self
           FIELDS.each do |f|
             class_eval %[
               def #{f} name
-                @arguments ||= []
-                @arguments << [ :#{f}, name ] unless @arguments.include?([:#{f}, name])
+                @properties ||= []
+                @properties << [ :#{f}, name ] unless @properties.include?([:#{f}, name])
               end
             ]
           end
-          attr_reader :arguments
+          attr_reader :properties
 
           def id()   self::ID end
           def name() self::NAME end
         end
-      end
+
+        class Method
+          class << self
+            FIELDS.each do |f|
+              class_eval %[
+                def #{f} name
+                  @arguments ||= []
+                  @arguments << [ :#{f}, name ] unless @arguments.include?([:#{f}, name])
+                end
+              ]
+            end
+            attr_reader :arguments
+
+            def id()   self::ID end
+            def name() self::NAME end
+          end
+        end
       
-      def self.Method(id, name)
-        @methods ||= {}
-        @methods[id] ||= ::Class.new(Method) do
+        def self.Method(id, name)
+          @methods ||= {}
+          @methods[id] ||= ::Class.new(Method) do
+            class_eval %[
+              def self.inherited klass
+                klass.const_set(:ID, #{id})
+                klass.const_set(:NAME, :#{name.to_s.dump})
+              end
+            ]
+          end
+        end
+      end
+
+      def self.Class(id, name)
+        @classes ||= {}
+        @classes[id] ||= ::Class.new(Class) do
           class_eval %[
             def self.inherited klass
               klass.const_set(:ID, #{id})
@@ -75,40 +89,27 @@ puts ERB.new(%q[
           ]
         end
       end
-    end
 
-    def self.Class(id, name)
-      @classes ||= {}
-      @classes[id] ||= ::Class.new(Class) do
-        class_eval %[
-          def self.inherited klass
-            klass.const_set(:ID, #{id})
-            klass.const_set(:NAME, :#{name.to_s.dump})
-          end
-        ]
-      end
-    end
+      <%- s['classes'].each do |c| -%>
+      class <%= c['name'].capitalize %> < Class(<%= c['id'] %>, :<%= c['name'] %>)
+        <%- c['properties'].each do |p| -%>
+        <%= p['type'].ljust(10) %> :<%= p['name'].tr('-','_') %>
+        <%- end if c['properties'] -%>
 
-    <%- s['classes'].each do |c| -%>
-    class <%= c['name'].capitalize %> < Class(<%= c['id'] %>, :<%= c['name'] %>)
-      <%- c['properties'].each do |p| -%>
-      <%= p['type'].ljust(10) %> :<%= p['name'].tr('-','_') %>
-      <%- end if c['properties'] -%>
-
-      <%- c['methods'].each do |m| -%>
-      class <%= m['name'].capitalize.gsub(/-(.)/){ "#{$1.upcase}"} %> < Method(<%= m['id'] %>, :'<%= m['name'] %>')
-        <%- m['arguments'].each do |a| -%>
-        <%- if a['domain'] -%>
-        <%= s['domains'].find{|k,v| k == a['domain']}.last.ljust(10) %> :<%= a['name'].tr('- ','_') %>
-        <%- else -%>
-        <%= a['type'].ljust(10) %> :<%= a['name'].tr('- ','_') %>
+        <%- c['methods'].each do |m| -%>
+        class <%= m['name'].capitalize.gsub(/-(.)/){ "#{$1.upcase}"} %> < Method(<%= m['id'] %>, :'<%= m['name'] %>')
+          <%- m['arguments'].each do |a| -%>
+          <%- if a['domain'] -%>
+          <%= s['domains'].find{|k,v| k == a['domain']}.last.ljust(10) %> :<%= a['name'].tr('- ','_') %>
+          <%- else -%>
+          <%= a['type'].ljust(10) %> :<%= a['name'].tr('- ','_') %>
+          <%- end -%>
+          <%- end if m['arguments'] -%>
+        end
         <%- end -%>
-        <%- end if m['arguments'] -%>
       end
+
       <%- end -%>
     end
-
-    <%- end -%>
-
   end
 ].gsub!(/^  /,''), nil, '>-%').result(binding)
