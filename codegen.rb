@@ -1,16 +1,3 @@
-class String
-  def unindent
-    find_indent = proc{ |l| l.find{|l| !l.strip.empty?}.to_s[/^(\s+)/, 1] }
-
-    lines = self.split("\n")
-    space = find_indent[lines]
-    space = find_indent[lines.reverse] unless space
-
-    strip.gsub(/^#{space}/, '')
-  end
-  alias ui unindent
-end
-
 require 'rubygems'
 require 'json'
 
@@ -118,11 +105,10 @@ puts ERB.new(%q[
         <%- end -%>
         <%- end if m['arguments'] -%>
       end
-
       <%- end -%>
     end
 
     <%- end -%>
 
   end
-].ui, nil, '>-%').result(binding)
+].gsub!(/^  /,''), nil, '>-%').result(binding)
