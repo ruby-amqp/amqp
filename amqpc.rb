@@ -121,6 +121,10 @@ module AMQP
       channel == b.channel and
       payload == b.payload
     end
+
+    def self.parse data
+      # XXX implement
+    end
   end
 
   class Buffer
