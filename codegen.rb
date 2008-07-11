@@ -39,6 +39,7 @@ puts ERB.new(%q[
               def #{f} name
                 @properties ||= []
                 @properties << [ :#{f}, name ] unless @properties.include?([:#{f}, name])
+                attr_accessor :#{f}
               end
             ]
           end
@@ -55,6 +56,7 @@ puts ERB.new(%q[
                 def #{f} name
                   @arguments ||= []
                   @arguments << [ :#{f}, name ] unless @arguments.include?([:#{f}, name])
+                  attr_accessor :#{f}
                 end
               ]
             end
@@ -65,31 +67,37 @@ puts ERB.new(%q[
           end
         end
       
+        def self.methods() @methods ||= {} end
+      
         def self.Method(id, name)
-          @methods ||= {}
-          @methods[id] ||= ::Class.new(Method) do
+          @_base_methods ||= {}
+          @_base_methods[id] ||= ::Class.new(Method) do
             class_eval %[
               def self.inherited klass
                 klass.const_set(:ID, #{id})
                 klass.const_set(:NAME, :#{name.to_s.dump})
+                Protocol.const_get(klass.to_s[/Protocol::(.+?)::/,1]).methods[#{id}] = klass
               end
             ]
           end
         end
       end
 
+      def self.classes() @classes ||= {} end
+
       def self.Class(id, name)
-        @classes ||= {}
-        @classes[id] ||= ::Class.new(Class) do
+        @_base_classes ||= {}
+        @_base_classes[id] ||= ::Class.new(Class) do
           class_eval %[
             def self.inherited klass
               klass.const_set(:ID, #{id})
               klass.const_set(:NAME, :#{name.to_s.dump})
+              Protocol.classes[#{id}] = klass
             end
           ]
         end
       end
-
+      
       <%- s['classes'].each do |c| -%>
       class <%= c['name'].capitalize %> < Class(<%= c['id'] %>, :<%= c['name'] %>)
         <%- c['properties'].each do |p| -%>
@@ -106,6 +114,7 @@ puts ERB.new(%q[
           <%- end -%>
           <%- end if m['arguments'] -%>
         end
+
         <%- end -%>
       end
 

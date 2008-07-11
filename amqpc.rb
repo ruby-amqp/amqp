@@ -3,27 +3,59 @@ require 'eventmachine'
 
 class String
   def ord() self[0] end
-end unless "abc".respond_to? :ord
+end unless "abc".respond_to? :ord # for ruby 1.9 compat
 
 require 'amqp_spec'
 
 module AMQP
   HEADER = 'AMQP'.freeze
 
-  class Frame < Struct.new(:type, :channel, :payload)
+  class BufferOverflow < Exception; end
+  class InvalidFrame < Exception; end
+
+  module Protocol
+    class Class::Method
+      def initialize buf
+        self.class.arguments.each do |type, name|
+          instance_variable_set("@#{name}", buf.parse(type))
+        end
+      end
+    end
+
+    def self.parse payload
+      buf = Buffer.new(payload)
+      class_id, method_id = buf.parse(:short, :short)
+      classes[class_id].methods[method_id].new(buf)
+    end
+  end
+
+  class Frame
     TYPES = [ nil, :method, :header, :body, :'oob-method', :'oob-header', :'oob-body', :trace, :heartbeat ]
 
-    def type
-      @type ||= TYPES.include?(self[:type]) ? self[:type] : TYPES[ self[:type] ]
+    def initialize type, channel, payload
+      @channel = channel
+      @type = (1..8).include?(type) ? TYPES[type] :
+                                      TYPES.include?(type) ? type : raise(InvalidFrame)
+      @payload = case @type
+                 when :method
+                   Protocol.parse(payload)
+                 else
+                   payload
+                 end
     end
+    attr_reader :type, :channel, :payload
 
     def to_binary
       size = payload.length
       [TYPES.index(type), channel, size, payload, FRAME_END].pack("CnNa#{size}C")
     end
-  end
 
-  class BufferOverflow < Exception; end
+    def == b
+      type == b.type and
+      channel == b.channel and
+      payload == b.payload
+    end
+  end
 
   class Buffer
     def initialize data = ''
@@ -43,7 +75,7 @@ module AMQP
         if read(1) == FRAME_END.chr
           frames << Frame.new(type, channel, payload)
         else
-          log 'invalid frame'
+          raise InvalidFrame
         end
         processed = @pos
       end
@@ -54,8 +86,6 @@ module AMQP
       frames
     end
 
-    private
-    
     def parse *syms
       res = syms.map do |sym|
         # log 'parsing', sym
@@ -79,13 +109,32 @@ module AMQP
           when :bit
             # FIXME
           when :table
-            
-            # t = _read_table
-            # if res.is_a?(Array)
-            #   res << t
-            # else
-            #   res = t
-            # end
+            t = Hash.new
+            table_data = read(:longstr)
+
+            while not table_data.eof?
+              key = table_data.read(:shortstr)
+              type = table_data.read(:octet)
+              case type
+                when 83: # 'S'
+                  val = table_data.read(:longstr)
+                when 'I'
+                  val = table_data.read(:long) <-- FIXME
+                when 'D'
+                  d = table_data.read(:octet)
+                  val = table_data.read(:long) / (10 ** d) <-- FIXME
+                when 'T':
+                  val = table_data.read(:timestamp) <-- FIXME
+                when 'F':
+                  val = table_data.read(:table)
+                else 
+                  # FIXME raise an exception instead of exit
+                  p "Unknown type in _read_table: #{type}"
+                  exit
+              end
+              table[key] = val
+            end            
+            t
           else
             # FIXME remove
         end
@@ -105,6 +154,8 @@ module AMQP
       d
     end
 
+    private
+
     def log *args
       p args
     end
@@ -119,7 +170,7 @@ module AMQP
     end
   
     def receive_data data
-      log 'receive', data
+      # log 'receive', data
       @buffer.extract(data).each do |frame|
         log 'got a frame', frame
       end
@@ -171,7 +222,6 @@ elsif $0 =~ /bacon/
       frame = AMQP::Buffer.new(@frame.to_binary).extract.first
 
       frame.should.be.kind_of? AMQP::Frame
-      frame.payload.should.be == @frame.payload
       frame.should.be == @frame
     end
 
