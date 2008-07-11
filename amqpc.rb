@@ -62,6 +62,7 @@ module AMQP
       @data = data
       @pos = 0
     end
+    attr_reader :pos
     
     def extract data = nil
       @data << data if data
@@ -110,30 +111,25 @@ module AMQP
             # FIXME
           when :table
             t = Hash.new
-            table_data = read(:longstr)
 
-            while not table_data.eof?
-              key = table_data.read(:shortstr)
-              type = table_data.read(:octet)
-              case type
-                when 83: # 'S'
-                  val = table_data.read(:longstr)
-                when 'I'
-                  val = table_data.read(:long) <-- FIXME
-                when 'D'
-                  d = table_data.read(:octet)
-                  val = table_data.read(:long) / (10 ** d) <-- FIXME
-                when 'T':
-                  val = table_data.read(:timestamp) <-- FIXME
-                when 'F':
-                  val = table_data.read(:table)
-                else 
-                  # FIXME raise an exception instead of exit
-                  p "Unknown type in _read_table: #{type}"
-                  exit
-              end
-              table[key] = val
-            end            
+            table = Buffer.new(parse(:longstr))
+            until table.eof?
+              key, type = table.parse(:shortstr, :octet)
+              t[key] = case type
+                         when ?S
+                           table.parse(:longstr)
+                         when ?I
+                           table.parse(:long)
+                         when ?D
+                           d = table.parse(:octet)
+                           table.parse(:long) / (10**d)
+                         when ?T
+                           table.parse(:timestamp)
+                         when ?F
+                           table.parse(:table)
+                       end
+            end
+
             t
           else
             # FIXME remove
@@ -152,6 +148,10 @@ module AMQP
       d = d.unpack(type).pop if type
       # log 'read', d
       d
+    end
+
+    def eof?
+      @pos == @data.length
     end
 
     private
@@ -194,10 +194,12 @@ module AMQP
     private
   
     def log *args
-      p args
+      pp args
     end
   end
 end
+
+require 'pp'
 
 if $0 == __FILE__
   EM.run{
@@ -237,4 +239,20 @@ end
 __END__
 
 ["connected"]
-["got a frame", #<struct AMQP::Frame type=1, channel=0, size=294, payload="\000\n\000\n\b\000\000\000\001\001\aproductS\000\000\000\bRabbitMQ\aversionS\000\000\000\v%%VERSION%%\bplatformS\000\000\000\nErlang/OTP\tcopyrightS\000\000\000gCopyright (C) 2007-2008 LShift Ltd., Cohesive Financial Technologies LLC., and Rabbit Technologies Ltd.\vinformationS\000\000\0005Licensed under the MPL.  See http://www.rabbitmq.com/\000\000\000\016PLAIN AMQPLAIN\000\000\000\005en_US">]
+["got a frame",
+ #<AMQP::Frame:0x1190c48
+  @channel=0,
+  @payload=
+   #<AMQP::Protocol::Connection::Start:0x119093c
+    @locales="en_US",
+    @mechanisms="PLAIN AMQPLAIN",
+    @server_properties=
+     {"platform"=>"Erlang/OTP",
+      "product"=>"RabbitMQ",
+      "information"=>"Licensed under the MPL.  See http://www.rabbitmq.com/",
+      "version"=>"%%VERSION%%",
+      "copyright"=>
+       "Copyright (C) 2007-2008 LShift Ltd., Cohesive Financial Technologies LLC., and Rabbit Technologies Ltd."},
+    @version_major=8,
+    @version_minor=0>,
+  @type=:method>]
