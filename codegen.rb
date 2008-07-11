@@ -39,7 +39,7 @@ puts ERB.new(%q[
               def #{f} name
                 @properties ||= []
                 @properties << [ :#{f}, name ] unless @properties.include?([:#{f}, name])
-                attr_accessor :#{f}
+                attr_accessor name
               end
             ]
           end
@@ -56,7 +56,7 @@ puts ERB.new(%q[
                 def #{f} name
                   @arguments ||= []
                   @arguments << [ :#{f}, name ] unless @arguments.include?([:#{f}, name])
-                  attr_accessor :#{f}
+                  attr_accessor name
                 end
               ]
             end

@@ -11,9 +11,23 @@ module AMQP
 
   module Protocol
     class Class::Method
-      def initialize buf
+      def initialize *args
+        opts = args.pop if args.size == 1 and args.last.is_a? Hash
+        
+        if args.size == 1 and args.first.is_a? Buffer
+          buf = args.first
+        else
+          buf = nil
+        end
+
         self.class.arguments.each do |type, name|
-          instance_variable_set("@#{name}", buf.parse(type))
+          if buf
+            val = buf.parse(type)
+          else
+            val = args.shift || opts[name] || opts[name.to_s]
+          end
+
+          instance_variable_set("@#{name}", val) if val
         end
       end
     end
@@ -228,6 +242,23 @@ elsif $0 =~ /bacon/
       buffer.extract.should == []
       buffer.extract(@frame.to_binary[6..-1]).should == [@frame]
       buffer.extract.should == []
+    end
+  end
+
+  describe AMQP::Protocol do
+    @method = AMQP::Protocol::Connection::StartOk.new({:platform => 'Ruby/EventMachine',
+                                                       :product => 'AMQP',
+                                                       :information => 'http://github.com/tmm1/amqp',
+                                                       :version => '0.0.1'},
+                                                      'PLAIN',
+                                                      {:LOGIN => 'guest',
+                                                       :PASSWORD => 'guest'},
+                                                      'en_US')
+                                                      
+    should 'generate method packets' do
+      meth = AMQP::Protocol::Connection::StartOk.new :locale => 'en_US',
+                                                     :mechanism => 'PLAIN'
+      meth.locale.should == @method.locale
     end
   end
 end
