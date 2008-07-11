@@ -30,6 +30,49 @@ module AMQP
           instance_variable_set("@#{name}", val) if val
         end
       end
+
+      def to_binary
+        [ self.class.parent.id, id ].pack('nn') +
+          self.class.arguments.inject('') do |str, (type, name)|
+            str + pack(type, instance_variable_get("@#{name}"))
+          end
+      end
+      alias :to_s :to_binary
+      
+      def to_frame channel = 0
+        Frame.new(:method, channel, self)
+      end
+      
+      private
+      
+      def pack type, data
+        return '' unless data
+
+        case type
+          when :octet
+            [data].pack('C')
+          when :short
+            [data].pack('n')
+          when :long
+            [data].pack('N')
+          when :shortstr
+            len = data.length
+            [len, data].pack("Ca#{len}")
+          when :longstr
+            if data.is_a? Hash
+              data = pack(:table, data)
+            end
+
+            len = data.length
+            [len, data].pack("Na#{len}")
+          when :table
+            data.inject('') do |str, (key, value)|
+              str + pack(:shortstr, key) + pack(:octet, ?S) + pack(:longstr, value.to_s)
+            end
+          when :longlong
+          when :bit
+        end
+      end
     end
 
     def self.parse payload
@@ -56,9 +99,11 @@ module AMQP
     attr_reader :type, :channel, :payload
 
     def to_binary
-      size = payload.length
-      [TYPES.index(type), channel, size, payload, FRAME_END].pack("CnNa#{size}C")
+      data = payload.to_s
+      size = data.length
+      [TYPES.index(type), channel, size, data, FRAME_END].pack("CnNa#{size}C")
     end
+    alias :to_s :to_binary
 
     def == b
       type == b.type and
