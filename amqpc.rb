@@ -122,8 +122,8 @@ module AMQP
       payload == b.payload
     end
 
-    def self.parse data
-      # XXX implement
+    def self.extract data
+      (@buffer ||= Buffer.new).extract(data.to_s)
     end
   end
 
@@ -234,14 +234,13 @@ module AMQP
   module Connection
     def connection_completed
       log 'connected'
-      @buffer = Buffer.new
       send_data HEADER
       send_data [1, 1, VERSION_MAJOR, VERSION_MINOR].pack('CCCC')
     end
   
     def receive_data data
       # log 'receive', data
-      @buffer.extract(data).each do |frame|
+      Frame.extract(data).each do |frame|
         log 'got a frame', frame
         
         case method = frame.payload
@@ -265,7 +264,7 @@ module AMQP
                                               :insist => false
 
         when Protocol::Connection::OpenOk
-          send Protocol::Channel::Open.new, 1
+          send Protocol::Channel::Open.new
         end
       end
     end
@@ -301,68 +300,74 @@ if $0 == __FILE__
     AMQP::Connection.start
   }
 elsif $0 =~ /bacon/
-  describe AMQP::Frame do
+  include AMQP
+
+  describe Frame do
     should 'convert to binary' do
-      AMQP::Frame.new(2, 0, 'abc').to_binary.should == "\002\000\000\000\000\000\003abc\316"
+      Frame.new(2, 0, 'abc').to_binary.should == "\002\000\000\000\000\000\003abc\316"
     end
 
     should 'return type as symbol' do
-      AMQP::Frame.new(3, 0, 'abc').type.should == :body
-      AMQP::Frame.new(:body, 0, 'abc').type.should == :body
+      Frame.new(3, 0, 'abc').type.should == :body
+      Frame.new(:body, 0, 'abc').type.should == :body
+    end
+
+    should 'wrap Buffer#extract' do
+      Frame.extract(frame = Frame.new(2,0,'abc')).first.should == frame
     end
   end
   
-  describe AMQP::Buffer do
-    @frame = AMQP::Frame.new(2, 0, 'abc')
+  describe Buffer do
+    @frame = Frame.new(2, 0, 'abc')
     
     should 'parse complete frames' do
-      frame = AMQP::Buffer.new(@frame.to_binary).extract.first
+      frame = Buffer.new(@frame.to_binary).extract.first
 
-      frame.should.be.kind_of? AMQP::Frame
+      frame.should.be.kind_of? Frame
       frame.should.be == @frame
     end
 
     should 'not return incomplete frames until complete' do
-      buffer = AMQP::Buffer.new(@frame.to_binary[0..5])
+      buffer = Buffer.new(@frame.to_binary[0..5])
       buffer.extract.should == []
       buffer.extract(@frame.to_binary[6..-1]).should == [@frame]
       buffer.extract.should == []
     end
   end
 
-  describe AMQP::Protocol do
-    @start = AMQP::Protocol::Connection::Start.new(:locales => 'en_US',
-                                                   :mechanisms => 'PLAIN AMQPLAIN',
-                                                   :version_major => 8,
-                                                   :version_minor => 0,
-                                                   :server_properties => {'product' => 'RabbitMQ'})
+  describe Protocol do
+    @start = Protocol::Connection::Start.new(:locales => 'en_US',
+                                             :mechanisms => 'PLAIN AMQPLAIN',
+                                             :version_major => 8,
+                                             :version_minor => 0,
+                                             :server_properties => {'product' => 'RabbitMQ'})
   
-    @startok = AMQP::Protocol::Connection::StartOk.new({:platform => 'Ruby/EventMachine',
-                                                        :product => 'AMQP',
-                                                        :information => 'http://github.com/tmm1/amqp',
-                                                        :version => '0.0.1'},
-                                                       'PLAIN',
-                                                       {:LOGIN => 'guest',
-                                                        :PASSWORD => 'guest'},
-                                                       'en_US')
+    @startok = Protocol::Connection::StartOk.new({:platform => 'Ruby/EventMachine',
+                                                  :product => 'AMQP',
+                                                  :information => 'http://github.com/tmm1/amqp',
+                                                  :version => '0.0.1'},
+                                                 'PLAIN',
+                                                 {:LOGIN => 'guest',
+                                                  :PASSWORD => 'guest'},
+                                                 'en_US')
                                                       
     should 'generate method packets' do
-      meth = AMQP::Protocol::Connection::StartOk.new :locale => 'en_US',
-                                                     :mechanism => 'PLAIN'
+      meth = Protocol::Connection::StartOk.new :locale => 'en_US',
+                                               :mechanism => 'PLAIN'
       meth.locale.should == @startok.locale
     end
 
     should 'generate method frames' do
-      @startok.to_frame.should == AMQP::Frame.new(:method, 0, @startok)
+      @startok.to_frame.should == Frame.new(:method, 0, @startok)
     end
     
     should 'convert to and from binary' do
-      AMQP::Protocol.parse(@start.to_binary).should == @start
+      Protocol.parse(@start.to_binary).should == @start
     end
 
     should 'convert to and from frames' do
       # XXX make this Frame.parse (refactor Buffer#extract)
-      AMQP::Buffer.new(@start.to_frame.to_binary).extract.first.payload.should == @start
+      Buffer.new(@start.to_frame.to_binary).extract.first.payload.should == @start
     end
   end
 end
