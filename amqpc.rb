@@ -264,13 +264,14 @@ module AMQP
                                               :insist => false
 
         when Protocol::Connection::OpenOk
-          send Protocol::Channel::Open.new
+          send Protocol::Channel::Open.new, :channel => 1
         end
       end
     end
   
-    def send data, channel = 0
+    def send data, opts = {}
       log 'send', data
+      channel = opts[:channel] ||= 0
       data = data.to_frame(channel) unless data.is_a? Frame
       send_data data.to_binary
     end
