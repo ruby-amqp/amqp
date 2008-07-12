@@ -82,8 +82,9 @@ puts ERB.new(%q[
             class_eval %[
               def self.inherited klass
                 klass.const_set(:ID, #{id})
-                klass.const_set(:NAME, :#{name.to_s.dump})
+                klass.const_set(:NAME, :#{name.to_s})
                 klass.parent.methods[#{id}] = klass
+                klass.parent.methods[klass::NAME] = klass
               end
             ]
           end
@@ -98,8 +99,9 @@ puts ERB.new(%q[
           class_eval %[
             def self.inherited klass
               klass.const_set(:ID, #{id})
-              klass.const_set(:NAME, :#{name.to_s.dump})
+              klass.const_set(:NAME, :#{name.to_s})
               Protocol.classes[#{id}] = klass
+              Protocol.classes[klass::NAME] = klass
             end
           ]
         end
@@ -112,7 +114,7 @@ puts ERB.new(%q[
         <%- end if c['properties'] -%>
 
         <%- c['methods'].each do |m| -%>
-        class <%= m['name'].capitalize.gsub(/-(.)/){ "#{$1.upcase}"} %> < Method(<%= m['id'] %>, :'<%= m['name'] %>')
+        class <%= m['name'].capitalize.gsub(/-(.)/){ "#{$1.upcase}"} %> < Method(<%= m['id'] %>, :<%= m['name'].tr('- ','_') %>)
           <%- m['arguments'].each do |a| -%>
           <%- if a['domain'] -%>
           <%= s['domains'].find{|k,v| k == a['domain']}.last.ljust(10) %> :<%= a['name'].tr('- ','_') %>
