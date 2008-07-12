@@ -232,6 +232,10 @@ module AMQP
   end
 
   module Connection
+    def initialize blk
+      @blk = blk
+    end
+
     def connection_completed
       log 'connected'
       send_data HEADER
@@ -280,9 +284,9 @@ module AMQP
       log 'disconnected'
     end
   
-    def self.start host = 'localhost', port = 5672
+    def self.start host = 'localhost', port = 5672, &blk
       EM.run{
-        EM.connect host, port, self
+        EM.connect host, port, self, blk
       }
     end
   
@@ -292,13 +296,27 @@ module AMQP
       pp args
     end
   end
+
+  def self.start *args, &blk
+    Connection.start *args, &blk
+  end
 end
 
 require 'pp'
 
 if $0 == __FILE__
   EM.run{
-    AMQP::Connection.start
+    AMQP.start do |amqp|
+      amqp.test.integer { |meth|
+        meth
+      }.send(0)
+      
+      amqp(1).on(:method) {
+        
+      }
+      
+      amqp(1).test.integer
+    end
   }
 elsif $0 =~ /bacon/
   include AMQP
