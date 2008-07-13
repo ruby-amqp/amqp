@@ -263,7 +263,7 @@ module AMQP
     def receive_data data
       # log 'receive', data
       Frame.extract(data).each do |frame|
-        log 'got a frame', frame
+        log 'receive', frame
         
         case method = frame.payload
         when Protocol::Connection::Start
@@ -298,9 +298,9 @@ module AMQP
     end
   
     def send data, opts = {}
-      log 'send', data
       channel = opts[:channel] ||= 0
       data = data.to_frame(channel) unless data.is_a? Frame
+      log 'send', data
       send_data data.to_binary
     end
 
@@ -318,6 +318,7 @@ module AMQP
   
     def log *args
       pp args
+      puts
     end
   end
 
@@ -418,11 +419,12 @@ end
 __END__
 
 ["connected"]
-["got a frame",
- #<AMQP::Frame:0x1079ee0
+
+["receive",
+ #<AMQP::Frame:0x10708f4
   @channel=0,
   @payload=
-   #<AMQP::Protocol::Connection::Start:0x1079bac
+   #<AMQP::Protocol::Connection::Start:0x10705c0
     @debug=1,
     @locales="en_US",
     @mechanisms="PLAIN AMQPLAIN",
@@ -436,50 +438,94 @@ __END__
     @version_major=8,
     @version_minor=0>,
   @type=:method>]
+
 ["send",
- #<AMQP::Protocol::Connection::StartOk:0x1062e84
-  @client_properties=
-   {:product=>"AMQP",
-    :information=>"http://github.com/tmm1/amqp",
-    :platform=>"Ruby/EventMachine",
-    :version=>"0.0.1"},
-  @debug=1,
-  @locale="en_US",
-  @mechanism="AMQPLAIN",
-  @response={:LOGIN=>"guest", :PASSWORD=>"guest"}>]
-["got a frame",
- #<AMQP::Frame:0x104fff0
+ #<AMQP::Frame:0x105967c
   @channel=0,
   @payload=
-   #<AMQP::Protocol::Connection::Tune:0x104fcbc
+   #<AMQP::Protocol::Connection::StartOk:0x1059898
+    @client_properties=
+     {:product=>"AMQP",
+      :information=>"http://github.com/tmm1/amqp",
+      :platform=>"Ruby/EventMachine",
+      :version=>"0.0.1"},
+    @debug=1,
+    @locale="en_US",
+    @mechanism="AMQPLAIN",
+    @response={:LOGIN=>"guest", :PASSWORD=>"guest"}>,
+  @type=:method>]
+
+["receive",
+ #<AMQP::Frame:0x1042c9c
+  @channel=0,
+  @payload=
+   #<AMQP::Protocol::Connection::Tune:0x1042968
     @channel_max=0,
     @debug=1,
     @frame_max=131072,
     @heartbeat=0>,
   @type=:method>]
+
 ["send",
- #<AMQP::Protocol::Connection::TuneOk:0x10453ac
-  @channel_max=0,
-  @debug=1,
-  @frame_max=131072,
-  @heartbeat=0>]
-["send",
- #<AMQP::Protocol::Connection::Open:0x103e480
-  @capabilities="",
-  @debug=1,
-  @insist=nil,
-  @virtual_host="/">]
-["got a frame",
- #<AMQP::Frame:0x1036fa0
+ #<AMQP::Frame:0x1037e3c
   @channel=0,
   @payload=
-   #<AMQP::Protocol::Connection::OpenOk:0x1036c6c
+   #<AMQP::Protocol::Connection::TuneOk:0x1038058
+    @channel_max=0,
+    @debug=1,
+    @frame_max=131072,
+    @heartbeat=0>,
+  @type=:method>]
+
+["send",
+ #<AMQP::Frame:0x102d16c
+  @channel=0,
+  @payload=
+   #<AMQP::Protocol::Connection::Open:0x102d3b0
+    @capabilities="",
+    @debug=1,
+    @insist=nil,
+    @virtual_host="/">,
+  @type=:method>]
+
+["receive",
+ #<AMQP::Frame:0x102208c
+  @channel=0,
+  @payload=
+   #<AMQP::Protocol::Connection::OpenOk:0x1021d58
     @debug=1,
     @known_hosts="julie.local:5672">,
   @type=:method>]
-["send", #<AMQP::Protocol::Channel::Open:0x102e490 @debug=1, @out_of_band=nil>]
-["got a frame",
- #<AMQP::Frame:0x10296d4
+
+["send",
+ #<AMQP::Frame:0x1019338
   @channel=1,
-  @payload=#<AMQP::Protocol::Channel::OpenOk:0x10293a0 @debug=1>,
+  @payload=
+   #<AMQP::Protocol::Channel::Open:0x101957c @debug=1, @out_of_band=nil>,
+  @type=:method>]
+
+["receive",
+ #<AMQP::Frame:0x1010814
+  @channel=1,
+  @payload=#<AMQP::Protocol::Channel::OpenOk:0x10104e0 @debug=1>,
+  @type=:method>]
+
+["send",
+ #<AMQP::Frame:0x1009320
+  @channel=1,
+  @payload=
+   #<AMQP::Protocol::Access::Request:0x100967c
+    @active=true,
+    @debug=1,
+    @exclusive=nil,
+    @passive=nil,
+    @read=true,
+    @realm="/data",
+    @write=true>,
+  @type=:method>]
+
+["receive",
+ #<AMQP::Frame:0x610cd8
+  @channel=1,
+  @payload=#<AMQP::Protocol::Access::RequestOk:0x6104cc @debug=1, @ticket=101>,
   @type=:method>]
