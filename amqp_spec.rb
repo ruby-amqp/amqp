@@ -1,63 +1,37 @@
 
 module AMQP
+  HEADER        = "AMQP".freeze
   VERSION_MAJOR = 8
   VERSION_MINOR = 0
-  DEFAULT_PORT  = 5672
+  PORT          = 5672
 
-  FRAME_METHOD        = 1
-  FRAME_HEADER        = 2
-  FRAME_BODY          = 3
-  FRAME_OOB_METHOD    = 4
-  FRAME_OOB_HEADER    = 5
-  FRAME_OOB_BODY      = 6
-  FRAME_TRACE         = 7
-  FRAME_HEARTBEAT     = 8
-  FRAME_MIN_SIZE      = 4096
-  FRAME_END           = 206
-  REPLY_SUCCESS       = 200
-  NOT_DELIVERED       = 310
-  CONTENT_TOO_LARGE   = 311
-  NO_ROUTE            = 312
-  NO_CONSUMERS        = 313
-  ACCESS_REFUSED      = 403
-  NOT_FOUND           = 404
-  RESOURCE_LOCKED     = 405
-  PRECONDITION_FAILED = 406
-  CONNECTION_FORCED   = 320
-  INVALID_PATH        = 402
-  FRAME_ERROR         = 501
-  SYNTAX_ERROR        = 502
-  COMMAND_INVALID     = 503
-  CHANNEL_ERROR       = 504
-  RESOURCE_ERROR      = 506
-  NOT_ALLOWED         = 530
-  NOT_IMPLEMENTED     = 540
-  INTERNAL_ERROR      = 541
+  class Frame
+    TYPES = [
+      nil,
+      :METHOD,
+      :HEADER,
+      :BODY,
+      :OOB_METHOD,
+      :OOB_HEADER,
+      :OOB_BODY,
+      :TRACE,
+      :HEARTBEAT,
+    ]
+    FOOTER = 206
+  end
 
-  DOMAINS = {
-    :"access-ticket" => :short,
-    :"channel-id" => :longstr,
-    :"class-id" => :short,
-    :"consumer-tag" => :shortstr,
-    :"delivery-tag" => :longlong,
-    :"destination" => :shortstr,
-    :"duration" => :longlong,
-    :"exchange-name" => :shortstr,
-    :"known-hosts" => :shortstr,
-    :"method-id" => :short,
-    :"no-ack" => :bit,
-    :"no-local" => :bit,
-    :"offset" => :longlong,
-    :"path" => :shortstr,
-    :"peer-properties" => :table,
-    :"queue-name" => :shortstr,
-    :"redelivered" => :bit,
-    :"reference" => :longstr,
-    :"reject-code" => :short,
-    :"reject-text" => :shortstr,
-    :"reply-code" => :short,
-    :"reply-text" => :shortstr,
-    :"security-token" => :longstr,
+  RESPONSES = {
+    200 => :REPLY_SUCCESS,
+    310 => :NOT_DELIVERED,
+    311 => :CONTENT_TOO_LARGE,
+    312 => :NO_ROUTE,
+    313 => :NO_CONSUMERS,
+    403 => :ACCESS_REFUSED,
+    404 => :NOT_FOUND,
+    405 => :RESOURCE_LOCKED,
+    406 => :PRECONDITION_FAILED,
+    320 => :CONNECTION_FORCED,
+    402 => :INVALID_PATH,
   }
 
   FIELDS = [
@@ -148,9 +122,34 @@ module AMQP
       end
     end
     
-    class Connection < Class(10, :connection)
+    class Connection   < Class(10, :connection); end
+    class Channel      < Class(20, :channel); end
+    class Access       < Class(30, :access); end
+    class Exchange     < Class(40, :exchange); end
+    class Queue        < Class(50, :queue); end
+    class Basic        < Class(60, :basic); end
+    class File         < Class(70, :file); end
+    class Stream       < Class(80, :stream); end
+    class Tx           < Class(90, :tx); end
+    class Dtx          < Class(100, :dtx); end
+    class Tunnel       < Class(110, :tunnel); end
+    class Test         < Class(120, :test); end
 
-      class Start < Method(10, :start)
+    class Connection
+
+      class Start        < Method(10, :start); end
+      class StartOk      < Method(11, :start_ok); end
+      class Secure       < Method(20, :secure); end
+      class SecureOk     < Method(21, :secure_ok); end
+      class Tune         < Method(30, :tune); end
+      class TuneOk       < Method(31, :tune_ok); end
+      class Open         < Method(40, :open); end
+      class OpenOk       < Method(41, :open_ok); end
+      class Redirect     < Method(50, :redirect); end
+      class Close        < Method(60, :close); end
+      class CloseOk      < Method(61, :close_ok); end
+
+      class Start
         octet      :version_major
         octet      :version_minor
         table      :server_properties
@@ -158,98 +157,109 @@ module AMQP
         longstr    :locales
       end
 
-      class StartOk < Method(11, :start_ok)
+      class StartOk
         table      :client_properties
         shortstr   :mechanism
         longstr    :response
         shortstr   :locale
       end
 
-      class Secure < Method(20, :secure)
+      class Secure
         longstr    :challenge
       end
 
-      class SecureOk < Method(21, :secure_ok)
+      class SecureOk
         longstr    :response
       end
 
-      class Tune < Method(30, :tune)
+      class Tune
         short      :channel_max
         long       :frame_max
         short      :heartbeat
       end
 
-      class TuneOk < Method(31, :tune_ok)
+      class TuneOk
         short      :channel_max
         long       :frame_max
         short      :heartbeat
       end
 
-      class Open < Method(40, :open)
+      class Open
         shortstr   :virtual_host
         shortstr   :capabilities
         bit        :insist
       end
 
-      class OpenOk < Method(41, :open_ok)
+      class OpenOk
         shortstr   :known_hosts
       end
 
-      class Redirect < Method(50, :redirect)
+      class Redirect
         shortstr   :host
         shortstr   :known_hosts
       end
 
-      class Close < Method(60, :close)
+      class Close
         short      :reply_code
         shortstr   :reply_text
         short      :class_id
         short      :method_id
       end
 
-      class CloseOk < Method(61, :close_ok)
+      class CloseOk
       end
 
     end
 
-    class Channel < Class(20, :channel)
+    class Channel
 
-      class Open < Method(10, :open)
+      class Open         < Method(10, :open); end
+      class OpenOk       < Method(11, :open_ok); end
+      class Flow         < Method(20, :flow); end
+      class FlowOk       < Method(21, :flow_ok); end
+      class Alert        < Method(30, :alert); end
+      class Close        < Method(40, :close); end
+      class CloseOk      < Method(41, :close_ok); end
+
+      class Open
         shortstr   :out_of_band
       end
 
-      class OpenOk < Method(11, :open_ok)
+      class OpenOk
       end
 
-      class Flow < Method(20, :flow)
+      class Flow
         bit        :active
       end
 
-      class FlowOk < Method(21, :flow_ok)
+      class FlowOk
         bit        :active
       end
 
-      class Alert < Method(30, :alert)
+      class Alert
         short      :reply_code
         shortstr   :reply_text
         table      :details
       end
 
-      class Close < Method(40, :close)
+      class Close
         short      :reply_code
         shortstr   :reply_text
         short      :class_id
         short      :method_id
       end
 
-      class CloseOk < Method(41, :close_ok)
+      class CloseOk
       end
 
     end
 
-    class Access < Class(30, :access)
+    class Access
 
-      class Request < Method(10, :request)
+      class Request      < Method(10, :request); end
+      class RequestOk    < Method(11, :request_ok); end
+
+      class Request
         shortstr   :realm
         bit        :exclusive
         bit        :passive
@@ -258,15 +268,20 @@ module AMQP
         bit        :read
       end
 
-      class RequestOk < Method(11, :request_ok)
+      class RequestOk
         short      :ticket
       end
 
     end
 
-    class Exchange < Class(40, :exchange)
+    class Exchange
 
-      class Declare < Method(10, :declare)
+      class Declare      < Method(10, :declare); end
+      class DeclareOk    < Method(11, :declare_ok); end
+      class Delete       < Method(20, :delete); end
+      class DeleteOk     < Method(21, :delete_ok); end
+
+      class Declare
         short      :ticket
         shortstr   :exchange
         shortstr   :type
@@ -278,24 +293,33 @@ module AMQP
         table      :arguments
       end
 
-      class DeclareOk < Method(11, :declare_ok)
+      class DeclareOk
       end
 
-      class Delete < Method(20, :delete)
+      class Delete
         short      :ticket
         shortstr   :exchange
         bit        :if_unused
         bit        :nowait
       end
 
-      class DeleteOk < Method(21, :delete_ok)
+      class DeleteOk
       end
 
     end
 
-    class Queue < Class(50, :queue)
+    class Queue
 
-      class Declare < Method(10, :declare)
+      class Declare      < Method(10, :declare); end
+      class DeclareOk    < Method(11, :declare_ok); end
+      class Bind         < Method(20, :bind); end
+      class BindOk       < Method(21, :bind_ok); end
+      class Purge        < Method(30, :purge); end
+      class PurgeOk      < Method(31, :purge_ok); end
+      class Delete       < Method(40, :delete); end
+      class DeleteOk     < Method(41, :delete_ok); end
+
+      class Declare
         short      :ticket
         shortstr   :queue
         bit        :passive
@@ -306,13 +330,13 @@ module AMQP
         table      :arguments
       end
 
-      class DeclareOk < Method(11, :declare_ok)
+      class DeclareOk
         shortstr   :queue
         long       :message_count
         long       :consumer_count
       end
 
-      class Bind < Method(20, :bind)
+      class Bind
         short      :ticket
         shortstr   :queue
         shortstr   :exchange
@@ -321,20 +345,20 @@ module AMQP
         table      :arguments
       end
 
-      class BindOk < Method(21, :bind_ok)
+      class BindOk
       end
 
-      class Purge < Method(30, :purge)
+      class Purge
         short      :ticket
         shortstr   :queue
         bit        :nowait
       end
 
-      class PurgeOk < Method(31, :purge_ok)
+      class PurgeOk
         long       :message_count
       end
 
-      class Delete < Method(40, :delete)
+      class Delete
         short      :ticket
         shortstr   :queue
         bit        :if_unused
@@ -342,13 +366,13 @@ module AMQP
         bit        :nowait
       end
 
-      class DeleteOk < Method(41, :delete_ok)
+      class DeleteOk
         long       :message_count
       end
 
     end
 
-    class Basic < Class(60, :basic)
+    class Basic
       shortstr   :content_type
       shortstr   :content_encoding
       table      :headers
@@ -364,16 +388,32 @@ module AMQP
       shortstr   :app_id
       shortstr   :cluster_id
 
-      class Qos < Method(10, :qos)
+      class Qos          < Method(10, :qos); end
+      class QosOk        < Method(11, :qos_ok); end
+      class Consume      < Method(20, :consume); end
+      class ConsumeOk    < Method(21, :consume_ok); end
+      class Cancel       < Method(30, :cancel); end
+      class CancelOk     < Method(31, :cancel_ok); end
+      class Publish      < Method(40, :publish); end
+      class Return       < Method(50, :return); end
+      class Deliver      < Method(60, :deliver); end
+      class Get          < Method(70, :get); end
+      class GetOk        < Method(71, :get_ok); end
+      class GetEmpty     < Method(72, :get_empty); end
+      class Ack          < Method(80, :ack); end
+      class Reject       < Method(90, :reject); end
+      class Recover      < Method(100, :recover); end
+
+      class Qos
         long       :prefetch_size
         short      :prefetch_count
         bit        :global
       end
 
-      class QosOk < Method(11, :qos_ok)
+      class QosOk
       end
 
-      class Consume < Method(20, :consume)
+      class Consume
         short      :ticket
         shortstr   :queue
         shortstr   :consumer_tag
@@ -383,20 +423,20 @@ module AMQP
         bit        :nowait
       end
 
-      class ConsumeOk < Method(21, :consume_ok)
+      class ConsumeOk
         shortstr   :consumer_tag
       end
 
-      class Cancel < Method(30, :cancel)
+      class Cancel
         shortstr   :consumer_tag
         bit        :nowait
       end
 
-      class CancelOk < Method(31, :cancel_ok)
+      class CancelOk
         shortstr   :consumer_tag
       end
 
-      class Publish < Method(40, :publish)
+      class Publish
         short      :ticket
         shortstr   :exchange
         shortstr   :routing_key
@@ -404,14 +444,14 @@ module AMQP
         bit        :immediate
       end
 
-      class Return < Method(50, :return)
+      class Return
         short      :reply_code
         shortstr   :reply_text
         shortstr   :exchange
         shortstr   :routing_key
       end
 
-      class Deliver < Method(60, :deliver)
+      class Deliver
         shortstr   :consumer_tag
         longlong   :delivery_tag
         bit        :redelivered
@@ -419,13 +459,13 @@ module AMQP
         shortstr   :routing_key
       end
 
-      class Get < Method(70, :get)
+      class Get
         short      :ticket
         shortstr   :queue
         bit        :no_ack
       end
 
-      class GetOk < Method(71, :get_ok)
+      class GetOk
         longlong   :delivery_tag
         bit        :redelivered
         shortstr   :exchange
@@ -433,27 +473,27 @@ module AMQP
         long       :message_count
       end
 
-      class GetEmpty < Method(72, :get_empty)
+      class GetEmpty
         shortstr   :cluster_id
       end
 
-      class Ack < Method(80, :ack)
+      class Ack
         longlong   :delivery_tag
         bit        :multiple
       end
 
-      class Reject < Method(90, :reject)
+      class Reject
         longlong   :delivery_tag
         bit        :requeue
       end
 
-      class Recover < Method(100, :recover)
+      class Recover
         bit        :requeue
       end
 
     end
 
-    class File < Class(70, :file)
+    class File
       shortstr   :content_type
       shortstr   :content_encoding
       table      :headers
@@ -464,16 +504,31 @@ module AMQP
       timestamp  :timestamp
       shortstr   :cluster_id
 
-      class Qos < Method(10, :qos)
+      class Qos          < Method(10, :qos); end
+      class QosOk        < Method(11, :qos_ok); end
+      class Consume      < Method(20, :consume); end
+      class ConsumeOk    < Method(21, :consume_ok); end
+      class Cancel       < Method(30, :cancel); end
+      class CancelOk     < Method(31, :cancel_ok); end
+      class Open         < Method(40, :open); end
+      class OpenOk       < Method(41, :open_ok); end
+      class Stage        < Method(50, :stage); end
+      class Publish      < Method(60, :publish); end
+      class Return       < Method(70, :return); end
+      class Deliver      < Method(80, :deliver); end
+      class Ack          < Method(90, :ack); end
+      class Reject       < Method(100, :reject); end
+
+      class Qos
         long       :prefetch_size
         short      :prefetch_count
         bit        :global
       end
 
-      class QosOk < Method(11, :qos_ok)
+      class QosOk
       end
 
-      class Consume < Method(20, :consume)
+      class Consume
         short      :ticket
         shortstr   :queue
         shortstr   :consumer_tag
@@ -483,32 +538,32 @@ module AMQP
         bit        :nowait
       end
 
-      class ConsumeOk < Method(21, :consume_ok)
+      class ConsumeOk
         shortstr   :consumer_tag
       end
 
-      class Cancel < Method(30, :cancel)
+      class Cancel
         shortstr   :consumer_tag
         bit        :nowait
       end
 
-      class CancelOk < Method(31, :cancel_ok)
+      class CancelOk
         shortstr   :consumer_tag
       end
 
-      class Open < Method(40, :open)
+      class Open
         shortstr   :identifier
         longlong   :content_size
       end
 
-      class OpenOk < Method(41, :open_ok)
+      class OpenOk
         longlong   :staged_size
       end
 
-      class Stage < Method(50, :stage)
+      class Stage
       end
 
-      class Publish < Method(60, :publish)
+      class Publish
         short      :ticket
         shortstr   :exchange
         shortstr   :routing_key
@@ -517,14 +572,14 @@ module AMQP
         shortstr   :identifier
       end
 
-      class Return < Method(70, :return)
+      class Return
         short      :reply_code
         shortstr   :reply_text
         shortstr   :exchange
         shortstr   :routing_key
       end
 
-      class Deliver < Method(80, :deliver)
+      class Deliver
         shortstr   :consumer_tag
         longlong   :delivery_tag
         bit        :redelivered
@@ -533,36 +588,46 @@ module AMQP
         shortstr   :identifier
       end
 
-      class Ack < Method(90, :ack)
+      class Ack
         longlong   :delivery_tag
         bit        :multiple
       end
 
-      class Reject < Method(100, :reject)
+      class Reject
         longlong   :delivery_tag
         bit        :requeue
       end
 
     end
 
-    class Stream < Class(80, :stream)
+    class Stream
       shortstr   :content_type
       shortstr   :content_encoding
       table      :headers
       octet      :priority
       timestamp  :timestamp
 
-      class Qos < Method(10, :qos)
+      class Qos          < Method(10, :qos); end
+      class QosOk        < Method(11, :qos_ok); end
+      class Consume      < Method(20, :consume); end
+      class ConsumeOk    < Method(21, :consume_ok); end
+      class Cancel       < Method(30, :cancel); end
+      class CancelOk     < Method(31, :cancel_ok); end
+      class Publish      < Method(40, :publish); end
+      class Return       < Method(50, :return); end
+      class Deliver      < Method(60, :deliver); end
+
+      class Qos
         long       :prefetch_size
         short      :prefetch_count
         long       :consume_rate
         bit        :global
       end
 
-      class QosOk < Method(11, :qos_ok)
+      class QosOk
       end
 
-      class Consume < Method(20, :consume)
+      class Consume
         short      :ticket
         shortstr   :queue
         shortstr   :consumer_tag
@@ -571,20 +636,20 @@ module AMQP
         bit        :nowait
       end
 
-      class ConsumeOk < Method(21, :consume_ok)
+      class ConsumeOk
         shortstr   :consumer_tag
       end
 
-      class Cancel < Method(30, :cancel)
+      class Cancel
         shortstr   :consumer_tag
         bit        :nowait
       end
 
-      class CancelOk < Method(31, :cancel_ok)
+      class CancelOk
         shortstr   :consumer_tag
       end
 
-      class Publish < Method(40, :publish)
+      class Publish
         short      :ticket
         shortstr   :exchange
         shortstr   :routing_key
@@ -592,14 +657,14 @@ module AMQP
         bit        :immediate
       end
 
-      class Return < Method(50, :return)
+      class Return
         short      :reply_code
         shortstr   :reply_text
         shortstr   :exchange
         shortstr   :routing_key
       end
 
-      class Deliver < Method(60, :deliver)
+      class Deliver
         shortstr   :consumer_tag
         longlong   :delivery_tag
         shortstr   :exchange
@@ -608,61 +673,84 @@ module AMQP
 
     end
 
-    class Tx < Class(90, :tx)
+    class Tx
 
-      class Select < Method(10, :select)
+      class Select       < Method(10, :select); end
+      class SelectOk     < Method(11, :select_ok); end
+      class Commit       < Method(20, :commit); end
+      class CommitOk     < Method(21, :commit_ok); end
+      class Rollback     < Method(30, :rollback); end
+      class RollbackOk   < Method(31, :rollback_ok); end
+
+      class Select
       end
 
-      class SelectOk < Method(11, :select_ok)
+      class SelectOk
       end
 
-      class Commit < Method(20, :commit)
+      class Commit
       end
 
-      class CommitOk < Method(21, :commit_ok)
+      class CommitOk
       end
 
-      class Rollback < Method(30, :rollback)
+      class Rollback
       end
 
-      class RollbackOk < Method(31, :rollback_ok)
+      class RollbackOk
       end
 
     end
 
-    class Dtx < Class(100, :dtx)
+    class Dtx
 
-      class Select < Method(10, :select)
+      class Select       < Method(10, :select); end
+      class SelectOk     < Method(11, :select_ok); end
+      class Start        < Method(20, :start); end
+      class StartOk      < Method(21, :start_ok); end
+
+      class Select
       end
 
-      class SelectOk < Method(11, :select_ok)
+      class SelectOk
       end
 
-      class Start < Method(20, :start)
+      class Start
         shortstr   :dtx_identifier
       end
 
-      class StartOk < Method(21, :start_ok)
+      class StartOk
       end
 
     end
 
-    class Tunnel < Class(110, :tunnel)
+    class Tunnel
       table      :headers
       shortstr   :proxy_name
       shortstr   :data_name
       octet      :durable
       octet      :broadcast
 
-      class Request < Method(10, :request)
+      class Request      < Method(10, :request); end
+
+      class Request
         table      :meta_data
       end
 
     end
 
-    class Test < Class(120, :test)
+    class Test
 
-      class Integer < Method(10, :integer)
+      class Integer      < Method(10, :integer); end
+      class IntegerOk    < Method(11, :integer_ok); end
+      class String       < Method(20, :string); end
+      class StringOk     < Method(21, :string_ok); end
+      class Table        < Method(30, :table); end
+      class TableOk      < Method(31, :table_ok); end
+      class Content      < Method(40, :content); end
+      class ContentOk    < Method(41, :content_ok); end
+
+      class Integer
         octet      :integer_1
         short      :integer_2
         long       :integer_3
@@ -670,35 +758,35 @@ module AMQP
         octet      :operation
       end
 
-      class IntegerOk < Method(11, :integer_ok)
+      class IntegerOk
         longlong   :result
       end
 
-      class String < Method(20, :string)
+      class String
         shortstr   :string_1
         longstr    :string_2
         octet      :operation
       end
 
-      class StringOk < Method(21, :string_ok)
+      class StringOk
         longstr    :result
       end
 
-      class Table < Method(30, :table)
+      class Table
         table      :table
         octet      :integer_op
         octet      :string_op
       end
 
-      class TableOk < Method(31, :table_ok)
+      class TableOk
         longlong   :integer_result
         longstr    :string_result
       end
 
-      class Content < Method(40, :content)
+      class Content
       end
 
-      class ContentOk < Method(41, :content_ok)
+      class ContentOk
         long       :content_checksum
       end
 

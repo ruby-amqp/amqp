@@ -6,8 +6,6 @@ require 'eventmachine'
 require 'amqp_spec'
 
 module AMQP
-  HEADER = 'AMQP'.freeze
-
   class BufferOverflow < Exception; end
   class InvalidFrame < Exception; end
 
@@ -70,7 +68,7 @@ module AMQP
       alias :to_s :to_binary
       
       def to_frame channel = 0
-        Frame.new(:method, channel, self)
+        Frame.new(:METHOD, channel, self)
       end
       
       private
@@ -124,14 +122,12 @@ module AMQP
   end
 
   class Frame
-    TYPES = [ nil, :method, :header, :body, :'oob-method', :'oob-header', :'oob-body', :trace, :heartbeat ]
-
     def initialize type, channel, payload
       @channel = channel
       @type = (1..8).include?(type) ? TYPES[type] :
                                       TYPES.include?(type) ? type : raise(InvalidFrame)
 
-      if @type == :method and payload.is_a? String
+      if @type == :METHOD and payload.is_a? String
         @payload = Protocol.parse(payload)
       else
         @payload = payload
@@ -142,7 +138,7 @@ module AMQP
     def to_binary
       data = payload.to_s
       size = data.length
-      [TYPES.index(type), channel, size, data, FRAME_END].pack("CnNa#{size}C")
+      [TYPES.index(type), channel, size, data, FOOTER].pack("CnNa#{size}C")
     end
     alias :to_s :to_binary
 
@@ -173,7 +169,7 @@ module AMQP
       while true
         type, channel, size = parse(:octet, :short, :long)
         payload = read(size)
-        if read(1) == FRAME_END.chr
+        if read(1) == Frame::FOOTER.chr
           frames << Frame.new(type, channel, payload)
         else
           raise InvalidFrame
@@ -345,7 +341,7 @@ module AMQP
       log 'disconnected'
     end
   
-    def self.start host = 'localhost', port = 5672, &blk
+    def self.start host = 'localhost', port = PORT, &blk
       EM.run{
         EM.connect host, port, self, blk
       }
@@ -389,8 +385,8 @@ elsif $0 =~ /bacon/
     end
 
     should 'return type as symbol' do
-      Frame.new(3, 0, 'abc').type.should == :body
-      Frame.new(:body, 0, 'abc').type.should == :body
+      Frame.new(3, 0, 'abc').type.should == :BODY
+      Frame.new(:BODY, 0, 'abc').type.should == :BODY
     end
 
     should 'wrap Buffer#extract' do
@@ -439,7 +435,7 @@ elsif $0 =~ /bacon/
     end
 
     should 'generate method frames' do
-      @startok.to_frame.should == Frame.new(:method, 0, @startok)
+      @startok.to_frame.should == Frame.new(:METHOD, 0, @startok)
     end
     
     should 'convert to and from binary' do

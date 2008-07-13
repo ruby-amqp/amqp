@@ -1,5 +1,6 @@
 task :codegen do
   sh 'ruby codegen.rb > amqp_spec.rb'
+  sh 'ruby amqp_spec.rb'
 end
 
 task :spec do

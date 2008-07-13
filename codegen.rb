@@ -11,17 +11,24 @@ require 'erb'
 
 puts ERB.new(%q[
   module AMQP
+    HEADER        = <%= s['name'].dump %>.freeze
     VERSION_MAJOR = <%= s['major-version'] %>
     VERSION_MINOR = <%= s['minor-version'] %>
-    DEFAULT_PORT  = <%= s['port'] %>
+    PORT          = <%= s['port'] %>
 
-    <%- s['constants'].each do |c| -%>
-    <%= c['name'].tr('-', '_').upcase.ljust(19) -%> = <%= c['value'] %>
-    <%- end -%>
+    class Frame
+      TYPES = [
+        nil,
+        <%- s['constants'].select{|c| (1..8).include? c['value'] }.each do |c| -%>
+        :<%= c['name'].tr('-', '_').gsub(/^FRAME_/,'').upcase -%>,
+        <%- end -%>
+      ]
+      FOOTER = <%= frame_end = s['constants'].find{|c| c['name'] == 'FRAME-END' }['value'] %>
+    end
 
-    DOMAINS = {
-      <%- s['domains'].select{|d| d.first != d.last }.each do |d| -%>
-      :<%= d.first.dump -%> => :<%= d.last %>,
+    RESPONSES = {
+      <%- s['constants'].select{|c| c['value'] != frame_end and (200..500).include? c['value'] }.each do |c| -%>
+      <%= c['value'] %> => :<%= c['name'].tr('-', '_').gsub(/^FRAME_/,'').upcase -%>,
       <%- end -%>
     }
 
@@ -108,13 +115,21 @@ puts ERB.new(%q[
       end
       
       <%- s['classes'].each do |c| -%>
-      class <%= c['name'].capitalize %> < Class(<%= c['id'] %>, :<%= c['name'] %>)
+      class <%= c['name'].capitalize.ljust(12) %> < Class(<%= c['id'] %>, :<%= c['name'] %>); end
+      <%- end -%>
+
+      <%- s['classes'].each do |c| -%>
+      class <%= c['name'].capitalize %>
         <%- c['properties'].each do |p| -%>
         <%= p['type'].ljust(10) %> :<%= p['name'].tr('-','_') %>
         <%- end if c['properties'] -%>
 
         <%- c['methods'].each do |m| -%>
-        class <%= m['name'].capitalize.gsub(/-(.)/){ "#{$1.upcase}"} %> < Method(<%= m['id'] %>, :<%= m['name'].tr('- ','_') %>)
+        class <%= m['name'].capitalize.gsub(/-(.)/){ "#{$1.upcase}"}.ljust(12) %> < Method(<%= m['id'] %>, :<%= m['name'].tr('- ','_') %>); end
+        <%- end -%>
+
+        <%- c['methods'].each do |m| -%>
+        class <%= m['name'].capitalize.gsub(/-(.)/){ "#{$1.upcase}"} %>
           <%- m['arguments'].each do |a| -%>
           <%- if a['domain'] -%>
           <%= s['domains'].find{|k,v| k == a['domain']}.last.ljust(10) %> :<%= a['name'].tr('- ','_') %>
