@@ -1,3 +1,5 @@
+require 'enumerator'
+
 require 'rubygems'
 require 'eventmachine'
 
@@ -36,10 +38,23 @@ module AMQP
       end
 
       def to_binary
-        pack(:short, self.class.parent.id) + pack(:short, self.class.id) +
-          self.class.arguments.inject('') do |str, (type, name)|
-            str + pack(type, instance_variable_get("@#{name}"))
+        pack(:short, self.class.parent.id) +
+        pack(:short, self.class.id) +
+        self.class.arguments.select{|type,_| type != :bit }.inject(''){ |data, (type, name)|
+          data + pack(type, instance_variable_get("@#{name}"))
+        } +
+        self.class.arguments.map{|type, name|
+          if type == :bit
+            instance_variable_get("@#{name}") || false
           end
+        }.compact.to_enum(:each_slice, 8).inject(''){|data, bits|
+          data + pack(:octet,
+            bits.enum_with_index.inject(0){ |byte, (bit, i)|
+             byte |= 1<<i if bit
+             byte
+            }
+          )
+        }
       end
       alias :to_s :to_binary
       
@@ -72,11 +87,14 @@ module AMQP
             end
           when :table
             pack :longstr, (data.inject('') do |str, (key, value)|
-                             str + pack(:shortstr, key.to_s) + pack(:octet, ?S) + pack(:longstr, value.to_s) # XXX support other field types here
+                             str +
+                             pack(:shortstr, key.to_s) +
+                             pack(:octet, ?S) +
+                             pack(:longstr, value.to_s) # XXX support other field types here
                            end)
           when :longlong
           when :bit
-            data = if data.nil? or data == false or data <= 0
+            data = if data.nil? or data == false or data == 0
                      0
                    else
                      1
@@ -269,6 +287,12 @@ module AMQP
 
         when Protocol::Connection::OpenOk
           send Protocol::Channel::Open.new, :channel => 1
+        
+        when Protocol::Channel::OpenOk
+          send Protocol::Access::Request.new(:realm => '/data',
+                                             :read => true,
+                                             :write => true,
+                                             :active => true), :channel => 1
         end
       end
     end
