@@ -37,24 +37,35 @@ module AMQP
         end
       end
 
+      def convert_bits
+        if @bits.size > 0
+          data = @bits.to_enum(:each_slice, 8).inject(''){|octet, list|
+           octet + pack(:octet,
+             list.enum_with_index.inject(0){ |byte, (bit, i)|
+              byte |= 1<<i if bit
+              byte
+             }
+           )
+          }
+          @bits = []
+        end
+        
+        data || ''
+      end
+
       def to_binary
+        @bits = []
+
         pack(:short, self.class.parent.id) +
         pack(:short, self.class.id) +
-        self.class.arguments.select{|type,_| type != :bit }.inject(''){ |data, (type, name)|
-          data + pack(type, instance_variable_get("@#{name}"))
-        } +
-        self.class.arguments.map{|type, name|
+        self.class.arguments.inject(''){ |data, (type, name)|
           if type == :bit
-            instance_variable_get("@#{name}") || false
+            @bits << (instance_variable_get("@#{name}") || false)
+            data
+          else
+            data + convert_bits + pack(type, instance_variable_get("@#{name}"))
           end
-        }.compact.to_enum(:each_slice, 8).inject(''){|data, bits|
-          data + pack(:octet,
-            bits.enum_with_index.inject(0){ |byte, (bit, i)|
-             byte |= 1<<i if bit
-             byte
-            }
-          )
-        }
+        } + convert_bits
       end
       alias :to_s :to_binary
       
@@ -83,9 +94,10 @@ module AMQP
               pack(:table, data)
             else
               len = data.length
-              [len, data].pack("Na#{len}")              
+              [len, data].pack("Na#{len}")
             end
           when :table
+            data ||= {}
             pack :longstr, (data.inject('') do |str, (key, value)|
                              str +
                              pack(:shortstr, key.to_s) +
@@ -293,6 +305,16 @@ module AMQP
                                              :read => true,
                                              :write => true,
                                              :active => true), :channel => 1
+
+        when Protocol::Access::RequestOk
+          @ticket = method.ticket
+          send Protocol::Queue::Declare.new(:ticket => @ticket,
+                                            :queue => 'a',
+                                            :exclusive => true,
+                                            :auto_delete => true), :channel => 1
+
+        when Protocol::Queue::DeclareOk
+          
         end
       end
     end
@@ -421,10 +443,10 @@ __END__
 ["connected"]
 
 ["receive",
- #<AMQP::Frame:0x10708f4
+ #<AMQP::Frame:0x1067c40
   @channel=0,
   @payload=
-   #<AMQP::Protocol::Connection::Start:0x10705c0
+   #<AMQP::Protocol::Connection::Start:0x106790c
     @debug=1,
     @locales="en_US",
     @mechanisms="PLAIN AMQPLAIN",
@@ -440,10 +462,10 @@ __END__
   @type=:method>]
 
 ["send",
- #<AMQP::Frame:0x105967c
+ #<AMQP::Frame:0x10509c8
   @channel=0,
   @payload=
-   #<AMQP::Protocol::Connection::StartOk:0x1059898
+   #<AMQP::Protocol::Connection::StartOk:0x1050be4
     @client_properties=
      {:product=>"AMQP",
       :information=>"http://github.com/tmm1/amqp",
@@ -452,14 +474,14 @@ __END__
     @debug=1,
     @locale="en_US",
     @mechanism="AMQPLAIN",
-    @response={:LOGIN=>"guest", :PASSWORD=>"guest"}>,
+    @response={:PASSWORD=>"guest", :LOGIN=>"guest"}>,
   @type=:method>]
 
 ["receive",
- #<AMQP::Frame:0x1042c9c
+ #<AMQP::Frame:0x1039f84
   @channel=0,
   @payload=
-   #<AMQP::Protocol::Connection::Tune:0x1042968
+   #<AMQP::Protocol::Connection::Tune:0x1039c50
     @channel_max=0,
     @debug=1,
     @frame_max=131072,
@@ -467,10 +489,10 @@ __END__
   @type=:method>]
 
 ["send",
- #<AMQP::Frame:0x1037e3c
+ #<AMQP::Frame:0x102f124
   @channel=0,
   @payload=
-   #<AMQP::Protocol::Connection::TuneOk:0x1038058
+   #<AMQP::Protocol::Connection::TuneOk:0x102f340
     @channel_max=0,
     @debug=1,
     @frame_max=131072,
@@ -478,10 +500,10 @@ __END__
   @type=:method>]
 
 ["send",
- #<AMQP::Frame:0x102d16c
+ #<AMQP::Frame:0x1024440
   @channel=0,
   @payload=
-   #<AMQP::Protocol::Connection::Open:0x102d3b0
+   #<AMQP::Protocol::Connection::Open:0x1024684
     @capabilities="",
     @debug=1,
     @insist=nil,
@@ -489,32 +511,32 @@ __END__
   @type=:method>]
 
 ["receive",
- #<AMQP::Frame:0x102208c
+ #<AMQP::Frame:0x1019298
   @channel=0,
   @payload=
-   #<AMQP::Protocol::Connection::OpenOk:0x1021d58
+   #<AMQP::Protocol::Connection::OpenOk:0x1018f64
     @debug=1,
     @known_hosts="julie.local:5672">,
   @type=:method>]
 
 ["send",
- #<AMQP::Frame:0x1019338
+ #<AMQP::Frame:0x1010544
   @channel=1,
   @payload=
-   #<AMQP::Protocol::Channel::Open:0x101957c @debug=1, @out_of_band=nil>,
+   #<AMQP::Protocol::Channel::Open:0x1010788 @debug=1, @out_of_band=nil>,
   @type=:method>]
 
 ["receive",
- #<AMQP::Frame:0x1010814
+ #<AMQP::Frame:0x1007aac
   @channel=1,
-  @payload=#<AMQP::Protocol::Channel::OpenOk:0x10104e0 @debug=1>,
+  @payload=#<AMQP::Protocol::Channel::OpenOk:0x1007778 @debug=1>,
   @type=:method>]
 
 ["send",
- #<AMQP::Frame:0x1009320
+ #<AMQP::Frame:0x10005b8
   @channel=1,
   @payload=
-   #<AMQP::Protocol::Access::Request:0x100967c
+   #<AMQP::Protocol::Access::Request:0x1000914
     @active=true,
     @debug=1,
     @exclusive=nil,
@@ -525,7 +547,34 @@ __END__
   @type=:method>]
 
 ["receive",
- #<AMQP::Frame:0x610cd8
+ #<AMQP::Frame:0x5f00f0
   @channel=1,
-  @payload=#<AMQP::Protocol::Access::RequestOk:0x6104cc @debug=1, @ticket=101>,
+  @payload=#<AMQP::Protocol::Access::RequestOk:0x5ef808 @debug=1, @ticket=101>,
+  @type=:method>]
+
+["send",
+ #<AMQP::Frame:0x5cdac8
+  @channel=1,
+  @payload=
+   #<AMQP::Protocol::Queue::Declare:0x5ce1f8
+    @arguments=nil,
+    @auto_delete=true,
+    @debug=1,
+    @durable=nil,
+    @exclusive=true,
+    @nowait=nil,
+    @passive=nil,
+    @queue="a",
+    @ticket=101>,
+  @type=:method>]
+
+["receive",
+ #<AMQP::Frame:0x59d698
+  @channel=1,
+  @payload=
+   #<AMQP::Protocol::Queue::DeclareOk:0x59ca68
+    @consumer_count=0,
+    @debug=1,
+    @message_count=0,
+    @queue="a">,
   @type=:method>]
