@@ -309,12 +309,27 @@ module AMQP
         when Protocol::Access::RequestOk
           @ticket = method.ticket
           send Protocol::Queue::Declare.new(:ticket => @ticket,
-                                            :queue => 'a',
+                                            :queue => 'test_queue',
                                             :exclusive => true,
                                             :auto_delete => true), :channel => 1
 
         when Protocol::Queue::DeclareOk
-          
+          @queue = method.queue
+          send Protocol::Queue::Bind.new(:ticket => @ticket,
+                                         :queue => @queue,
+                                         :exchange => '',
+                                         :routing_key => 'test_route'), :channel => 1
+
+        when Protocol::Queue::BindOk
+          send Protocol::Basic::Consume.new(:ticket => @ticket,
+                                            :queue => @queue,
+                                            :no_local => false,
+                                            :no_ack => true), :channel => 1
+
+        when Protocol::Basic::ConsumeOk
+          send Protocol::Basic::Publish.new(:ticket => @ticket,
+                                            :exchange => '',
+                                            :routing_key => 'test_route'), :channel => 1
         end
       end
     end
