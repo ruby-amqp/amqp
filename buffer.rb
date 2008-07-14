@@ -230,7 +230,7 @@ if $0 =~ /bacon/ or $0 == __FILE__
       :bit => true
     }.each do |type, value|
 
-      should "read and write #{type}" do
+      should "read and write a #{type}" do
         @buf.write(type, value)
         @buf.rewind
         @buf.read(type).should == value
@@ -238,7 +238,7 @@ if $0 =~ /bacon/ or $0 == __FILE__
 
     end
     
-    should 'read and write bits' do
+    should 'read and write multiple bits' do
       bits = [true, false, false, true, true, false, false, true, true, false]
       @buf.write(:bit, bits)
       @buf.write(:octet, 100)
