@@ -141,7 +141,8 @@ module AMQP
     def to_binary
       data = payload.to_s
       size = data.length
-      [TYPES.index(type), channel, size, data, FOOTER].pack("CnNa#{size}C")
+      # XXX the spec falsely claims there is another empty 'cycle' octet in this header
+      [TYPES.index(type), channel, size, data, FOOTER].pack("CnNa*C")
     end
     alias :to_s :to_binary
 
@@ -270,7 +271,8 @@ module AMQP
     end
   
     def receive_data data
-      # log 'receive', data
+      # log 'receive_data', data
+
       Frame.extract(data).each do |frame|
         log 'receive', frame
         
@@ -306,8 +308,8 @@ module AMQP
         when Protocol::Access::RequestOk
           @ticket = method.ticket
           send Protocol::Queue::Declare.new(:ticket => @ticket,
-                                            :queue => 'test_queue',
-                                            :exclusive => true,
+                                            :queue => '',
+                                            :exclusive => false,
                                             :auto_delete => true), :channel => 1
 
         when Protocol::Queue::DeclareOk
@@ -326,7 +328,7 @@ module AMQP
         when Protocol::Basic::ConsumeOk
           send Protocol::Basic::Publish.new(:ticket => @ticket,
                                             :exchange => '',
-                                            :routing_key => 'test_route'), :channel => 1
+                                            :routing_key => 'test_route'), :channel => 1, :content => 'this is a test!'
         end
       end
     end
@@ -336,7 +338,28 @@ module AMQP
       data = data.to_frame(channel) unless data.is_a? Frame
       log 'send', data
       send_data data.to_binary
+
+      if content = opts[:content]
+        size = content.length
+
+        lower = size & 0xffffffff
+        upper = (size & ~0xffffffff) >> 32
+        # XXX rabbitmq only supports weight == 0
+        data = [ 60, weight = 0, upper, lower, 0b1001_1000_0000_0000 ].pack("nnNNn")
+        data += [ len = 'application/octet-stream'.length, 'application/octet-stream', 1, 1 ].pack("Ca*CC")
+        send_data Frame.new(:HEADER, channel, data).to_binary
+
+        # XXX spec says add FRAME_END, but rabbitmq doesn't support it
+        # data = [ content, Frame::FOOTER ].pack('a*C')
+        data = [ content ].pack("a*")
+        send_data Frame.new(:BODY, channel, data).to_binary
+      end
     end
+
+    # def send_data data
+    #   log 'send_data', data
+    #   super
+    # end
 
     def unbind
       log 'disconnected'
@@ -455,10 +478,10 @@ __END__
 ["connected"]
 
 ["receive",
- #<AMQP::Frame:0x1067c40
+ #<AMQP::Frame:0x1063834
   @channel=0,
   @payload=
-   #<AMQP::Protocol::Connection::Start:0x106790c
+   #<AMQP::Protocol::Connection::Start:0x1063500
     @debug=1,
     @locales="en_US",
     @mechanisms="PLAIN AMQPLAIN",
@@ -471,13 +494,13 @@ __END__
        "Copyright (C) 2007-2008 LShift Ltd., Cohesive Financial Technologies LLC., and Rabbit Technologies Ltd."},
     @version_major=8,
     @version_minor=0>,
-  @type=:method>]
+  @type=:METHOD>]
 
 ["send",
- #<AMQP::Frame:0x10509c8
+ #<AMQP::Frame:0x104c5bc
   @channel=0,
   @payload=
-   #<AMQP::Protocol::Connection::StartOk:0x1050be4
+   #<AMQP::Protocol::Connection::StartOk:0x104c7d8
     @client_properties=
      {:product=>"AMQP",
       :information=>"http://github.com/tmm1/amqp",
@@ -487,68 +510,68 @@ __END__
     @locale="en_US",
     @mechanism="AMQPLAIN",
     @response={:PASSWORD=>"guest", :LOGIN=>"guest"}>,
-  @type=:method>]
+  @type=:METHOD>]
 
 ["receive",
- #<AMQP::Frame:0x1039f84
+ #<AMQP::Frame:0x1035b78
   @channel=0,
   @payload=
-   #<AMQP::Protocol::Connection::Tune:0x1039c50
+   #<AMQP::Protocol::Connection::Tune:0x1035844
     @channel_max=0,
     @debug=1,
     @frame_max=131072,
     @heartbeat=0>,
-  @type=:method>]
+  @type=:METHOD>]
 
 ["send",
- #<AMQP::Frame:0x102f124
+ #<AMQP::Frame:0x102ad18
   @channel=0,
   @payload=
-   #<AMQP::Protocol::Connection::TuneOk:0x102f340
+   #<AMQP::Protocol::Connection::TuneOk:0x102af34
     @channel_max=0,
     @debug=1,
     @frame_max=131072,
     @heartbeat=0>,
-  @type=:method>]
+  @type=:METHOD>]
 
 ["send",
- #<AMQP::Frame:0x1024440
+ #<AMQP::Frame:0x1020034
   @channel=0,
   @payload=
-   #<AMQP::Protocol::Connection::Open:0x1024684
+   #<AMQP::Protocol::Connection::Open:0x1020278
     @capabilities="",
     @debug=1,
     @insist=nil,
     @virtual_host="/">,
-  @type=:method>]
+  @type=:METHOD>]
 
 ["receive",
- #<AMQP::Frame:0x1019298
+ #<AMQP::Frame:0x1014e8c
   @channel=0,
   @payload=
-   #<AMQP::Protocol::Connection::OpenOk:0x1018f64
+   #<AMQP::Protocol::Connection::OpenOk:0x1014b58
     @debug=1,
     @known_hosts="julie.local:5672">,
-  @type=:method>]
+  @type=:METHOD>]
 
 ["send",
- #<AMQP::Frame:0x1010544
+ #<AMQP::Frame:0x100c138
   @channel=1,
   @payload=
-   #<AMQP::Protocol::Channel::Open:0x1010788 @debug=1, @out_of_band=nil>,
-  @type=:method>]
+   #<AMQP::Protocol::Channel::Open:0x100c37c @debug=1, @out_of_band=nil>,
+  @type=:METHOD>]
 
 ["receive",
- #<AMQP::Frame:0x1007aac
+ #<AMQP::Frame:0x10036a0
   @channel=1,
-  @payload=#<AMQP::Protocol::Channel::OpenOk:0x1007778 @debug=1>,
-  @type=:method>]
+  @payload=#<AMQP::Protocol::Channel::OpenOk:0x100336c @debug=1>,
+  @type=:METHOD>]
 
 ["send",
- #<AMQP::Frame:0x10005b8
+ #<AMQP::Frame:0x60e7e4
   @channel=1,
   @payload=
-   #<AMQP::Protocol::Access::Request:0x1000914
+   #<AMQP::Protocol::Access::Request:0x60ef14
     @active=true,
     @debug=1,
     @exclusive=nil,
@@ -556,37 +579,117 @@ __END__
     @read=true,
     @realm="/data",
     @write=true>,
-  @type=:method>]
+  @type=:METHOD>]
 
 ["receive",
- #<AMQP::Frame:0x5f00f0
+ #<AMQP::Frame:0x5dd4b4
   @channel=1,
-  @payload=#<AMQP::Protocol::Access::RequestOk:0x5ef808 @debug=1, @ticket=101>,
-  @type=:method>]
+  @payload=#<AMQP::Protocol::Access::RequestOk:0x5dcc30 @debug=1, @ticket=101>,
+  @type=:METHOD>]
 
 ["send",
- #<AMQP::Frame:0x5cdac8
+ #<AMQP::Frame:0x5c02d8
   @channel=1,
   @payload=
-   #<AMQP::Protocol::Queue::Declare:0x5ce1f8
+   #<AMQP::Protocol::Queue::Declare:0x5c08dc
     @arguments=nil,
     @auto_delete=true,
     @debug=1,
     @durable=nil,
-    @exclusive=true,
+    @exclusive=nil,
     @nowait=nil,
     @passive=nil,
-    @queue="a",
+    @queue="",
     @ticket=101>,
-  @type=:method>]
+  @type=:METHOD>]
 
 ["receive",
- #<AMQP::Frame:0x59d698
+ #<AMQP::Frame:0x58d1bc
   @channel=1,
   @payload=
-   #<AMQP::Protocol::Queue::DeclareOk:0x59ca68
+   #<AMQP::Protocol::Queue::DeclareOk:0x58cbb8
     @consumer_count=0,
     @debug=1,
     @message_count=0,
-    @queue="a">,
-  @type=:method>]
+    @queue="amq.gen-FiDSuLv/KvSgdcIWrNOdYg==">,
+  @type=:METHOD>]
+
+["send",
+ #<AMQP::Frame:0x570f44
+  @channel=1,
+  @payload=
+   #<AMQP::Protocol::Queue::Bind:0x571624
+    @arguments=nil,
+    @debug=1,
+    @exchange="",
+    @nowait=nil,
+    @queue="amq.gen-FiDSuLv/KvSgdcIWrNOdYg==",
+    @routing_key="test_route",
+    @ticket=101>,
+  @type=:METHOD>]
+
+["receive",
+ #<AMQP::Frame:0x549124
+  @channel=1,
+  @payload=#<AMQP::Protocol::Queue::BindOk:0x54897c @debug=1>,
+  @type=:METHOD>]
+
+["send",
+ #<AMQP::Frame:0x5339f0
+  @channel=1,
+  @payload=
+   #<AMQP::Protocol::Basic::Consume:0x534120
+    @consumer_tag=nil,
+    @debug=1,
+    @exclusive=nil,
+    @no_ack=true,
+    @no_local=nil,
+    @nowait=nil,
+    @queue="amq.gen-FiDSuLv/KvSgdcIWrNOdYg==",
+    @ticket=101>,
+  @type=:METHOD>]
+
+["receive",
+ #<AMQP::Frame:0x503d04
+  @channel=1,
+  @payload=
+   #<AMQP::Protocol::Basic::ConsumeOk:0x5035d4
+    @consumer_tag="amq.ctag-r6XkTE2+kN1qqbMG7FXraQ==",
+    @debug=1>,
+  @type=:METHOD>]
+
+["send",
+ #<AMQP::Frame:0x365498
+  @channel=1,
+  @payload=
+   #<AMQP::Protocol::Basic::Publish:0x366cbc
+    @debug=1,
+    @exchange="",
+    @immediate=nil,
+    @mandatory=nil,
+    @routing_key="test_route",
+    @ticket=101>,
+  @type=:METHOD>]
+
+["receive",
+ #<AMQP::Frame:0x11fd000
+  @channel=1,
+  @payload=
+   #<AMQP::Protocol::Basic::Deliver:0x11fc4fc
+    @consumer_tag="amq.ctag-r6XkTE2+kN1qqbMG7FXraQ==",
+    @debug=1,
+    @delivery_tag=nil,
+    @exchange="",
+    @redelivered=nil,
+    @routing_key="">,
+  @type=:METHOD>]
+
+["receive",
+ #<AMQP::Frame:0x11fb534
+  @channel=1,
+  @payload=
+   "\000<\000\000\000\000\000\000\000\000\000\017\230\000\030application/octet-stream\001\001",
+  @type=:HEADER>]
+
+["receive",
+ #<AMQP::Frame:0x11faef4 @channel=1, @payload="this is a test!", @type=:BODY>]
