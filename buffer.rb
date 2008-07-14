@@ -1,3 +1,5 @@
+require 'enumerator'
+
 module AMQP
   class Buffer
     class Overflow < Exception; end
@@ -70,6 +72,12 @@ module AMQP
           end
 
           t
+        when :bit
+          if (@bits ||= []).empty?
+            @bits = read(:octet).to_s(2).scan(/./).map{|b| b == '1' }
+          end
+
+          @bits.shift
         end
       end
       
@@ -127,6 +135,13 @@ module AMQP
 
                           table
                         end)
+      when :bit
+        [*data].to_enum(:each_slice, 8).each{|bits|
+          write(:octet, bits.enum_with_index.inject(0){ |byte, (bit, i)|
+            byte |= 1<<i if bit
+            byte
+           })
+         }
       end
       
       self
@@ -211,10 +226,10 @@ if $0 =~ /bacon/ or $0 == __FILE__
       :longstr => 'bye'*500,
       :timestamp => time = Time.at(Time.now.to_i),
       :table => { :this => 'is', :a => 'hash', :with => {:nested => 123, :and => time, :also => 123.456} },
-      :bit => [true, false, false, true, true]
+      :bit => true
     }.each do |type, value|
 
-      it "should read and write #{type}s" do
+      it "should read and write #{type}" do
         @buf.write(type, value)
         @buf.rewind
         @buf.read(type).should == value
