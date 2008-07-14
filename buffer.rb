@@ -74,7 +74,8 @@ module AMQP
           t
         when :bit
           if (@bits ||= []).empty?
-            @bits = read(:octet).to_s(2).scan(/./).map{|b| b == '1' }
+            val = read(:octet)
+            @bits = (0..7).map{|i| (val & 1<<i) != 0 }
           end
 
           @bits.shift
@@ -229,12 +230,25 @@ if $0 =~ /bacon/ or $0 == __FILE__
       :bit => true
     }.each do |type, value|
 
-      it "should read and write #{type}" do
+      should "read and write #{type}" do
         @buf.write(type, value)
         @buf.rewind
         @buf.read(type).should == value
       end
 
+    end
+    
+    should 'read and write bits' do
+      bits = [true, false, false, true, true, false, false, true, true, false]
+      @buf.write(:bit, bits)
+      @buf.write(:octet, 100)
+      
+      @buf.rewind
+      
+      bits.map do
+        @buf.read(:bit)
+      end.should == bits
+      @buf.read(:octet).should == 100
     end
   end
 end
