@@ -1,5 +1,7 @@
 module AMQP
   class Buffer
+    class Overflow < Exception; end
+    
     def initialize data = ''
       @data = data
       @pos = 0
@@ -18,6 +20,33 @@ module AMQP
     
     def eof?
       pos == length
+    end
+
+    def read *types
+      values = types.each do |type|
+        case type
+        when :octet
+          
+        end
+      end
+    end
+    
+    def write type, data
+      
+    end
+
+    def _read size, pack = nil
+      if @pos + size > length
+        raise Overflow
+      else
+        data = @data[@pos,size]
+        @data[@pos,size] = ''
+        data
+      end
+    end
+    
+    def _write data
+      @data[@pos,0] = data 
     end
   end
 end
@@ -60,11 +89,17 @@ if $0 =~ /bacon/ or $0 == __FILE__
       @buf.eof?.should == true
     end
 
-    should 'read data types'
-    should 'write data types'
-    should 'raise on overflow'
+    should 'read and write data' do
+      @buf._write('abc')
+      @buf._read(2).should == 'ab'
+      @buf._read(1).should == 'c'
+    end
+
+    should 'raise on eof' do
+      lambda{ @buf._read(1) }.should.raise Buffer::Overflow
+    end
   
-    { :octet => 255,
+    { :octet => 0b10101010,
       :short => 100,
       :long => 100_000_000,
       :longlong => 999_888_777_666_555_444_333_222_111,
@@ -75,7 +110,10 @@ if $0 =~ /bacon/ or $0 == __FILE__
       :bit => [true, false, false, true, true]
     }.each do |type, value|
 
-      it "should read and write #{type}s"
+      it "should read and write #{type}s" do
+        @buf.write(type, value)
+        @buf.read(type).should == value
+      end
 
     end
   end
