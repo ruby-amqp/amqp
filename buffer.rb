@@ -23,16 +23,25 @@ module AMQP
     end
 
     def read *types
-      values = types.each do |type|
+      values = types.map do |type|
         case type
         when :octet
-          
+          _read(1, 'C')
+        when :short
+          _read(2, 'n')
         end
       end
+      
+      types.size == 1 ? values.first : values
     end
     
     def write type, data
-      
+      case type
+      when :octet
+        _write(data, 'C')
+      when :short
+        _write(data, 'n')
+      end
     end
 
     def _read size, pack = nil
@@ -41,11 +50,13 @@ module AMQP
       else
         data = @data[@pos,size]
         @data[@pos,size] = ''
+        data = data.unpack(pack).pop if pack
         data
       end
     end
     
-    def _write data
+    def _write data, pack = nil
+      data = [data].pack(pack) if pack
       @data[@pos,0] = data 
     end
   end
