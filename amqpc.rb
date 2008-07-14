@@ -103,6 +103,9 @@ module AMQP
                              pack(:longstr, value.to_s) # XXX support other field types here
                            end)
           when :longlong
+            lower = l & 0xffffffff
+            upper = (l & ~0xffffffff) >> 32
+            pack(:long, upper) + pack(:long, lower)
           when :bit
             data = if data.nil? or data == false or data == 0
                      0
@@ -143,9 +146,7 @@ module AMQP
     alias :to_s :to_binary
 
     def == b
-      type == b.type and
-      channel == b.channel and
-      payload == b.payload
+      [ :type, :channel, :payload ].inject(true){|eql, field| eql and __send__(field) == b.__send__(field) }
     end
 
     def self.extract data
