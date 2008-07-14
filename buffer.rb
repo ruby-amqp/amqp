@@ -35,9 +35,11 @@ module AMQP
           upper, lower = _read(8, 'NN')
           upper << 32 | lower
         when :shortstr
-          _read _read(1, 'C')
+          _read read(:octet)
         when :longstr
-          _read _read(4, 'N')
+          _read read(:long)
+        when :timestamp
+          Time.at read(:longlong)
         end
       end
       
@@ -60,6 +62,8 @@ module AMQP
         _write([data.length, data.to_s], 'Ca*')
       when :longstr
         _write([data.length, data.to_s], 'Na*')
+      when :timestamp
+        write(:longlong, data.to_i)
       end
     end
 
@@ -138,8 +142,8 @@ if $0 =~ /bacon/ or $0 == __FILE__
       :longlong => 666_555_444_333_222_111,
       :shortstr => 'hello',
       :longstr => 'bye'*500,
+      :timestamp => Time.at(Time.now.to_i),
       :table => { :this => 'is', 4 => 'hash' },
-      :timestamp => Time.now,
       :bit => [true, false, false, true, true]
     }.each do |type, value|
 
