@@ -29,6 +29,15 @@ module AMQP
           _read(1, 'C')
         when :short
           _read(2, 'n')
+        when :long
+          _read(4, 'N')
+        when :longlong
+          upper, lower = _read(8, 'NN')
+          upper << 32 | lower
+        when :shortstr
+          _read _read(1, 'C')
+        when :longstr
+          _read _read(4, 'N')
         end
       end
       
@@ -41,6 +50,16 @@ module AMQP
         _write(data, 'C')
       when :short
         _write(data, 'n')
+      when :long
+        _write(data, 'N')
+      when :longlong
+        lower =  data & 0xffffffff
+        upper = (data & ~0xffffffff) >> 32
+        _write([upper, lower], 'NN')
+      when :shortstr
+        _write([data.length, data.to_s], 'Ca*')
+      when :longstr
+        _write([data.length, data.to_s], 'Na*')
       end
     end
 
@@ -50,13 +69,16 @@ module AMQP
       else
         data = @data[@pos,size]
         @data[@pos,size] = ''
-        data = data.unpack(pack).pop if pack
+        if pack
+          data = data.unpack(pack)
+          data = data.pop if data.size == 1
+        end
         data
       end
     end
     
     def _write data, pack = nil
-      data = [data].pack(pack) if pack
+      data = [*data].pack(pack) if pack
       @data[@pos,0] = data 
     end
   end
@@ -113,7 +135,7 @@ if $0 =~ /bacon/ or $0 == __FILE__
     { :octet => 0b10101010,
       :short => 100,
       :long => 100_000_000,
-      :longlong => 999_888_777_666_555_444_333_222_111,
+      :longlong => 666_555_444_333_222_111,
       :shortstr => 'hello',
       :longstr => 'bye'*500,
       :table => { :this => 'is', 4 => 'hash' },
