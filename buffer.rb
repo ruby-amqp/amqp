@@ -9,9 +9,11 @@ module AMQP
 
     attr_reader :data, :pos
     alias :contents :data
+    alias :to_s :data
 
     def << data
       @data << data
+      self
     end
     
     def length
@@ -20,6 +22,10 @@ module AMQP
     
     def eof?
       pos == length
+    end
+    
+    def rewind
+      @pos = 0
     end
 
     def read *types
@@ -40,6 +46,30 @@ module AMQP
           _read read(:long)
         when :timestamp
           Time.at read(:longlong)
+        when :table
+          t = Hash.new
+
+          table = Buffer.new(read(:longstr))
+          until table.eof?
+            key, type = table.read(:shortstr, :octet)
+            key = key.intern
+            t[key] ||= case type
+                       when ?S
+                         table.read(:longstr)
+                       when ?I
+                         table.read(:long)
+                       when ?D
+                         exp = table.read(:octet)
+                         num = table.read(:long)
+                         num / 10.0**exp
+                       when ?T
+                         table.read(:timestamp)
+                       when ?F
+                         table.read(:table)
+                       end
+          end
+
+          t
         end
       end
       
@@ -61,10 +91,45 @@ module AMQP
       when :shortstr
         _write([data.length, data.to_s], 'Ca*')
       when :longstr
+        if data.is_a? Hash
+          data = Buffer.new.write(:table, data)
+        end
+
         _write([data.length, data.to_s], 'Na*')
       when :timestamp
         write(:longlong, data.to_i)
+      when :table
+        data ||= {}
+        write :longstr, (data.inject(Buffer.new) do |table, (key, value)|
+                          table.write(:shortstr, key.to_s)
+
+                          case value
+                          when String
+                            table.write(:octet, ?S)
+                            table.write(:longstr, value.to_s)
+                          when Fixnum
+                            table.write(:octet, ?I)
+                            table.write(:long, value)
+                          when Float
+                            table.write(:octet, ?D)
+                            # XXX there's gotta be a better way to do this..
+                            exp = value.to_s.gsub(/^.+\./,'').length
+                            num = value * 10**exp
+                            table.write(:octet, exp)
+                            table.write(:long, num)
+                          when Time
+                            table.write(:octet, ?T)
+                            table.write(:timestamp, value)
+                          when Hash
+                            table.write(:octet, ?F)
+                            table.write(:table, value)
+                          end
+
+                          table
+                        end)
       end
+      
+      self
     end
 
     def _read size, pack = nil
@@ -83,7 +148,8 @@ module AMQP
     
     def _write data, pack = nil
       data = [*data].pack(pack) if pack
-      @data[@pos,0] = data 
+      @data[@pos,0] = data
+      @pos += data.length
     end
   end
 end
@@ -128,6 +194,7 @@ if $0 =~ /bacon/ or $0 == __FILE__
 
     should 'read and write data' do
       @buf._write('abc')
+      @buf.rewind
       @buf._read(2).should == 'ab'
       @buf._read(1).should == 'c'
     end
@@ -142,13 +209,14 @@ if $0 =~ /bacon/ or $0 == __FILE__
       :longlong => 666_555_444_333_222_111,
       :shortstr => 'hello',
       :longstr => 'bye'*500,
-      :timestamp => Time.at(Time.now.to_i),
-      :table => { :this => 'is', 4 => 'hash' },
+      :timestamp => time = Time.at(Time.now.to_i),
+      :table => { :this => 'is', :a => 'hash', :with => {:nested => 123, :and => time, :also => 123.456} },
       :bit => [true, false, false, true, true]
     }.each do |type, value|
 
       it "should read and write #{type}s" do
         @buf.write(type, value)
+        @buf.rewind
         @buf.read(type).should == value
       end
 
