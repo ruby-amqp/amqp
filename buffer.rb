@@ -29,8 +29,49 @@ module AMQP
     def rewind
       @pos = 0
     end
+    
+    def read_properties *types
+      types.shift if types.first == :properties
+      
+      i = 0
+      values = []
+
+      while props = read(:short)
+        (0..14).each do |n|
+          # no more property types
+          break unless types[i]
+          
+          # if flag is set
+          if props & (1<<(15-n)) != 0
+            if types[i] == :bit
+              # bit values exist in flags only
+              values << true
+            else
+              # save type name for later reading
+              values << types[i]
+            end
+          else
+            # property not set or is false bit
+            values << (types[i] == :bit ? false : nil)
+          end
+
+          i+=1
+        end
+
+        # bit(0) == 0 means no more property flags
+        break unless props & 1 == 1
+      end
+
+      values.map do |value|
+        value.is_a?(Symbol) ? read(value) : value
+      end
+    end
 
     def read *types
+      if types.first == :properties
+        return read_properties(*types)
+      end
+
       values = types.map do |type|
         case type
         when :octet
@@ -143,6 +184,35 @@ module AMQP
             byte
            })
          }
+      when :properties
+        values = []
+        data.enum_with_index.inject(0) do |short, ((type, value), i)|
+          n = i % 15
+          last = i+1 == data.size
+
+          if (n == 0 and i != 0) or last
+            if data.size > i+1
+              short |= 1<<0
+            elsif last and value
+              values << [type,value]
+              short |= 1<<(15-n)
+            end
+
+            write(:short, short)
+            short = 0
+          end
+
+          if value
+            values << [type,value] 
+            short |= 1<<(15-n)
+          end
+
+          short
+        end
+        
+        values.each do |type, value|
+          write(type, value) unless type == :bit
+        end
       end
       
       self
@@ -249,6 +319,22 @@ if $0 =~ /bacon/ or $0 == __FILE__
         @buf.read(:bit)
       end.should == bits
       @buf.read(:octet).should == 100
+    end
+
+    should 'read and write properties' do
+      properties = ([
+        [:octet, 1],
+        [:shortstr, 'abc'],
+        [:bit, true],
+        [:bit, false],
+        [:shortstr, nil],
+        [:timestamp, nil],
+        [:table, { :a => 'hash' }],
+      ]*5).sort_by{rand}
+      
+      @buf.write(:properties, properties)
+      @buf.rewind
+      @buf.read(:properties, *properties.map{|type,_| type}).should == properties.map{|_,value| value }
     end
   end
 end
