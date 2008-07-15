@@ -147,8 +147,9 @@ module AMQP
         if data.is_a? Hash
           data = Buffer.new.write(:table, data)
         end
-
-        _write([data.length, data.to_s], 'Na*')
+        
+        data = (data || '').to_s
+        _write([data.length, data], 'Na*')
       when :timestamp
         write(:longlong, data.to_i)
       when :table
