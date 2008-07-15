@@ -3,6 +3,7 @@ require 'enumerator'
 module AMQP
   class Buffer
     class Overflow < Exception; end
+    class InvalidType < Exception; end
     
     def initialize data = ''
       @data = data
@@ -120,6 +121,8 @@ module AMQP
           end
 
           @bits.shift
+        else
+          raise InvalidType, "Cannot read data of type #{type}"
         end
       end
       
@@ -213,6 +216,8 @@ module AMQP
         values.each do |type, value|
           write(type, value) unless type == :bit
         end
+      else
+        raise InvalidType, "Cannot write data of type #{type}"
       end
       
       self
@@ -292,6 +297,11 @@ if $0 =~ /bacon/ or $0 == __FILE__
 
     should 'raise on overflow' do
       lambda{ @buf._read(1) }.should.raise Buffer::Overflow
+    end
+
+    should 'raise on invalid types' do
+      lambda{ @buf.read(:junk) }.should.raise Buffer::InvalidType
+      lambda{ @buf.write(:junk, 1) }.should.raise Buffer::InvalidType
     end
   
     { :octet => 0b10101010,
