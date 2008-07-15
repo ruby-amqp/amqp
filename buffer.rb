@@ -340,7 +340,8 @@ if $0 =~ /bacon/ or $0 == __FILE__
       
       @buf.write(:properties, properties)
       @buf.rewind
-      @buf.read(:properties, *properties.map{|type,_| type}).should == properties.map{|_,value| value }
+      @buf.read(:properties, *properties.map{|type,_| type }).should == properties.map{|_,value| value }
+      @buf.should.be.empty
     end
   end
 end
