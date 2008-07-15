@@ -14,7 +14,7 @@ module AMQP
     alias :to_s :data
 
     def << data
-      @data << data
+      @data << data.to_s
       self
     end
     
@@ -22,7 +22,7 @@ module AMQP
       @data.length
     end
     
-    def eof?
+    def empty?
       pos == length
     end
     
@@ -93,7 +93,7 @@ module AMQP
           t = Hash.new
 
           table = Buffer.new(read(:longstr))
-          until table.eof?
+          until table.empty?
             key, type = table.read(:shortstr, :octet)
             key = key.intern
             t[key] ||= case type
@@ -264,6 +264,11 @@ if $0 =~ /bacon/ or $0 == __FILE__
       @buf.contents.should == 'abcdef'
     end
 
+    should 'append other buffers' do
+      @buf << Buffer.new('abc')
+      @buf.data.should == 'abc'
+    end
+
     should 'have a position' do
       @buf.pos.should == 0
     end
@@ -275,7 +280,7 @@ if $0 =~ /bacon/ or $0 == __FILE__
     end
 
     should 'know the end' do
-      @buf.eof?.should == true
+      @buf.empty?.should == true
     end
 
     should 'read and write data' do
@@ -285,7 +290,7 @@ if $0 =~ /bacon/ or $0 == __FILE__
       @buf._read(1).should == 'c'
     end
 
-    should 'raise on eof' do
+    should 'raise on overflow' do
       lambda{ @buf._read(1) }.should.raise Buffer::Overflow
     end
   
@@ -304,6 +309,7 @@ if $0 =~ /bacon/ or $0 == __FILE__
         @buf.write(type, value)
         @buf.rewind
         @buf.read(type).should == value
+        @buf.should.be.empty
       end
 
     end
