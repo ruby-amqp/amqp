@@ -10,7 +10,11 @@ module AMQP
       @pos = 0
     end
 
-    attr_reader :data, :pos
+    attr_reader :pos
+    
+    def data
+      @data.clone
+    end
     alias :contents :data
     alias :to_s :data
 
@@ -224,6 +228,16 @@ module AMQP
       self
     end
 
+    def extract
+      begin
+        cur_data, cur_pos = @data.clone, @pos
+        yield self
+      rescue Overflow
+        @data, @pos = cur_data, cur_pos
+        nil
+      end
+    end
+
     def _read size, pack = nil
       if @pos + size > length
         raise Overflow
@@ -353,6 +367,20 @@ if $0 =~ /bacon/ or $0 == __FILE__
       @buf.rewind
       @buf.read(:properties, *properties.map{|type,_| type }).should == properties.map{|_,value| value }
       @buf.should.be.empty
+    end
+
+    should 'do transactional reads with #extract' do
+      @buf.write :octet, 8
+      orig = @buf.to_s
+
+      @buf.rewind
+      @buf.extract do |b|
+        b.read :octet
+        b.read :short
+      end
+
+      @buf.pos.should == 0
+      @buf.data.should == orig
     end
   end
 end

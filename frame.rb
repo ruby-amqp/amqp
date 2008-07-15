@@ -53,8 +53,8 @@ module AMQP
     class Method < Frame(1)
       def initialize payload = nil, channel = 0
         super
-        unless @payload.is_a? Protocol::Class::Method
-          @payload = Protocol.parse(@payload) if @payload
+        unless @payload.is_a? Protocol::Class::Method or @payload.nil?
+          @payload = Protocol.parse(@payload)
         end
       end
     end         
@@ -67,8 +67,11 @@ module AMQP
 
     def self.parse buf
       buf = Buffer.new(buf) unless buf.is_a? Buffer
-      id, channel, payload, footer = buf.read(:octet, :short, :longstr, :octet)
-      Frame.types[id].new(payload, channel)
+      buf.extract do
+        id, channel, payload, footer = buf.read(:octet, :short, :longstr, :octet)
+        frame = Frame.types[id].new(payload, channel)
+        footer == FOOTER ? frame : nil
+      end
     end
   end
 end
@@ -97,8 +100,22 @@ if $0 =~ /bacon/ or $0 == __FILE__
 
       copy = Frame.parse(orig.to_binary)
       copy.should == orig
+    end
+
+    should 'ignore partial frames until ready' do
+      frame = Frame::Method.new(Protocol::Connection::Secure.new :challenge => 'secret')
+      data = frame.to_s
+
+      buf = Buffer.new
+      Frame.parse(buf).should == nil
       
-      copy.payload.should == orig.payload
+      buf << data[0..5]
+      Frame.parse(buf).should == nil
+      
+      buf << data[6..-1]
+      Frame.parse(buf).should == frame
+      
+      Frame.parse(buf).should == nil
     end
   end
 end
