@@ -57,11 +57,17 @@ module AMQP
           @payload = Protocol.parse(@payload)
         end
       end
-    end         
-                
+    end
+
     class Header < Frame(2)
-    end         
-                
+      def initialize payload = nil, channel = 0
+        super
+        unless @payload.is_a? Protocol::Class::Method or @payload.nil?
+          @payload = Protocol.parse(@payload)
+        end
+      end
+    end
+
     class Body   < Frame(3)
     end
 
@@ -69,8 +75,7 @@ module AMQP
       buf = Buffer.new(buf) unless buf.is_a? Buffer
       buf.extract do
         id, channel, payload, footer = buf.read(:octet, :short, :longstr, :octet)
-        frame = Frame.types[id].new(payload, channel)
-        footer == FOOTER ? frame : nil
+        Frame.types[id].new(payload, channel) if footer == FOOTER
       end
     end
   end

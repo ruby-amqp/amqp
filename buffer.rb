@@ -146,7 +146,8 @@ module AMQP
         upper = (data & ~0xffffffff) >> 32
         _write([upper, lower], 'NN')
       when :shortstr
-        _write([data.length, data.to_s], 'Ca*')
+        data = (data || '').to_s
+        _write([data.length, data], 'Ca*')
       when :longstr
         if data.is_a? Hash
           data = Buffer.new.write(:table, data)
