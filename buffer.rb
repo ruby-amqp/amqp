@@ -202,7 +202,7 @@ module AMQP
             short = 0
           end
 
-          if value
+          if value and !last
             values << [type,value] 
             short |= 1<<(15-n)
           end
