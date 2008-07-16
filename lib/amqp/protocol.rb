@@ -1,5 +1,5 @@
-require 'amqp_spec'
-require 'buffer'
+require 'amqp/spec'
+require 'amqp/buffer'
 
 module AMQP
   module Protocol

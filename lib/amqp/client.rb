@@ -1,5 +1,5 @@
 require 'eventmachine'
-require 'frame'
+require 'amqp/frame'
 require 'pp'
 
 module AMQP
@@ -72,7 +72,7 @@ module AMQP
                                             :no_ack => true), :channel => 1
 
         when Protocol::Basic::ConsumeOk
-          data = "hello, this is a test."
+          data = "this is a test!"
 
           send Protocol::Basic::Publish.new(:ticket => @ticket,
                                             :exchange => '',

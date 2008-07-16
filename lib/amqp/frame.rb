@@ -1,6 +1,6 @@
-require 'amqp_spec'
-require 'buffer'
-require 'protocol'
+require 'amqp/spec'
+require 'amqp/buffer'
+require 'amqp/protocol'
 
 module AMQP
   class Frame
@@ -32,25 +32,10 @@ module AMQP
         eql and __send__(field) == frame.__send__(field)
       end
     end
-
-    def self.types
-      @types ||= {}
-    end
-    
-    def self.Frame id
-      (@_base_frames ||= {})[id] ||= Class.new(Frame) do
-        class_eval %[
-          def self.inherited klass
-            klass.const_set(:ID, #{id})
-            Frame.types[#{id}] = klass
-          end
-        ]
-      end
-    end
     
     class Invalid < Exception; end
     
-    class Method < Frame(1)
+    class Method
       def initialize payload = nil, channel = 0
         super
         unless @payload.is_a? Protocol::Class::Method or @payload.nil?
@@ -59,7 +44,7 @@ module AMQP
       end
     end
 
-    class Header < Frame(2)
+    class Header
       def initialize payload = nil, channel = 0
         super
         unless @payload.is_a? Protocol::Header or @payload.nil?
@@ -68,8 +53,7 @@ module AMQP
       end
     end
 
-    class Body   < Frame(3)
-    end
+    class Body; end
 
     def self.parse buf
       buf = Buffer.new(buf) unless buf.is_a? Buffer

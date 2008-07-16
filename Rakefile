@@ -1,12 +1,4 @@
 task :codegen do
-  sh 'ruby codegen.rb > amqp_spec.rb'
-  sh 'ruby amqp_spec.rb'
-end
-
-task :spec do
-  sh 'bacon amqpc.rb'
-end
-
-task :test do
-  sh 'ruby amqpc.rb'
+  sh 'ruby protocol/codegen.rb > lib/amqp/spec.rb'
+  sh 'ruby lib/amqp/spec.rb'
 end

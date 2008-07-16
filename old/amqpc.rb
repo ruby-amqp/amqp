@@ -356,10 +356,10 @@ module AMQP
       end
     end
 
-    # def send_data data
-    #   log 'send_data', data
-    #   super
-    # end
+    def send_data data
+      log 'send_data', data
+      super
+    end
 
     def unbind
       log 'disconnected'
