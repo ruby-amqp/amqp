@@ -63,7 +63,7 @@ module AMQP
       def initialize payload = nil, channel = 0
         super
         unless @payload.is_a? Protocol::Header or @payload.nil?
-          @payload = Protocol.parse(@payload)
+          @payload = Protocol::Header.new(@payload)
         end
       end
     end
@@ -121,6 +121,20 @@ if $0 =~ /bacon/ or $0 == __FILE__
       Frame.parse(buf).should == frame
       
       Frame.parse(buf).should == nil
+    end
+
+    should 'convert header frames to binary' do
+      head = Protocol::Header.new(Protocol::Basic, :priority => 1)
+      
+      frame = Frame::Header.new(head)
+      frame.to_s.should == [ 2, 0, head.to_s.length, head.to_s, 206 ].pack('CnNa*C')
+    end
+
+    should 'convert binary to header frame' do
+      orig = Frame::Header.new(Protocol::Header.new Protocol::Basic, :priority => 1)
+      
+      copy = Frame.parse(orig.to_binary)
+      copy.should == orig
     end
   end
 end
