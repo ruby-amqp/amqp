@@ -85,14 +85,14 @@ if $0 =~ /bacon/ or $0 == __FILE__
     end
 
     should 'convert binary to method frames' do
-      orig = Frame::Method.new(Protocol::Connection::Secure.new :challenge => 'secret')
+      orig = Frame::Method.new Protocol::Connection::Secure.new(:challenge => 'secret')
 
       copy = Frame.parse(orig.to_binary)
       copy.should == orig
     end
 
     should 'ignore partial frames until ready' do
-      frame = Frame::Method.new(Protocol::Connection::Secure.new :challenge => 'secret')
+      frame = Frame::Method.new Protocol::Connection::Secure.new(:challenge => 'secret')
       data = frame.to_s
 
       buf = Buffer.new
@@ -115,7 +115,7 @@ if $0 =~ /bacon/ or $0 == __FILE__
     end
 
     should 'convert binary to header frame' do
-      orig = Frame::Header.new(Protocol::Header.new Protocol::Basic, :priority => 1)
+      orig = Frame::Header.new Protocol::Header.new(Protocol::Basic, :priority => 1)
       
       copy = Frame.parse(orig.to_binary)
       copy.should == orig

@@ -34,13 +34,13 @@ module AMQP
                                                  'en_US')
 
         when Protocol::Connection::Tune
-          send Protocol::Connection::TuneOk.new :channel_max => 0,
+          send Protocol::Connection::TuneOk.new(:channel_max => 0,
                                                 :frame_max => 131072,
-                                                :heartbeat => 0
+                                                :heartbeat => 0)
 
-          send Protocol::Connection::Open.new :virtual_host => '/',
+          send Protocol::Connection::Open.new(:virtual_host => '/',
                                               :capabilities => '',
-                                              :insist => false
+                                              :insist => false)
 
         when Protocol::Connection::OpenOk
           send Protocol::Channel::Open.new, :channel => 1
