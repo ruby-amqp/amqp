@@ -62,7 +62,7 @@ module AMQP
     class Header < Frame(2)
       def initialize payload = nil, channel = 0
         super
-        unless @payload.is_a? Protocol::Class::Method or @payload.nil?
+        unless @payload.is_a? Protocol::Header or @payload.nil?
           @payload = Protocol.parse(@payload)
         end
       end
