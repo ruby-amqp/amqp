@@ -150,11 +150,11 @@ module AMQP
         _write([data.length, data], 'Ca*')
       when :longstr
         if data.is_a? Hash
-          data = Buffer.new.write(:table, data)
+          write(:table, data)
+        else
+          data = (data || '').to_s
+          _write([data.length, data], 'Na*')
         end
-        
-        data = (data || '').to_s
-        _write([data.length, data], 'Na*')
       when :timestamp
         write(:longlong, data.to_i)
       when :table

@@ -33,9 +33,9 @@ module AMQP
         self.class.arguments.each do |type, name|
           val = instance_variable_get("@#{name}")
           if type == :bit
-            bits << val
+            bits << (val || false)
           else
-            if bits.any?
+            unless bits.empty?
               buf.write :bit, bits
               bits = []
             end
@@ -43,7 +43,7 @@ module AMQP
           end
         end
 
-        buf.write :bit, bits if bits.any?
+        buf.write :bit, bits unless bits.empty?
         buf.rewind
 
         buf
@@ -54,7 +54,7 @@ module AMQP
       end
       
       def to_frame channel = 0
-        Frame::Method(self, channel)
+        Frame::Method.new(self, channel)
       end
     end
 
@@ -103,6 +103,10 @@ module AMQP
       
       def to_s
         to_binary.to_s
+      end
+
+      def to_frame channel = 0
+        Frame::Header.new(self, channel)
       end
 
       def == header
