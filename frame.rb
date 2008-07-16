@@ -1,6 +1,6 @@
 require 'amqp_spec'
 require 'buffer'
-require 'method'
+require 'protocol'
 
 module AMQP
   class Frame
