@@ -69,7 +69,7 @@ module AMQP
           @klass = first
           @size = args.shift || 0
           @weight = args.shift || 0
-          @args = opts
+          @properties = opts
 
         elsif first.is_a? Buffer or first.is_a? String
           buf = first
@@ -78,15 +78,16 @@ module AMQP
           @klass = Protocol.classes[buf.read(:short)]
           @weight = buf.read(:short)
           @size = buf.read(:longlong)
+
           props = buf.read(:properties, *klass.properties.map{|type,_| type })
-          @args = Hash[*klass.properties.map{|_,name| name }.zip(props).reject{|k,v| v.nil? }.flatten]
+          @properties = Hash[*klass.properties.map{|_,name| name }.zip(props).reject{|k,v| v.nil? }.flatten]
 
         else
           raise ArgumentError, 'Invalid argument'
         end
         
       end
-      attr_accessor :klass, :size, :weight, :args
+      attr_accessor :klass, :size, :weight, :properties
       
       def to_binary
         buf = Buffer.new
@@ -94,7 +95,7 @@ module AMQP
         buf.write :short, weight # XXX rabbitmq only supports weight == 0
         buf.write :longlong, size
         buf.write :properties, (klass.properties.map do |type, name|
-                                 [ type, args[name] || args[name.to_s] ]
+                                 [ type, properties[name] || properties[name.to_s] ]
                                end)
         buf.rewind
         buf
@@ -105,7 +106,7 @@ module AMQP
       end
 
       def == header
-        [ :klass, :size, :weight, :args ].inject(true) do |eql, field|
+        [ :klass, :size, :weight, :properties ].inject(true) do |eql, field|
           eql and __send__(field) == header.__send__(field)
         end
       end
