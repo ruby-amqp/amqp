@@ -1,5 +1,4 @@
 $:.unshift File.dirname(__FILE__) + '/../lib'
-require 'rubygems'
 require 'amqp'
 
 module SimpleClient
@@ -74,4 +73,5 @@ module SimpleClient
 end
 
 AMQP.logging = true
-AMQP.start(SimpleClient)
+AMQP.client = SimpleClient
+AMQP.start

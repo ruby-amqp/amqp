@@ -1,12 +1,22 @@
+require 'rubygems'
 require 'eventmachine'
 require 'amqp/frame'
 require 'pp'
 
 module AMQP
+  def self.client
+    @client ||= BasicClient
+  end
+  
+  def self.client= mod
+    mod.__send__ :include, AMQP
+    @client = mod
+  end
+
   module Client
-    def initialize mod
-      mod.__send__ :include, AMQP
-      extend mod
+    def initialize dfr
+      @dfr = dfr
+      extend AMQP.client
     end
 
     def connection_completed
@@ -51,11 +61,14 @@ module AMQP
     def self.connect opts = {}
       opts[:host] ||= 'localhost'
       opts[:port] ||= PORT
-      opts[:client] ||= nil
 
+      dfr = EM::DefaultDeferrable.new
+      
       EM.run{
-        EM.connect opts[:host], opts[:port], self, opts[:client]
+        EM.connect opts[:host], opts[:port], self, dfr
       }
+      
+      dfr
     end
   
     private
@@ -67,8 +80,8 @@ module AMQP
     end
   end
 
-  def self.start client
-    Client.connect :client => client
+  def self.start *args
+    @conn ||= Client.connect *args
   end
 end
 
