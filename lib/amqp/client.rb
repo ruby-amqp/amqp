@@ -6,6 +6,11 @@ require 'pp'
 module AMQP
   module BasicClient
     def process_frame frame
+      if mq = channels[frame.channel]
+        mq.process_frame(frame)
+        return
+      end
+      
       case frame
       when Frame::Method
         case method = frame.payload
@@ -55,6 +60,15 @@ module AMQP
       @buf = Buffer.new
       send_data HEADER
       send_data [1, 1, VERSION_MAJOR, VERSION_MINOR].pack('C4')
+    end
+
+    def add_channel mq
+      channels[ key = (channels.keys.max || 0) + 1 ] = mq
+      key
+    end
+
+    def channels mq = nil
+      @channels ||= {}
     end
   
     def receive_data data
