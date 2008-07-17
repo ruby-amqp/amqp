@@ -114,6 +114,11 @@ module AMQP
           eql and __send__(field) == header.__send__(field)
         end
       end
+
+      def method_missing meth, *args, &blk
+        @klass.properties.map{|_,name| name }.include?(meth) ? @properties[meth] :
+                                                               super
+      end
     end
 
     def self.parse buf
