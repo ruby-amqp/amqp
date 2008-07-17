@@ -77,11 +77,33 @@ class MQ
       }
       self
     end
-    
+
     def receive headers, body
       if @on_msg
         @on_msg.call *(@on_msg.arity == 1 ? [body] : [headers, body])
       end
+    end
+  end
+
+  class RPC
+    instance_methods.each{ |m| undef_method m unless m =~ /^__/ }
+    
+    def initialize mq, queue, opts = {}
+      @mq = mq
+      @callbacks ||= {}
+      @queue = @mq.queue(@name = 'some random identifier for me').subscribe{|info, msg|
+        ret = Marshal.load(msg)
+        if blk = @callbacks.delete(info.message_id)
+          blk.call(ret)
+        end
+      }
+      @exchange = @mq.direct(:key => queue)
+    end
+
+    def method_missing meth, *args, &blk
+      message_id = "random message id #{rand(999_999_999_999)}"
+      @callbacks[message_id] = blk if blk
+      @exchange.publish(Marshal.dump([meth, *args]), :reply_to => @name, :message_id => message_id)
     end
   end
 end
@@ -100,12 +122,14 @@ class MQ
     when Frame::Header
       @header = frame.payload
       @body = ''
+
     when Frame::Body
       @body << frame.payload
       if @body.length >= @header.size
         @consumer.receive @header, @body
         @body = ''
       end
+
     when Frame::Method
       case method = frame.payload
       when Protocol::Channel::OpenOk
@@ -145,6 +169,10 @@ class MQ
     queues[name] ||= Queue.new(self, name, opts)
   end
 
+  def rpc name, opts = {}
+    rpcs[name] ||= RPC.new(self, name, opts)
+  end
+
   private
   
   def exchanges
@@ -153,6 +181,10 @@ class MQ
 
   def queues
     @queues ||= {}
+  end
+
+  def rpcs
+    @rcps ||= {}
   end
 
   def connection
