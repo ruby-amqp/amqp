@@ -4,6 +4,37 @@ require 'amqp/frame'
 require 'pp'
 
 module AMQP
+  module BasicClient
+    def process_frame frame
+      case frame
+      when Frame::Method
+        case method = frame.payload
+        when Protocol::Connection::Start
+          send Protocol::Connection::StartOk.new({:platform => 'Ruby/EventMachine',
+                                                  :product => 'AMQP',
+                                                  :information => 'http://github.com/tmm1/amqp',
+                                                  :version => '0.1.0'},
+                                                 'AMQPLAIN',
+                                                 {:LOGIN => 'guest',
+                                                  :PASSWORD => 'guest'},
+                                                 'en_US')
+
+        when Protocol::Connection::Tune
+          send Protocol::Connection::TuneOk.new(:channel_max => 0,
+                                                :frame_max => 131072,
+                                                :heartbeat => 0)
+
+          send Protocol::Connection::Open.new(:virtual_host => '/',
+                                              :capabilities => '',
+                                              :insist => false)
+
+        when Protocol::Connection::OpenOk
+          @dfr.succeed(self)
+        end
+      end
+    end
+  end
+
   def self.client
     @client ||= BasicClient
   end
