@@ -9,26 +9,37 @@ class MQ
     include AMQP
 
     def initialize mq, type, name, opts = {}
+      if name.is_a? Hash
+        opts = name
+        name = "amq.#{type}"
+      end
+
       @mq = mq
       @type, @name = type, name
+      @key = opts[:key]
+
       @mq.callback{
         @mq.send Protocol::Exchange::Declare.new({ :exchange => name,
                                                    :type => type,
                                                    :nowait => true }.merge(opts))
       } unless name == "amq.#{type}"
     end
-    attr_reader :name, :type
+    attr_reader :name, :type, :key
 
     def publish data, opts = {}
       @mq.callback{
         @mq.send Protocol::Basic::Publish.new({ :exchange => name,
-                                                :routing_key => opts.delete(:key) }.merge(opts))
+                                                :routing_key => opts.delete(:key) || @key }.merge(opts))
+        
+        data = data.to_s
+
         @mq.send Protocol::Header.new(Protocol::Basic,
                                           data.length, { :content_type => 'application/octet-stream',
                                                          :delivery_mode => 1,
                                                          :priority => 0 }.merge(opts))
         @mq.send Frame::Body.new(data)
       }
+      self
     end
   end
   
@@ -53,6 +64,7 @@ class MQ
                                              :routing_key => opts.delete(:key),
                                              :nowait => true }.merge(opts))
       }
+      self
     end
     
     def subscribe opts = {}, &blk
@@ -63,6 +75,7 @@ class MQ
                                                 :no_ack => true,
                                                 :nowait => true }.merge(opts))
       }
+      self
     end
     
     def receive headers, body
