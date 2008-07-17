@@ -33,3 +33,18 @@ EM.run{
   }
 
 }
+
+__END__
+
+$ ruby examples/mq.rb 
+[Thu Jul 17 14:06:07 -0700 2008, "one got", "ding"]
+
+[Thu Jul 17 14:06:08 -0700 2008, "two sending", "ping"]
+[Thu Jul 17 14:06:08 -0700 2008, "one got", "ping"]
+[Thu Jul 17 14:06:08 -0700 2008, "one sending", "pong"]
+[Thu Jul 17 14:06:08 -0700 2008, "two got", "pong"]
+
+[Thu Jul 17 14:06:09 -0700 2008, "two sending", "ping"]
+[Thu Jul 17 14:06:09 -0700 2008, "one got", "ping"]
+[Thu Jul 17 14:06:09 -0700 2008, "one sending", "pong"]
+[Thu Jul 17 14:06:09 -0700 2008, "two got", "pong"]
