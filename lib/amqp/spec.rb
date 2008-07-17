@@ -21,14 +21,14 @@ module AMQP
       end
     end
 
-    class Method    < Frame(1); end
-    class Header    < Frame(2); end
-    class Body      < Frame(3); end
-    class OobMethod < Frame(4); end
-    class OobHeader < Frame(5); end
-    class OobBody   < Frame(6); end
-    class Trace     < Frame(7); end
-    class Heartbeat < Frame(8); end
+    class Method    < Frame( 1 ); end
+    class Header    < Frame( 2 ); end
+    class Body      < Frame( 3 ); end
+    class OobMethod < Frame( 4 ); end
+    class OobHeader < Frame( 5 ); end
+    class OobBody   < Frame( 6 ); end
+    class Trace     < Frame( 7 ); end
+    class Heartbeat < Frame( 8 ); end
 
     FOOTER = 206
   end
@@ -134,33 +134,37 @@ module AMQP
         ]
       end
     end
-    
-    class Connection   < Class( 10, :connection); end
-    class Channel      < Class( 20, :channel);    end
-    class Access       < Class( 30, :access);     end
-    class Exchange     < Class( 40, :exchange);   end
-    class Queue        < Class( 50, :queue);      end
-    class Basic        < Class( 60, :basic);      end
-    class File         < Class( 70, :file);       end
-    class Stream       < Class( 80, :stream);     end
-    class Tx           < Class( 90, :tx);         end
-    class Dtx          < Class(100, :dtx);        end
-    class Tunnel       < Class(110, :tunnel);     end
-    class Test         < Class(120, :test);       end
+  end
+end
+  
+module AMQP
+  module Protocol
+    class Connection   < Class(  10, :connection   ); end
+    class Channel      < Class(  20, :channel      ); end
+    class Access       < Class(  30, :access       ); end
+    class Exchange     < Class(  40, :exchange     ); end
+    class Queue        < Class(  50, :queue        ); end
+    class Basic        < Class(  60, :basic        ); end
+    class File         < Class(  70, :file         ); end
+    class Stream       < Class(  80, :stream       ); end
+    class Tx           < Class(  90, :tx           ); end
+    class Dtx          < Class( 100, :dtx          ); end
+    class Tunnel       < Class( 110, :tunnel       ); end
+    class Test         < Class( 120, :test         ); end
 
     class Connection
 
-      class Start        < Method( 10, :start);       end
-      class StartOk      < Method( 11, :start_ok);    end
-      class Secure       < Method( 20, :secure);      end
-      class SecureOk     < Method( 21, :secure_ok);   end
-      class Tune         < Method( 30, :tune);        end
-      class TuneOk       < Method( 31, :tune_ok);     end
-      class Open         < Method( 40, :open);        end
-      class OpenOk       < Method( 41, :open_ok);     end
-      class Redirect     < Method( 50, :redirect);    end
-      class Close        < Method( 60, :close);       end
-      class CloseOk      < Method( 61, :close_ok);    end
+      class Start        < Method(  10, :start          ); end
+      class StartOk      < Method(  11, :start_ok       ); end
+      class Secure       < Method(  20, :secure         ); end
+      class SecureOk     < Method(  21, :secure_ok      ); end
+      class Tune         < Method(  30, :tune           ); end
+      class TuneOk       < Method(  31, :tune_ok        ); end
+      class Open         < Method(  40, :open           ); end
+      class OpenOk       < Method(  41, :open_ok        ); end
+      class Redirect     < Method(  50, :redirect       ); end
+      class Close        < Method(  60, :close          ); end
+      class CloseOk      < Method(  61, :close_ok       ); end
 
       class Start
         octet      :version_major
@@ -226,13 +230,13 @@ module AMQP
 
     class Channel
 
-      class Open         < Method( 10, :open);        end
-      class OpenOk       < Method( 11, :open_ok);     end
-      class Flow         < Method( 20, :flow);        end
-      class FlowOk       < Method( 21, :flow_ok);     end
-      class Alert        < Method( 30, :alert);       end
-      class Close        < Method( 40, :close);       end
-      class CloseOk      < Method( 41, :close_ok);    end
+      class Open         < Method(  10, :open           ); end
+      class OpenOk       < Method(  11, :open_ok        ); end
+      class Flow         < Method(  20, :flow           ); end
+      class FlowOk       < Method(  21, :flow_ok        ); end
+      class Alert        < Method(  30, :alert          ); end
+      class Close        < Method(  40, :close          ); end
+      class CloseOk      < Method(  41, :close_ok       ); end
 
       class Open
         shortstr   :out_of_band
@@ -269,8 +273,8 @@ module AMQP
 
     class Access
 
-      class Request      < Method( 10, :request);     end
-      class RequestOk    < Method( 11, :request_ok);  end
+      class Request      < Method(  10, :request        ); end
+      class RequestOk    < Method(  11, :request_ok     ); end
 
       class Request
         shortstr   :realm
@@ -289,10 +293,10 @@ module AMQP
 
     class Exchange
 
-      class Declare      < Method( 10, :declare);     end
-      class DeclareOk    < Method( 11, :declare_ok);  end
-      class Delete       < Method( 20, :delete);      end
-      class DeleteOk     < Method( 21, :delete_ok);   end
+      class Declare      < Method(  10, :declare        ); end
+      class DeclareOk    < Method(  11, :declare_ok     ); end
+      class Delete       < Method(  20, :delete         ); end
+      class DeleteOk     < Method(  21, :delete_ok      ); end
 
       class Declare
         short      :ticket
@@ -323,14 +327,14 @@ module AMQP
 
     class Queue
 
-      class Declare      < Method( 10, :declare);     end
-      class DeclareOk    < Method( 11, :declare_ok);  end
-      class Bind         < Method( 20, :bind);        end
-      class BindOk       < Method( 21, :bind_ok);     end
-      class Purge        < Method( 30, :purge);       end
-      class PurgeOk      < Method( 31, :purge_ok);    end
-      class Delete       < Method( 40, :delete);      end
-      class DeleteOk     < Method( 41, :delete_ok);   end
+      class Declare      < Method(  10, :declare        ); end
+      class DeclareOk    < Method(  11, :declare_ok     ); end
+      class Bind         < Method(  20, :bind           ); end
+      class BindOk       < Method(  21, :bind_ok        ); end
+      class Purge        < Method(  30, :purge          ); end
+      class PurgeOk      < Method(  31, :purge_ok       ); end
+      class Delete       < Method(  40, :delete         ); end
+      class DeleteOk     < Method(  41, :delete_ok      ); end
 
       class Declare
         short      :ticket
@@ -401,21 +405,21 @@ module AMQP
       shortstr   :app_id
       shortstr   :cluster_id
 
-      class Qos          < Method( 10, :qos);         end
-      class QosOk        < Method( 11, :qos_ok);      end
-      class Consume      < Method( 20, :consume);     end
-      class ConsumeOk    < Method( 21, :consume_ok);  end
-      class Cancel       < Method( 30, :cancel);      end
-      class CancelOk     < Method( 31, :cancel_ok);   end
-      class Publish      < Method( 40, :publish);     end
-      class Return       < Method( 50, :return);      end
-      class Deliver      < Method( 60, :deliver);     end
-      class Get          < Method( 70, :get);         end
-      class GetOk        < Method( 71, :get_ok);      end
-      class GetEmpty     < Method( 72, :get_empty);   end
-      class Ack          < Method( 80, :ack);         end
-      class Reject       < Method( 90, :reject);      end
-      class Recover      < Method(100, :recover);     end
+      class Qos          < Method(  10, :qos            ); end
+      class QosOk        < Method(  11, :qos_ok         ); end
+      class Consume      < Method(  20, :consume        ); end
+      class ConsumeOk    < Method(  21, :consume_ok     ); end
+      class Cancel       < Method(  30, :cancel         ); end
+      class CancelOk     < Method(  31, :cancel_ok      ); end
+      class Publish      < Method(  40, :publish        ); end
+      class Return       < Method(  50, :return         ); end
+      class Deliver      < Method(  60, :deliver        ); end
+      class Get          < Method(  70, :get            ); end
+      class GetOk        < Method(  71, :get_ok         ); end
+      class GetEmpty     < Method(  72, :get_empty      ); end
+      class Ack          < Method(  80, :ack            ); end
+      class Reject       < Method(  90, :reject         ); end
+      class Recover      < Method( 100, :recover        ); end
 
       class Qos
         long       :prefetch_size
@@ -517,20 +521,20 @@ module AMQP
       timestamp  :timestamp
       shortstr   :cluster_id
 
-      class Qos          < Method( 10, :qos);         end
-      class QosOk        < Method( 11, :qos_ok);      end
-      class Consume      < Method( 20, :consume);     end
-      class ConsumeOk    < Method( 21, :consume_ok);  end
-      class Cancel       < Method( 30, :cancel);      end
-      class CancelOk     < Method( 31, :cancel_ok);   end
-      class Open         < Method( 40, :open);        end
-      class OpenOk       < Method( 41, :open_ok);     end
-      class Stage        < Method( 50, :stage);       end
-      class Publish      < Method( 60, :publish);     end
-      class Return       < Method( 70, :return);      end
-      class Deliver      < Method( 80, :deliver);     end
-      class Ack          < Method( 90, :ack);         end
-      class Reject       < Method(100, :reject);      end
+      class Qos          < Method(  10, :qos            ); end
+      class QosOk        < Method(  11, :qos_ok         ); end
+      class Consume      < Method(  20, :consume        ); end
+      class ConsumeOk    < Method(  21, :consume_ok     ); end
+      class Cancel       < Method(  30, :cancel         ); end
+      class CancelOk     < Method(  31, :cancel_ok      ); end
+      class Open         < Method(  40, :open           ); end
+      class OpenOk       < Method(  41, :open_ok        ); end
+      class Stage        < Method(  50, :stage          ); end
+      class Publish      < Method(  60, :publish        ); end
+      class Return       < Method(  70, :return         ); end
+      class Deliver      < Method(  80, :deliver        ); end
+      class Ack          < Method(  90, :ack            ); end
+      class Reject       < Method( 100, :reject         ); end
 
       class Qos
         long       :prefetch_size
@@ -620,15 +624,15 @@ module AMQP
       octet      :priority
       timestamp  :timestamp
 
-      class Qos          < Method( 10, :qos);         end
-      class QosOk        < Method( 11, :qos_ok);      end
-      class Consume      < Method( 20, :consume);     end
-      class ConsumeOk    < Method( 21, :consume_ok);  end
-      class Cancel       < Method( 30, :cancel);      end
-      class CancelOk     < Method( 31, :cancel_ok);   end
-      class Publish      < Method( 40, :publish);     end
-      class Return       < Method( 50, :return);      end
-      class Deliver      < Method( 60, :deliver);     end
+      class Qos          < Method(  10, :qos            ); end
+      class QosOk        < Method(  11, :qos_ok         ); end
+      class Consume      < Method(  20, :consume        ); end
+      class ConsumeOk    < Method(  21, :consume_ok     ); end
+      class Cancel       < Method(  30, :cancel         ); end
+      class CancelOk     < Method(  31, :cancel_ok      ); end
+      class Publish      < Method(  40, :publish        ); end
+      class Return       < Method(  50, :return         ); end
+      class Deliver      < Method(  60, :deliver        ); end
 
       class Qos
         long       :prefetch_size
@@ -688,12 +692,12 @@ module AMQP
 
     class Tx
 
-      class Select       < Method( 10, :select);      end
-      class SelectOk     < Method( 11, :select_ok);   end
-      class Commit       < Method( 20, :commit);      end
-      class CommitOk     < Method( 21, :commit_ok);   end
-      class Rollback     < Method( 30, :rollback);    end
-      class RollbackOk   < Method( 31, :rollback_ok); end
+      class Select       < Method(  10, :select         ); end
+      class SelectOk     < Method(  11, :select_ok      ); end
+      class Commit       < Method(  20, :commit         ); end
+      class CommitOk     < Method(  21, :commit_ok      ); end
+      class Rollback     < Method(  30, :rollback       ); end
+      class RollbackOk   < Method(  31, :rollback_ok    ); end
 
       class Select
       end
@@ -717,10 +721,10 @@ module AMQP
 
     class Dtx
 
-      class Select       < Method( 10, :select);      end
-      class SelectOk     < Method( 11, :select_ok);   end
-      class Start        < Method( 20, :start);       end
-      class StartOk      < Method( 21, :start_ok);    end
+      class Select       < Method(  10, :select         ); end
+      class SelectOk     < Method(  11, :select_ok      ); end
+      class Start        < Method(  20, :start          ); end
+      class StartOk      < Method(  21, :start_ok       ); end
 
       class Select
       end
@@ -744,7 +748,7 @@ module AMQP
       octet      :durable
       octet      :broadcast
 
-      class Request      < Method( 10, :request);     end
+      class Request      < Method(  10, :request        ); end
 
       class Request
         table      :meta_data
@@ -754,14 +758,14 @@ module AMQP
 
     class Test
 
-      class Integer      < Method( 10, :integer);     end
-      class IntegerOk    < Method( 11, :integer_ok);  end
-      class String       < Method( 20, :string);      end
-      class StringOk     < Method( 21, :string_ok);   end
-      class Table        < Method( 30, :table);       end
-      class TableOk      < Method( 31, :table_ok);    end
-      class Content      < Method( 40, :content);     end
-      class ContentOk    < Method( 41, :content_ok);  end
+      class Integer      < Method(  10, :integer        ); end
+      class IntegerOk    < Method(  11, :integer_ok     ); end
+      class String       < Method(  20, :string         ); end
+      class StringOk     < Method(  21, :string_ok      ); end
+      class Table        < Method(  30, :table          ); end
+      class TableOk      < Method(  31, :table_ok       ); end
+      class Content      < Method(  40, :content        ); end
+      class ContentOk    < Method(  41, :content_ok     ); end
 
       class Integer
         octet      :integer_1

@@ -33,7 +33,7 @@ puts ERB.new(%q[
       end
 
       <%- s['constants'].select{|c| (1..8).include? c['value'] }.each do |c| -%>
-      class <%= c['name'].gsub(/^FRAME-/,'').split('-').map{|w| w.downcase.capitalize}.join.ljust(9) -%> < Frame(<%= c['value'] -%>); end
+      class <%= c['name'].gsub(/^FRAME-/,'').split('-').map{|w| w.downcase.capitalize}.join.ljust(9) -%> < Frame( <%= c['value'] -%> ); end
       <%- end -%>
 
       FOOTER = <%= frame_end = s['constants'].find{|c| c['name'] == 'FRAME-END' }['value'] %>
@@ -126,9 +126,13 @@ puts ERB.new(%q[
           ]
         end
       end
-      
+    end
+  end
+    
+  module AMQP
+    module Protocol
       <%- s['classes'].each do |c| -%>
-      class <%= c['name'].capitalize.ljust(12) %> < Class(<%= c['id'].to_s.rjust(3) %>, :<%= (c['name']+');').ljust(12) %> end
+      class <%= c['name'].capitalize.ljust(12) %> < Class( <%= c['id'].to_s.rjust(3) %>, :<%= c['name'].ljust(12) %> ); end
       <%- end -%>
 
       <%- s['classes'].each do |c| -%>
@@ -138,7 +142,7 @@ puts ERB.new(%q[
         <%- end if c['properties'] -%>
 
         <%- c['methods'].each do |m| -%>
-        class <%= m['name'].capitalize.gsub(/-(.)/){ "#{$1.upcase}"}.ljust(12) %> < Method(<%= m['id'].to_s.rjust(3) %>, :<%= (m['name'].tr('- ','_')+');').ljust(14) %>end
+        class <%= m['name'].capitalize.gsub(/-(.)/){ "#{$1.upcase}"}.ljust(12) %> < Method( <%= m['id'].to_s.rjust(3) %>, :<%= m['name'].tr('- ','_').ljust(14) %> ); end
         <%- end -%>
 
         <%- c['methods'].each do |m| -%>
