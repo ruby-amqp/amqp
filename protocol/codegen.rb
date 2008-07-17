@@ -128,7 +128,7 @@ puts ERB.new(%q[
       end
       
       <%- s['classes'].each do |c| -%>
-      class <%= c['name'].capitalize.ljust(12) %> < Class(<%= c['id'] %>, :<%= c['name'] %>); end
+      class <%= c['name'].capitalize.ljust(12) %> < Class(<%= c['id'].to_s.rjust(3) %>, :<%= (c['name']+');').ljust(12) %> end
       <%- end -%>
 
       <%- s['classes'].each do |c| -%>
@@ -138,7 +138,7 @@ puts ERB.new(%q[
         <%- end if c['properties'] -%>
 
         <%- c['methods'].each do |m| -%>
-        class <%= m['name'].capitalize.gsub(/-(.)/){ "#{$1.upcase}"}.ljust(12) %> < Method(<%= m['id'] %>, :<%= m['name'].tr('- ','_') %>); end
+        class <%= m['name'].capitalize.gsub(/-(.)/){ "#{$1.upcase}"}.ljust(12) %> < Method(<%= m['id'].to_s.rjust(3) %>, :<%= (m['name'].tr('- ','_')+');').ljust(14) %>end
         <%- end -%>
 
         <%- c['methods'].each do |m| -%>
