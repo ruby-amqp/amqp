@@ -94,11 +94,18 @@ class MQ
   end
 
   class RPC < BlankSlate
-    def initialize mq, queue, opts = {}
+    def initialize mq, queue, obj = nil
       @mq = mq
 
-      if opts.is_a? Module
-        @obj = (::Class.new do include(opts) end).new
+      if obj
+        @obj = case obj
+               when Class
+                 obj.new
+               when Module
+                 (::Class.new do include(obj) end).new
+               else
+                 obj
+               end
         
         @mq.queue(queue).subscribe{ |info, request|
           method, *args = Marshal.load(request)
@@ -189,8 +196,8 @@ class MQ
     queues[name] ||= Queue.new(self, name, opts)
   end
 
-  def rpc name, opts = {}
-    rpcs[name] ||= RPC.new(self, name, opts)
+  def rpc name, obj = nil
+    rpcs[name] ||= RPC.new(self, name, obj)
   end
 
   private

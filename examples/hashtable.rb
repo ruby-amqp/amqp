@@ -4,43 +4,48 @@ require 'mq'
 EM.run{
 
   def log *args
-    p [ Time.now, *args ]
+    p args
   end
 
   # AMQP.logging = true
 
-  module HashTable
-    def [] key
-      p [HashTable, :get, key]
-      hash[key]
+  class HashTable < Hash
+    def get key
+      log 'HashTable', :get, key
+      self[key]
     end
-    alias :get :[]
     
-    def []= key, value
-      p [HashTable, :set, key, value]
-      hash[key] = value
-    end
-    alias :set :[]=
-    
-    private
-    
-    def hash
-      @hash ||= {}
+    def set key, value
+      log 'HashTable', :set, key => value
+      self[key] = value
     end
 
-    MQ.new.rpc('hash table', self)
+    def keys
+      log 'HashTable', :keys
+      super
+    end
   end
 
-  client = MQ.new.rpc('hash table')
-  client[:now] = time = Time.now
+  server = MQ.new.rpc('hash table node', HashTable.new)
+
+  client = MQ.new.rpc('hash table node')
+  client.set(:now, time = Time.now)
   client.get(:now) do |res|
-    p ['client', "hashtable[:now] = #{res}", res == time]
+    log 'client', :now => res, :eql? => res == time
+  end
+
+  client.set(:one, 1)
+  client.keys do |res|
+    log 'client', :keys => res
   end
 
 }
 
 __END__
 
-[HashTable, :set, :now, Thu Jul 17 17:05:18 -0700 2008]
-[HashTable, :get, :now]
-["client", "hashtable[:now] = Thu Jul 17 17:05:18 -0700 2008", true]
+["HashTable", :set, {:now=>Thu Jul 17 21:04:53 -0700 2008}]
+["HashTable", :get, :now]
+["HashTable", :set, {:one=>1}]
+["HashTable", :keys]
+["client", {:eql?=>true, :now=>Thu Jul 17 21:04:53 -0700 2008}]
+["client", {:keys=>[:one, :now]}]
