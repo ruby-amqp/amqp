@@ -1,0 +1,5 @@
+- generate amqp/spec.rb from original xml spec
+- add graceful connection.close
+- add peek and pop to queues
+- use rabbitmq generated consumer tag from basic.consume-ok reply
+- allow temporary queues with amq.queue(nil) syntax
