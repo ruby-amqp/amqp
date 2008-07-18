@@ -1,6 +1,14 @@
 $:.unshift File.expand_path(File.dirname(File.expand_path(__FILE__)))
 require 'amqp'
 
+unless defined?(BlankSlate)
+  class BlankSlate < BasicObject; end if defined?(BasicObject)
+
+  class BlankSlate
+    instance_methods.each { |m| undef_method m unless m =~ /^__/ }
+  end
+end
+
 class MQ
   include AMQP
   include EM::Deferrable
@@ -85,25 +93,37 @@ class MQ
     end
   end
 
-  class RPC
-    instance_methods.each{ |m| undef_method m unless m =~ /^__/ }
-    
+  class RPC < BlankSlate
     def initialize mq, queue, opts = {}
       @mq = mq
-      @callbacks ||= {}
-      @queue = @mq.queue(@name = 'some random identifier for me').subscribe{|info, msg|
-        ret = Marshal.load(msg)
-        if blk = @callbacks.delete(info.message_id)
-          blk.call(ret)
-        end
-      }
-      @exchange = @mq.direct(:key => queue)
+
+      if opts.is_a? Module
+        @obj = (::Class.new do include(opts) end).new
+        
+        @mq.queue(queue).subscribe{ |info, request|
+          method, *args = Marshal.load(request)
+          ret = @obj.__send__(method, *args)
+
+          if info.reply_to
+            @mq.direct.publish(Marshal.dump(ret), :key => info.reply_to, :message_id => info.message_id)
+          end
+        }
+      else
+        @callbacks ||= {}
+        @queue = @mq.queue(@name = 'some random identifier for me').subscribe{|info, msg|
+          ret = Marshal.load(msg)
+          if blk = @callbacks.delete(info.message_id)
+            blk.call(ret)
+          end
+        }
+        @exchange = @mq.direct(:key => queue)
+      end
     end
 
     def method_missing meth, *args, &blk
       message_id = "random message id #{rand(999_999_999_999)}"
       @callbacks[message_id] = blk if blk
-      @exchange.publish(Marshal.dump([meth, *args]), :reply_to => @name, :message_id => message_id)
+      @exchange.publish(Marshal.dump([meth, *args]), :reply_to => blk ? @name : nil, :message_id => message_id)
     end
   end
 end

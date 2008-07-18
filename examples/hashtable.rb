@@ -9,25 +9,30 @@ EM.run{
 
   # AMQP.logging = true
 
-  amq = MQ.new
-  amq.queue('hash table').subscribe{ |info, request|
-    @hash ||= {}
-    method, *args = Marshal.load(request)
-
-    p ['server', method, *args]
-
-    case method
-    when :get
-      amq.direct.publish(Marshal.dump(@hash[ args[0] ]), :key => info.reply_to, :message_id => info.message_id)
-    when :set
-      @hash[ args[0] ] = args[1]
+  module HashTable
+    def [] key
+      p [HashTable, :get, key]
+      hash[key]
     end
-  }
+    alias :get :[]
+    
+    def []= key, value
+      p [HashTable, :set, key, value]
+      hash[key] = value
+    end
+    alias :set :[]=
+    
+    private
+    
+    def hash
+      @hash ||= {}
+    end
+
+    MQ.new.rpc('hash table', self)
+  end
 
   client = MQ.new.rpc('hash table')
-
-  client.set(:now, time = Time.now)
-
+  client[:now] = time = Time.now
   client.get(:now) do |res|
     p ['client', "hashtable[:now] = #{res}", res == time]
   end
@@ -36,6 +41,6 @@ EM.run{
 
 __END__
 
-["server", :set, :now, Thu Jul 17 16:50:14 -0700 2008]
-["server", :get, :now]
-["client", "hashtable[:now] = Thu Jul 17 16:50:14 -0700 2008", true]
+[HashTable, :set, :now, Thu Jul 17 17:05:18 -0700 2008]
+[HashTable, :get, :now]
+["client", "hashtable[:now] = Thu Jul 17 17:05:18 -0700 2008", true]
