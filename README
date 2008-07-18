@@ -1,6 +1,7 @@
 Simple AMQP driver for Ruby/EventMachine.
 
-This library was tested primarily with RabbitMQ, although it should be compatible with any server implementing the AMQP 0-8 spec.
+This library was tested primarily with RabbitMQ, although it should be compatible with any
+server implementing the AMQP 0-8 spec.
 
 To use with RabbitMQ, first run the server:
 
@@ -20,7 +21,8 @@ For more details into the lower level AMQP client API, run the simple client exa
 
   ruby examples/simple.rb
 
-Or refer to protocol/doc.txt, which enumerates packets sent between a server and client during a typical session in both binary and decoded formats.
+Or refer to protocol/doc.txt, which enumerates packets sent between a server and client
+during a typical session, in both binary and decoded formats.
 
 To run the test suite:
 
@@ -36,13 +38,24 @@ Special thanks to Dmitriy Samovskiy, Ben Hood and Tony Garnock-Jones.
 Other AMQP resources:
 
   Servers:
-    RabbitMQ (Rabbit Technologies, Erlang/OTP, MPL): http://rabbitmq.com
-    OpenAMP  (iMatrix, C, GPL2): http://openamq.org
-    ActiveMQ (Apache Foundation, Java, apache2): http://activemq.apache.org/
+    RabbitMQ (Rabbit Technologies, Erlang/OTP, MPL)  http://rabbitmq.com
+    OpenAMP  (iMatrix, C, GPL2)                      http://openamq.org
+    ActiveMQ (Apache Foundation, Java, apache2)      http://activemq.apache.org/
 
-  John O'Hara's article on the history of AMQP: http://www.acmqueue.org/modules.php?name=Content&pa=showpage&pid=485
-  Barry Pederson's py-amqplib: http://barryp.org/software/py-amqplib/
-  Ben Hood's article on writing an AMQP client: http://hopper.squarespace.com/blog/2008/6/21/build-your-own-amqp-client.html
-  Dmitriy Samovskiy's introduction to ruby+rabbitmq: http://somic-org.homelinux.org/blog/2008/06/24/ruby-amqp-rabbitmq-example/
-  Ben Hood's AMQP client in AS3: http://github.com/0x6e6562/as3-amqp
-  RabbitMQ's protocol code generator: http://hg.rabbitmq.com/rabbitmq-codegen/
+  John O'Hara's article on the history of AMQP:
+    http://www.acmqueue.org/modules.php?name=Content&pa=showpage&pid=485
+
+  Barry Pederson's py-amqplib:
+    http://barryp.org/software/py-amqplib/
+
+  Ben Hood's article on writing an AMQP client:
+    http://hopper.squarespace.com/blog/2008/6/21/build-your-own-amqp-client.html
+
+  Dmitriy Samovskiy's introduction to Ruby+QPid+RabbitMQ:
+    http://somic-org.homelinux.org/blog/2008/06/24/ruby-amqp-rabbitmq-example/
+
+  Ben Hood's AMQP client in AS3:
+    http://github.com/0x6e6562/as3-amqp
+
+  RabbitMQ's protocol code generator:
+    http://hg.rabbitmq.com/rabbitmq-codegen/
