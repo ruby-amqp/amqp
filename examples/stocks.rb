@@ -9,24 +9,28 @@ EM.run{
 
   # AMQP.logging = true
 
-  amq = MQ.new
   EM.add_periodic_timer(1){
     puts
+
     log :publishing, 'stock.usd.appl', price = 170+rand(1000)/100.0
-    amq.topic(:key => 'stock.usd.appl').publish(price, :headers => {:symbol => 'appl'})
+    MQ.topic(:key => 'stock.usd.appl').publish(price, :headers => {:symbol => 'appl'})
 
     log :publishing, 'stock.usd.msft', price = 22+rand(500)/100.0
-    amq.topic.publish(price, :key => 'stock.usd.msft', :headers => {:symbol => 'msft'})
+    MQ.topic.publish(price, :key => 'stock.usd.msft', :headers => {:symbol => 'msft'})
   }
 
-  appl = MQ.new
-  appl.queue('apple stock').bind(amq.topic, :key => 'stock.usd.appl').subscribe{ |price|
-    log 'apple stock', price
+  Thread.new{
+    amq = MQ.new
+    amq.queue('apple stock').bind(amq.topic, :key => 'stock.usd.appl').subscribe{ |price|
+      log 'apple stock', price
+    }
   }
 
-  usd = MQ.new
-  usd.queue('us stocks').bind(amq.topic, :key => 'stock.usd.*').subscribe{ |info, price|
-    log 'us stock', info.headers[:symbol], price
+  Thread.new{
+    amq = MQ.new
+    amq.queue('us stocks').bind(amq.topic, :key => 'stock.usd.*').subscribe{ |info, price|
+      log 'us stock', info.headers[:symbol], price
+    }
   }
 
 }

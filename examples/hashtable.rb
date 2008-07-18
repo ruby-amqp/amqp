@@ -37,6 +37,7 @@ EM.run{
   client.set(:one, 1)
   client.keys do |res|
     log 'client', :keys => res
+    EM.stop_event_loop
   end
 
 }
