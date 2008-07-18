@@ -18,7 +18,7 @@ module AMQP
           send Protocol::Connection::StartOk.new({:platform => 'Ruby/EventMachine',
                                                   :product => 'AMQP',
                                                   :information => 'http://github.com/tmm1/amqp',
-                                                  :version => '0.1.0'},
+                                                  :version => '0.5.0'},
                                                  'AMQPLAIN',
                                                  {:LOGIN => 'guest',
                                                   :PASSWORD => 'guest'},

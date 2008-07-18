@@ -6,3 +6,10 @@ end
 task :spec do
   sh 'bacon lib/amqp.rb'
 end
+
+task :gem do
+  sh 'gem build *.gemspec'
+end
+
+task :pkg => :gem
+task :package => :gem
