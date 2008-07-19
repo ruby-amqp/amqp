@@ -48,7 +48,7 @@ end
 
 # controller
 
-  EM.fork{
+  EM.run{
     MQ.queue('prime collector').subscribe{ |info, prime|
       log 'prime collector', :received, prime, :from, info.reply_to
       (@primes ||= []) << Integer(prime)
@@ -61,6 +61,3 @@ end
       end
     end
   }
-
-# sleep until killed
-  sleep
