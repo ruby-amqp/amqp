@@ -1,6 +1,8 @@
 $:.unshift File.dirname(__FILE__) + '/../lib'
 require 'mq'
 
+MAX = 500
+
 def EM.fork &blk
   raise if reactor_running?
 
@@ -50,16 +52,13 @@ end
     MQ.queue('prime collector').subscribe{ |info, prime|
       log 'prime collector', :received, prime, :from, info.reply_to
       (@primes ||= []) << Integer(prime)
+      EM.stop_event_loop if prime == '499'
     }
 
-    i = 1
-    EM.add_periodic_timer(0.01) do
-      MQ.queue('prime checker').publish(i.to_s, :reply_to => 'prime collector')
-      if i == 50
-        Process.kill('KILL', Process.ppid)
-        EM.stop_event_loop
+    MAX.times do |i|
+      EM.next_tick do
+        MQ.queue('prime checker').publish((i+1).to_s, :reply_to => 'prime collector')
       end
-      i += 1
     end
   }
 

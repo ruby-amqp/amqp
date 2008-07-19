@@ -1,6 +1,8 @@
 $:.unshift File.dirname(__FILE__) + '/../lib'
 require 'mq'
 
+MAX = 500
+
 EM.run{
 
   def log *args
@@ -23,6 +25,7 @@ EM.run{
       log "prime checker #{Process.pid}", :prime?, num
       if Integer(num).prime?
         MQ.queue(info.reply_to).publish(num, :reply_to => Process.pid)
+        EM.stop_event_loop if num == (MAX-1).to_s
       end
     }
 
@@ -33,11 +36,10 @@ EM.run{
       (@primes ||= []) << Integer(prime)
     }
 
-    i = 1
-    EM.add_periodic_timer(0.01) do
-      MQ.queue('prime checker').publish(i.to_s, :reply_to => 'prime collector')
-      EM.stop_event_loop if i == 50
-      i += 1
+    MAX.times do |i|
+      EM.next_tick do
+        MQ.queue('prime checker').publish((i+1).to_s, :reply_to => 'prime collector')
+      end
     end
 
   else # run n workers and 1 controller as an example
