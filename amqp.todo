@@ -18,3 +18,7 @@
        @method_id=20,
        @reply_code=404,
        @reply_text="NOT_FOUND - no exchange 'clock' in vhost '/'">>]
+
+- handle connection.redirect during connect (for rabbitmq in distributed mode) [or just set insist to true]
+
+- add amq.queue('name').size{ |num| "#{num} messages in the queue" } (send declare passive, look at declare-ok response)
