@@ -11,7 +11,7 @@ EM.run{
 
   if ARGV[0] == 'worker'
 
-    log 'prime checker', :started, :pid => Process.pid
+    log "prime checker #{Process.pid}", :started
 
     class Fixnum
       def prime?
@@ -20,7 +20,7 @@ EM.run{
     end
 
     MQ.queue('prime checker').subscribe{ |info, num|
-      log 'prime checker', :prime?, num, :pid => Process.pid
+      log "prime checker #{Process.pid}", :prime?, num
       if Integer(num).prime?
         MQ.queue(info.reply_to).publish(num, :reply_to => Process.pid)
       end
@@ -29,7 +29,7 @@ EM.run{
   elsif ARGV[0] == 'controller'
 
     MQ.queue('prime collector').subscribe{ |info, prime|
-      log 'prime collector', :received, prime, :from_pid => info.reply_to
+      log 'prime collector', :received, prime, :from, info.reply_to
       (@primes ||= []) << Integer(prime)
     }
 
@@ -40,9 +40,13 @@ EM.run{
       i += 1
     end
 
-  else # run 3 workers and 1 controller as an example
+  else # run n workers and 1 controller as an example
 
-    %w[ worker worker worker controller ].each do |type|
+    workers = ARGV[0] ? (Integer(ARGV[0]) rescue 2) : 2
+
+    ([ :worker ] * workers + [ :controller ]).each do |type|
+      log :spawning, "`ruby #{$0} #{type}`"
+
       EM.popen("ruby #{$0} #{type}") do |c|
         def c.receive_data data
           puts data
