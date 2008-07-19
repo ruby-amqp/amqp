@@ -145,6 +145,8 @@ class MQ
   attr_reader :channel
   
   def process_frame frame
+    log :received, frame
+
     case frame
     when Frame::Header
       @header = frame.payload
@@ -180,6 +182,7 @@ class MQ
   def send data
     data.ticket = @ticket if @ticket and data.respond_to? :ticket
     conn.callback{ |c|
+      log :sending, data
       c.send data, :channel => @channel
     }
   end
@@ -219,11 +222,25 @@ class MQ
   end
   alias :conn :connection
 
+  def log *args
+    return unless MQ.logging
+    pp args
+    puts
+  end
+
   def MQ.method_missing meth, *args, &blk
     MQ.default.__send__(meth, *args, &blk)
   end
   
   def MQ.default
     Thread.current[:mq] ||= MQ.new
+  end
+
+  def MQ.logging
+    @logging ||= false
+  end
+  
+  def MQ.logging= logging
+    @logging = logging
   end
 end
