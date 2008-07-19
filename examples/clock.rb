@@ -9,18 +9,21 @@ EM.run{
 
   # AMQP.logging = true
 
+  clock = MQ.new.fanout('clock')
   EM.add_periodic_timer(1){
     puts
 
     log :publishing, time = Time.now
-    MQ.new.fanout('clock').publish(Marshal.dump(time))
+    clock.publish(Marshal.dump(time))
   }
 
-  MQ.new.queue('every second').bind('clock').subscribe{ |time|
+  amq = MQ.new
+  amq.queue('every second').bind(amq.fanout('clock')).subscribe{ |time|
     log 'every second', :received, Marshal.load(time)
   }
 
-  MQ.new.queue('every 5 seconds').bind('clock').subscribe{ |time|
+  amq = MQ.new
+  amq.queue('every 5 seconds').bind(amq.fanout('clock')).subscribe{ |time|
     time = Marshal.load(time)
     log 'every 5 seconds', :received, time if time.strftime('%S').to_i%5 == 0
   }

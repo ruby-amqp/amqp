@@ -17,11 +17,6 @@ class MQ
     include AMQP
 
     def initialize mq, type, name, opts = {}
-      if name.is_a? Hash
-        opts = name
-        name = "amq.#{type}"
-      end
-
       @mq = mq
       @type, @name = type, name
       @key = opts[:key]
@@ -30,7 +25,7 @@ class MQ
         @mq.send Protocol::Exchange::Declare.new({ :exchange => name,
                                                    :type => type,
                                                    :nowait => true }.merge(opts))
-      } unless name == "amq.#{type}"
+      } unless name == "amq.#{type}" or name == ''
     end
     attr_reader :name, :type, :key
 
@@ -61,7 +56,6 @@ class MQ
         @mq.send Protocol::Queue::Declare.new({ :queue => name,
                                                 :nowait => true }.merge(opts))
       }
-      bind(@mq.direct, :key => name)
     end
     attr_reader :name
 
@@ -86,10 +80,20 @@ class MQ
       self
     end
 
+    def publish data, opts = {}
+      exchange.publish(data, opts)
+    end
+
     def receive headers, body
       if @on_msg
         @on_msg.call *(@on_msg.arity == 1 ? [body] : [headers, body])
       end
+    end
+  
+    private
+    
+    def exchange
+      @exchange ||= Exchange.new(@mq, :direct, '', :key => name)
     end
   end
 
@@ -112,25 +116,24 @@ class MQ
           ret = @obj.__send__(method, *args)
 
           if info.reply_to
-            @mq.direct.publish(Marshal.dump(ret), :key => info.reply_to, :message_id => info.message_id)
+            @mq.queue(info.reply_to).publish(Marshal.dump(ret), :key => info.reply_to, :message_id => info.message_id)
           end
         }
       else
         @callbacks ||= {}
         @queue = @mq.queue(@name = 'some random identifier for me').subscribe{|info, msg|
-          ret = Marshal.load(msg)
           if blk = @callbacks.delete(info.message_id)
-            blk.call(ret)
+            blk.call Marshal.load(msg)
           end
         }
-        @exchange = @mq.direct(:key => queue)
+        @remote = @mq.queue(queue)
       end
     end
 
     def method_missing meth, *args, &blk
       message_id = "random message id #{rand(999_999_999_999)}"
       @callbacks[message_id] = blk if blk
-      @exchange.publish(Marshal.dump([meth, *args]), :reply_to => blk ? @name : nil, :message_id => message_id)
+      @remote.publish(Marshal.dump([meth, *args]), :reply_to => blk ? @name : nil, :message_id => message_id)
     end
   end
 end

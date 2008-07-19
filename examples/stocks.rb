@@ -13,7 +13,7 @@ EM.run{
     puts
 
     log :publishing, 'stock.usd.appl', price = 170+rand(1000)/100.0
-    MQ.topic(:key => 'stock.usd.appl').publish(price, :headers => {:symbol => 'appl'})
+    MQ.topic.publish(price, :key => 'stock.usd.appl', :headers => {:symbol => 'appl'})
 
     log :publishing, 'stock.usd.msft', price = 22+rand(500)/100.0
     MQ.topic.publish(price, :key => 'stock.usd.msft', :headers => {:symbol => 'msft'})
