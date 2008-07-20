@@ -1,7 +1,7 @@
 $:.unshift File.dirname(__FILE__) + '/../lib'
 require 'mq'
 
-MAX = 500
+MAX = 5000
 
 def EM.fork &blk
   raise if reactor_running?
