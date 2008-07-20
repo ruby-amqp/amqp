@@ -1,8 +1,10 @@
 $:.unshift File.dirname(__FILE__) + '/../lib'
 require 'mq'
 
+# find primes up to
 MAX = 5000
 
+# helper to fork off EM reactors
 def EM.fork num = 1, &blk
   raise if reactor_running?
 
@@ -30,12 +32,13 @@ def EM.fork num = 1, &blk
   end
 end
 
+# logging
 def log *args
   p args
 end
 
+# spawn workers
 workers = ARGV[0] ? (Integer(ARGV[0]) rescue 1) : 1
-
 EM.fork(workers) do
 
   log MQ.id, :started
@@ -57,6 +60,7 @@ EM.fork(workers) do
 
 end
 
+# use workers to check which numbers are prime
 EM.run{
   
   prime_checker = MQ.rpc('prime checker')
