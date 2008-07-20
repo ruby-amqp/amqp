@@ -66,9 +66,7 @@ EM.run{
 
     prime_checker.is_prime?(num) { |prime|
       log :prime?, num, prime
-      @primes ||= []
-      @primes << num if prime
-      EM.stop_event_loop if @primes.size == 669
+      EM.stop_event_loop if ((@primes||=[]) << num).size == MAX
     }
 
   end
@@ -89,32 +87,33 @@ real  0m7.936s
 user  0m7.933s
 sys 0m0.003s
 
-$ time ruby primes.rb >/dev/null
+$ time ruby primes.rb 1 >/dev/null
 
-real	0m17.985s
-user	0m4.790s
-sys	0m0.053s
+real  0m18.023s
+user  0m4.803s
+sys 0m0.053s
 
 $ time ruby primes.rb 2 >/dev/null
 
-real	0m11.370s
-user	0m4.790s
-sys	0m0.083s
+real  0m11.501s
+user  0m4.756s
+sys 0m0.070s
 
 $ time ruby primes.rb 4 >/dev/null
 
-real	0m10.091s
-user	0m4.963s
-sys	0m0.080s
+real  0m8.863s
+user  0m4.816s
+sys 0m0.073s
 
 $ time ruby primes.rb 8 >/dev/null
 
-real	0m9.551s
-user	0m5.173s
-sys	0m0.137s
+real  0m8.474s
+user  0m4.883s
+sys 0m0.093s
 
 $ time ruby primes.rb 16 >/dev/null
 
-real	0m8.708s
-user	0m4.836s
-sys	0m0.103s
+real  0m8.614s
+user  0m4.856s
+sys 0m0.077s
+
