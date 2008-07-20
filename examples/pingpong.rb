@@ -19,8 +19,7 @@ EM.run{
 
   amq = MQ.new
   amq.queue('one').subscribe{ |headers, msg|
-    log 'one', :received, msg
-    log 'one', :sending, 'pong'
+    log 'one', :received, msg, :sending, 'pong'
     amq.queue('two').publish('pong')
   }
   
@@ -33,17 +32,14 @@ EM.run{
 
 __END__
 
-[Fri Jul 18 19:34:39 -0700 2008, :sending, "ping"]
-[Fri Jul 18 19:34:39 -0700 2008, "one", :received, "ping"]
-[Fri Jul 18 19:34:39 -0700 2008, "one", :sending, "pong"]
-[Fri Jul 18 19:34:39 -0700 2008, "two", :received, "pong"]
+[Sun Jul 20 03:52:24 -0700 2008, :sending, "ping"]
+[Sun Jul 20 03:52:24 -0700 2008, "one", :received, "ping", :sending, "pong"]
+[Sun Jul 20 03:52:24 -0700 2008, "two", :received, "pong"]
 
-[Fri Jul 18 19:34:40 -0700 2008, :sending, "ping"]
-[Fri Jul 18 19:34:40 -0700 2008, "one", :received, "ping"]
-[Fri Jul 18 19:34:40 -0700 2008, "one", :sending, "pong"]
-[Fri Jul 18 19:34:40 -0700 2008, "two", :received, "pong"]
+[Sun Jul 20 03:52:25 -0700 2008, :sending, "ping"]
+[Sun Jul 20 03:52:25 -0700 2008, "one", :received, "ping", :sending, "pong"]
+[Sun Jul 20 03:52:25 -0700 2008, "two", :received, "pong"]
 
-[Fri Jul 18 19:34:41 -0700 2008, :sending, "ping"]
-[Fri Jul 18 19:34:41 -0700 2008, "one", :received, "ping"]
-[Fri Jul 18 19:34:41 -0700 2008, "one", :sending, "pong"]
-[Fri Jul 18 19:34:41 -0700 2008, "two", :received, "pong"]
+[Sun Jul 20 03:52:26 -0700 2008, :sending, "ping"]
+[Sun Jul 20 03:52:26 -0700 2008, "one", :received, "ping", :sending, "pong"]
+[Sun Jul 20 03:52:26 -0700 2008, "two", :received, "pong"]
