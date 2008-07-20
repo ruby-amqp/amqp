@@ -83,6 +83,12 @@ Linux gc 2.6.24-ARCH #1 SMP PREEMPT Sun Mar 30 10:50:22 CEST 2008 x86_64 Intel(R
 $ cat /proc/cpuinfo | grep processor | wc -l
 4
 
+$ time ruby primes-simple.rb 
+
+real  0m7.936s
+user  0m7.933s
+sys 0m0.003s
+
 $ time ruby primes.rb >/dev/null
 
 real	0m17.985s
