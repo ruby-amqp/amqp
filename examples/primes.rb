@@ -2,7 +2,7 @@ $:.unshift File.dirname(__FILE__) + '/../lib'
 require 'mq'
 
 # find primes up to
-MAX = 5000
+MAX = 1000
 
 # helper to fork off EM reactors
 def EM.fork num = 1, &blk
@@ -65,7 +65,7 @@ EM.run{
   
   prime_checker = MQ.rpc('prime checker')
 
-  (1..MAX).each do |num|
+  (10_000..(10_000+MAX)).each do |num|
     log :checking, num
 
     prime_checker.is_prime?(num) { |prime|
@@ -87,37 +87,36 @@ $ cat /proc/cpuinfo | grep processor | wc -l
 
 $ time ruby primes-simple.rb 
 
-real  0m7.936s
-user  0m7.933s
-sys 0m0.003s
+real  0m16.055s
+user  0m16.052s
+sys 0m0.000s
 
 $ time ruby primes.rb 1 >/dev/null
 
-real  0m18.023s
-user  0m4.803s
-sys 0m0.053s
+real  0m18.278s
+user  0m0.993s
+sys 0m0.027s
 
 $ time ruby primes.rb 2 >/dev/null
 
-real  0m11.501s
-user  0m4.756s
-sys 0m0.070s
+real  0m17.316s
+user  0m0.967s
+sys 0m0.053s
 
 $ time ruby primes.rb 4 >/dev/null
 
-real  0m8.863s
-user  0m4.816s
-sys 0m0.073s
+real  0m8.229s
+user  0m1.010s
+sys 0m0.030s
 
 $ time ruby primes.rb 8 >/dev/null
 
-real  0m8.474s
-user  0m4.883s
-sys 0m0.093s
+real  0m5.893s
+user  0m1.023s
+sys 0m0.050s
 
 $ time ruby primes.rb 16 >/dev/null
 
-real  0m8.614s
-user  0m4.856s
-sys 0m0.077s
-
+real  0m5.601s
+user  0m0.990s
+sys 0m0.043s
