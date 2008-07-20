@@ -10,12 +10,12 @@ def EM.fork num = 1, &blk
       blk = @forks.delete(pid)
       EM.fork(1, &blk)
     }
-    at_exit{
-      p [:pid, Process.pid, :exit, is_fork?]
+    trap('EXIT'){
+      p [:pid, Process.pid, :exit]
       @forks.keys.each{ |pid|
         p [:pid, Process.pid, :killing, pid]
         Process.kill('USR1', pid)
-      } unless is_fork?
+      }
     }
   end
 
@@ -26,8 +26,8 @@ def EM.fork num = 1, &blk
       p [:pid, Process.pid, :started]
 
       trap('USR1'){ EM.stop_event_loop }
+      trap('EXIT'){}
 
-      def EM.is_fork?() true end
       if EM.reactor_running?
         EM.stop_event_loop
         EM.release_machine
@@ -43,7 +43,6 @@ def EM.fork num = 1, &blk
     p [:children, EM.forks]
   end
 end
-def EM.is_fork?() false end
 def EM.forks
   @forks.keys
 end
