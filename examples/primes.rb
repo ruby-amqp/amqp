@@ -66,8 +66,9 @@ EM.run{
 
     prime_checker.is_prime?(num) { |prime|
       log :prime?, num, prime
-      (@primes ||= []) << num if prime
-      EM.stop_event_loop if num == MAX
+      @primes ||= []
+      @primes << num if prime
+      EM.stop_event_loop if @primes.size == 669
     }
 
   end
@@ -76,16 +77,38 @@ EM.run{
 
 __END__
 
-on a first gen core duo macbook:
+$ uname -a
+Linux gc 2.6.24-ARCH #1 SMP PREEMPT Sun Mar 30 10:50:22 CEST 2008 x86_64 Intel(R) Xeon(R) CPU X3220 @ 2.40GHz GenuineIntel GNU/Linux
 
-  $ time ruby primes.rb >/dev/null
+$ cat /proc/cpuinfo | grep processor | wc -l
+4
 
-  real	0m24.375s
-  user	0m10.117s
-  sys	0m0.242s
+$ time ruby primes.rb >/dev/null
 
-  $ time ruby primes.rb 2 >/dev/null
+real	0m17.985s
+user	0m4.790s
+sys	0m0.053s
 
-  real	0m16.406s
-  user	0m8.393s
-  sys	0m0.209s
+$ time ruby primes.rb 2 >/dev/null
+
+real	0m11.370s
+user	0m4.790s
+sys	0m0.083s
+
+$ time ruby primes.rb 4 >/dev/null
+
+real	0m10.091s
+user	0m4.963s
+sys	0m0.080s
+
+$ time ruby primes.rb 8 >/dev/null
+
+real	0m9.551s
+user	0m5.173s
+sys	0m0.137s
+
+$ time ruby primes.rb 16 >/dev/null
+
+real	0m8.708s
+user	0m4.836s
+sys	0m0.103s
