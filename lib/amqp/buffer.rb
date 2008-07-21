@@ -1,4 +1,12 @@
-require 'enumerator'
+if [].map.respond_to? :with_index
+  class Array
+    def enum_with_index
+      each.with_index
+    end
+  end
+else
+  require 'enumerator'
+end
 
 module AMQP
   class Buffer
@@ -102,17 +110,17 @@ module AMQP
             key, type = table.read(:shortstr, :octet)
             key = key.intern
             t[key] ||= case type
-                       when ?S
+                       when 83 # 'S'
                          table.read(:longstr)
-                       when ?I
+                       when 73 # 'I'
                          table.read(:long)
-                       when ?D
+                       when 68 # 'D'
                          exp = table.read(:octet)
                          num = table.read(:long)
                          num / 10.0**exp
-                       when ?T
+                       when 84 # 'T'
                          table.read(:timestamp)
-                       when ?F
+                       when 70 # 'F'
                          table.read(:table)
                        end
           end
@@ -164,23 +172,23 @@ module AMQP
 
                           case value
                           when String
-                            table.write(:octet, ?S)
+                            table.write(:octet, 83) # 'S'
                             table.write(:longstr, value.to_s)
                           when Fixnum
-                            table.write(:octet, ?I)
+                            table.write(:octet, 73) # 'I'
                             table.write(:long, value)
                           when Float
-                            table.write(:octet, ?D)
+                            table.write(:octet, 68) # 'D'
                             # XXX there's gotta be a better way to do this..
-                            exp = value.to_s.gsub(/^.+\./,'').length
+                            exp = value.to_s.split('.').last.length
                             num = value * 10**exp
                             table.write(:octet, exp)
                             table.write(:long, num)
                           when Time
-                            table.write(:octet, ?T)
+                            table.write(:octet, 84) # 'T'
                             table.write(:timestamp, value)
                           when Hash
-                            table.write(:octet, ?F)
+                            table.write(:octet, 70) # 'F'
                             table.write(:table, value)
                           end
 
