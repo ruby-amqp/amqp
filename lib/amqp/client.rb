@@ -1,5 +1,3 @@
-require 'rubygems'
-require 'eventmachine'
 require 'amqp/frame'
 require 'pp'
 

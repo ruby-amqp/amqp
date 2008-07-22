@@ -3,6 +3,8 @@ module AMQP
   
   $:.unshift DIR
   
+  require 'ext/em'
+  
   %w[ buffer spec protocol frame client ].each do |file|
     require "amqp/#{file}"
   end
