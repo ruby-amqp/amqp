@@ -43,7 +43,7 @@ The lib/amqp/spec.rb file is generated automatically based on the AMQP specifica
 This project was inspired by py-amqplib, rabbitmq, qpid and rubbyt.
 Special thanks to Dmitriy Samovskiy, Ben Hood and Tony Garnock-Jones.
 
-Other AMQP resources:
+AMQP resources:
 
   Servers:
     RabbitMQ (Rabbit Technologies, Erlang/OTP, MPL)  http://rabbitmq.com
@@ -67,6 +67,9 @@ Other AMQP resources:
 
   RabbitMQ's protocol code generator:
     http://hg.rabbitmq.com/rabbitmq-codegen/
+
+  Erlang Exchange presentation on the implementation of RabbitMQ:
+    http://www.lshift.net/blog/2008/07/01/slides-from-our-erlang-exchange-talk
 
   Jonahthan Conway's series on RabbitMQ and using it with Ruby/Merb:
     http://jaikoo.com/2008/3/20/daemonize-rabbitmq
