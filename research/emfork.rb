@@ -22,20 +22,14 @@ def EM.fork num = 1, &blk
   @forks ||= {}
 
   num.times do
-    pid = Kernel.fork do
+    pid = EM.fork_reactor do
       p [:pid, Process.pid, :started]
 
       trap('USR1'){ EM.stop_event_loop }
       trap('EXIT'){}
 
-      if EM.reactor_running?
-        EM.stop_event_loop
-        EM.release_machine
-        EM.instance_variable_set('@reactor_running', false)
-      end
-
       p [:pid, Process.pid, :reactor, :starting]
-      EM.run(&blk)
+      blk.call
       p [:pid, Process.pid, :reactor, :stopped]
     end
 
@@ -56,6 +50,4 @@ EM.run{
   }
 }
 
-# Process.wait
-# EM.run{}
 p 'original reactor stopped'
