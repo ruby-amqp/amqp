@@ -60,3 +60,20 @@ Other AMQP resources:
 
   RabbitMQ's protocol code generator:
     http://hg.rabbitmq.com/rabbitmq-codegen/
+
+  Jonahthan Conway's series on RabbitMQ and using it with Ruby/Merb:
+    http://jaikoo.com/2008/3/20/daemonize-rabbitmq
+    http://jaikoo.com/2008/3/14/oh-hai-rabbitmq
+    http://jaikoo.com/2008/2/29/friday-round-up-2008-02-29
+    http://jaikoo.com/2007/9/4/didn-t-you-get-the-memo
+
+Messaging and distributed systems resources:
+
+  A Critique of the Remote Procedure Call Paradigm
+    http://www.cs.vu.nl/~ast/publications/euteco-1988.pdf
+
+  A Note on Distributed Computing
+    http://research.sun.com/techrep/1994/smli_tr-94-29.pdf
+
+  Convenience Over Correctness
+    http://steve.vinoski.net/pdf/IEEE-Convenience_Over_Correctness.pdf
