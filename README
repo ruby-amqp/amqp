@@ -1,4 +1,11 @@
-Simple AMQP driver for Ruby/EventMachine.
+Simple AMQP driver for Ruby/EventMachine
+  (c) 2008 Aman Gupta (tmm1)
+ 
+  http://github.com/tmm1/amqp
+  http://rubyforge.org/projects/amqp
+  http://hopper.squarespace.com/blog/2008/7/22/simple-amqp-library-for-ruby.html
+  http://groups.google.com/group/ruby-amqp
+  http://lists.rabbitmq.com/pipermail/rabbitmq-discuss/2008-July/001417.html
 
 This library was tested primarily with RabbitMQ, although it should be compatible with any
 server implementing the AMQP 0-8 spec.
