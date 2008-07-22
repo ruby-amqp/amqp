@@ -12,8 +12,8 @@ def EM.fork num = 1, &blk
     trap('CHLD'){
       pid = Process.wait
       p [:pid, pid, :died] if EMFORK
-      blk = @forks.delete(pid)
-      EM.fork(1, &blk)
+      block = @forks.delete(pid)
+      EM.fork(1, &block)
     }
 
     trap('EXIT'){
@@ -32,6 +32,7 @@ def EM.fork num = 1, &blk
       p [:pid, Process.pid, :started] if EMFORK
 
       trap('USR1'){ EM.stop_event_loop }
+      trap('CHLD'){}
       trap('EXIT'){}
 
       blk.call

@@ -4,29 +4,6 @@ require 'mq'
 # check MAX numbers for prime-ness
 MAX = 1000
 
-# helper to fork off EM reactors
-def EM.fork num = 1, &blk
-  raise if reactor_running?
-
-  unless @forks
-    at_exit{
-      @forks.each{ |pid|
-        begin
-          Process.kill('USR1', pid)
-        rescue Errno::ESRCH
-        end
-      }
-    }
-  end
-
-  num.times do
-    (@forks ||= []) << Kernel.fork do
-      trap('USR1'){ EM.stop_event_loop }
-      EM.run(&blk)
-    end
-  end
-end
-
 # logging
 def log *args
   p args

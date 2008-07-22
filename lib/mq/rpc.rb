@@ -1,3 +1,5 @@
+require 'emfork'
+
 unless defined?(BlankSlate)
   class BlankSlate < BasicObject; end if defined?(BasicObject)
 
