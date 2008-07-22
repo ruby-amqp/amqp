@@ -1,4 +1,9 @@
-require 'rubygems'
+EMFORK = $0 == __FILE__
+
+if EMFORK
+  require 'rubygems'
+end
+
 require 'eventmachine'
 
 # helper to fork off EM reactors
@@ -6,48 +11,56 @@ def EM.fork num = 1, &blk
   unless @forks
     trap('CHLD'){
       pid = Process.wait
-      p [:pid, pid, :died]
+      p [:pid, pid, :died] if EMFORK
       blk = @forks.delete(pid)
       EM.fork(1, &blk)
     }
+
     trap('EXIT'){
-      p [:pid, Process.pid, :exit]
+      p [:pid, Process.pid, :exit] if EMFORK
       @forks.keys.each{ |pid|
-        p [:pid, Process.pid, :killing, pid]
+        p [:pid, Process.pid, :killing, pid] if EMFORK
         Process.kill('USR1', pid)
       }
     }
+    
+    @forks = {}
   end
-
-  @forks ||= {}
 
   num.times do
     pid = EM.fork_reactor do
-      p [:pid, Process.pid, :started]
+      p [:pid, Process.pid, :started] if EMFORK
 
       trap('USR1'){ EM.stop_event_loop }
       trap('EXIT'){}
 
-      p [:pid, Process.pid, :reactor, :starting]
       blk.call
-      p [:pid, Process.pid, :reactor, :stopped]
     end
 
     @forks[pid] = blk
-    p [:children, EM.forks]
+    p [:children, EM.forks] if EMFORK
   end
 end
+
 def EM.forks
   @forks.keys
 end
 
-EM.run{
-  p [:parent, Process.pid]
-  EM.fork(2){
-    EM.add_periodic_timer(1) do
-      p [:fork, Process.pid, :ping]
-    end
-  }
-}
+if EMFORK
+  p 'starting reactor'
 
-p 'original reactor stopped'
+  trap('INT'){ EM.stop_event_loop }
+
+  EM.run{
+    p [:parent, Process.pid]
+
+    EM.fork(2){
+      EM.add_periodic_timer(1) do
+        p [:fork, Process.pid, :ping]
+      end
+    }
+
+  }
+
+  p 'reactor stopped'
+end
