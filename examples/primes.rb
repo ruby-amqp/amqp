@@ -1,7 +1,7 @@
 $:.unshift File.dirname(__FILE__) + '/../lib'
 require 'mq'
 
-# find primes up to
+# check MAX numbers for prime-ness
 MAX = 1000
 
 # helper to fork off EM reactors
@@ -22,11 +22,6 @@ def EM.fork num = 1, &blk
   num.times do
     (@forks ||= []) << Kernel.fork do
       trap('USR1'){ EM.stop_event_loop }
-
-      def MQ.id
-        Thread.current[:mq_id] ||= "#{`hostname`.strip}-#{Process.pid}-#{Thread.current.object_id}"
-      end
-
       EM.run(&blk)
     end
   end
@@ -65,12 +60,17 @@ EM.run{
   
   prime_checker = MQ.rpc('prime checker')
 
-  (10_000..(10_000+MAX)).each do |num|
+  (10_000...(10_000+MAX)).each do |num|
     log :checking, num
 
-    prime_checker.is_prime?(num) { |prime|
-      log :prime?, num, prime
-      EM.stop_event_loop if ((@primes||=[]) << num).size == MAX
+    prime_checker.is_prime?(num) { |is_prime|
+      log :prime?, num, is_prime
+      (@primes||=[]) << num if is_prime
+      
+      if (@responses = (@responses || 0) + 1) == MAX
+        log :primes=, @primes
+        EM.stop_event_loop
+      end
     }
 
   end

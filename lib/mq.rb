@@ -124,3 +124,10 @@ class MQ
     MQ.default.__send__(meth, *args, &blk)
   end
 end
+
+# unique identifier
+class MQ
+  def MQ.id
+    Thread.current[:mq_id] ||= "#{`hostname`.strip}-#{Process.pid}-#{Thread.current.object_id}"
+  end
+end

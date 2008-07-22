@@ -14,6 +14,6 @@ end
 
 prime_checker = PrimeChecker.new
 
-(10_000..(10_000+MAX)).each do |n|
+(10_000...(10_000+MAX)).each do |n|
   prime_checker.is_prime? n
 end
