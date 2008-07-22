@@ -18,7 +18,7 @@ EM.run{
   }
 
   amq = MQ.new
-  amq.queue('one').subscribe{ |headers, msg|
+  amq.queue('one').subscribe{ |msg|
     log 'one', :received, msg, :sending, 'pong'
     amq.queue('two').publish('pong')
   }
