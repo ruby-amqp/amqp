@@ -93,3 +93,6 @@ Messaging and distributed systems resources:
 
   Metaprotocol Taxonomy and Communications Patterns
     http://hessian.caucho.com/doc/metaprotocol-taxonomy.xtp
+
+  Joe Armstrong on Erlang messaging vs RPC:
+    http://armstrongonsoftware.blogspot.com/2008/05/road-we-didnt-go-down.html
