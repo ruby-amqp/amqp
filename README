@@ -47,7 +47,7 @@ AMQP resources:
 
   Servers:
     RabbitMQ (Rabbit Technologies, Erlang/OTP, MPL) - http://rabbitmq.com
-    OpenAMP  (iMatrix, C, GPL2)                     - http://openamq.org
+    OpenAMQ  (iMatrix, C, GPL2)                     - http://openamq.org
     ActiveMQ (Apache Foundation, Java, apache2)     - http://activemq.apache.org/
 
   Steve Vinoski explains AMQP in his column, Towards Integration:
