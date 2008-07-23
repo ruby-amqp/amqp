@@ -46,26 +46,26 @@ Special thanks to Dmitriy Samovskiy, Ben Hood and Tony Garnock-Jones.
 AMQP resources:
 
   Servers:
-    RabbitMQ (Rabbit Technologies, Erlang/OTP, MPL)  http://rabbitmq.com
-    OpenAMP  (iMatrix, C, GPL2)                      http://openamq.org
-    ActiveMQ (Apache Foundation, Java, apache2)      http://activemq.apache.org/
+    RabbitMQ (Rabbit Technologies, Erlang/OTP, MPL) - http://rabbitmq.com
+    OpenAMP  (iMatrix, C, GPL2)                     - http://openamq.org
+    ActiveMQ (Apache Foundation, Java, apache2)     - http://activemq.apache.org/
 
   Steve Vinoski explains AMQP in his column, Towards Integration:
     http://steve.vinoski.net/pdf/IEEE-Advanced_Message_Queuing_Protocol.pdf
 
-  John O'Hara's article on the history of AMQP:
+  John O'Hara on the history of AMQP
     http://www.acmqueue.org/modules.php?name=Content&pa=showpage&pid=485
 
-  Barry Pederson's py-amqplib:
+  Barry Pederson's py-amqplib
     http://barryp.org/software/py-amqplib/
 
-  Ben Hood's article on writing an AMQP client:
+  Ben Hood on writing an AMQP client
     http://hopper.squarespace.com/blog/2008/6/21/build-your-own-amqp-client.html
 
-  Dmitriy Samovskiy's introduction to Ruby+QPid+RabbitMQ:
+  Dmitriy Samovskiy introduces Ruby + QPid + RabbitMQ
     http://somic-org.homelinux.org/blog/2008/06/24/ruby-amqp-rabbitmq-example/
 
-  Ben Hood's AMQP client in AS3:
+  Ben Hood's as3-amqp
     http://github.com/0x6e6562/as3-amqp
 
   RabbitMQ's protocol code generator:
