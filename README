@@ -50,6 +50,9 @@ AMQP resources:
     OpenAMP  (iMatrix, C, GPL2)                      http://openamq.org
     ActiveMQ (Apache Foundation, Java, apache2)      http://activemq.apache.org/
 
+  Steve Vinoski explains AMQP in his column, Towards Integration:
+    http://steve.vinoski.net/pdf/IEEE-Advanced_Message_Queuing_Protocol.pdf
+
   John O'Hara's article on the history of AMQP:
     http://www.acmqueue.org/modules.php?name=Content&pa=showpage&pid=485
 
