@@ -67,6 +67,8 @@ AMQP resources:
 
   Ben Hood's as3-amqp
     http://github.com/0x6e6562/as3-amqp
+    http://hopper.squarespace.com/blog/2008/7/4/server-side-as3.html
+    http://hopper.squarespace.com/blog/2008/3/24/as3-amqp-client-first-cut.html
 
   RabbitMQ's protocol code generator
     http://hg.rabbitmq.com/rabbitmq-codegen/
