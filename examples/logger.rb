@@ -11,7 +11,7 @@ class Logger
   end
 
   def log severity, *args
-    opts = args.pop if args.last.is_a? Hash
+    opts = args.pop if args.last.is_a? Hash and args.size != 1
     opts ||= {}
     data = args.shift
 
@@ -76,6 +76,9 @@ EM.run{
     }
     
   else
+
+    log = Logger.new
+    log.debug 'its working!'
     
     log = Logger.new do |msg|
       require 'pp'
@@ -85,6 +88,7 @@ EM.run{
 
     log.info '123'
     log.debug [1,2,3]
+    log.debug :one => 1, :two => 2
     log.error Exception.new('123')
 
     log.info '123', :process_id => Process.pid
