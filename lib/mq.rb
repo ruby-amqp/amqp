@@ -108,6 +108,7 @@ class MQ
   # create a class level connection on demand
 
   def connection
+    raise 'MQ can only be used within EM.run{}' unless EM.reactor_running?
     @@connection ||= AMQP.start
   end
   alias :conn :connection
