@@ -98,6 +98,8 @@ EM.run{
     log = Logger.new(:webserver, :timestamp, :hostname, &log.printer)
     log.info 'Request for /', :GET, :session => 'abc'
 
+    AMQP.stop
+
   end
 }
 

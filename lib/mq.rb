@@ -49,12 +49,27 @@ class MQ
 
       when Protocol::Access::RequestOk
         @ticket = method.ticket
+        callback{
+          send Protocol::Channel::Close.new(:reply_code => 200,
+                                            :reply_text => 'bye',
+                                            :method_id => 0,
+                                            :class_id => 0)
+
+        } if @closing
         succeed
 
       when Protocol::Basic::Deliver
         @header = nil
         @body = ''
         @consumer = queues[ method.consumer_tag ]
+
+      when Protocol::Channel::CloseOk
+        raise "MQ: #{method.response_text} in (#{method.class_id}, #{method.method_id})" unless @closing
+        @closing = false
+        conn.callback{ |c|
+          c.channels.delete(@channel)
+          c.close unless c.channels.keys.any?
+        }
       end
     end
   end
@@ -81,6 +96,10 @@ class MQ
 
   def rpc name, obj = nil
     rpcs[name] ||= RPC.new(self, name, obj)
+  end
+
+  def close
+    @closing = true
   end
 
   private

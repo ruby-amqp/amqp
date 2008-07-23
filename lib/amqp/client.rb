@@ -33,6 +33,9 @@ module AMQP
 
         when Protocol::Connection::OpenOk
           @dfr.succeed(self)
+
+        when Protocol::Connection::CloseOk
+          AMQP.stopped
         end
       end
     end
@@ -70,8 +73,8 @@ module AMQP
     end
   
     def receive_data data
+      # log 'receive_data', data
       @buf << data
-      log 'receive_data', data
 
       while frame = Frame.parse(@buf)
         log 'receive', frame
@@ -92,9 +95,16 @@ module AMQP
       send_data data.to_s
     end
 
-    def send_data data
-      log 'send_data', data
-      super
+    # def send_data data
+    #   log 'send_data', data
+    #   super
+    # end
+
+    def close
+      send Protocol::Connection::Close.new(:reply_code => 200,
+                                           :reply_text => 'Goodbye',
+                                           :class_id => 0,
+                                           :method_id => 0)
     end
 
     def unbind
@@ -122,12 +132,4 @@ module AMQP
       puts
     end
   end
-
-  def self.start *args
-    @conn ||= Client.connect *args
-  end
-end
-
-if $0 == __FILE__
-  AMQP.start
 end
