@@ -1,12 +1,12 @@
 - generate amqp/spec.rb from original xml spec
-- add graceful connection.close
++ add graceful connection.close
 - add peek and pop to queues
 - use rabbitmq generated consumer tag from basic.consume-ok reply
 - allow temporary queues with amq.queue(nil) syntax
 - add ack/completed responses for messages
 - deleting queues/bindings/exchanges
   - queue.unbind
-  - queue.remove
+  - queue.remove or queue.close or queue.delete
   - exchange.remove
   - rpc.remove
 
