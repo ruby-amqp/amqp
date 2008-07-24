@@ -43,7 +43,7 @@ class Logger
                 :data => data)
     
     print(opts)
-    MQ.queue('logger', :durable => true).publish(Marshal.dump(opts))
+    MQ.queue('logger', :durable => true).publish(Marshal.dump(opts), :persistent => true)
     opts
   end
   alias :method_missing :log

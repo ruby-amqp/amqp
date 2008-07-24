@@ -24,7 +24,7 @@ class MQ
 
         @mq.send Protocol::Header.new(Protocol::Basic,
                                           data.length, { :content_type => 'application/octet-stream',
-                                                         :delivery_mode => 1,
+                                                         :delivery_mode => (opts.delete(:persistent) ? 2 : 1),
                                                          :priority => 0 }.merge(opts))
         @mq.send Frame::Body.new(data)
       }
