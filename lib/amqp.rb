@@ -15,6 +15,14 @@ module AMQP
     attr_reader :stopping
   end
 
+  def self.settings
+    @settings ||= {
+      :user => 'guest',
+      :pass => 'guest',
+      :vhost => '/'
+    }
+  end
+
   def self.start *args
     @conn ||= Client.connect *args
   end

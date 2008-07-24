@@ -16,10 +16,10 @@ module AMQP
           send Protocol::Connection::StartOk.new({:platform => 'Ruby/EventMachine',
                                                   :product => 'AMQP',
                                                   :information => 'http://github.com/tmm1/amqp',
-                                                  :version => '0.5.0'},
+                                                  :version => '0.5.2'},
                                                  'AMQPLAIN',
-                                                 {:LOGIN => 'guest',
-                                                  :PASSWORD => 'guest'},
+                                                 {:LOGIN => @settings[:user],
+                                                  :PASSWORD => @settings[:pass]},
                                                  'en_US')
 
         when Protocol::Connection::Tune
@@ -27,7 +27,7 @@ module AMQP
                                                 :frame_max => 131072,
                                                 :heartbeat => 0)
 
-          send Protocol::Connection::Open.new(:virtual_host => '/',
+          send Protocol::Connection::Open.new(:virtual_host => @settings[:vhost],
                                               :capabilities => '',
                                               :insist => false)
 
@@ -51,8 +51,9 @@ module AMQP
   end
 
   module Client
-    def initialize dfr
+    def initialize dfr, opts = {}
       @dfr = dfr
+      @settings = opts
       extend AMQP.client
     end
 
@@ -112,13 +113,14 @@ module AMQP
     end
   
     def self.connect opts = {}
+      opts = AMQP.settings.merge(opts)
       opts[:host] ||= 'localhost'
       opts[:port] ||= PORT
 
       dfr = EM::DefaultDeferrable.new
       
       EM.run{
-        EM.connect opts[:host], opts[:port], self, dfr
+        EM.connect opts[:host], opts[:port], self, dfr, opts
       }
       
       dfr
