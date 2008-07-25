@@ -10,6 +10,8 @@ class MQ
     @logging = false
     attr_accessor :logging
   end
+
+  class Error < Exception; end
 end
 
 class MQ
@@ -63,8 +65,11 @@ class MQ
         @body = ''
         @consumer = queues[ method.consumer_tag ]
 
+
+      when Protocol::Channel::Close
+        raise Error, "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]}"
+
       when Protocol::Channel::CloseOk
-        raise "MQ: #{method.response_text} in (#{method.class_id}, #{method.method_id})" unless @closing
         @closing = false
         conn.callback{ |c|
           c.channels.delete(@channel)
