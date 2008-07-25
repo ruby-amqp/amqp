@@ -4,7 +4,7 @@ class MQ
     
     def initialize mq, name, opts = {}
       @mq = mq
-      @name = name
+      @mq.queues[@name = name] ||= self
       @mq.callback{
         @mq.send Protocol::Queue::Declare.new({ :queue => name,
                                                 :nowait => true }.merge(opts))

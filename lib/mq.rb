@@ -107,14 +107,6 @@ class MQ
     @closing = true
   end
 
-  private
-  
-  def log *args
-    return unless MQ.logging
-    pp args
-    puts
-  end
-
   # keep track of proxy objects
   
   def exchanges
@@ -127,6 +119,14 @@ class MQ
 
   def rpcs
     @rcps ||= {}
+  end
+
+  private
+  
+  def log *args
+    return unless MQ.logging
+    pp args
+    puts
   end
 
   # create a class level connection on demand

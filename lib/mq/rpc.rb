@@ -10,6 +10,7 @@ class MQ
   class RPC < BlankSlate
     def initialize mq, queue, obj = nil
       @mq = mq
+      @mq.rpcs[queue] ||= self
 
       if obj
         @obj = case obj

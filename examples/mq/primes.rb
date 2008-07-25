@@ -1,4 +1,4 @@
-$:.unshift File.dirname(__FILE__) + '/../lib'
+$:.unshift File.dirname(__FILE__) + '/../../lib'
 require 'mq'
 
 # check MAX numbers for prime-ness

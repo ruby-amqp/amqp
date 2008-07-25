@@ -5,6 +5,7 @@ class MQ
     def initialize mq, type, name, opts = {}
       @mq = mq
       @type, @name = type, name
+      @mq.exchanges[@name = name] ||= self
       @key = opts[:key]
 
       @mq.callback{

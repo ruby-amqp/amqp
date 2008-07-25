@@ -19,15 +19,17 @@ To use with RabbitMQ, first run the server:
 
 To get started, refer to the various bundled examples:
 
-  ruby examples/pingpong.rb   # 1-1 communication using amq.direct
-  ruby examples/clock.rb      # 1-N communication using amq.fanout
-  ruby examples/stocks.rb     # 1-subscriber communication using amq.topic
-  ruby examples/hashtable.rb  # simple async rpc layer
-  ruby examples/primes.rb 4   # parallelized prime number generation
+  ruby examples/mq/simple.rb     # low-level Queue/Exchange api
+  ruby examples/mq/pingpong.rb   # 1-1 communication using amq.direct
+  ruby examples/mq/clock.rb      # 1-N communication using amq.fanout
+  ruby examples/mq/stocks.rb     # 1-subscriber communication using amq.topic
+  ruby examples/mq/hashtable.rb  # simple async rpc layer
+  ruby examples/mq/primes.rb 4   # parallelized prime number generation
+  ruby examples/mq/logger.rb     # simple logging api
 
 For more details into the lower level AMQP client API, run the simple client example:
 
-  ruby examples/simple.rb
+  ruby examples/amqp/simple.rb   # low-level AMQP api
 
 Or refer to protocol/doc.txt, which enumerates packets sent between a server and client
 during a typical session, in both binary and decoded formats.
