@@ -38,8 +38,9 @@ module AMQP
           c.close
         end
       }
-      @on_stop = on_stop || proc{
+      @on_stop = proc{
         @conn = nil
+        on_stop.call if on_stop
         EM.stop_event_loop if stop_reactor
       }
     end

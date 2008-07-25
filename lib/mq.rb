@@ -56,7 +56,6 @@ class MQ
                                             :reply_text => 'bye',
                                             :method_id => 0,
                                             :class_id => 0)
-
         } if @closing
         succeed
 
@@ -104,7 +103,14 @@ class MQ
   end
 
   def close
-    @closing = true
+    if @deferred_status == :succeeded
+      send Protocol::Channel::Close.new(:reply_code => 200,
+                                        :reply_text => 'bye',
+                                        :method_id => 0,
+                                        :class_id => 0)
+    else
+      @closing = true
+    end
   end
 
   # keep track of proxy objects

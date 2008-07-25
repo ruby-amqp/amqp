@@ -22,7 +22,7 @@ EM.run do
   # subscribe to messages from the queue 
   queue.subscribe do |headers, msg|
     pp [:got, headers, msg]
-    EM.stop_event_loop
+    AMQP.stop
   end
   
 end
