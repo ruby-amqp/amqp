@@ -2,6 +2,8 @@ require 'amqp/frame'
 require 'pp'
 
 module AMQP
+  class Error < Exception; end
+
   module BasicClient
     def process_frame frame
       if mq = channels[frame.channel]
@@ -33,6 +35,9 @@ module AMQP
 
         when Protocol::Connection::OpenOk
           @dfr.succeed(self)
+
+        when Protocol::Connection::Close
+          raise Error, "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]}"
 
         when Protocol::Connection::CloseOk
           AMQP.stopped
