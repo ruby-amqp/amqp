@@ -4,6 +4,7 @@ module AMQP
   $:.unshift DIR
   
   require 'ext/em'
+  require 'ext/blankslate'
   
   %w[ buffer spec protocol frame client ].each do |file|
     require "amqp/#{file}"
