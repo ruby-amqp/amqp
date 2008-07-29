@@ -37,6 +37,7 @@ class MQ
     when Frame::Body
       @body << frame.payload
       if @body.length >= @header.size
+        @header.properties.update(@method.arguments)
         @consumer.receive @header, @body
         @body = ''
       end
@@ -60,6 +61,7 @@ class MQ
         succeed
 
       when Protocol::Basic::Deliver
+        @method = method
         @header = nil
         @body = ''
         @consumer = queues[ method.consumer_tag ]

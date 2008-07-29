@@ -23,6 +23,12 @@ module AMQP
         end
       end
 
+      def arguments
+        self.class.arguments.inject({}) do |hash, (type, name)|
+          hash.update name => instance_variable_get("@#{name}")
+        end
+      end
+
       def to_binary
         buf = Buffer.new
         buf.write :short, self.class.parent.id
@@ -116,8 +122,8 @@ module AMQP
       end
 
       def method_missing meth, *args, &blk
-        @klass.properties.map{|_,name| name }.include?(meth) ? @properties[meth] :
-                                                               super
+        @properties.has_key?(meth) || @klass.properties.find{|_,name| name == meth } ? @properties[meth] :
+                                                                                       super
       end
     end
 
