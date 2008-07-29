@@ -1,6 +1,7 @@
 module AMQP
+  VERSION = '0.5.3'
+
   DIR = File.expand_path(File.dirname(File.expand_path(__FILE__)))
-  
   $:.unshift DIR
   
   require 'ext/em'

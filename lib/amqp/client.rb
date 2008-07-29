@@ -1,5 +1,4 @@
 require 'amqp/frame'
-require 'pp'
 
 module AMQP
   class Error < Exception; end
@@ -18,7 +17,7 @@ module AMQP
           send Protocol::Connection::StartOk.new({:platform => 'Ruby/EventMachine',
                                                   :product => 'AMQP',
                                                   :information => 'http://github.com/tmm1/amqp',
-                                                  :version => '0.5.2'},
+                                                  :version => VERSION},
                                                  'AMQPLAIN',
                                                  {:LOGIN => @settings[:user],
                                                   :PASSWORD => @settings[:pass]},
@@ -135,6 +134,7 @@ module AMQP
   
     def log *args
       return unless AMQP.logging
+      require 'pp'
       pp args
       puts
     end

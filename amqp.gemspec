@@ -1,7 +1,7 @@
 spec = Gem::Specification.new do |s|
   s.name = 'amqp'
-  s.version = '0.5.2'
-  s.date = '2008-07-22'
+  s.version = '0.5.3'
+  s.date = '2008-07-29'
   s.summary = 'AMQP client implementation in Ruby/EventMachine'
   s.email = "amqp@tmm1.net"
   s.homepage = "http://amqp.rubyforge.org/"
@@ -12,19 +12,22 @@ spec = Gem::Specification.new do |s|
 
   # ruby -rpp -e "pp Dir['{README,{examples,lib,protocol}/**/*.{json,rb,txt,xml}}'].map"
   s.files = ["README",
-             "examples/clock.rb",
-             "examples/hashtable.rb",
-             "examples/pingpong.rb",
-             "examples/primes-simple.rb",
-             "examples/primes.rb",
-             "examples/simple.rb",
-             "examples/stocks.rb",
+             "examples/amqp/simple.rb",
+             "examples/mq/clock.rb",
+             "examples/mq/hashtable.rb",
+             "examples/mq/logger.rb",
+             "examples/mq/pingpong.rb",
+             "examples/mq/primes-simple.rb",
+             "examples/mq/primes.rb",
+             "examples/mq/simple.rb",
+             "examples/mq/stocks.rb",
              "lib/amqp/buffer.rb",
              "lib/amqp/client.rb",
              "lib/amqp/frame.rb",
              "lib/amqp/protocol.rb",
              "lib/amqp/spec.rb",
              "lib/amqp.rb",
+             "lib/ext/blankslate.rb",
              "lib/ext/em.rb",
              "lib/ext/emfork.rb",
              "lib/mq/exchange.rb",
