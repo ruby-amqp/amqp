@@ -24,7 +24,7 @@ class MQ
         }
       else
         @callbacks ||= {}
-        @queue = @mq.queue(@name = 'some random identifier for me').subscribe{|info, msg|
+        @queue = @mq.queue(@name = "random identifier #{::Kernel.rand(999_999_999_999)}").subscribe{|info, msg|
           if blk = @callbacks.delete(info.message_id)
             blk.call ::Marshal.load(msg)
           end

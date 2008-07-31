@@ -22,3 +22,7 @@
 - handle connection.redirect during connect (for rabbitmq in distributed mode) [or just set insist to true]
 
 - add amq.queue('name').size{ |num| "#{num} messages in the queue" } (send declare passive, look at declare-ok response)
+
+- allow connections to different server
+    conn = AMQP.start(:host => 'abc')
+    mq = MQ.new(conn)
