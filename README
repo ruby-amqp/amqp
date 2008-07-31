@@ -51,7 +51,7 @@ AMQP resources:
     RabbitMQ (Rabbit Technologies, Erlang/OTP, MPL) - http://rabbitmq.com
     ZeroMQ   (iMatrix/FastMQ/Intel, C++, GPL3)      - http://www.zeromq.org
     OpenAMQ  (iMatrix, C, GPL2)                     - http://openamq.org
-    ActiveMQ (Apache Foundation, Java, apache2)     - http://activemq.apache.org/
+    ActiveMQ (Apache Foundation, Java, apache2)     - http://activemq.apache.org
 
   Steve Vinoski explains AMQP in his column, Towards Integration
     http://steve.vinoski.net/pdf/IEEE-Advanced_Message_Queuing_Protocol.pdf
@@ -90,6 +90,11 @@ AMQP resources:
     http://jaikoo.com/2008/3/14/oh-hai-rabbitmq
     http://jaikoo.com/2008/2/29/friday-round-up-2008-02-29
     http://jaikoo.com/2007/9/4/didn-t-you-get-the-memo
+
+  Open Enterprise's series on messaging middleware and AMQP
+    http://www1.interopsystems.com/analysis/can-amqp-break-ibms-mom-monopoly-part-1.html
+    http://www1.interopsystems.com/analysis/can-amqp-break-ibms-mom-monopoly-part-2.html
+    http://www1.interopsystems.com/analysis/can-amqp-break-ibms-mom-monopoly-part-3.html
 
 Messaging and distributed systems resources:
 
