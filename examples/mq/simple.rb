@@ -10,7 +10,7 @@ EM.run do
   # declare a queue on the channel
   queue = MQ::Queue.new(channel, 'queue name')
 
-  # use the default fanout exchange
+  # create a fanout exchange
   exchange = MQ::Exchange.new(channel, :fanout, 'all queues')
 
   # bind the queue to the exchange
@@ -19,7 +19,7 @@ EM.run do
   # publish a message to the exchange
   exchange.publish('hello world')
 
-  # subscribe to messages from the queue 
+  # subscribe to messages in the queue
   queue.subscribe do |headers, msg|
     pp [:got, headers, msg]
     AMQP.stop
