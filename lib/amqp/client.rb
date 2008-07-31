@@ -33,7 +33,7 @@ module AMQP
                                               :insist => false)
 
         when Protocol::Connection::OpenOk
-          @dfr.succeed(self)
+          succeed(self)
 
         when Protocol::Connection::Close
           raise Error, "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]}"
@@ -55,8 +55,9 @@ module AMQP
   end
 
   module Client
-    def initialize dfr, opts = {}
-      @dfr = dfr
+    include EM::Deferrable
+
+    def initialize opts = {}
       @settings = opts
       extend AMQP.client
     end
@@ -96,6 +97,7 @@ module AMQP
       channel = opts[:channel] ||= 0
       data = data.to_frame(channel) unless data.is_a? Frame
       data.channel = channel
+
       log 'send', data
       send_data data.to_s
     end
@@ -118,16 +120,10 @@ module AMQP
   
     def self.connect opts = {}
       opts = AMQP.settings.merge(opts)
-      opts[:host] ||= 'localhost'
+      opts[:host] ||= '127.0.0.1'
       opts[:port] ||= PORT
 
-      dfr = EM::DefaultDeferrable.new
-      
-      EM.run{
-        EM.connect opts[:host], opts[:port], self, dfr, opts
-      }
-      
-      dfr
+      EM.connect opts[:host], opts[:port], self, opts
     end
   
     private

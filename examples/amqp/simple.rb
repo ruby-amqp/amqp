@@ -72,6 +72,8 @@ module SimpleClient
   end
 end
 
-AMQP.logging = true
-AMQP.client = SimpleClient
-AMQP.start
+EM.run{
+  AMQP.logging = true
+  AMQP.client = SimpleClient
+  AMQP.start
+}
