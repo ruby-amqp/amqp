@@ -24,6 +24,7 @@ class MQ
         }
       else
         @callbacks ||= {}
+        # XXX implement and use queue(nil)
         @queue = @mq.queue(@name = "random identifier #{::Kernel.rand(999_999_999_999)}").subscribe{|info, msg|
           if blk = @callbacks.delete(info.message_id)
             blk.call ::Marshal.load(msg)
@@ -34,6 +35,7 @@ class MQ
     end
 
     def method_missing meth, *args, &blk
+      # XXX use uuids instead
       message_id = "random message id #{::Kernel.rand(999_999_999_999)}"
       @callbacks[message_id] = blk if blk
       @remote.publish(::Marshal.dump([meth, *args]), :reply_to => blk ? @name : nil, :message_id => message_id)

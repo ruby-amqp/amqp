@@ -1,8 +1,11 @@
 - generate amqp/spec.rb from original xml spec
-+ add graceful connection.close
 - add peek and pop to queues
 - use rabbitmq generated consumer tag from basic.consume-ok reply
-- allow temporary queues with amq.queue(nil) syntax
+
+- allow temporary queues with amq.queue(nil) syntax (use uuids)
+  - use as temp queue in rpc
+  - use uuids for message ids in rpc
+
 - add ack/completed responses for messages
 - deleting queues/bindings/exchanges
   - queue.unbind
@@ -22,7 +25,3 @@
 - handle connection.redirect during connect (for rabbitmq in distributed mode) [or just set insist to true]
 
 - add amq.queue('name').size{ |num| "#{num} messages in the queue" } (send declare passive, look at declare-ok response)
-
-- allow connections to different server
-    conn = AMQP.start(:host => 'abc')
-    mq = MQ.new(conn)
