@@ -21,6 +21,16 @@ class MQ
       }
       self
     end
+
+    def unbind exchange, opts = {}
+      @mq.callback{
+        @mq.send Protocol::Queue::Unbind.new({ :queue => name,
+                                               :exchange => exchange.respond_to?(:name) ? exchange.name : exchange,
+                                               :routing_key => opts.delete(:key),
+                                               :nowait => true }.merge(opts))
+      }
+      self
+    end
     
     def subscribe opts = {}, &blk
       @on_msg = blk
