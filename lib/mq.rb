@@ -18,9 +18,10 @@ class MQ
   include AMQP
   include EM::Deferrable
 
-  def initialize connection = AMQP.start
-    raise 'MQ can only be used within EM.run{}' unless EM.reactor_running?
-    @connection = connection
+  def initialize connection = nil
+    raise 'MQ can only be used from within EM.run{}' unless EM.reactor_running?
+
+    @connection = connection || AMQP.start
 
     conn.callback{ |c|
       @channel = c.add_channel(self)
