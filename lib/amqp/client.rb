@@ -39,7 +39,7 @@ module AMQP
           raise Error, "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]}"
 
         when Protocol::Connection::CloseOk
-          AMQP.stopped
+          @on_disconnect.call if @on_disconnect
         end
       end
     end
@@ -107,11 +107,21 @@ module AMQP
     #   super
     # end
 
-    def close
-      send Protocol::Connection::Close.new(:reply_code => 200,
-                                           :reply_text => 'Goodbye',
-                                           :class_id => 0,
-                                           :method_id => 0)
+    def close &on_disconnect
+      @on_disconnect = on_disconnect if on_disconnect
+
+      callback{ |c|
+        if c.channels.keys.any?
+          c.channels.each do |_, mq|
+            mq.close
+          end
+        else
+          send Protocol::Connection::Close.new(:reply_code => 200,
+                                               :reply_text => 'Goodbye',
+                                               :class_id => 0,
+                                               :method_id => 0)
+        end
+      }
     end
 
     def unbind
@@ -129,7 +139,7 @@ module AMQP
     private
   
     def log *args
-      return unless AMQP.logging
+      return unless @settings[:logging] or AMQP.logging
       require 'pp'
       pp args
       puts

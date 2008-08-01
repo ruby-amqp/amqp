@@ -14,42 +14,31 @@ module AMQP
   class << self
     @logging = false
     attr_accessor :logging
-    attr_reader :stopping
+  end
+
+  def self.connect *args
+    Client.connect *args
   end
 
   def self.settings
     @settings ||= {
       :user => 'guest',
       :pass => 'guest',
-      :vhost => '/'
+      :vhost => '/',
+      :logging => false
     }
   end
 
   def self.start *args
-    @conn ||= Client.connect *args
+    @conn ||= connect *args
   end
   
-  def self.stop stop_reactor = true, &on_stop
+  def self.stop
     if @conn
-      @conn.callback{ |c|
-        if c.channels.keys.any?
-          c.channels.each do |_, mq|
-            mq.close
-          end
-        else
-          c.close
-        end
-      }
-      @on_stop = proc{
+      @conn.close{
+        yield if block_given?
         @conn = nil
-        on_stop.call if on_stop
-        EM.stop_event_loop if stop_reactor
       }
     end
-  end
-  
-  def self.stopped
-    @on_stop.call if @on_stop
-    @on_stop = nil
   end
 end

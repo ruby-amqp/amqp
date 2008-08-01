@@ -3,9 +3,12 @@ require 'mq'
 require 'pp'
 
 EM.run do
+
+  # connect to the amqp server
+  connection = AMQP.connect(:host => 'dev.rabbitmq.com', :logging => false)
   
   # open a channel on the AMQP connection
-  channel = MQ.new
+  channel = MQ.new(connection)
 
   # declare a queue on the channel
   queue = MQ::Queue.new(channel, 'queue name')
@@ -22,7 +25,7 @@ EM.run do
   # subscribe to messages in the queue
   queue.subscribe do |headers, msg|
     pp [:got, headers, msg]
-    AMQP.stop
+    connection.close{ EM.stop_event_loop }
   end
   
 end
@@ -30,12 +33,17 @@ end
 __END__
 
 [:got,
- #<AMQP::Protocol::Header:0x118a438
+ #<AMQP::Protocol::Header:0x1186270
   @klass=AMQP::Protocol::Basic,
   @properties=
    {:priority=>0,
+    :exchange=>"all queues",
+    :consumer_tag=>"queue name",
+    :delivery_tag=>1,
     :delivery_mode=>1,
-    :content_type=>"application/octet-stream"},
+    :redelivered=>false,
+    :content_type=>"application/octet-stream",
+    :routing_key=>""},
   @size=11,
   @weight=0>,
  "hello world"]

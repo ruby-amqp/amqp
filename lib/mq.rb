@@ -18,7 +18,10 @@ class MQ
   include AMQP
   include EM::Deferrable
 
-  def initialize
+  def initialize connection = AMQP.start
+    raise 'MQ can only be used within EM.run{}' unless EM.reactor_running?
+    @connection = connection
+
     conn.callback{ |c|
       @channel = c.add_channel(self)
       send Protocol::Channel::Open.new
@@ -137,12 +140,7 @@ class MQ
     puts
   end
 
-  # create a class level connection on demand
-
-  def connection
-    raise 'MQ can only be used within EM.run{}' unless EM.reactor_running?
-    @@connection ||= AMQP.start
-  end
+  attr_reader :connection
   alias :conn :connection
 end
 
