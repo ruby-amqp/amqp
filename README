@@ -59,6 +59,9 @@ AMQP resources:
   John O'Hara on the history of AMQP
     http://www.acmqueue.org/modules.php?name=Content&pa=showpage&pid=485
 
+  Dmitriy's presentation on RabbitMQ/AMQP
+    http://somic-org.homelinux.org/blog/2008/07/31/slides-for-my-amqprabbitmq-talk/
+
   ZeroMQ's analysis of the messaging technology market
     http://www.zeromq.org/whitepapers:market-analysis
 
