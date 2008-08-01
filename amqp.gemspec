@@ -1,7 +1,7 @@
 spec = Gem::Specification.new do |s|
   s.name = 'amqp'
-  s.version = '0.5.3'
-  s.date = '2008-07-29'
+  s.version = '0.5.5'
+  s.date = '2008-08-01'
   s.summary = 'AMQP client implementation in Ruby/EventMachine'
   s.email = "amqp@tmm1.net"
   s.homepage = "http://amqp.rubyforge.org/"

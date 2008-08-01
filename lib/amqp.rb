@@ -1,5 +1,5 @@
 module AMQP
-  VERSION = '0.5.3'
+  VERSION = '0.5.5'
 
   DIR = File.expand_path(File.dirname(File.expand_path(__FILE__)))
   $:.unshift DIR
