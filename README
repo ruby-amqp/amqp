@@ -113,5 +113,8 @@ Messaging and distributed systems resources:
   Metaprotocol Taxonomy and Communications Patterns
     http://hessian.caucho.com/doc/metaprotocol-taxonomy.xtp
 
-  Joe Armstrong on Erlang messaging vs RPC:
+  Joe Armstrong on Erlang messaging vs RPC
     http://armstrongonsoftware.blogspot.com/2008/05/road-we-didnt-go-down.html
+
+  SEDA: scalable internet services using message queues
+    http://www.eecs.harvard.edu/~mdw/papers/seda-sosp01.pdf
