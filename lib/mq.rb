@@ -43,7 +43,7 @@ class MQ
       if @body.length >= @header.size
         @header.properties.update(@method.arguments)
         @consumer.receive @header, @body
-        @body = ''
+        @body = @header = @consumer = @method = nil
       end
 
     when Frame::Method
@@ -69,7 +69,6 @@ class MQ
         @header = nil
         @body = ''
         @consumer = queues[ method.consumer_tag ]
-
 
       when Protocol::Channel::Close
         raise Error, "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]}"
