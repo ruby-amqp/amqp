@@ -31,6 +31,15 @@ class MQ
       }
       self
     end
+
+    def delete
+      @mq.callback{
+        @mq.send Protocol::Queue::Delete.new({ :queue => name,
+                                               :nowait => true }.merge(opts))
+      }
+      @mq.queues.delete @name
+      nil
+    end
     
     def subscribe opts = {}, &blk
       @on_msg = blk
