@@ -32,7 +32,7 @@ class MQ
       self
     end
 
-    def delete
+    def delete opts = {}
       @mq.callback{
         @mq.send Protocol::Queue::Delete.new({ :queue => name,
                                                :nowait => true }.merge(opts))
