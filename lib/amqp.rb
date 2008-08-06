@@ -41,4 +41,12 @@ module AMQP
       }
     end
   end
+
+  def self.run
+    EM.run{
+      AMQP.start.callback{
+        yield
+      }
+    }
+  end
 end
