@@ -42,9 +42,9 @@ module AMQP
     end
   end
 
-  def self.run
+  def self.run *args
     EM.run{
-      AMQP.start.callback{
+      AMQP.start(*args).callback{
         yield
       }
     }
