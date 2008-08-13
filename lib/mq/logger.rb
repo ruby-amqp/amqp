@@ -3,14 +3,18 @@ class MQ
     def initialize *args, &block
       opts = args.pop if args.last.is_a? Hash
       opts ||= {}
+
       printer(block) if block
-      @log = []
+
+      @prop = opts
       @tags = ([:timestamp] + args).uniq
     end
 
     def log severity, *args
       opts = args.pop if args.last.is_a? Hash and args.size != 1
       opts ||= {}
+      opts = @prop.clone.update(opts)
+
       data = args.shift
 
       data = {:type => :exception,
