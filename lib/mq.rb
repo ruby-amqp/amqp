@@ -144,10 +144,11 @@ class MQ
   alias :conn :connection
 end
 
-# convenience wrapper for thread-local MQ object
+# convenience wrapper (read: HACK) for thread-local MQ object
 
 class MQ
   def MQ.default
+    # XXX clear this when connection is closed
     Thread.current[:mq] ||= MQ.new
   end
 

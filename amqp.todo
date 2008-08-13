@@ -8,7 +8,7 @@
 
 - add ack/completed responses for messages
 - deleting queues/bindings/exchanges
-  - queue.unbind
+  + queue.unbind
   - queue.remove or queue.close or queue.delete
   - exchange.remove
   - rpc.remove
@@ -25,3 +25,4 @@
 - handle connection.redirect during connect (for rabbitmq in distributed mode) [or just set insist to true]
 
 - add amq.queue('name').size{ |num| "#{num} messages in the queue" } (send declare passive, look at declare-ok response)
+- clean up MQ.default on disconnect
