@@ -45,7 +45,7 @@ class MQ
       end
 
       opts.update(:severity => severity,
-                  :data => data)
+                  :msg => data)
 
       print(opts)
       MQ.fanout('logging', :durable => true).publish Marshal.dump(opts)
