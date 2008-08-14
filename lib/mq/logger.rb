@@ -59,12 +59,17 @@ class MQ
         @printer = block
       elsif data.is_a? Proc
         @printer = data
-      elsif @printer and data
-        @printer.call(data)
+      elsif data
+        (@printer || self.class.printer).call(data)
       else
         @printer
       end
     end
     alias :printer :print
+    
+    def self.printer &block
+      @printer = block if block
+      @printer
+    end
   end
 end
