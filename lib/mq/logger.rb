@@ -10,6 +10,9 @@ class MQ
       @tags = ([:timestamp] + args).uniq
     end
 
+    attr_reader :prop
+    alias :base :prop
+
     def log severity, *args
       opts = args.pop if args.last.is_a? Hash and args.size != 1
       opts ||= {}
