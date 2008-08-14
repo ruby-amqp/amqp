@@ -29,7 +29,7 @@ class MQ
         tag = tag.to_sym
         case tag
         when :timestamp
-          opts.update :timestamp => Time.now.to_f
+          opts.update :timestamp => Time.now
         when :hostname
           @hostname ||= { :hostname => `hostname`.strip }
           opts.update @hostname
