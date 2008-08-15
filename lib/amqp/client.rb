@@ -60,7 +60,7 @@ module AMQP
     def initialize opts = {}
       @settings = opts
       extend AMQP.client
-      timeout 2.5
+      timeout @settings[:timeout]
       errback{ raise Error, "Could not connect to server #{opts[:host]}:#{opts[:port]}" }
     end
 
@@ -132,9 +132,6 @@ module AMQP
   
     def self.connect opts = {}
       opts = AMQP.settings.merge(opts)
-      opts[:host] ||= '127.0.0.1'
-      opts[:port] ||= PORT
-
       EM.connect opts[:host], opts[:port], self, opts
     end
   

@@ -22,9 +22,19 @@ module AMQP
 
   def self.settings
     @settings ||= {
+      # server address
+      :host => '127.0.0.1',
+      :port => PORT,
+
+      # login details
       :user => 'guest',
       :pass => 'guest',
       :vhost => '/',
+
+      # connection timeout
+      :timeout => 3.0,
+
+      # logging
       :logging => false
     }
   end
