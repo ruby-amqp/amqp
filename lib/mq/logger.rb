@@ -60,7 +60,7 @@ class MQ
       elsif data.is_a? Proc
         @printer = data
       elsif data
-        (@printer || self.class.printer).call(data)
+        (pr = @printer || self.class.printer) and pr.call(data)
       else
         @printer
       end
