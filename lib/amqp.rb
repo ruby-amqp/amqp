@@ -14,6 +14,8 @@ module AMQP
   class << self
     @logging = false
     attr_accessor :logging
+    attr_reader :conn
+    alias :connection :conn
   end
 
   def self.connect *args

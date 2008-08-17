@@ -18,16 +18,21 @@ class MQ
 
     def publish data, opts = {}
       @mq.callback{
-        @mq.send Protocol::Basic::Publish.new({ :exchange => name,
-                                                :routing_key => opts.delete(:key) || @key }.merge(opts))
+        out = []
+
+        out << Protocol::Basic::Publish.new({ :exchange => name,
+                                              :routing_key => opts.delete(:key) || @key }.merge(opts))
       
         data = data.to_s
 
-        @mq.send Protocol::Header.new(Protocol::Basic,
-                                          data.length, { :content_type => 'application/octet-stream',
-                                                         :delivery_mode => (opts.delete(:persistent) ? 2 : 1),
-                                                         :priority => 0 }.merge(opts))
-        @mq.send Frame::Body.new(data)
+        out << Protocol::Header.new(Protocol::Basic,
+                                    data.length, { :content_type => 'application/octet-stream',
+                                                   :delivery_mode => (opts.delete(:persistent) ? 2 : 1),
+                                                   :priority => 0 }.merge(opts))
+
+        out << Frame::Body.new(data)
+
+        @mq.send *out
       }
       self
     end

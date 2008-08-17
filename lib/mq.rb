@@ -71,23 +71,27 @@ class MQ
         @consumer = queues[ method.consumer_tag ]
 
       when Protocol::Channel::Close
-        raise Error, "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]}"
+        raise Error, "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]} on #{@channel}"
 
       when Protocol::Channel::CloseOk
         @closing = false
         conn.callback{ |c|
-          c.channels.delete(@channel)
-          c.close unless c.channels.keys.any?
+          c.channels.delete @channel
+          c.close if c.channels.empty?
         }
       end
     end
   end
 
-  def send data
-    data.ticket = @ticket if @ticket and data.respond_to? :ticket
+  def send *args
     conn.callback{ |c|
-      log :sending, data
-      c.send data, :channel => @channel
+      (@_send_mutex ||= Mutex.new).synchronize do
+        args.each do |data|
+          data.ticket = @ticket if @ticket and data.respond_to? :ticket=
+          log :sending, data
+          c.send data, :channel => @channel
+        end
+      end
     }
   end
 

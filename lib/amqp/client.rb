@@ -72,11 +72,13 @@ module AMQP
     end
 
     def add_channel mq
-      channels[ key = (channels.keys.max || 0) + 1 ] = mq
-      key
+      (@_channel_mutex ||= Mutex.new).synchronize do
+        channels[ key = (channels.keys.max || 0) + 1 ] = mq
+        key
+      end
     end
 
-    def channels mq = nil
+    def channels
       @channels ||= {}
     end
   
@@ -113,8 +115,8 @@ module AMQP
       @on_disconnect = on_disconnect if on_disconnect
 
       callback{ |c|
-        if c.channels.keys.any?
-          c.channels.each do |_, mq|
+        if c.channels.any?
+          c.channels.each do |ch, mq|
             mq.close
           end
         else
