@@ -34,7 +34,7 @@ module AMQP
       :vhost => '/',
 
       # connection timeout
-      :timeout => 3.0,
+      :timeout => nil,
 
       # logging
       :logging => false

@@ -60,15 +60,24 @@ module AMQP
     def initialize opts = {}
       @settings = opts
       extend AMQP.client
-      timeout @settings[:timeout]
-      errback{ raise Error, "Could not connect to server #{opts[:host]}:#{opts[:port]}" }
+
+      @on_disconnect = proc{ raise Error, "Could not connect to server #{opts[:host]}:#{opts[:port]}" }
+
+      timeout @settings[:timeout] if @settings[:timeout]
+      errback{ @on_disconnect.call }
     end
 
     def connection_completed
       log 'connected'
+      @on_disconnect = proc{ raise Error, 'Disconnected from server' }
       @buf = Buffer.new
       send_data HEADER
       send_data [1, 1, VERSION_MAJOR, VERSION_MINOR].pack('C4')
+    end
+
+    def unbind
+      log 'disconnected'
+      @on_disconnect.call unless $!
     end
 
     def add_channel mq
@@ -126,10 +135,6 @@ module AMQP
                                                :method_id => 0)
         end
       }
-    end
-
-    def unbind
-      log 'disconnected'
     end
   
     def self.connect opts = {}
