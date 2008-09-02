@@ -7,6 +7,8 @@ Simple AMQP driver for Ruby/EventMachine
   http://groups.google.com/group/ruby-amqp
   http://lists.rabbitmq.com/pipermail/rabbitmq-discuss/2008-July/001417.html
 
+This library works with Ruby 1.8, Ruby 1.9 and JRuby.
+
 This library was tested primarily with RabbitMQ, although it should be compatible with any
 server implementing the AMQP 0-8 spec.
 
