@@ -52,6 +52,14 @@ class MQ
       self
     end
 
+    def unsubscribe opts = {}, &blk
+      @on_cancel = blk
+      @mq.callback{
+        @mq.send Protocol::Basic::Cancel.new({ :consumer_tag => name }.merge(opts))
+      }
+      self
+    end
+
     def publish data, opts = {}
       exchange.publish(data, opts)
     end
@@ -60,6 +68,10 @@ class MQ
       if @on_msg
         @on_msg.call *(@on_msg.arity == 1 ? [body] : [headers, body])
       end
+    end
+
+    def cancelled
+      @on_cancel.call if @on_cancel
     end
   
     private

@@ -64,6 +64,10 @@ class MQ
         } if @closing
         succeed
 
+      when Protocol::Basic::CancelOk
+        @consumer = queues[ method.consumer_tag ]
+        @consumer.cancelled
+
       when Protocol::Basic::Deliver
         @method = method
         @header = nil
