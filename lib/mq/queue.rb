@@ -72,6 +72,7 @@ class MQ
 
     def cancelled
       @on_cancel.call if @on_cancel
+      @on_cancel = @on_msg = nil
     end
   
     private
