@@ -65,14 +65,14 @@ class MQ
         succeed
 
       when Protocol::Basic::CancelOk
-        @consumer = queues[ method.consumer_tag ]
+        @consumer = consumers[ method.consumer_tag ]
         @consumer.cancelled
 
       when Protocol::Basic::Deliver
         @method = method
         @header = nil
         @body = ''
-        @consumer = queues[ method.consumer_tag ]
+        @consumer = consumers[ method.consumer_tag ]
 
       when Protocol::Channel::Close
         raise Error, "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]} on #{@channel}"
@@ -138,6 +138,12 @@ class MQ
 
   def rpcs
     @rcps ||= {}
+  end
+
+  # queue objects keyed on their consumer tags
+
+  def consumers
+    @consumers ||= {}
   end
 
   private

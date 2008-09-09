@@ -42,10 +42,13 @@ class MQ
     end
     
     def subscribe opts = {}, &blk
+      @consumer_tag = "#{name}-#{Kernel.rand(999_999_999_999)}"
+      @mq.consumers[@consumer_tag] = self
+
       @on_msg = blk
       @mq.callback{
         @mq.send Protocol::Basic::Consume.new({ :queue => name,
-                                                :consumer_tag => name,
+                                                :consumer_tag => @consumer_tag,
                                                 :no_ack => true,
                                                 :nowait => true }.merge(opts))
       }
@@ -55,7 +58,7 @@ class MQ
     def unsubscribe opts = {}, &blk
       @on_cancel = blk
       @mq.callback{
-        @mq.send Protocol::Basic::Cancel.new({ :consumer_tag => name }.merge(opts))
+        @mq.send Protocol::Basic::Cancel.new({ :consumer_tag => @consumer_tag }.merge(opts))
       }
       self
     end
@@ -73,6 +76,8 @@ class MQ
     def cancelled
       @on_cancel.call if @on_cancel
       @on_cancel = @on_msg = nil
+      @mq.consumers.delete @consumer_tag
+      @consumer_tag = nil
     end
   
     private
