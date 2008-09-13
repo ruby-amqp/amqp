@@ -77,7 +77,7 @@ module AMQP
 
     def unbind
       log 'disconnected'
-      @on_disconnect.call unless $!
+      EM.next_tick{ @on_disconnect.call }
     end
 
     def add_channel mq
