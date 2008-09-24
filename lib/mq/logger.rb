@@ -48,7 +48,9 @@ class MQ
                   :msg => data)
 
       print(opts)
-      MQ.fanout('logging', :durable => true).publish Marshal.dump(opts)
+      unless Logger.disabled?
+        MQ.fanout('logging', :durable => true).publish Marshal.dump(opts)
+      end
 
       opts
     end
@@ -70,6 +72,18 @@ class MQ
     def self.printer &block
       @printer = block if block
       @printer
+    end
+
+    def self.disabled?
+      !!@disabled
+    end
+    
+    def self.enable
+      @disabled = false
+    end
+    
+    def self.disable
+      @disabled = true
     end
   end
 end
