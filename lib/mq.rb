@@ -42,7 +42,7 @@ class MQ
       @body << frame.payload
       if @body.length >= @header.size
         @header.properties.update(@method.arguments)
-        @consumer.receive @header, @body
+        @consumer.receive @header, @body if @consumer
         @body = @header = @consumer = @method = nil
       end
 
@@ -65,14 +65,19 @@ class MQ
         succeed
 
       when Protocol::Basic::CancelOk
-        @consumer = consumers[ method.consumer_tag ]
-        @consumer.cancelled
+        if @consumer = consumers[ method.consumer_tag ]
+          @consumer.cancelled
+        else
+          MQ.error "Basic.CancelOk for invalid consumer tag: #{method.consumer_tag}"
+        end
 
       when Protocol::Basic::Deliver
         @method = method
         @header = nil
         @body = ''
-        @consumer = consumers[ method.consumer_tag ]
+        unless @consumer = consumers[ method.consumer_tag ]
+          MQ.error "Basic.Deliver for invalid consumer tag: #{method.consumer_tag}"
+        end
 
       when Protocol::Channel::Close
         raise Error, "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]} on #{@channel}"
@@ -123,6 +128,16 @@ class MQ
                                         :class_id => 0)
     else
       @closing = true
+    end
+  end
+
+  # error callback
+
+  def self.error msg = nil, &blk
+    if blk
+      @error_callback = blk
+    else
+      @error_callback.call(msg) if @error_callback and msg
     end
   end
 
