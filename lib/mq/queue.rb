@@ -62,6 +62,15 @@ class MQ
       }
       self
     end
+    
+    def status opts = {}, &blk
+      @on_status = blk
+      @mq.callback{
+        @mq.send Protocol::Queue::Declare.new({ :queue => name,
+                                                :passive => true }.merge(opts))
+      }
+      self
+    end
 
     def publish data, opts = {}
       exchange.publish(data, opts)
@@ -70,6 +79,13 @@ class MQ
     def receive headers, body
       if @on_msg
         @on_msg.call *(@on_msg.arity == 1 ? [body] : [headers, body])
+      end
+    end
+    
+    def recieve_status declare_ok
+      if @on_status
+        m, c = declare_ok.message_count, declare_ok.consumer_count
+        @on_status.call *(@on_status.arity == 1 ? [m] : [m, c])
       end
     end
 

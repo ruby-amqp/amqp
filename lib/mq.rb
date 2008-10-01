@@ -52,7 +52,8 @@ class MQ
         send Protocol::Access::Request.new(:realm => '/data',
                                            :read => true,
                                            :write => true,
-                                           :active => true)
+                                           :active => true,
+                                           :passive => true)
 
       when Protocol::Access::RequestOk
         @ticket = method.ticket
@@ -70,6 +71,9 @@ class MQ
         else
           MQ.error "Basic.CancelOk for invalid consumer tag: #{method.consumer_tag}"
         end
+        
+      when Protocol::Queue::DeclareOk
+        queues[ method.queue ].recieve_status method
 
       when Protocol::Basic::Deliver
         @method = method
