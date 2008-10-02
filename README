@@ -51,8 +51,8 @@ AMQP resources:
 
   Servers:
     RabbitMQ (Rabbit Technologies, Erlang/OTP, MPL) - http://rabbitmq.com
-    ZeroMQ   (iMatrix/FastMQ/Intel, C++, GPL3)      - http://www.zeromq.org
-    OpenAMQ  (iMatrix, C, GPL2)                     - http://openamq.org
+    ZeroMQ   (iMatix/FastMQ/Intel, C++, GPL3)       - http://www.zeromq.org
+    OpenAMQ  (iMatix, C, GPL2)                      - http://openamq.org
     ActiveMQ (Apache Foundation, Java, apache2)     - http://activemq.apache.org
 
   Steve Vinoski explains AMQP in his column, Towards Integration
@@ -67,8 +67,8 @@ AMQP resources:
   ZeroMQ's analysis of the messaging technology market
     http://www.zeromq.org/whitepapers:market-analysis
 
-  ZeroMQ's background to AMQP
-    http://www.zeromq.org/whitepapers:amqp-analysis
+  Pieter Hintjens's background to AMQP
+    http://www.openamq.org/doc:amqp-background
 
   Barry Pederson's py-amqplib
     http://barryp.org/software/py-amqplib/
