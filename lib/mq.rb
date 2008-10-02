@@ -71,17 +71,24 @@ class MQ
         else
           MQ.error "Basic.CancelOk for invalid consumer tag: #{method.consumer_tag}"
         end
-        
+
       when Protocol::Queue::DeclareOk
         queues[ method.queue ].recieve_status method
 
-      when Protocol::Basic::Deliver
+      when Protocol::Basic::Deliver, Protocol::Basic::GetOk
         @method = method
         @header = nil
         @body = ''
-        unless @consumer = consumers[ method.consumer_tag ]
-          MQ.error "Basic.Deliver for invalid consumer tag: #{method.consumer_tag}"
+        if method.is_a?(Protocol::Basic::GetOk) 
+          @consumer = get_queues.pop
+          MQ.error "No pending Basic.GetOk requests" unless @consumer
+        else
+          @consumer = consumers[ method.consumer_tag ]
+          MQ.error "Basic.Deliver for invalid consumer tag: #{method.consumer_tag}" unless @consumer
         end
+        
+      when Protocol::Basic::GetEmpty
+        get_queues.pop.receive nil, :empty
 
       when Protocol::Channel::Close
         raise Error, "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]} on #{@channel}"
@@ -134,9 +141,9 @@ class MQ
       @closing = true
     end
   end
-
+  
   # error callback
-
+  
   def self.error msg = nil, &blk
     if blk
       @error_callback = blk
@@ -144,7 +151,7 @@ class MQ
       @error_callback.call(msg) if @error_callback and msg
     end
   end
-
+  
   # keep track of proxy objects
   
   def exchanges
@@ -154,13 +161,17 @@ class MQ
   def queues
     @queues ||= {}
   end
+  
+  def get_queues
+    @get_queues ||= []
+  end
 
   def rpcs
     @rcps ||= {}
   end
-
+  
   # queue objects keyed on their consumer tags
-
+  
   def consumers
     @consumers ||= {}
   end
