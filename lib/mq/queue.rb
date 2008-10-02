@@ -102,7 +102,7 @@ class MQ
       if @on_msg
         @on_msg.call *(@on_msg.arity == 1 ? [body] : [headers, body])
       end
-      if @ack && !AMQP.closing
+      if @ack && headers && !AMQP.closing
         @mq.callback{
           @mq.send Protocol::Basic::Ack.new({ :delivery_tag => headers.properties[:delivery_tag]})
         }
