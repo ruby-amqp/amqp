@@ -36,5 +36,13 @@ class MQ
       }
       self
     end
+
+    def delete opts = {}
+      @mq.callback{
+        @mq.send Protocol::Exchange::Delete.new({ :exchange => name,
+                                                  :nowait => true }.merge(opts))
+      }
+      nil
+    end
   end
 end
