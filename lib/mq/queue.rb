@@ -41,11 +41,32 @@ class MQ
       nil
     end
     
+    #If :delay is passed as an option, the get won't be called for that number of seconds
+    def pop opts = {}, &blk
+      @on_msg = blk
+      @ack = opts[:no_ack] === false
+      popper = Proc.new do
+        @mq.get_queues.push(self)
+        @mq.callback{
+          @mq.send Protocol::Basic::Get.new({ :queue => name,
+                                              :consumer_tag => name,
+                                              :no_ack => true,
+                                              :nowait => true }.merge(opts))
+        }
+      end
+      if delay = opts.delete(:delay)
+        EM.add_timer(delay, popper)
+      else
+        popper.call
+      end
+      self
+    end
+    
     def subscribe opts = {}, &blk
       @consumer_tag = "#{name}-#{Kernel.rand(999_999_999_999)}"
       @mq.consumers[@consumer_tag] = self
-
       @on_msg = blk
+      @ack = opts[:no_ack] === false
       @mq.callback{
         @mq.send Protocol::Basic::Consume.new({ :queue => name,
                                                 :consumer_tag => @consumer_tag,
@@ -54,13 +75,38 @@ class MQ
       }
       self
     end
-
+    
     def unsubscribe opts = {}, &blk
       @on_cancel = blk
       @mq.callback{
         @mq.send Protocol::Basic::Cancel.new({ :consumer_tag => @consumer_tag }.merge(opts))
       }
       self
+    end
+
+    def publish data, opts = {}
+      exchange.publish(data, opts)
+    end
+    
+    def receive headers, body
+      if AMQP.closing
+        #You don't need this if your using ack, and if you aren't it doesn't do much good either
+        #@mq.callback{
+        #  @mq.send Protocol::Basic::Reject.new({ 
+        #    :delivery_tag => headers.properties[:delivery_tag],
+        #    :requeue => true
+        #  })
+        #}
+        return
+      end
+      if @on_msg
+        @on_msg.call *(@on_msg.arity == 1 ? [body] : [headers, body])
+      end
+      if @ack && headers && !AMQP.closing
+        @mq.callback{
+          @mq.send Protocol::Basic::Ack.new({ :delivery_tag => headers.properties[:delivery_tag]})
+        }
+      end
     end
     
     def status opts = {}, &blk
@@ -71,16 +117,6 @@ class MQ
       }
       self
     end
-
-    def publish data, opts = {}
-      exchange.publish(data, opts)
-    end
-
-    def receive headers, body
-      if @on_msg
-        @on_msg.call *(@on_msg.arity == 1 ? [body] : [headers, body])
-      end
-    end
     
     def recieve_status declare_ok
       if @on_status
@@ -88,7 +124,7 @@ class MQ
         @on_status.call *(@on_status.arity == 1 ? [m] : [m, c])
       end
     end
-
+    
     def cancelled
       @on_cancel.call if @on_cancel
       @on_cancel = @on_msg = nil
