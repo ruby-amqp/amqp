@@ -79,16 +79,18 @@ class MQ
         @method = method
         @header = nil
         @body = ''
-        if method.is_a?(Protocol::Basic::GetOk) 
-          @consumer = get_queues.pop
+
+        if method.is_a? Protocol::Basic::GetOk
+          @consumer = get_queue{|q| q.shift }
           MQ.error "No pending Basic.GetOk requests" unless @consumer
         else
           @consumer = consumers[ method.consumer_tag ]
           MQ.error "Basic.Deliver for invalid consumer tag: #{method.consumer_tag}" unless @consumer
         end
-        
+
       when Protocol::Basic::GetEmpty
-        get_queues.pop.receive nil, :empty
+        @consumer = get_queue{|q| q.shift }
+        @consumer.receive nil, nil
 
       when Protocol::Channel::Close
         raise Error, "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]} on #{@channel}"
@@ -161,9 +163,13 @@ class MQ
   def queues
     @queues ||= {}
   end
-  
-  def get_queues
-    @get_queues ||= []
+
+  def get_queue
+    if block_given?
+      (@get_queue_mutex ||= Mutex.new).synchronize{
+        yield( @get_queue ||= [] )
+      }
+    end
   end
 
   def rpcs

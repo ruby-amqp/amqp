@@ -5,29 +5,39 @@ require 'pp'
 Signal.trap('INT') { AMQP.stop{ EM.stop } }
 Signal.trap('TERM'){ AMQP.stop{ EM.stop } }
 
-EM.run do
-  MQ.queue('awesome').publish('Totally rad 1')
-  MQ.queue('awesome').publish('Totally rad 2')
-  EM.add_timer(5) { MQ.queue('awesome').publish('Totally rad 3') }
-  
-  #This is the block that does the processing and calls pop again when it's done
-  #If the message to the proc is :empty, it tells the worker to issues another pop
-  #in 5 seconds
-  process = Proc.new do |h,m| 
-    if m == :empty
-      opts = {:delay => 5}
+AMQP.start do
+  queue = MQ.queue('awesome')
+
+  queue.publish('Totally rad 1')
+  queue.publish('Totally rad 2')
+  EM.add_timer(5){ queue.publish('Totally rad 3') }
+
+  queue.pop{ |msg|
+    unless msg
+      # queue was empty
+      p [Time.now, :queue_empty!]
+
+      # try again in 1 second
+      EM.add_timer(1){ queue.pop }
     else
-      opts = {}
-      puts m
+      # process this message
+      p [Time.now, msg]
+
+      # get the next message in the queue
+      queue.pop
     end
-    MQ.queue('awesome').pop(opts, &process)
-  end
-  MQ.queue('awesome').pop &process
+  }
 end
 
 __END__
 
-Totally rad 1
-Totally rad 2
-...5 second delay...
-Totally rad 3
+[Wed Oct 15 15:24:30 -0700 2008, "Totally rad 1"]
+[Wed Oct 15 15:24:30 -0700 2008, "Totally rad 2"]
+[Wed Oct 15 15:24:30 -0700 2008, :queue_empty!]
+[Wed Oct 15 15:24:31 -0700 2008, :queue_empty!]
+[Wed Oct 15 15:24:32 -0700 2008, :queue_empty!]
+[Wed Oct 15 15:24:33 -0700 2008, :queue_empty!]
+[Wed Oct 15 15:24:34 -0700 2008, :queue_empty!]
+[Wed Oct 15 15:24:35 -0700 2008, "Totally rad 3"]
+[Wed Oct 15 15:24:35 -0700 2008, :queue_empty!]
+[Wed Oct 15 15:24:36 -0700 2008, :queue_empty!]

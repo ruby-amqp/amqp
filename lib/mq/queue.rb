@@ -40,28 +40,25 @@ class MQ
       @mq.queues.delete @name
       nil
     end
-    
-    #If :delay is passed as an option, the get won't be called for that number of seconds
+
     def pop opts = {}, &blk
-      @on_msg = blk
       @ack = opts[:no_ack] === false
-      popper = Proc.new do
-        @mq.get_queues.push(self)
-        @mq.callback{
-          @mq.send Protocol::Basic::Get.new({ :queue => name,
-                                              :consumer_tag => name,
-                                              :no_ack => true,
-                                              :nowait => true }.merge(opts))
+
+      @on_pop = blk if blk
+
+      @mq.callback{
+        @mq.send Protocol::Basic::Get.new({ :queue => name,
+                                            :consumer_tag => name,
+                                            :no_ack => true,
+                                            :nowait => true }.merge(opts))
+        @mq.get_queue{ |q|
+          q.push(self)
         }
-      end
-      if delay = opts.delete(:delay)
-        EM.add_timer(delay, popper)
-      else
-        popper.call
-      end
+      }
+
       self
     end
-    
+
     def subscribe opts = {}, &blk
       @consumer_tag = "#{name}-#{Kernel.rand(999_999_999_999)}"
       @mq.consumers[@consumer_tag] = self
@@ -103,9 +100,11 @@ class MQ
         #}
         return
       end
-      if @on_msg
-        @on_msg.call *(@on_msg.arity == 1 ? [body] : [headers, body])
+
+      if cb = (@on_msg || @on_pop)
+        cb.call *(cb.arity == 1 ? [body] : [headers, body])
       end
+
       if @ack && headers && !AMQP.closing
         @mq.callback{
           @mq.send Protocol::Basic::Ack.new({ :delivery_tag => headers.properties[:delivery_tag]})
