@@ -67,6 +67,7 @@ class MQ
 
       @on_msg = blk
       @ack = opts[:no_ack] === false
+
       @mq.callback{
         @mq.send Protocol::Basic::Consume.new({ :queue => name,
                                                 :consumer_tag => @consumer_tag,
@@ -88,12 +89,12 @@ class MQ
     def publish data, opts = {}
       exchange.publish(data, opts)
     end
-    
+
     def receive headers, body
       if AMQP.closing
         #You don't need this if your using ack, and if you aren't it doesn't do much good either
         #@mq.callback{
-        #  @mq.send Protocol::Basic::Reject.new({ 
+        #  @mq.send Protocol::Basic::Reject.new({
         #    :delivery_tag => headers.properties[:delivery_tag],
         #    :requeue => true
         #  })
@@ -107,11 +108,11 @@ class MQ
 
       if @ack && headers && !AMQP.closing
         @mq.callback{
-          @mq.send Protocol::Basic::Ack.new({ :delivery_tag => headers.properties[:delivery_tag]})
+          @mq.send Protocol::Basic::Ack.new({ :delivery_tag => headers.properties[:delivery_tag] })
         }
       end
     end
-    
+
     def status opts = {}, &blk
       @on_status = blk
       @mq.callback{
@@ -120,7 +121,7 @@ class MQ
       }
       self
     end
-    
+
     def recieve_status declare_ok
       if @on_status
         m, c = declare_ok.message_count, declare_ok.consumer_count

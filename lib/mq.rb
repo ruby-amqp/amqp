@@ -143,9 +143,9 @@ class MQ
       @closing = true
     end
   end
-  
+
   # error callback
-  
+
   def self.error msg = nil, &blk
     if blk
       @error_callback = blk
@@ -153,7 +153,7 @@ class MQ
       @error_callback.call(msg) if @error_callback and msg
     end
   end
-  
+
   # keep track of proxy objects
   
   def exchanges
@@ -175,9 +175,9 @@ class MQ
   def rpcs
     @rcps ||= {}
   end
-  
+
   # queue objects keyed on their consumer tags
-  
+
   def consumers
     @consumers ||= {}
   end
