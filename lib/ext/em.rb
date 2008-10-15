@@ -5,8 +5,7 @@ rescue LoadError
   require 'eventmachine'
 end
 
-# copied from EM trunk, will be removed when 0.12.1 is released
-if EM::VERSION < '0.12.1'
+if EM::VERSION < '0.12.2'
     
   def EventMachine::run blk=nil, tail=nil, &block
     @tails ||= []

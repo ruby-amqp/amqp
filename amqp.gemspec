@@ -8,7 +8,7 @@ spec = Gem::Specification.new do |s|
   s.description = "AMQP client implementation in Ruby/EventMachine"
   s.has_rdoc = false
   s.authors = ["Aman Gupta"]
-  s.add_dependency('eventmachine', '>= 0.12.0')
+  s.add_dependency('eventmachine', '>= 0.12.2')
 
   # ruby -rpp -e "pp Dir['{README,{examples,lib,protocol}/**/*.{json,rb,txt,xml}}'].map"
   s.files = ["README",
