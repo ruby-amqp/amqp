@@ -41,8 +41,16 @@ module AMQP
     }
   end
 
-  def self.start *args
-    @conn ||= connect *args
+  def self.start *args, &blk
+    EM.run{
+      @conn ||= connect *args
+      @conn.callback(&blk) if blk
+      @conn
+    }
+  end
+
+  class << self
+    alias :run :start
   end
   
   def self.stop
@@ -54,13 +62,5 @@ module AMQP
         @conn = nil
       }
     end
-  end
-
-  def self.run *args
-    EM.run{
-      AMQP.start(*args).callback{
-        yield
-      }
-    }
   end
 end
