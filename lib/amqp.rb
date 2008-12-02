@@ -61,6 +61,7 @@ module AMQP
         yield if block_given?
         @conn = nil
       }
+      @closing = false
     end
   end
 end
