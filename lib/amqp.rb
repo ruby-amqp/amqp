@@ -55,7 +55,6 @@ module AMQP
   
   def self.stop
     if @conn
-      puts "Shutting down..."
       @closing = true
       @conn.close{
         yield if block_given?
