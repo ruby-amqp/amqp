@@ -6,8 +6,8 @@ require 'eventmachine'
 require 'amqp_spec'
 
 module AMQP
-  class BufferOverflow < Exception; end
-  class InvalidFrame < Exception; end
+  class BufferOverflow < StandardError; end
+  class InvalidFrame < StandardError; end
 
   module Protocol
     class Class::Method

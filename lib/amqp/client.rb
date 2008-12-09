@@ -1,7 +1,7 @@
 require 'amqp/frame'
 
 module AMQP
-  class Error < Exception; end
+  class Error < StandardError; end
 
   module BasicClient
     def process_frame frame
