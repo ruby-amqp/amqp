@@ -13,8 +13,8 @@ EM.run{
       pp(msg)
       puts
     }
-    
-  else
+
+  elsif ARGV[0] == 'client'
 
     log = Logger.new
     log.debug 'its working!'
@@ -38,6 +38,16 @@ EM.run{
     log.info 'Request for /', :GET, :session => 'abc'
 
     AMQP.stop{ EM.stop_event_loop }
+
+  else
+
+    puts
+    puts "#{$0} <client|server>"
+    puts "  client: send logs to message queue"
+    puts "  server: read logs from message queue"
+    puts
+
+    EM.stop
 
   end
 }
