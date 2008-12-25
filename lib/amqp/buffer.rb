@@ -10,8 +10,8 @@ end
 
 module AMQP
   class Buffer
-    class Overflow < Exception; end
-    class InvalidType < Exception; end
+    class Overflow < StandardError; end
+    class InvalidType < StandardError; end
     
     def initialize data = ''
       @data = data

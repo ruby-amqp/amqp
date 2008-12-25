@@ -1,7 +1,7 @@
 require 'amqp/frame'
 
 module AMQP
-  class Error < Exception; end
+  class Error < StandardError; end
 
   module BasicClient
     def process_frame frame
@@ -30,7 +30,7 @@ module AMQP
 
           send Protocol::Connection::Open.new(:virtual_host => @settings[:vhost],
                                               :capabilities => '',
-                                              :insist => false)
+                                              :insist => @settings[:insist])
 
         when Protocol::Connection::OpenOk
           succeed(self)

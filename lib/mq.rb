@@ -11,7 +11,7 @@ class MQ
     attr_accessor :logging
   end
 
-  class Error < Exception; end
+  class Error < StandardError; end
 end
 
 class MQ
