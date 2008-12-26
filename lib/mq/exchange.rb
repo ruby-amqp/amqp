@@ -22,7 +22,7 @@ class MQ
 
         out << Protocol::Basic::Publish.new({ :exchange => name,
                                               :routing_key => opts.delete(:key) || @key }.merge(opts))
-      
+
         data = data.to_s
 
         out << Protocol::Header.new(Protocol::Basic,
@@ -41,6 +41,7 @@ class MQ
       @mq.callback{
         @mq.send Protocol::Exchange::Delete.new({ :exchange => name,
                                                   :nowait => true }.merge(opts))
+        @mq.exchanges.delete name
       }
       nil
     end

@@ -28,7 +28,7 @@ class MQ
     end
 
     def unbind exchange, opts = {}
-      exchange.respond_to?(:name) ? exchange.name : exchange
+      exchange = exchange.respond_to?(:name) ? exchange.name : exchange
       @bindings.delete exchange
 
       @mq.callback{

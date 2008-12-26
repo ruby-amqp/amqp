@@ -37,8 +37,7 @@ module AMQP
 
         when Protocol::Connection::Close
           # raise Error, "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]}"
-          log "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]}"
-          @on_disconnect.call if @on_disconnect
+          STDERR.puts "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]}"
 
         when Protocol::Connection::CloseOk
           @on_disconnect.call if @on_disconnect
@@ -157,12 +156,12 @@ module AMQP
         mqs = @channels
         @channels = {}
         mqs.each{ |_,mq| mq.reset } if mqs
+
+        @reconnecting = true
       end
 
-      @reconnecting = true
-
-      opts = @settings
-      EM.reconnect opts[:host], opts[:port], self
+      log 'reconnecting'
+      EM.reconnect @settings[:host], @settings[:port], self
     end
 
     def self.connect opts = {}
