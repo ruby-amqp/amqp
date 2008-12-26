@@ -182,8 +182,24 @@ class MQ
     @consumers ||= {}
   end
 
+  def reset
+    @deferred_status = nil
+    @channel = nil
+    initialize @connection
+
+    @consumers = {}
+
+    exs = @exchanges
+    @exchanges = {}
+    exs.each{ |_,e| e.reset } if exs
+
+    qus = @queues
+    @queues = {}
+    qus.each{ |_,q| q.reset } if qus
+  end
+
   private
-  
+
   def log *args
     return unless MQ.logging
     pp args

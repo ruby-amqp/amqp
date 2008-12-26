@@ -36,7 +36,9 @@ module AMQP
           succeed(self)
 
         when Protocol::Connection::Close
-          raise Error, "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]}"
+          # raise Error, "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]}"
+          log "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]}"
+          @on_disconnect.call if @on_disconnect
 
         when Protocol::Connection::CloseOk
           @on_disconnect.call if @on_disconnect
@@ -61,7 +63,7 @@ module AMQP
       @settings = opts
       extend AMQP.client
 
-      @on_disconnect = proc{ raise Error, "Could not connect to server #{opts[:host]}:#{opts[:port]}" }
+      @on_disconnect ||= proc{ raise Error, "Could not connect to server #{opts[:host]}:#{opts[:port]}" }
 
       timeout @settings[:timeout] if @settings[:timeout]
       errback{ @on_disconnect.call }
@@ -69,7 +71,9 @@ module AMQP
 
     def connection_completed
       log 'connected'
-      @on_disconnect = proc{ raise Error, 'Disconnected from server' }
+      # @on_disconnect = proc{ raise Error, 'Disconnected from server' }
+      @on_disconnect = method(:reconnect)
+      @reconnecting = false
       @buf = Buffer.new
       send_data HEADER
       send_data [1, 1, VERSION_MAJOR, VERSION_MINOR].pack('C4')
@@ -121,6 +125,8 @@ module AMQP
     # end
 
     def close &on_disconnect
+      # XXX this can happen before connection_completed, causing it to be overridden
+      # XXX this causes the 'Disconnected from server' bug
       @on_disconnect = on_disconnect if on_disconnect
 
       callback{ |c|
@@ -136,7 +142,29 @@ module AMQP
         end
       }
     end
-  
+
+    def reconnect force = false
+      if @reconnecting and not force
+        # wait 1 second after first reconnect attempt, in between each subsequent attempt
+        EM.add_timer(1){ reconnect(true) }
+        return
+      end
+
+      unless @reconnecting
+        @deferred_status = nil
+        initialize(@settings)
+
+        mqs = @channels
+        @channels = {}
+        mqs.each{ |_,mq| mq.reset } if mqs
+      end
+
+      @reconnecting = true
+
+      opts = @settings
+      EM.reconnect opts[:host], opts[:port], self
+    end
+
     def self.connect opts = {}
       opts = AMQP.settings.merge(opts)
       EM.connect opts[:host], opts[:port], self, opts

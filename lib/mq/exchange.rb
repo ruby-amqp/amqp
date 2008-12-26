@@ -4,7 +4,7 @@ class MQ
 
     def initialize mq, type, name, opts = {}
       @mq = mq
-      @type, @name = type, name
+      @type, @name, @opts = type, name, opts
       @mq.exchanges[@name = name] ||= self
       @key = opts[:key]
 
@@ -43,6 +43,11 @@ class MQ
                                                   :nowait => true }.merge(opts))
       }
       nil
+    end
+
+    def reset
+      @deferred_status = nil
+      initialize @mq, @type, @name, @opts
     end
   end
 end

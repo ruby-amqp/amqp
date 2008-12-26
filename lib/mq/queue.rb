@@ -4,6 +4,8 @@ class MQ
     
     def initialize mq, name, opts = {}
       @mq = mq
+      @opts = opts
+      @bindings ||= {}
       @mq.queues[@name = name] ||= self
       @mq.callback{
         @mq.send Protocol::Queue::Declare.new({ :queue => name,
@@ -13,9 +15,12 @@ class MQ
     attr_reader :name
 
     def bind exchange, opts = {}
+      exchange = exchange.respond_to?(:name) ? exchange.name : exchange
+      @bindings[exchange] = opts
+
       @mq.callback{
         @mq.send Protocol::Queue::Bind.new({ :queue => name,
-                                             :exchange => exchange.respond_to?(:name) ? exchange.name : exchange,
+                                             :exchange => exchange,
                                              :routing_key => opts.delete(:key),
                                              :nowait => true }.merge(opts))
       }
@@ -23,9 +28,12 @@ class MQ
     end
 
     def unbind exchange, opts = {}
+      exchange.respond_to?(:name) ? exchange.name : exchange
+      @bindings.delete exchange
+
       @mq.callback{
         @mq.send Protocol::Queue::Unbind.new({ :queue => name,
-                                               :exchange => exchange.respond_to?(:name) ? exchange.name : exchange,
+                                               :exchange => exchange,
                                                :routing_key => opts.delete(:key),
                                                :nowait => true }.merge(opts))
       }
@@ -44,7 +52,10 @@ class MQ
     def pop opts = {}, &blk
       @ack = opts[:no_ack] === false
 
-      @on_pop = blk if blk
+      if blk
+        @on_pop = blk
+        @on_pop_opts = opts
+      end
 
       @mq.callback{
         @mq.send Protocol::Basic::Get.new({ :queue => name,
@@ -66,6 +77,7 @@ class MQ
       raise Error, 'already subscribed to the queue' if @on_msg
 
       @on_msg = blk
+      @on_msg_opts = opts
       @ack = opts[:no_ack] === false
 
       @mq.callback{
@@ -91,6 +103,7 @@ class MQ
     end
 
     def receive headers, body
+      # XXX why is this here?
       if AMQP.closing
         #You don't need this if your using ack, and if you aren't it doesn't do much good either
         #@mq.callback{
@@ -135,6 +148,24 @@ class MQ
       @on_cancel = @on_msg = nil
       @mq.consumers.delete @consumer_tag
       @consumer_tag = nil
+    end
+
+    def reset
+      @deferred_status = nil
+      initialize @mq, @name, @opts
+
+      binds = @bindings
+      @bindings = {}
+      binds.each{|ex,opts| bind(ex, opts) }
+
+      if blk = @on_msg
+        @on_msg = nil
+        subscribe @on_msg_opts, &blk
+      end
+
+      if @on_pop
+        pop @on_pop_opts, &@on_pop
+      end
     end
   
     private
