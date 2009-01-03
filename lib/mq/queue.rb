@@ -199,14 +199,14 @@ class MQ
     # method it will raise a channel or connection exception.
     #
     def pop opts = {}, &blk
-      @ack = opts[:no_ack] === false
+      @ack = generate_ack?(opts)
 
       @on_pop = blk if blk
 
       @mq.callback{
         @mq.send Protocol::Basic::Get.new({ :queue => name,
                                             :consumer_tag => name,
-                                            :no_ack => true,
+                                            :no_ack => no_ack?(opts),
                                             :nowait => true }.merge(opts))
         @mq.get_queue{ |q|
           q.push(self)
@@ -269,12 +269,13 @@ class MQ
       raise Error, 'already subscribed to the queue' if @on_msg
 
       @on_msg = blk
-      @ack = opts[:no_ack] === false
+      @on_msg_opts = opts
+      @ack = generate_ack?(opts)
 
       @mq.callback{
         @mq.send Protocol::Basic::Consume.new({ :queue => name,
                                                 :consumer_tag => @consumer_tag,
-                                                :no_ack => true,
+                                                :no_ack => no_ack?(opts),
                                                 :nowait => true }.merge(opts))
       }
       self
@@ -311,7 +312,7 @@ class MQ
       end
 
       if cb = (@on_msg || @on_pop)
-        cb.call *(cb.arity == 1 ? [body] : [headers, body])
+        cb.call *(cb.arity == 1 ? [body] : [MQ::Header.new(@mq, headers), body])
       end
 
       if @ack && headers && !AMQP.closing
@@ -349,6 +350,19 @@ class MQ
     
     def exchange
       @exchange ||= Exchange.new(@mq, :direct, '', :key => name)
+    end
+
+    # Returns true if the options specified indicate that the AMQP
+    # library should autogenerate an Ack response after processing.
+    def generate_ack?(options)
+      options[:no_ack] === false && !options[:ack]
+    end
+
+    # Returns true if the options specified indicate that our
+    # request to the AMQP server should indicate that no Ack is required
+    # after delivering. (ie. no_ack == true)
+    def no_ack?(options)
+      !options[:ack]
     end
   end
 end
