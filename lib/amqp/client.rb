@@ -115,10 +115,12 @@ module AMQP
       send_data data.to_s
     end
 
+    #:stopdoc:
     # def send_data data
     #   log 'send_data', data
     #   super
     # end
+    #:startdoc:
 
     def close &on_disconnect
       @on_disconnect = on_disconnect if on_disconnect

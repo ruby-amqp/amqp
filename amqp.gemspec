@@ -6,7 +6,8 @@ spec = Gem::Specification.new do |s|
   s.email = "amqp@tmm1.net"
   s.homepage = "http://amqp.rubyforge.org/"
   s.description = "AMQP client implementation in Ruby/EventMachine"
-  s.has_rdoc = false
+  s.has_rdoc = true
+  s.extra_rdoc_files = ['README']
   s.authors = ["Aman Gupta"]
   s.add_dependency('eventmachine', '>= 0.12.2')
 
