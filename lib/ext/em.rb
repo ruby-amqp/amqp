@@ -5,6 +5,8 @@ rescue LoadError
   require 'eventmachine'
 end
 
+#:stopdoc:
+
 if EM::VERSION < '0.12.2'
     
   def EventMachine::run blk=nil, tail=nil, &block

@@ -6,6 +6,8 @@ end
 
 require 'eventmachine'
 
+#:stopdoc:
+
 # helper to fork off EM reactors
 def EM.fork num = 1, &blk
   unless @forks

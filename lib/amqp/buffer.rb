@@ -1,5 +1,5 @@
 if [].map.respond_to? :with_index
-  class Array
+  class Array #:nodoc:
     def enum_with_index
       each.with_index
     end
@@ -9,7 +9,7 @@ else
 end
 
 module AMQP
-  class Buffer
+  class Buffer #:nodoc: all
     class Overflow < StandardError; end
     class InvalidType < StandardError; end
     
