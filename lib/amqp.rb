@@ -41,6 +41,36 @@ module AMQP
     }
   end
 
+  # Must be called to startup the connection to the AMQP server.
+  #
+  # The method takes several arguments and an optional block.
+  #
+  # This takes any option that is also accepted by EventMachine::connect.
+  # Additionally, there are several AMQP-specific options.
+  #
+  # * :user => String (default 'guest')
+  # The username as defined by the AMQP server.
+  # * :pass => String (default 'guest')
+  # The password for the associated :user as defined by the AMQP server.
+  # * :vhost => String (default '/')
+  # The virtual host as defined by the AMQP server.
+  # * :timeout => Numeric (default nil)
+  # Measured in seconds.
+  # * :logging => true | false (default false)
+  # Toggle the extremely verbose logging of all protocol communications
+  # between the client and the server. Extremely useful for debugging.
+  #
+  #  AMQP.start do
+  #    # default to connecting to localhost:5672
+  #
+  #    # define queues, exchanges and bindings here.
+  #    # also define all subscriptions and/or publishers
+  #    # here.
+  #
+  #    # this block never exits unless EM.stop_event_loop
+  #    # is called.
+  #  end
+  #
   def self.start *args, &blk
     EM.run{
       @conn ||= connect *args

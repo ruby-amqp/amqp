@@ -5,7 +5,7 @@ require 'pp'
 EM.run do
 
   # connect to the amqp server
-  connection = AMQP.connect(:host => 'dev.rabbitmq.com', :logging => false)
+  connection = AMQP.connect(:host => 'localhost', :logging => false)
   
   # open a channel on the AMQP connection
   channel = MQ.new(connection)

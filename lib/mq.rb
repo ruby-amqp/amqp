@@ -1,8 +1,11 @@
+#:main: README
+#
+
 $:.unshift File.expand_path(File.dirname(File.expand_path(__FILE__)))
 require 'amqp'
 
 class MQ
-  %w[ exchange queue rpc ].each do |file|
+  %w[ exchange queue rpc header ].each do |file|
     require "mq/#{file}"
   end
 
@@ -11,13 +14,31 @@ class MQ
     attr_accessor :logging
   end
 
+  # Raised whenever an illegal operation is attempted.
   class Error < StandardError; end
 end
 
+# The top-level class for building AMQP clients. This class contains several
+# convenience methods for working with queues and exchanges. Many calls
+# delegate/forwards to the appropriate subclass method.
 class MQ
   include AMQP
   include EM::Deferrable
 
+  # Returns a new channel. A channel is a bidirectional virtual
+  # connection between the client and the AMQP server. Elsewhere in the
+  # library the channel is referred to in parameter lists as 'mq'.
+  #
+  # Optionally takes the result from calling EventMachine::connect.
+  #
+  #  EM.run do
+  #    channel = MQ.new
+  #  end
+  #
+  #  EM.run do
+  #    channel = MQ.new connect
+  #  end
+  #
   def initialize connection = nil
     raise 'MQ can only be used from within EM.run{}' unless EM.reactor_running?
 
@@ -30,6 +51,15 @@ class MQ
   end
   attr_reader :channel
   
+  # May raise a MQ::Error exception when the frame payload contains a
+  # Protocol::Channel::Close object. 
+  #
+  # This usually occurs when a client attempts to perform an illegal
+  # operation. A short, and incomplete, list of potential illegal operations
+  # follows:
+  # * publish a message to a deleted exchange (NOT_FOUND)
+  # * declare an exchange using the reserved 'amq.' naming structure (ACCESS_REFUSED)
+  #
   def process_frame frame
     log :received, frame
 
@@ -117,18 +147,63 @@ class MQ
     }
   end
 
-  %w[ direct topic fanout ].each do |type|
-    class_eval %[
-      def #{type} name = 'amq.#{type}', opts = {}
-        exchanges[name] ||= Exchange.new(self, :#{type}, name, opts)
-      end
-    ]
+  # A convenience method for defining a direct exchange. See 
+  # MQ::Exchange.new for details and available options.
+  #
+  #  direct_exch = MQ.direct('foo')
+  #  # equivalent to
+  #  direct_exch = MQ::Exchange.new(MQ.new, :direct, 'foo')
+  #
+  def direct name = 'amq.direct', opts = {}
+    exchanges[name] ||= Exchange.new(self, :direct, name, opts)
   end
 
+  # A convenience method for defining a fanout exchange. See 
+  # MQ::Exchange.new for details and available options.
+  #
+  #  fanout_exch = MQ.fanout('foo')
+  #  # equivalent to
+  #  fanout_exch = MQ::Exchange.new(MQ.new, :fanout, 'foo')
+  #
+  def fanout name = 'amq.fanout', opts = {}
+    exchanges[name] ||= Exchange.new(self, :fanout, name, opts)
+  end
+
+  # A convenience method for defining a topic exchange. See 
+  # MQ::Exchange.new for details and available options.
+  #
+  #  topic_exch = MQ.topic('foo', :key => 'stocks.us')
+  #  # equivalent to
+  #  topic_exch = MQ::Exchange.new(MQ.new, :topic, 'foo', :key => 'stocks.us')
+  #
+  def topic name = 'amq.topic', opts = {}
+    exchanges[name] ||= Exchange.new(self, :topic, name, opts)
+  end
+    
+  # Convenience method for creating or retrieving a queue reference. Wraps
+  # calls to MQ::Queue. See the MQ::Queue class definition for the 
+  # allowable options.
+  #
+  #  queue = MQ.queue('bar', :durable => true)
+  #
+  # Equivalent to writing:
+  #  channel = MQ.new
+  #  queue = MQ::Queue.new(channel, 'bar', :durable => true)
+  #
   def queue name, opts = {}
     queues[name] ||= Queue.new(self, name, opts)
   end
 
+  # Convenience method for creating or retrieving an RPC (remote procedure
+  # call) reference. Wraps calls to MQ::RPC. See the MQ::RPC class definition
+  # for the allowable options.
+  #
+  #  remote_proc = MQ.rpc('bar', Hash.new)
+  #
+  # Equivalent to writing:
+  #  channel = MQ.new
+  #  remote_proc = MQ::RPC.new(channel, 'bar', Hash.new)
+  #
   def rpc name, obj = nil
     rpcs[name] ||= RPC.new(self, name, obj)
   end
@@ -144,8 +219,8 @@ class MQ
     end
   end
 
-  # error callback
-
+  # Define a message and callback block to be executed on all
+  # errors.
   def self.error msg = nil, &blk
     if blk
       @error_callback = blk
@@ -154,12 +229,16 @@ class MQ
     end
   end
 
-  # keep track of proxy objects
-  
+  # Returns a hash of all the exchange proxy objects.
+  #
+  # Not typically called by client code.
   def exchanges
     @exchanges ||= {}
   end
 
+  # Returns a hash of all the queue proxy objects.
+  #
+  # Not typically called by client code.
   def queues
     @queues ||= {}
   end
@@ -172,12 +251,14 @@ class MQ
     end
   end
 
+  # Returns a hash of all rpc proxy objects.
+  #
+  # Not typically called by client code.
   def rpcs
     @rcps ||= {}
   end
 
-  # queue objects keyed on their consumer tags
-
+  # Queue objects keyed on their consumer tags.
   def consumers
     @consumers ||= {}
   end
@@ -210,11 +291,11 @@ class MQ
   alias :conn :connection
 end
 
-# convenience wrapper (read: HACK) for thread-local MQ object
+#-- convenience wrapper (read: HACK) for thread-local MQ object
 
 class MQ
   def MQ.default
-    # XXX clear this when connection is closed
+    #-- XXX clear this when connection is closed
     Thread.current[:mq] ||= MQ.new
   end
 
@@ -223,8 +304,8 @@ class MQ
   end
 end
 
-# unique identifier
 class MQ
+  # unique identifier
   def MQ.id
     Thread.current[:mq_id] ||= "#{`hostname`.strip}-#{Process.pid}-#{Thread.current.object_id}"
   end

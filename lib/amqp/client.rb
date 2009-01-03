@@ -118,10 +118,12 @@ module AMQP
       send_data data.to_s
     end
 
+    #:stopdoc:
     # def send_data data
     #   log 'send_data', data
     #   super
     # end
+    #:startdoc:
 
     def close &on_disconnect
       # XXX this can happen before connection_completed, causing it to be overridden
