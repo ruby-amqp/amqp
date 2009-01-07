@@ -5,7 +5,7 @@ $:.unshift File.expand_path(File.dirname(File.expand_path(__FILE__)))
 require 'amqp'
 
 class MQ
-  %w[ exchange queue rpc ].each do |file|
+  %w[ exchange queue rpc header ].each do |file|
     require "mq/#{file}"
   end
 

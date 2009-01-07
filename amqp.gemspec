@@ -32,6 +32,7 @@ spec = Gem::Specification.new do |s|
              "lib/ext/em.rb",
              "lib/ext/emfork.rb",
              "lib/mq/exchange.rb",
+             "lib/mq/header.rb",
              "lib/mq/logger.rb",
              "lib/mq/queue.rb",
              "lib/mq/rpc.rb",

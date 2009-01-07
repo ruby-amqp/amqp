@@ -2,6 +2,65 @@ class MQ
   class Queue
     include AMQP
     
+    # Queues store and forward messages.  Queues can be configured in the server
+    # or created at runtime.  Queues must be attached to at least one exchange
+    # in order to receive messages from publishers.
+    #
+    # Like an Exchange, queue names starting with 'amq.' are reserved for
+    # internal use. Attempts to create queue names in violation of this
+    # reservation will raise MQ:Error (ACCESS_REFUSED).
+    #
+    # When a queue is created without a name, the server will generate a 
+    # unique name internally (not currently supported in this library).
+    #
+    # == Options
+    # * :passive => true | false (default false)
+    # If set, the server will not create the exchange if it does not
+    # already exist. The client can use this to check whether an exchange
+    # exists without modifying  the server state.
+    # 
+    # * :durable => true | false (default false)
+    # If set when creating a new queue, the queue will be marked as
+    # durable.  Durable queues remain active when a server restarts.
+    # Non-durable queues (transient queues) are purged if/when a
+    # server restarts.  Note that durable queues do not necessarily
+    # hold persistent messages, although it does not make sense to
+    # send persistent messages to a transient queue (though it is
+    # allowed).
+    #
+    # If the queue has already been declared, any redeclaration will
+    # ignore this setting. A queue may only be declared durable the
+    # first time when it is created.
+    #
+    # * :exclusive => true | false (default false)
+    # Exclusive queues may only be consumed from by the current connection.
+    # Setting the 'exclusive' flag always implies 'auto-delete'. Only a
+    # single consumer is allowed to remove messages from this queue.
+    #
+    # The default is a shared queue. Multiple clients may consume messages
+    # from this queue.
+    #
+    # Attempting to redeclare an already-declared queue as :exclusive => true
+    # will raise MQ:Error.
+    #
+    # * :auto_delete = true | false (default false)
+    # If set, the queue is deleted when all consumers have finished
+    # using it. Last consumer can be cancelled either explicitly or because
+    # its channel is closed. If there was no consumer ever on the queue, it
+    # won't be deleted. 
+    #
+    # The server waits for a short period of time before
+    # determining the queue is unused to give time to the client code
+    # to bind an exchange to it.
+    #
+    # If the queue has been previously declared, this option is ignored
+    # on subsequent declarations.
+    #
+    # * :nowait => true | false (default true)
+    # If set, the server will not respond to the method. The client should
+    # not wait for a reply method.  If the server could not complete the
+    # method it will raise a channel or connection exception.
+    #
     def initialize mq, name, opts = {}
       @mq = mq
       @mq.queues[@name = name] ||= self
@@ -149,14 +208,14 @@ class MQ
     # method it will raise a channel or connection exception.
     #
     def pop opts = {}, &blk
-      @ack = opts[:no_ack] === false
+      @ack = generate_ack?(opts)
 
       @on_pop = blk if blk
 
       @mq.callback{
         @mq.send Protocol::Basic::Get.new({ :queue => name,
                                             :consumer_tag => name,
-                                            :no_ack => true,
+                                            :no_ack => no_ack?(opts),
                                             :nowait => true }.merge(opts))
         @mq.get_queue{ |q|
           q.push(self)
@@ -221,12 +280,13 @@ class MQ
       raise Error, 'already subscribed to the queue' if @on_msg
 
       @on_msg = blk
-      @ack = opts[:no_ack] === false
+      @on_msg_opts = opts
+      @ack = generate_ack?(opts)
 
       @mq.callback{
         @mq.send Protocol::Basic::Consume.new({ :queue => name,
                                                 :consumer_tag => @consumer_tag,
-                                                :no_ack => true,
+                                                :no_ack => no_ack?(opts),
                                                 :nowait => true }.merge(opts))
       }
       self
@@ -267,7 +327,7 @@ class MQ
       end
 
       if cb = (@on_msg || @on_pop)
-        cb.call *(cb.arity == 1 ? [body] : [headers, body])
+        cb.call *(cb.arity == 1 ? [body] : [MQ::Header.new(@mq, headers), body])
       end
 
       if @ack && headers && !AMQP.closing
@@ -305,6 +365,19 @@ class MQ
     
     def exchange
       @exchange ||= Exchange.new(@mq, :direct, '', :key => name)
+    end
+
+    # Returns true if the options specified indicate that the AMQP
+    # library should autogenerate an Ack response after processing.
+    def generate_ack?(options)
+      options[:no_ack] === false && !options[:ack]
+    end
+
+    # Returns true if the options specified indicate that our
+    # request to the AMQP server should indicate that no Ack is required
+    # after delivering. (ie. no_ack == true)
+    def no_ack?(options)
+      !options[:ack]
     end
   end
 end

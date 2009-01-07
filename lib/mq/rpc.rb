@@ -21,6 +21,25 @@ class MQ
   #  end
   #
   class RPC < BlankSlate
+    # Takes a channel, queue and optional object.
+    #
+    # The optional object may be a class name, module name or object
+    # instance. When given a class or module name, the object is instantiated
+    # during this setup. The passed queue is automatically subscribed to so
+    # it passes all messages (and their arguments) to the object.
+    #
+    # Marshalling and unmarshalling the objects is handled internally. This
+    # marshalling is subject to the same restrictions as defined in the
+    # Marshal[http://ruby-doc.org/core/classes/Marshal.html] standard 
+    # library. See that documentation for further reference.
+    #
+    # When the optional object is not passed, the returned rpc reference is 
+    # used to send messages and arguments to the queue. See #method_missing 
+    # which does all of the heavy lifting with the proxy. Some client 
+    # elsewhere must call this method *with* the optional block so that 
+    # there is a valid destination. Failure to do so will just enqueue 
+    # marshalled messages that are never consumed.
+    #
     def initialize mq, queue, obj = nil
       @mq = mq
       @mq.rpcs[queue] ||= self
