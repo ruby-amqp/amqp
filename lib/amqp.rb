@@ -61,7 +61,7 @@ module AMQP
   # between the client and the server. Extremely useful for debugging.
   #
   #  AMQP.start do
-  #    # default to connecting to localhost:5672
+  #    # default is to connect to localhost:5672
   #
   #    # define queues, exchanges and bindings here.
   #    # also define all subscriptions and/or publishers
@@ -70,6 +70,11 @@ module AMQP
   #    # this block never exits unless EM.stop_event_loop
   #    # is called.
   #  end
+  #
+  # Most code will use the MQ api. Any calls to MQ.direct / MQ.fanout /
+  # MQ.topic / MQ.queue will implicitly call #start. In those cases,
+  # it is sufficient to put your code inside of an EventMachine.run
+  # block. See the code examples in MQ for details.
   #
   def self.start *args, &blk
     EM.run{
