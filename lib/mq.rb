@@ -317,7 +317,6 @@ class MQ
   # * :passive => true and the exchange does not exist (NOT_FOUND)
   #
   def direct name = 'amq.direct', opts = {}
-    puts "name [#{name}] opts #{opts.inspect}"
     exchanges[name] ||= Exchange.new(self, :direct, name, opts)
   end
 
