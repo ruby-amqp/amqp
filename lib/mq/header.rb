@@ -14,8 +14,8 @@ class MQ
       end
     end
 
-    def properties
-      @header.properties
+    def method_missing meth, *args, &blk
+      @header.send meth, *args, &blk
     end
 
     def inspect
