@@ -114,6 +114,24 @@ class MQ
       self
     end
 
+    # Remove the binding between the queue and exchange. The queue will
+    # not receive any more messages until it is bound to another 
+    # exchange.
+    #
+    # Due to the asynchronous nature of the protocol, it is possible for
+    # "in flight" messages to be received after this call completes.
+    # Those messages will be serviced by the last block used in a
+    # #subscribe or #pop call.
+    #
+    # Additionally, if the queue was created with _autodelete_ set to 
+    # true, the server will delete the queue after its wait period
+    # has expired unless the queue is bound to an active exchange.
+    #
+    # * :nowait => true | false (default true)
+    # If set, the server will not respond to the method. The client should
+    # not wait for a reply method.  If the server could not complete the
+    # method it will raise a channel or connection exception.
+    #
     def unbind exchange, opts = {}
       @mq.callback{
         @mq.send Protocol::Queue::Unbind.new({ :queue => name,
@@ -277,7 +295,7 @@ class MQ
       @consumer_tag = "#{name}-#{Kernel.rand(999_999_999_999)}"
       @mq.consumers[@consumer_tag] = self
 
-      raise Error, 'already subscribed to the queue' if @on_msg
+      raise Error, 'already subscribed to the queue' if subscribed?
 
       @on_msg = blk
       @on_msg_opts = opts
@@ -292,6 +310,24 @@ class MQ
       self
     end
 
+    # Removes the subscription from the queue and cancels the consumer.
+    # New messages will not be received by the queue. This call is similar
+    # in result to calling #unbind.
+    #
+    # Due to the asynchronous nature of the protocol, it is possible for
+    # "in flight" messages to be received after this call completes.
+    # Those messages will be serviced by the last block used in a
+    # #subscribe or #pop call.
+    #
+    # Additionally, if the queue was created with _autodelete_ set to 
+    # true, the server will delete the queue after its wait period
+    # has expired unless the queue is bound to an active exchange.
+    #
+    # * :nowait => true | false (default true)
+    # If set, the server will not respond to the method. The client should
+    # not wait for a reply method.  If the server could not complete the
+    # method it will raise a channel or connection exception.
+    #
     def unsubscribe opts = {}, &blk
       @on_msg = nil
       @on_cancel = blk
@@ -303,6 +339,23 @@ class MQ
 
     def publish data, opts = {}
       exchange.publish(data, opts)
+    end
+    
+    # Boolean check to see if the current queue has already been subscribed
+    # to an exchange. 
+    #
+    # Attempts to #subscribe multiple times to any exchange will raise an
+    # Exception. Only a single block can be associated with any one queue
+    # for processing incoming messages.
+    #
+    # To change the subscription behavior, the proper sequence requires
+    # unsubscribing the queue and subscribing with a new block. It is
+    # important to complete the resubscription quickly to avoid triggering
+    # any _autodelete_ behavior. It is possible that "in flight" messages
+    # may be missed during this swap.
+    #
+    def subscribed?
+      !!@on_msg
     end
 
     # Passes the message to the block passed to pop or subscribe. 
