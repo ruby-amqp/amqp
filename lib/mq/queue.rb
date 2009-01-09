@@ -123,10 +123,6 @@ class MQ
     # Those messages will be serviced by the last block used in a
     # #subscribe or #pop call.
     #
-    # Additionally, if the queue was created with _autodelete_ set to 
-    # true, the server will delete the queue after its wait period
-    # has expired unless the queue is bound to an active exchange.
-    #
     # * :nowait => true | false (default true)
     # If set, the server will not respond to the method. The client should
     # not wait for a reply method.  If the server could not complete the
@@ -323,6 +319,9 @@ class MQ
     # true, the server will delete the queue after its wait period
     # has expired unless the queue is bound to an active exchange.
     #
+    # The method accepts a block which will be executed when the 
+    # unsubscription request is acknowledged as complete by the server.
+    #
     # * :nowait => true | false (default true)
     # If set, the server will not respond to the method. The client should
     # not wait for a reply method.  If the server could not complete the
@@ -345,14 +344,8 @@ class MQ
     # to an exchange. 
     #
     # Attempts to #subscribe multiple times to any exchange will raise an
-    # Exception. Only a single block can be associated with any one queue
-    # for processing incoming messages.
-    #
-    # To change the subscription behavior, the proper sequence requires
-    # unsubscribing the queue and subscribing with a new block. It is
-    # important to complete the resubscription quickly to avoid triggering
-    # any _autodelete_ behavior. It is possible that "in flight" messages
-    # may be missed during this swap.
+    # Exception. Only a single block at a time can be associated with any 
+    # one queue for processing incoming messages.
     #
     def subscribed?
       !!@on_msg
