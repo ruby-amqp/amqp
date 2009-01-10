@@ -71,8 +71,10 @@ module AMQP
     def connection_completed
       log 'connected'
       # @on_disconnect = proc{ raise Error, 'Disconnected from server' }
-      @on_disconnect = method(:reconnect)
-      @reconnecting = false
+      unless @closing
+        @on_disconnect = method(:reconnect)
+        @reconnecting = false
+      end
       @buf = Buffer.new
       send_data HEADER
       send_data [1, 1, VERSION_MAJOR, VERSION_MINOR].pack('C4')
@@ -126,9 +128,13 @@ module AMQP
     #:startdoc:
 
     def close &on_disconnect
-      # XXX this can happen before connection_completed, causing it to be overridden
-      # XXX this causes the 'Disconnected from server' bug
-      @on_disconnect = on_disconnect if on_disconnect
+      if on_disconnect
+        @closing = true
+        @on_disconnect = proc{
+          on_disconnect.call
+          @closing = false
+        }
+      end
 
       callback{ |c|
         if c.channels.any?
