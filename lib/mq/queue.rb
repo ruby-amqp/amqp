@@ -216,8 +216,8 @@ class MQ
     #  end
     #
     # == Options
-    # * :no_ack => true | false (default true)
-    # If this field is set the server does not expect acknowledgments
+    # * :ack => true | false (default false)
+    # If this field is set to false the server does not expect acknowledgments
     # for messages.  That is, when a message is delivered to the client
     # the server automatically and silently acknowledges it on behalf
     # of the client.  This functionality increases performance but at
@@ -230,8 +230,6 @@ class MQ
     # method it will raise a channel or connection exception.
     #
     def pop opts = {}, &blk
-      @ack = generate_ack?(opts)
-
       if blk
         @on_pop = blk
         @on_pop_opts = opts
@@ -240,7 +238,7 @@ class MQ
       @mq.callback{
         @mq.send Protocol::Basic::Get.new({ :queue => name,
                                             :consumer_tag => name,
-                                            :no_ack => no_ack?(opts),
+                                            :no_ack => !opts.delete(:ack),
                                             :nowait => true }.merge(opts))
         @mq.get_queue{ |q|
           q.push(self)
@@ -285,8 +283,8 @@ class MQ
     #  end
     #
     # == Options
-    # * :no_ack => true | false (default true)
-    # If this field is set the server does not expect acknowledgments
+    # * :ack => true | false (default false)
+    # If this field is set to false the server does not expect acknowledgments
     # for messages.  That is, when a message is delivered to the client
     # the server automatically and silently acknowledges it on behalf
     # of the client.  This functionality increases performance but at
@@ -306,12 +304,11 @@ class MQ
 
       @on_msg = blk
       @on_msg_opts = opts
-      @ack = generate_ack?(opts)
 
       @mq.callback{
         @mq.send Protocol::Basic::Consume.new({ :queue => name,
                                                 :consumer_tag => @consumer_tag,
-                                                :no_ack => no_ack?(opts),
+                                                :no_ack => !opts.delete(:ack),
                                                 :nowait => true }.merge(opts))
       }
       self
@@ -372,26 +369,10 @@ class MQ
     # the headers parameter. See #pop or #subscribe for a code example.
     #
     def receive headers, body
-      # XXX why is this here?
-      if AMQP.closing
-        #You don't need this if your using ack, and if you aren't it doesn't do much good either
-        #@mq.callback{
-        #  @mq.send Protocol::Basic::Reject.new({
-        #    :delivery_tag => headers.properties[:delivery_tag],
-        #    :requeue => true
-        #  })
-        #}
-        return
-      end
+      headers = MQ::Header.new(@mq, headers)
 
       if cb = (@on_msg || @on_pop)
-        cb.call *(cb.arity == 1 ? [body] : [MQ::Header.new(@mq, headers), body])
-      end
-
-      if @ack && headers && !AMQP.closing
-        @mq.callback{
-          @mq.send Protocol::Basic::Ack.new({ :delivery_tag => headers.properties[:delivery_tag] })
-        }
+        cb.call *(cb.arity == 1 ? [body] : [headers, body])
       end
     end
 
@@ -441,19 +422,6 @@ class MQ
     
     def exchange
       @exchange ||= Exchange.new(@mq, :direct, '', :key => name)
-    end
-
-    # Returns true if the options specified indicate that the AMQP
-    # library should autogenerate an Ack response after processing.
-    def generate_ack?(options)
-      options[:no_ack] === false && !options[:ack]
-    end
-
-    # Returns true if the options specified indicate that our
-    # request to the AMQP server should indicate that no Ack is required
-    # after delivering. (ie. no_ack == true)
-    def no_ack?(options)
-      !options[:ack]
     end
   end
 end

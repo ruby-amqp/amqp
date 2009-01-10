@@ -15,6 +15,7 @@ module AMQP
     @logging = false
     attr_accessor :logging
     attr_reader :conn, :closing
+    alias :closing? :closing
     alias :connection :conn
   end
 
@@ -89,7 +90,7 @@ module AMQP
   end
   
   def self.stop
-    if @conn
+    if @conn and not @closing
       @closing = true
       @conn.close{
         yield if block_given?
