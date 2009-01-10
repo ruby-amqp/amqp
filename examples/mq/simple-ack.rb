@@ -14,7 +14,7 @@ EM.run do
 
   i = 0
   # Stopping after the second item was acked will keep the 3rd item in the queue
-  MQ.queue('awesome').subscribe(:no_ack => false) do |h,m|
+  MQ.queue('awesome').subscribe(:ack => true) do |h,m|
     if i == 2
       AMQP.stop{ EM.stop }
     else
