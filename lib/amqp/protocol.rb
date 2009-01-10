@@ -66,6 +66,7 @@ module AMQP
     end
 
     #:startdoc:
+    #
     # Contains a properties hash that holds some potentially interesting 
     # information.
     # * :delivery_mode

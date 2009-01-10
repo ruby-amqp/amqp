@@ -80,10 +80,17 @@ class MQ
     #
     # A valid exchange name (or reference) must be passed as the first
     # parameter. Both of these are valid:
-    #  exch = MQ::Exchange.new(MQ.new, :direct, 'foo exchange')
-    #  queue = MQ::Queue.new(MQ.new, 'bar queue')
+    #  exch = MQ.direct('foo exchange')
+    #  queue = MQ.queue('bar queue')
     #  queue.bind('foo.exchange') # OR
     #  queue.bind(exch)
+    #
+    # It is not valid to call #bind without the +exchange+ parameter.
+    #
+    # It is unnecessary to call #bind when the exchange name and queue
+    # name match exactly (for +direct+ and +fanout+ exchanges only).
+    # There is an implicit bind which will deliver the messages from
+    # the exchange to the queue.
     #
     # == Options
     # * :key => 'some string'
@@ -112,6 +119,20 @@ class MQ
       self
     end
 
+    # Remove the binding between the queue and exchange. The queue will
+    # not receive any more messages until it is bound to another 
+    # exchange.
+    #
+    # Due to the asynchronous nature of the protocol, it is possible for
+    # "in flight" messages to be received after this call completes.
+    # Those messages will be serviced by the last block used in a
+    # #subscribe or #pop call.
+    #
+    # * :nowait => true | false (default true)
+    # If set, the server will not respond to the method. The client should
+    # not wait for a reply method.  If the server could not complete the
+    # method it will raise a channel or connection exception.
+    #
     def unbind exchange, opts = {}
       exchange = exchange.respond_to?(:name) ? exchange.name : exchange
       @bindings.delete exchange
@@ -162,31 +183,33 @@ class MQ
     # The provided block is passed a single message each time pop is called.
     #
     #  EM.run do
-    #    exchange = MQ::Exchange.new(MQ.new, :direct, "foo queue")#, :key => 'foo queue')
+    #    exchange = MQ.direct("foo queue")
     #    EM.add_periodic_timer(1) do
     #      exchange.publish("random number #{rand(1000)}")
     #    end
     #    
-    #    queue = MQ::Queue.new(MQ.new, 'foo queue')
+    #    # note that #bind is never called; it is implicit because
+    #    # the exchange and queue names match
+    #    queue = MQ.queue('foo queue')
     #    queue.pop { |body| puts "received payload [#{body}]" }
     #
     #    EM.add_periodic_timer(1) { queue.pop }
     #  end
     #
-    # If the block takes 2 parameters, both the headers and the body will
-    # be passed in for processing. The headers object is defined by
+    # If the block takes 2 parameters, both the +header+ and the +body+ will
+    # be passed in for processing. The header object is defined by
     # AMQP::Protocol::Header.
     #
     #  EM.run do
-    #    exchange = MQ::Exchange.new(MQ.new, :direct, "foo queue")#, :key => 'foo queue')
+    #    exchange = MQ.direct("foo queue")
     #    EM.add_periodic_timer(1) do
     #      exchange.publish("random number #{rand(1000)}")
     #    end
     #    
-    #    queue = MQ::Queue.new(MQ.new, 'foo queue')
+    #    queue = MQ.queue('foo queue')
     #    queue.pop do |header, body| 
     #      p header
-    #      puts "received payload [#{body}]" }
+    #      puts "received payload [#{body}]"
     #    end
     #
     #    EM.add_periodic_timer(1) { queue.pop }
@@ -233,29 +256,31 @@ class MQ
     # exchange matches a message to this queue.
     #
     #  EM.run do
-    #    exchange = MQ::Exchange.new(MQ.new, :direct, "foo queue")#, :key => 'foo queue')
+    #    exchange = MQ.direct("foo queue")
     #    EM.add_periodic_timer(1) do
     #      exchange.publish("random number #{rand(1000)}")
     #    end
     #    
-    #    queue = MQ::Queue.new(MQ.new, 'foo queue')
+    #    queue = MQ.queue('foo queue')
     #    queue.subscribe { |body| puts "received payload [#{body}]" }
     #  end
     #
-    # If the block takes 2 parameters, both the headers and the body will
-    # be passed in for processing. The headers object is defined by
+    # If the block takes 2 parameters, both the +header+ and the +body+ will
+    # be passed in for processing. The header object is defined by
     # AMQP::Protocol::Header.
     #
     #  EM.run do
-    #    exchange = MQ::Exchange.new(MQ.new, :direct, "foo queue")#, :key => 'foo queue')
+    #    exchange = MQ.direct("foo queue")
     #    EM.add_periodic_timer(1) do
     #      exchange.publish("random number #{rand(1000)}")
     #    end
     #    
-    #    queue = MQ::Queue.new(MQ.new, 'foo queue')
+    #    # note that #bind is never called; it is implicit because
+    #    # the exchange and queue names match
+    #    queue = MQ.queue('foo queue')
     #    queue.subscribe do |header, body| 
     #      p header
-    #      puts "received payload [#{body}]" }
+    #      puts "received payload [#{body}]"
     #    end
     #  end
     #
@@ -277,7 +302,7 @@ class MQ
       @consumer_tag = "#{name}-#{Kernel.rand(999_999_999_999)}"
       @mq.consumers[@consumer_tag] = self
 
-      raise Error, 'already subscribed to the queue' if @on_msg
+      raise Error, 'already subscribed to the queue' if subscribed?
 
       @on_msg = blk
       @on_msg_opts = opts
@@ -292,6 +317,27 @@ class MQ
       self
     end
 
+    # Removes the subscription from the queue and cancels the consumer.
+    # New messages will not be received by the queue. This call is similar
+    # in result to calling #unbind.
+    #
+    # Due to the asynchronous nature of the protocol, it is possible for
+    # "in flight" messages to be received after this call completes.
+    # Those messages will be serviced by the last block used in a
+    # #subscribe or #pop call.
+    #
+    # Additionally, if the queue was created with _autodelete_ set to 
+    # true, the server will delete the queue after its wait period
+    # has expired unless the queue is bound to an active exchange.
+    #
+    # The method accepts a block which will be executed when the 
+    # unsubscription request is acknowledged as complete by the server.
+    #
+    # * :nowait => true | false (default true)
+    # If set, the server will not respond to the method. The client should
+    # not wait for a reply method.  If the server could not complete the
+    # method it will raise a channel or connection exception.
+    #
     def unsubscribe opts = {}, &blk
       @on_msg = nil
       @on_cancel = blk
@@ -304,12 +350,27 @@ class MQ
     def publish data, opts = {}
       exchange.publish(data, opts)
     end
+    
+    # Boolean check to see if the current queue has already been subscribed
+    # to an exchange. 
+    #
+    # Attempts to #subscribe multiple times to any exchange will raise an
+    # Exception. Only a single block at a time can be associated with any 
+    # one queue for processing incoming messages.
+    #
+    def subscribed?
+      !!@on_msg
+    end
 
     # Passes the message to the block passed to pop or subscribe. 
     #
     # Performs an arity check on the block's parameters. If arity == 1, 
     # pass only the message body. If arity != 1, pass the headers and
     # the body to the block.
+    #
+    # See AMQP::Protocol::Header for the hash properties available from
+    # the headers parameter. See #pop or #subscribe for a code example.
+    #
     def receive headers, body
       # XXX why is this here?
       if AMQP.closing

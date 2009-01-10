@@ -7,6 +7,18 @@ class MQ
   # It determines the next delivery hop by examining the bindings associated
   # with the exchange.
   #
+  # There are three (3) supported Exchange types: direct, fanout and topic.
+  #
+  # As part of the standard, the server _must_ predeclare the direct exchange
+  # 'amq.direct' and the fanout exchange 'amq.fanout' (all exchange names 
+  # starting with 'amq.' are reserved). Attempts to declare an exchange using
+  # 'amq.' as the name will raise an MQ:Error and fail. In practice these
+  # default exchanges are never used directly by client code.
+  #
+  # These predececlared exchanges are used when the client code declares
+  # an exchange without a name. In these cases the library will use
+  # the default exchange for publishing the messages.
+  #
   class Exchange
     include AMQP
 
@@ -181,7 +193,7 @@ class MQ
       @type, @name, @opts = type, name, opts
       @mq.exchanges[@name = name] ||= self
       @key = opts[:key]
-
+      
       @mq.callback{
         @mq.send Protocol::Exchange::Declare.new({ :exchange => name,
                                                    :type => type,
@@ -195,8 +207,7 @@ class MQ
     # configuration and distributed to any active consumers when the
     # transaction, if any, is committed.
     #
-    #  channel = MQ.new
-    #  exchange = MQ::Exchange.new(channel, :direct, 'direct', :key => 'foo.bar')
+    #  exchange = MQ.direct('name', :key => 'foo.bar')
     #  exchange.publish("some data")
     #
     # The method takes several hash key options which modify the behavior or 
@@ -224,7 +235,12 @@ class MQ
     #
     #  * :persistent
     # True or False. When true, this message will remain in the queue until 
-    # it is consumed. When false, the message will be deleted.
+    # it is consumed (if the queue is durable). When false, the message is
+    # lost if the server restarts and the queue is recreated.
+    #
+    # For high-performance and low-latency, set :persistent => false so the
+    # message stays in memory and is never persisted to non-volatile (slow)
+    # storage.
     #
     def publish data, opts = {}
       @mq.callback{
@@ -253,7 +269,7 @@ class MQ
     # Further attempts to publish messages to a deleted exchange will raise
     # an MQ::Error due to a channel close exception.
     #
-    #  exchange = MQ::Exchange.new(channel, :direct, 'direct', :key => 'foo.bar')
+    #  exchange = MQ.direct('name', :key => 'foo.bar')
     #  exchange.delete
     #
     # == Options

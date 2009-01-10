@@ -4,9 +4,9 @@ class MQ
   # Needs more detail and explanation.
   #
   #  EM.run do
-  #    server = MQ::RPC.new(MQ.new, 'hash table node', Hash)
+  #    server = MQ.rpc('hash table node', Hash)
   #
-  #    client = MQ::RPC.new(MQ.new, 'hash table node')
+  #    client = MQ.rpc('hash table node')
   #    client[:now] = Time.now
   #    client[:one] = 1
   #
@@ -74,13 +74,13 @@ class MQ
       end
     end
 
-    # Calling MQ::RPC.new(*args) returns a proxy object without any methods beyond
+    # Calling MQ.rpc(*args) returns a proxy object without any methods beyond
     # those in Object. All calls to the proxy are handled by #method_missing which
     # works to marshal and unmarshal all method calls and their arguments.
     #
     #  EM.run do
-    #    server = MQ::RPC.new(MQ.new, 'hash table node', Hash)
-    #    client = MQ::RPC.new(MQ.new, 'hash table node')
+    #    server = MQ.rpc('hash table node', Hash)
+    #    client = MQ.rpc('hash table node')
     #
     #    # calls #method_missing on #[] which marshals the method name and
     #    # arguments to publish them to the remote
