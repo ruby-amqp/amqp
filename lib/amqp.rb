@@ -94,8 +94,8 @@ module AMQP
       @conn.close{
         yield if block_given?
         @conn = nil
+        @closing = false
       }
-      @closing = false
     end
   end
 end
