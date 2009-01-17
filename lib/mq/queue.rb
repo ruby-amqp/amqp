@@ -236,12 +236,12 @@ class MQ
       end
 
       @mq.callback{
-        @mq.send Protocol::Basic::Get.new({ :queue => name,
-                                            :consumer_tag => name,
-                                            :no_ack => !opts.delete(:ack),
-                                            :nowait => true }.merge(opts))
         @mq.get_queue{ |q|
           q.push(self)
+          @mq.send Protocol::Basic::Get.new({ :queue => name,
+                                              :consumer_tag => name,
+                                              :no_ack => !opts.delete(:ack),
+                                              :nowait => true }.merge(opts))
         }
       }
 

@@ -215,8 +215,11 @@ class MQ
         end
 
       when Protocol::Basic::GetEmpty
-        @consumer = get_queue{|q| q.shift }
-        @consumer.receive nil, nil
+        if @consumer = get_queue{|q| q.shift }
+          @consumer.receive nil, nil
+        else
+          MQ.error "Basic.GetEmpty for invalid consumer"
+        end
 
       when Protocol::Channel::Close
         raise Error, "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]} on #{@channel}"
