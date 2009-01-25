@@ -54,9 +54,11 @@ class MQ
                  obj
                end
         
-        @mq.queue(queue).subscribe{ |info, request|
+        @mq.queue(queue).subscribe(:ack=>true){ |info, request|
           method, *args = ::Marshal.load(request)
           ret = @obj.__send__(method, *args)
+
+          info.ack
 
           if info.reply_to
             @mq.queue(info.reply_to).publish(::Marshal.dump(ret), :key => info.reply_to, :message_id => info.message_id)
