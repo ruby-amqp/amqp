@@ -376,6 +376,12 @@ class MQ
       end
     end
 
+    # Get the number of messages and consumers on a queue.
+    #
+    #  MQ.queue('name').status{ |num_messages, num_consumers|
+    #   puts num_messages
+    #  }
+    #
     def status opts = {}, &blk
       @on_status = blk
       @mq.callback{
