@@ -1,7 +1,7 @@
 $:.unshift File.dirname(__FILE__) + '/../../lib'
 require 'mq'
 
-EM.run{
+AMQP.start(:host => 'localhost') do
 
   def log *args
     p [ Time.now, *args ]
@@ -41,7 +41,7 @@ EM.run{
   watch_appl_stock
   watch_us_stocks
 
-}
+end
 
 __END__
 

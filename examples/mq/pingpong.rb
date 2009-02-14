@@ -1,7 +1,7 @@
 $:.unshift File.dirname(__FILE__) + '/../../lib'
 require 'mq'
 
-EM.run{
+AMQP.start(:host => 'localhost') do
 
   def log *args
     p [ Time.now, *args ]
@@ -28,7 +28,7 @@ EM.run{
     log 'two', :received, msg
   }
 
-}
+end
 
 __END__
 

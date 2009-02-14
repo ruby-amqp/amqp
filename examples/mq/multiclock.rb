@@ -1,7 +1,8 @@
 $:.unshift File.dirname(__FILE__) + '/../../lib'
 require 'mq'
 require 'time'
-EM.run{
+
+AMQP.start(:host => 'localhost') do
 
   def log *args
     p args
@@ -28,7 +29,21 @@ EM.run{
     }
   end
 
-
-}
+end
 
 __END__
+
+[:publish, "iso8601", "2009-02-13T19:55:40-08:00"]
+[:publish, "rfc2822", "Fri, 13 Feb 2009 19:55:40 -0800"]
+["received iso8601", "2009-02-13T19:55:40-08:00"]
+["received rfc2822", "Fri, 13 Feb 2009 19:55:40 -0800"]
+
+[:publish, "iso8601", "2009-02-13T19:55:41-08:00"]
+[:publish, "rfc2822", "Fri, 13 Feb 2009 19:55:41 -0800"]
+["received iso8601", "2009-02-13T19:55:41-08:00"]
+["received rfc2822", "Fri, 13 Feb 2009 19:55:41 -0800"]
+
+[:publish, "iso8601", "2009-02-13T19:55:42-08:00"]
+[:publish, "rfc2822", "Fri, 13 Feb 2009 19:55:42 -0800"]
+["received iso8601", "2009-02-13T19:55:42-08:00"]
+["received rfc2822", "Fri, 13 Feb 2009 19:55:42 -0800"]
