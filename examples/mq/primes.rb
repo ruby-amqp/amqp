@@ -11,7 +11,7 @@ end
 
 # spawn workers
 workers = ARGV[0] ? (Integer(ARGV[0]) rescue 1) : 1
-EM.fork(workers) do
+AMQP.fork(workers) do
 
   log MQ.id, :started
 
@@ -33,7 +33,7 @@ EM.fork(workers) do
 end
 
 # use workers to check which numbers are prime
-EM.run{
+AMQP.start(:host => 'localhost') do
   
   prime_checker = MQ.rpc('prime checker')
 
@@ -52,7 +52,7 @@ EM.run{
 
   end
   
-}
+end
 
 __END__
 
