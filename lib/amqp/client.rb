@@ -65,7 +65,7 @@ module AMQP
       @on_disconnect ||= proc{ raise Error, "Could not connect to server #{opts[:host]}:#{opts[:port]}" }
 
       timeout @settings[:timeout] if @settings[:timeout]
-      errback{ @on_disconnect.call }
+      errback{ @on_disconnect.call } unless @reconnecting
     end
 
     def connection_completed
@@ -158,14 +158,14 @@ module AMQP
       end
 
       unless @reconnecting
+        @reconnecting = true
+
         @deferred_status = nil
         initialize(@settings)
 
         mqs = @channels
         @channels = {}
         mqs.each{ |_,mq| mq.reset } if mqs
-
-        @reconnecting = true
       end
 
       log 'reconnecting'
