@@ -1,46 +1,82 @@
 spec = Gem::Specification.new do |s|
   s.name = 'amqp'
-  s.version = '0.6.0'
+  s.version = '0.6.1'
   s.date = '2009-01-09'
   s.summary = 'AMQP client implementation in Ruby/EventMachine'
   s.email = "amqp@tmm1.net"
   s.homepage = "http://amqp.rubyforge.org/"
   s.description = "AMQP client implementation in Ruby/EventMachine"
   s.has_rdoc = true
-  s.extra_rdoc_files = ['README']
-  s.authors = ["Aman Gupta"]
-  s.add_dependency('eventmachine', '>= 0.12.2')
+  s.rdoc_options = '--include=examples'
 
-  # ruby -rpp -e "pp Dir['{README,{examples,lib,protocol}/**/*.{json,rb,txt,xml}}'].map"
-  s.files = ["README",
-             "examples/amqp/simple.rb",
-             "examples/mq/clock.rb",
-             "examples/mq/hashtable.rb",
-             "examples/mq/logger.rb",
-             "examples/mq/pingpong.rb",
-             "examples/mq/primes-simple.rb",
-             "examples/mq/primes.rb",
-             "examples/mq/simple-ack.rb",
-             "examples/mq/simple-get.rb",
-             "examples/mq/simple.rb",
-             "examples/mq/stocks.rb",
-             "lib/amqp/buffer.rb",
-             "lib/amqp/client.rb",
-             "lib/amqp/frame.rb",
-             "lib/amqp/protocol.rb",
-             "lib/amqp/spec.rb",
-             "lib/amqp.rb",
-             "lib/ext/blankslate.rb",
-             "lib/ext/em.rb",
-             "lib/ext/emfork.rb",
-             "lib/mq/exchange.rb",
-             "lib/mq/header.rb",
-             "lib/mq/logger.rb",
-             "lib/mq/queue.rb",
-             "lib/mq/rpc.rb",
-             "lib/mq.rb",
-             "protocol/amqp-0.8.json",
-             "protocol/codegen.rb",
-             "protocol/doc.txt",
-             "protocol/amqp-0.8.xml"]
+  # ruby -rpp -e' pp `git ls-files`.split("\n").grep(/doc\//) '
+  s.extra_rdoc_files = [
+    "doc/EXAMPLE_01_PINGPONG",
+    "doc/EXAMPLE_02_CLOCK",
+    "doc/EXAMPLE_03_STOCKS",
+    "doc/EXAMPLE_04_MULTICLOCK",
+    "doc/EXAMPLE_05_ACK",
+    "doc/EXAMPLE_05_POP",
+    "doc/EXAMPLE_06_HASHTABLE"
+  ]
+
+  s.authors = ["Aman Gupta"]
+  s.add_dependency('eventmachine', '>= 0.12.4')
+
+  # ruby -rpp -e' pp `git ls-files`.split("\n") '
+  s.files = [
+    "README",
+    "Rakefile",
+    "amqp.gemspec",
+    "amqp.todo",
+    "doc/EXAMPLE_01_PINGPONG",
+    "doc/EXAMPLE_02_CLOCK",
+    "doc/EXAMPLE_03_STOCKS",
+    "doc/EXAMPLE_04_MULTICLOCK",
+    "doc/EXAMPLE_05_ACK",
+    "doc/EXAMPLE_05_POP",
+    "doc/EXAMPLE_06_HASHTABLE",
+    "examples/amqp/simple.rb",
+    "examples/mq/ack.rb",
+    "examples/mq/clock.rb",
+    "examples/mq/get.rb",
+    "examples/mq/hashtable.rb",
+    "examples/mq/internal.rb",
+    "examples/mq/logger.rb",
+    "examples/mq/multiclock.rb",
+    "examples/mq/pingpong.rb",
+    "examples/mq/primes-simple.rb",
+    "examples/mq/primes.rb",
+    "examples/mq/stocks.rb",
+    "lib/amqp.rb",
+    "lib/amqp/buffer.rb",
+    "lib/amqp/client.rb",
+    "lib/amqp/frame.rb",
+    "lib/amqp/protocol.rb",
+    "lib/amqp/server.rb",
+    "lib/amqp/spec.rb",
+    "lib/ext/blankslate.rb",
+    "lib/ext/em.rb",
+    "lib/ext/emfork.rb",
+    "lib/mq.rb",
+    "lib/mq/exchange.rb",
+    "lib/mq/header.rb",
+    "lib/mq/logger.rb",
+    "lib/mq/queue.rb",
+    "lib/mq/rpc.rb",
+    "old/README",
+    "old/Rakefile",
+    "old/amqp-0.8.json",
+    "old/amqp_spec.rb",
+    "old/amqpc.rb",
+    "old/codegen.rb",
+    "protocol/amqp-0.8.json",
+    "protocol/amqp-0.8.xml",
+    "protocol/codegen.rb",
+    "protocol/doc.txt",
+    "research/api.rb",
+    "research/primes-forked.rb",
+    "research/primes-processes.rb",
+    "research/primes-threaded.rb"
+  ]
 end
