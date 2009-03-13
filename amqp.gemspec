@@ -9,8 +9,9 @@ spec = Gem::Specification.new do |s|
   s.has_rdoc = true
   s.rdoc_options = '--include=examples'
 
-  # ruby -rpp -e' pp `git ls-files`.split("\n").grep(/doc\//) '
+  # ruby -rpp -e' pp `git ls-files`.split("\n").grep(/^(doc|README)/) '
   s.extra_rdoc_files = [
+    "README",
     "doc/EXAMPLE_01_PINGPONG",
     "doc/EXAMPLE_02_CLOCK",
     "doc/EXAMPLE_03_STOCKS",
@@ -39,7 +40,7 @@ spec = Gem::Specification.new do |s|
     "examples/amqp/simple.rb",
     "examples/mq/ack.rb",
     "examples/mq/clock.rb",
-    "examples/mq/get.rb",
+    "examples/mq/pop.rb",
     "examples/mq/hashtable.rb",
     "examples/mq/internal.rb",
     "examples/mq/logger.rb",
