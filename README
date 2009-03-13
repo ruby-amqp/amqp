@@ -27,7 +27,7 @@ To get started, refer to the various bundled examples:
 
   ruby examples/mq/multiclock.rb # header based routing (new rabbitmq feature)
   ruby examples/mq/ack.rb        # using ack
-  ruby examples/mq/pop.pop       # pop off messages one at a time
+  ruby examples/mq/pop.rb        # pop off messages one at a time
 
   ruby examples/mq/hashtable.rb  # simple async rpc layer
   ruby examples/mq/primes.rb 4   # parallelized prime number generation
