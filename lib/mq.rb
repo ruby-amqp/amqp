@@ -145,7 +145,7 @@ class MQ
       send Protocol::Channel::Open.new
     }
   end
-  attr_reader :channel
+  attr_reader :channel, :connection
   
   # May raise a MQ::Error exception when the frame payload contains a
   # Protocol::Channel::Close object. 
