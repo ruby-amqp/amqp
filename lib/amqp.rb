@@ -38,7 +38,10 @@ module AMQP
       :timeout => nil,
 
       # logging
-      :logging => false
+      :logging => false,
+
+      # ssl
+      :ssl => false
     }
   end
 
