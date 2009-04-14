@@ -732,6 +732,10 @@ class MQ
     end
   end
 
+  def prefetch(size)
+    send Protocol::Basic::Qos.new(:prefetch_size => 0, :prefetch_count => 1, :global => false)
+  end
+
   # Returns a hash of all the exchange proxy objects.
   #
   # Not typically called by client code.
