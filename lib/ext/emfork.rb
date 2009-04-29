@@ -46,7 +46,7 @@ def EM.fork num = 1, &blk
 end
 
 def EM.forks
-  @forks.keys
+  @forks ? @forks.keys : []
 end
 
 if EMFORK
