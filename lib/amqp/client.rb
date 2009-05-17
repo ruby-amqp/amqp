@@ -9,7 +9,7 @@ module AMQP
         mq.process_frame(frame)
         return
       end
-      
+
       case frame
       when Frame::Method
         case method = frame.payload
@@ -49,7 +49,7 @@ module AMQP
   def self.client
     @client ||= BasicClient
   end
-  
+
   def self.client= mod
     mod.__send__ :include, AMQP
     @client = mod
@@ -66,6 +66,8 @@ module AMQP
 
       timeout @settings[:timeout] if @settings[:timeout]
       errback{ @on_disconnect.call } unless @reconnecting
+
+      @connected = false
     end
 
     def connection_completed
@@ -76,13 +78,21 @@ module AMQP
         @on_disconnect = method(:reconnect)
         @reconnecting = false
       end
+
+      @connected = true
+
       @buf = Buffer.new
       send_data HEADER
       send_data [1, 1, VERSION_MAJOR, VERSION_MINOR].pack('C4')
     end
 
+    def connected?
+      @connected
+    end
+
     def unbind
       log 'disconnected'
+      @connected = false
       EM.next_tick{ @on_disconnect.call }
     end
 
@@ -96,7 +106,7 @@ module AMQP
     def channels
       @channels ||= {}
     end
-  
+
     def receive_data data
       # log 'receive_data', data
       @buf << data
@@ -111,7 +121,7 @@ module AMQP
       # this is a stub meant to be
       # replaced by the module passed into initialize
     end
-  
+
     def send data, opts = {}
       channel = opts[:channel] ||= 0
       data = data.to_frame(channel) unless data.is_a? Frame
@@ -177,9 +187,9 @@ module AMQP
       opts = AMQP.settings.merge(opts)
       EM.connect opts[:host], opts[:port], self, opts
     end
-  
+
     private
-  
+
     def log *args
       return unless @settings[:logging] or AMQP.logging
       require 'pp'
