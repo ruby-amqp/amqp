@@ -75,11 +75,12 @@ module AMQP
       log 'connected'
       # @on_disconnect = proc{ raise Error, 'Disconnected from server' }
       unless @closing
-        @on_disconnect = method(:reconnect)
+        @on_disconnect = method(:disconnected)
         @reconnecting = false
       end
 
       @connected = true
+      @connection_status.call(:connected) if @connection_status
 
       @buf = Buffer.new
       send_data HEADER
@@ -188,7 +189,16 @@ module AMQP
       EM.connect opts[:host], opts[:port], self, opts
     end
 
+    def connection_status &blk
+      @connection_status = blk
+    end
+
     private
+
+    def disconnected
+      @connection_status.call(:disconnected) if @connection_status
+      reconnect
+    end
 
     def log *args
       return unless @settings[:logging] or AMQP.logging
