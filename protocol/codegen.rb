@@ -90,9 +90,9 @@ puts ERB.new(%q[
             
             def arguments() @arguments ||= [] end
 
-            def parent() Protocol.const_get(self.to_s[/Protocol::(.+?)::/,1]) end
-            def id()     self::ID end
-            def name()   self::NAME end
+            def section() Protocol.const_get(self.to_s[/Protocol::(.+?)::/,1]) end
+            def id()      self::ID end
+            def name()    self::NAME end
           end
 
           def == b
@@ -111,8 +111,8 @@ puts ERB.new(%q[
               def self.inherited klass
                 klass.const_set(:ID, #{id})
                 klass.const_set(:NAME, :#{name.to_s})
-                klass.parent.methods[#{id}] = klass
-                klass.parent.methods[klass::NAME] = klass
+                klass.section.methods[#{id}] = klass
+                klass.section.methods[klass::NAME] = klass
               end
             ]
           end

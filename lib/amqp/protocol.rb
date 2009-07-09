@@ -32,7 +32,7 @@ module AMQP
 
       def to_binary
         buf = Buffer.new
-        buf.write :short, self.class.parent.id
+        buf.write :short, self.class.section.id
         buf.write :short, self.class.id
 
         bits = []
