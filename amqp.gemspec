@@ -1,7 +1,7 @@
 spec = Gem::Specification.new do |s|
   s.name = 'amqp'
-  s.version = '0.6.4'
-  s.date = '2009-01-09'
+  s.version = '0.6.5'
+  s.date = '2009-10-27'
   s.summary = 'AMQP client implementation in Ruby/EventMachine'
   s.email = "amqp@tmm1.net"
   s.homepage = "http://amqp.rubyforge.org/"
@@ -22,7 +22,7 @@ spec = Gem::Specification.new do |s|
   ]
 
   s.authors = ["Aman Gupta"]
-  s.add_dependency('eventmachine', '>= 0.12.4')
+  s.add_dependency('eventmachine')
 
   # ruby -rpp -e' pp `git ls-files`.split("\n") '
   s.files = [
