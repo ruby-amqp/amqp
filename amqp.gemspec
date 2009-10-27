@@ -22,7 +22,7 @@ spec = Gem::Specification.new do |s|
   ]
 
   s.authors = ["Aman Gupta"]
-  s.add_dependency('eventmachine')
+  s.add_dependency('eventmachine', '>= 0.12.4')
 
   # ruby -rpp -e' pp `git ls-files`.split("\n") '
   s.files = [
