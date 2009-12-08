@@ -175,6 +175,16 @@ class MQ
       nil
     end
 
+    # Purge all messages from the queue.
+    #
+    def purge opts = {}
+      @mq.callback{
+        @mq.send Protocol::Queue::Purge.new({ :queue => name,
+                                              :nowait => true }.merge(opts))
+      }
+      nil
+    end
+
     # This method provides a direct access to the messages in a queue
     # using a synchronous dialogue that is designed for specific types of
     # application where synchronous functionality is more important than
