@@ -194,11 +194,13 @@ class MQ
       @mq.exchanges[@name = name] ||= self
       @key = opts[:key]
       
-      @mq.callback{
-        @mq.send Protocol::Exchange::Declare.new({ :exchange => name,
-                                                   :type => type,
-                                                   :nowait => true }.merge(opts))
-      } unless name == "amq.#{type}" or name == ''
+      unless name == "amq.#{type}" or name == '' or opts[:no_declare]
+        @mq.callback{
+          @mq.send Protocol::Exchange::Declare.new({ :exchange => name,
+                                                     :type => type,
+                                                     :nowait => true }.merge(opts))
+        }
+      end
     end
     attr_reader :name, :type, :key
 
