@@ -391,7 +391,7 @@ class MQ
       self
     end
 
-    def recieve_status declare_ok
+    def receive_status declare_ok
       if @on_status
         m, c = declare_ok.message_count, declare_ok.consumer_count
         @on_status.call *(@on_status.arity == 1 ? [m] : [m, c])

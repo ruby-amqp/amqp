@@ -199,7 +199,7 @@ class MQ
         end
 
       when Protocol::Queue::DeclareOk
-        queues[ method.queue ].recieve_status method
+        queues[ method.queue ].receive_status method
 
       when Protocol::Basic::Deliver, Protocol::Basic::GetOk
         @method = method
