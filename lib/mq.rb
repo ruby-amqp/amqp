@@ -734,6 +734,20 @@ class MQ
 
   def prefetch(size)
     send Protocol::Basic::Qos.new(:prefetch_size => 0, :prefetch_count => size, :global => false)
+    self
+  end
+
+  # Asks the broker to redeliver all unacknowledged messages on this
+  # channel.
+  #
+  # * requeue (default false)
+  # If this parameter is false, the message will be redelivered to the original recipient.
+  # If this flag is true, the server will attempt to requeue the message, potentially then
+  # delivering it to an alternative subscriber.
+  #
+  def recover requeue = false
+    send Protocol::Basic::Recover.new(:requeue => requeue)
+    self
   end
 
   # Returns a hash of all the exchange proxy objects.
