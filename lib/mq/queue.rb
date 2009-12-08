@@ -113,7 +113,7 @@ class MQ
       @mq.callback{
         @mq.send Protocol::Queue::Bind.new({ :queue => name,
                                              :exchange => exchange,
-                                             :routing_key => opts.delete(:key),
+                                             :routing_key => opts[:key],
                                              :nowait => true }.merge(opts))
       }
       self
@@ -140,7 +140,7 @@ class MQ
       @mq.callback{
         @mq.send Protocol::Queue::Unbind.new({ :queue => name,
                                                :exchange => exchange,
-                                               :routing_key => opts.delete(:key),
+                                               :routing_key => opts[:key],
                                                :nowait => true }.merge(opts))
       }
       self
@@ -250,7 +250,7 @@ class MQ
           q.push(self)
           @mq.send Protocol::Basic::Get.new({ :queue => name,
                                               :consumer_tag => name,
-                                              :no_ack => !opts.delete(:ack),
+                                              :no_ack => !opts[:ack],
                                               :nowait => true }.merge(opts))
         }
       }
@@ -318,7 +318,7 @@ class MQ
       @mq.callback{
         @mq.send Protocol::Basic::Consume.new({ :queue => name,
                                                 :consumer_tag => @consumer_tag,
-                                                :no_ack => !opts.delete(:ack),
+                                                :no_ack => !opts[:ack],
                                                 :nowait => true }.merge(opts))
       }
       self
