@@ -336,7 +336,6 @@ class MQ
     # method it will raise a channel or connection exception.
     #
     def unsubscribe opts = {}, &blk
-      @on_msg = nil
       @on_cancel = blk
       @mq.callback{
         @mq.send Protocol::Basic::Cancel.new({ :consumer_tag => @consumer_tag }.merge(opts))
