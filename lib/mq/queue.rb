@@ -306,6 +306,12 @@ class MQ
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
+    # * :confirm => proc (default nil)
+    # If set, this proc will be called when the server confirms subscription
+    # to the queue with a ConsumeOk message. Setting this option will
+    # automatically set :nowait => false. This is required for the server
+    # to send a confirmation.
+    #
     def subscribe opts = {}, &blk
       @consumer_tag = "#{name}-#{Kernel.rand(999_999_999_999)}"
       @mq.consumers[@consumer_tag] = self
@@ -314,6 +320,7 @@ class MQ
 
       @on_msg = blk
       @on_msg_opts = opts
+      opts[:nowait] = false if (@on_confirm_subscribe = opts[:confirm])
 
       @mq.callback{
         @mq.send Protocol::Basic::Consume.new({ :queue => name,
@@ -406,6 +413,11 @@ class MQ
         @on_status.call *(@on_status.arity == 1 ? [m] : [m, c])
         @on_status = nil
       end
+    end
+
+    def confirm_subscribe
+      @on_confirm_subscribe.call if @on_confirm_subscribe
+      @on_confirm_subscribe = nil
     end
 
     def cancelled

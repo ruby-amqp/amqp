@@ -230,6 +230,13 @@ class MQ
           c.channels.delete @channel
           c.close if c.channels.empty?
         }
+
+      when Protocol::Basic::ConsumeOk
+        if @consumer = consumers[ method.consumer_tag ]
+          @consumer.confirm_subscribe
+        else
+          MQ.error "Basic.ConsumeOk for invalid consumer tag: #{method.consumer_tag}"
+        end
       end
     end
   end
