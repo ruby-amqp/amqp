@@ -1,11 +1,12 @@
 spec = Gem::Specification.new do |s|
   s.name = 'amqp'
-  s.version = '0.6.5'
-  s.date = '2009-10-27'
+  s.version = '0.6.6'
+  s.date = '2009-12-29'
   s.summary = 'AMQP client implementation in Ruby/EventMachine'
   s.email = "amqp@tmm1.net"
   s.homepage = "http://amqp.rubyforge.org/"
-  s.description = "AMQP client implementation in Ruby/EventMachine"
+  s.rubyforge_project = 'amqp'
+  s.description = "An implementation of the AMQP protocol in Ruby/EventMachine for writing clients to the RabbitMQ message broker"
   s.has_rdoc = true
   s.rdoc_options = '--include=examples'
 
