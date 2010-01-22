@@ -30,14 +30,14 @@ class MQ
     #
     # Marshalling and unmarshalling the objects is handled internally. This
     # marshalling is subject to the same restrictions as defined in the
-    # Marshal[http://ruby-doc.org/core/classes/Marshal.html] standard 
+    # Marshal[http://ruby-doc.org/core/classes/Marshal.html] standard
     # library. See that documentation for further reference.
     #
-    # When the optional object is not passed, the returned rpc reference is 
-    # used to send messages and arguments to the queue. See #method_missing 
-    # which does all of the heavy lifting with the proxy. Some client 
-    # elsewhere must call this method *with* the optional block so that 
-    # there is a valid destination. Failure to do so will just enqueue 
+    # When the optional object is not passed, the returned rpc reference is
+    # used to send messages and arguments to the queue. See #method_missing
+    # which does all of the heavy lifting with the proxy. Some client
+    # elsewhere must call this method *with* the optional block so that
+    # there is a valid destination. Failure to do so will just enqueue
     # marshalled messages that are never consumed.
     #
     def initialize mq, queue, obj = nil
@@ -53,7 +53,7 @@ class MQ
                else
                  obj
                end
-        
+
         @mq.queue(queue).subscribe(:ack=>true){ |info, request|
           method, *args = ::Marshal.load(request)
           ret = @obj.__send__(method, *args)
@@ -67,7 +67,7 @@ class MQ
       else
         @callbacks ||= {}
         # XXX implement and use queue(nil)
-        @queue = @mq.queue(@name = "random identifier #{::Kernel.rand(999_999_999_999)}").subscribe{|info, msg|
+        @queue = @mq.queue(@name = "random identifier #{::Kernel.rand(999_999_999_999)}", :auto_delete => true).subscribe{|info, msg|
           if blk = @callbacks.delete(info.message_id)
             blk.call ::Marshal.load(msg)
           end
