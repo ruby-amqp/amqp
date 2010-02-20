@@ -1,16 +1,11 @@
+require File.expand_path('../ext/em', __FILE__)
+require File.expand_path('../ext/blankslate', __FILE__)
+  
+%w[ version buffer spec protocol frame client ].each do |file|
+  require File.expand_path("../amqp/#{file}", __FILE__)
+end
+
 module AMQP
-  VERSION = '0.5.9'
-
-  DIR = File.expand_path(File.dirname(File.expand_path(__FILE__)))
-  $:.unshift DIR
-  
-  require 'ext/em'
-  require 'ext/blankslate'
-  
-  %w[ buffer spec protocol frame client ].each do |file|
-    require "amqp/#{file}"
-  end
-
   class << self
     @logging = false
     attr_accessor :logging

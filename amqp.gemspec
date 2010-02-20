@@ -1,6 +1,8 @@
+require File.expand_path('../lib/amqp/version', __FILE__)
+
 spec = Gem::Specification.new do |s|
   s.name = 'amqp'
-  s.version = '0.6.6'
+  s.version = AMQP::VERSION
   s.date = '2009-12-29'
   s.summary = 'AMQP client implementation in Ruby/EventMachine'
   s.email = "amqp@tmm1.net"

@@ -1,5 +1,5 @@
-require 'amqp/spec'
-require 'amqp/buffer'
+require File.expand_path('../spec', __FILE__)
+require File.expand_path('../buffer', __FILE__)
 
 module AMQP
   module Protocol

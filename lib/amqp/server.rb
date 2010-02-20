@@ -1,4 +1,4 @@
-require 'amqp/frame'
+require File.expand_path('../frame', __FILE__)
 
 module AMQP
   module Server
