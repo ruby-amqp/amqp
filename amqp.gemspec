@@ -53,6 +53,7 @@ spec = Gem::Specification.new do |s|
     "examples/mq/primes.rb",
     "examples/mq/stocks.rb",
     "lib/amqp.rb",
+    "lib/amqp/version.rb",
     "lib/amqp/buffer.rb",
     "lib/amqp/client.rb",
     "lib/amqp/frame.rb",
