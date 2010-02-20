@@ -740,6 +740,7 @@ class MQ
   end
 
   def prefetch(size)
+    @prefetch_size = size
     send Protocol::Basic::Qos.new(:prefetch_size => 0, :prefetch_count => size, :global => false)
     self
   end
@@ -807,6 +808,8 @@ class MQ
     qus = @queues
     @queues = {}
     qus.each{ |_,q| q.reset } if qus
+
+    prefetch(@prefetch_size) if @prefetch_size
   end
 
   private
