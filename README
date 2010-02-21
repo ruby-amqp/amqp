@@ -33,6 +33,7 @@ To get started, refer to the various bundled examples:
   ruby examples/mq/primes.rb 4   # parallelized prime number generation
   ruby examples/mq/logger.rb     # simple logging api
 
+For high level API documentation see MQ class.
 For more details into the lower level AMQP client API, run the simple client example:
 
   ruby examples/amqp/simple.rb   # low-level AMQP api
