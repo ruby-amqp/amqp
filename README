@@ -41,7 +41,7 @@ For more details into the lower level AMQP client API, run the simple client exa
 Or refer to protocol/doc.txt, which enumerates packets sent between a server and client
 during a typical session, in both binary and decoded formats.
 
-To run the test suite:
+To run the test suite make sure you have bacon gem installed and run:
 
   rake spec
 
