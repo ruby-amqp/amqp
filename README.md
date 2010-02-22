@@ -41,6 +41,29 @@ For more details into the lower level AMQP client API, run the simple client exa
 Or refer to protocol/doc.txt, which enumerates packets sent between a server and client
 during a typical session, in both binary and decoded formats.
 
+How to use AMQP gem with Ruby on Rails, Merb, Sinatra and other web frameworks
+==============================================================================
+
+To use AMQP gem from web applications, you would need to have EventMachine reactor running.
+If you use [Thin](http://code.macournoyer.com/thin/), you are set: Thin uses EventMachine under
+the hook.
+
+With other web servers, you need to start EventMachine reactor in it's own thread like this:
+
+    Thread.new { EM.run }
+
+because otherwise EventMachine will block current thread. Then connect to AMQP broker:
+
+    AMQP.connect(:host => "localhost", :user => "guest", :pass => "guest", :vhost => "/")
+
+In a Ruby on Rails app, probably the best place for this code is initializer
+(like config/initializers/amqp.rb). For Merb apps, it is config/init.rb. For
+Sinatra and pure Rack applications, place it next to other configuration
+code.
+
+Same separate thread technique can be used to make EventMachine play nicely with other
+libraries that would block current thread (like [File::Tail](http://rubygems.org/gems/file-tail)).
+
 AMQP gem mailing list
 ==============================
 
