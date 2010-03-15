@@ -183,6 +183,16 @@ class MQ
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
+    # * :no_declare => true | false (default false)
+    # If set, the exchange will not be declared to the
+    # AMQP broker at instantiation-time. This allows the AMQP
+    # client to send messages to exchanges that were
+    # already declared by someone else, e.g. if the client
+    # does not have sufficient privilege to declare (create)
+    # an exchange. Use with caution, as binding to an exchange
+    # with the no-declare option causes your system to become
+    # sensitive to the ordering of clients' actions!
+    #
     # == Exceptions
     # Doing any of these activities are illegal and will raise MQ:Error.
     # * redeclare an already-declared exchange to a different type
