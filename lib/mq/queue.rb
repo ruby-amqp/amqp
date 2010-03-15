@@ -424,6 +424,7 @@ class MQ
       @on_cancel.call if @on_cancel
       @on_cancel = @on_msg = nil
       @mq.consumers.delete @consumer_tag
+      @mq.queues.delete(@name) if @opts[:auto_delete]
       @consumer_tag = nil
     end
 
