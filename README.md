@@ -104,15 +104,15 @@ AMQP resources
  * Steve Vinoski [explains AMQP](http://steve.vinoski.net/pdf/IEEE-Advanced_Message_Queuing_Protocol.pdf) in his column, Towards Integration
 
  * John O'Hara on [the history of AMQP](http://www.acmqueue.org/modules.php?name=Content&pa=showpage&pid=485)
-    
+
  * Dmitriy's [presentation on RabbitMQ/AMQP](http://somic-org.homelinux.org/blog/2008/07/31/slides-for-my-amqprabbitmq-talk/)
 
  * ZeroMQ's [analysis of the messaging technology market](http://www.zeromq.org/whitepapers:market-analysis)
 
  * Pieter Hintjens's [background to AMQP](http://www.openamq.org/doc:amqp-background)
-    
+
  * Barry Pederson's [py-amqplib](http://barryp.org/software/py-amqplib/)
-    
+
  * Ben Hood on [writing an AMQP client](http://hopper.squarespace.com/blog/2008/6/21/build-your-own-amqp-client.html)
 
  * Dmitriy Samovskiy introduces [Ruby + QPid + RabbitMQ](http://somic-org.homelinux.org/blog/2008/06/24/ruby-amqp-rabbitmq-example/)
@@ -123,18 +123,9 @@ AMQP resources
 
  * Erlang Exchange [presentation on the implementation of RabbitMQ](http://skillsmatter.com/podcast/erlang/presenting-rabbitmq-an-erlang-based-implementatio-nof-amqp) (and on the [LShift blog](http://www.lshift.net/blog/2008/07/01/slides-from-our-erlang-exchange-talk))
 
- * Jonathan Conway's series on RabbitMQ and using it with Ruby and Merb:
+ * Jonathan Conway's series on RabbitMQ and using it with Ruby and Merb: [One](http://jaikoo.com/2007/9/4/didn-t-you-get-the-memo), [Two](http://jaikoo.com/2008/2/29/friday-round-up-2008-02-29), [Three](http://jaikoo.com/2008/3/14/oh-hai-rabbitmq), [Four](http://jaikoo.com/2008/3/20/daemonize-rabbitmq)
 
-	* [One](http://jaikoo.com/2007/9/4/didn-t-you-get-the-memo)
-	* [Two](http://jaikoo.com/2008/2/29/friday-round-up-2008-02-29)
-	* [Three](http://jaikoo.com/2008/3/14/oh-hai-rabbitmq)
-	* [Four](http://jaikoo.com/2008/3/20/daemonize-rabbitmq)
-
- * Open Enterprise's series on messaging middleware and AMQP:
-
-	* [Part 1](http://www1.interopsystems.com/analysis/can-amqp-break-ibms-mom-monopoly-part-1.html)
-  * [Part 2](http://www1.interopsystems.com/analysis/can-amqp-break-ibms-mom-monopoly-part-2.html)
-  * [Part 3](http://www1.interopsystems.com/analysis/can-amqp-break-ibms-mom-monopoly-part-3.html)
+ * Open Enterprise's series on messaging middleware and AMQP: [Part 1](http://www1.interopsystems.com/analysis/can-amqp-break-ibms-mom-monopoly-part-1.html), [Part 2](http://www1.interopsystems.com/analysis/can-amqp-break-ibms-mom-monopoly-part-2.html), [Part 3](http://www1.interopsystems.com/analysis/can-amqp-break-ibms-mom-monopoly-part-3.html)
 
 Messaging and distributed systems resources
 -------------------------------------------
@@ -146,7 +137,7 @@ Messaging and distributed systems resources
  * [Convenience Over Correctness](http://steve.vinoski.net/pdf/IEEE-Convenience_Over_Correctness.pdf)
 
  * [Metaprotocol Taxonomy and Communications Patterns](http://hessian.caucho.com/doc/metaprotocol-taxonomy.xtp)
-    
+
  * Joe Armstrong on [Erlang messaging vs RPC](http://armstrongonsoftware.blogspot.com/2008/05/road-we-didnt-go-down.html)
 
  * [SEDA: scalable internet services using message queues](http://www.eecs.harvard.edu/~mdw/papers/seda-sosp01.pdf)
