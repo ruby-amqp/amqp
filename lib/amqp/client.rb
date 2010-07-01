@@ -1,7 +1,6 @@
 require File.expand_path('../frame', __FILE__)
 
 require 'uri'
-require 'cgi'
 
 module AMQP
   class Error < StandardError; end
@@ -187,9 +186,12 @@ module AMQP
       EM.reconnect @settings[:host], @settings[:port], self
     end
 
-    def self.connect opts = {}
-      if opts.class == String
-        opts = parse_amqp_url(opts)
+    def self.connect amqp_url, opts = {}
+      if amqp_url.class == Hash
+        # Be backwards compatible, treat first argument as opts.
+        opts = amqp_url
+      else
+        opts = parse_amqp_url(amqp_url).merge(opts)
       end
       opts = AMQP.settings.merge(opts)
       EM.connect opts[:host], opts[:port], self, opts
@@ -215,17 +217,15 @@ module AMQP
 
     def self.parse_amqp_url(amqp_url)
       uri = URI.parse(amqp_url)
-      q = CGI::parse(uri.query || '')
       raise("amqp:// uri required!") unless %w{amqp amqps}.include? uri.scheme
       opts = {}
       opts[:user] = URI.unescape(uri.user) if uri.user
       opts[:pass] = URI.unescape(uri.password) if uri.password
       opts[:vhost] = URI.unescape(uri.path) if uri.path
       opts[:host] = uri.host if uri.host
-      opts[:port] = {"amqp"=>5672, "amqps"=>5671}[uri.scheme]
+      opts[:port] = uri.port ? Integer(uri.port) :
+                      {"amqp"=>5672, "amqps"=>5671}[uri.scheme]
       opts[:ssl] = uri.scheme == "amqps"
-      opts[:logging] = q['logging'][0] == "true"
-      opts[:timeout] = Integer(q['timeout'][0]) if q['timeout'][0]
       return opts
     end
   end
