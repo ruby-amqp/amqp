@@ -385,7 +385,7 @@ class MQ
     # the headers parameter. See #pop or #subscribe for a code example.
     #
     def receive headers, body
-      headers = MQ::Header.new(@mq, headers)
+      headers = MQ::Header.new(@mq, headers) unless headers.nil?
 
       if cb = (@on_msg || @on_pop)
         cb.call *(cb.arity == 1 ? [body] : [headers, body])
