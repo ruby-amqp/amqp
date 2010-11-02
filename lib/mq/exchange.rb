@@ -264,7 +264,7 @@ class MQ
         data = data.to_s
 
         out << Protocol::Header.new(Protocol::Basic,
-                                    data.length, { :content_type => 'application/octet-stream',
+                                    data.bytesize, { :content_type => 'application/octet-stream',
                                                    :delivery_mode => (opts[:persistent] ? 2 : 1),
                                                    :priority => 0 }.merge(opts))
 
