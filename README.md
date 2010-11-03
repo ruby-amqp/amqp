@@ -1,11 +1,18 @@
 What AMQP gem is
-===================
+================
 
 Simple asynchronous AMQP driver for Ruby/EventMachine
 This library works with Ruby 1.8, Ruby 1.9, JRuby and Rubinius, and is licensed under [the Ruby License](http://www.ruby-lang.org/en/LICENSE.txt).
 
 This library was tested primarily with RabbitMQ, although it should be compatible with any
 server implementing the [AMQP 0-8 spec](http://www.amqp.org/confluence/download/attachments/720900/amqp0-8.pdf).
+
+
+This fork of AMQP
+=================
+
+Contains following improvements:
+*
 
 Getting started
 ===============
