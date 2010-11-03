@@ -163,14 +163,11 @@ class MQ
     when Frame::Header
       @header = frame.payload
       @body = ''
+      check_content_completion
 
     when Frame::Body
       @body << frame.payload
-      if @body.length >= @header.size
-        @header.properties.update(@method.arguments)
-        @consumer.receive @header, @body if @consumer
-        @body = @header = @consumer = @method = nil
-      end
+      check_content_completion
 
     when Frame::Method
       case method = frame.payload
@@ -813,6 +810,14 @@ class MQ
   end
 
   private
+
+  def check_content_completion
+    if @body.length >= @header.size
+      @header.properties.update(@method.arguments)
+      @consumer.receive @header, @body if @consumer
+      @body = @header = @consumer = @method = nil
+    end
+  end
 
   def log *args
     return unless MQ.logging
