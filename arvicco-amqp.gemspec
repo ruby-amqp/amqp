@@ -1,15 +1,13 @@
 Gem::Specification.new do |s|
-  s.name = 'arvicco-amqp'
+  s.name        = 'arvicco-amqp'
   s.version     = File.open('VERSION').read.strip
   s.date        = Time.now.strftime "%Y-%m-%d"
-  s.summary = 'Fork of original tmm1/amqp with some tweaks.'
+  s.summary     = 'Fork of original tmm1/amqp with some tweaks.'
   s.description = "An implementation of the AMQP protocol in Ruby/EventMachine. Fork of original tmm1/amqp with improvements (see README)."
-  s.email = "arvitallian@gmail.com"
-  s.authors = ["Aman Gupta", "Arvicco"]
-  s.homepage = "http://amqp.rubyforge.org/"
-  s.rubyforge_project = 'amqp'
+  s.email       = "arvitallian@gmail.com"
+  s.authors     = ["Aman Gupta", "Arvicco"]
+  s.homepage    = "http://github.com/arvicco/amqp"
   s.platform    = Gem::Platform::RUBY
-
 
   # Docs setup
   s.has_rdoc = true
@@ -35,5 +33,5 @@ Gem::Specification.new do |s|
 
   # Dependencies
   s.add_dependency('eventmachine', '>= 0.12.4')
-  s.add_development_dependency("rspec", ['~>2.0.0'])
+  s.add_development_dependency("bacon", ['>=0.0.0'])
 end

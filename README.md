@@ -13,12 +13,10 @@ This fork of AMQP
 =================
 
 Contains following improvements:
-* Support for setting extended headers in MQ::Exchange#publish. Particularly useful for :reply_to for RPC.
-* Multibyte character support (Ruby 1.9) in MQ::Exchange#publish
-* MQ::Queue only wraps headers with new MQ::Headers if they are not nil. This allows pops to tell
-  more easily when they've requested a message from an empty queue.
-* Adds support for receiving Headers with zero-size data packets. Such contents with no body frames
-  are totally legit if indicated header size is zero.
+ * Support for setting extended headers in MQ::Exchange#publish. Particularly useful for :reply_to for RPC.
+ * Multibyte character support (Ruby 1.9) in MQ::Exchange#publish.
+ * MQ::Queue only wraps headers with new MQ::Headers if they are not nil. This allows pops to tell more easily when they've requested a message from an empty queue.
+ * Support for receiving Headers with zero-size data packets. Such contents with no body frames are totally legit if indicated header size is zero.
 
 
 Getting started
