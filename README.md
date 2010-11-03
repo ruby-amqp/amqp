@@ -2,7 +2,8 @@ What AMQP gem is
 ================
 
 Simple asynchronous AMQP driver for Ruby/EventMachine
-This library works with Ruby 1.8, Ruby 1.9, JRuby and Rubinius, and is licensed under [the Ruby License](http://www.ruby-lang.org/en/LICENSE.txt).
+This library works with Ruby 1.8, Ruby 1.9, JRuby and Rubinius,
+and is licensed under [the Ruby License](http://www.ruby-lang.org/en/LICENSE.txt).
 
 This library was tested primarily with RabbitMQ, although it should be compatible with any
 server implementing the [AMQP 0-8 spec](http://www.amqp.org/confluence/download/attachments/720900/amqp0-8.pdf).
@@ -12,15 +13,16 @@ This fork of AMQP
 =================
 
 Contains following improvements:
-*
-*
-*
+* Support for extended headers in MQ::Exchange#publish
+* Multibyte character support (Ruby 1.9) in MQ::Exchange#publish
+* MQ::Queue only wraps headers with new MQ::Headers if they are not nil. This allows pops to tell
+  more easily when they've requested a message from an empty queue.
 
 Getting started
 ===============
 
-To use examples with RabbitMQ, first [install the broker](http://www.rabbitmq.com/install.html). If you have Mercurial
-and Erlang/OTP installed, here is how to do it in 4 lines:
+To use examples with RabbitMQ, first [install the broker](http://www.rabbitmq.com/install.html).
+If you have Mercurial and Erlang/OTP installed, here is how to do it in 4 lines:
 
     hg clone http://hg.rabbitmq.com/rabbitmq-codegen
     hg clone http://hg.rabbitmq.com/rabbitmq-server
