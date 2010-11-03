@@ -13,6 +13,8 @@ This fork of AMQP
 
 Contains following improvements:
 *
+*
+*
 
 Getting started
 ===============
