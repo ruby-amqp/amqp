@@ -1,6 +1,4 @@
-- breaks with header values that are nil
-- breaks with header values that are ruby objects (convert to strings?)
-- sending utf8 data in 1.9 breaks
+- breaks with header values that are nil (deleting nil headers in Exchange#publish for now)
 
 - generate amqp/spec.rb from original xml spec
 - add peek and pop to queues

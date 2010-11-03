@@ -1,3 +1,6 @@
+require 'pathname'
+
 module AMQP
-  VERSION = '0.6.7'
+  version_file = Pathname.new(__FILE__).dirname + '../VERSION'   # :nodoc:
+  VERSION = version_file.exist? ? version_file.read.strip : '0.6.8'
 end
