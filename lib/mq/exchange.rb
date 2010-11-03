@@ -199,19 +199,20 @@ class MQ
     # * :passive => true and the exchange does not exist (NOT_FOUND)
     #
     def initialize mq, type, name, opts = {}
-      @mq = mq
+      @mq                         = mq
       @type, @name, @opts = type, name, opts
       @mq.exchanges[@name = name] ||= self
-      @key = opts[:key]
-      
+      @key                        = opts[:key]
+
       unless name == "amq.#{type}" or name == '' or opts[:no_declare]
-        @mq.callback{
-          @mq.send Protocol::Exchange::Declare.new({ :exchange => name,
-                                                     :type => type,
-                                                     :nowait => true }.merge(opts))
+        @mq.callback {
+          @mq.send Protocol::Exchange::Declare.new({:exchange => name,
+                                                    :type     => type,
+                                                    :nowait   => true}.merge(opts))
         }
       end
     end
+
     attr_reader :name, :type, :key
 
     # This method publishes a staged file message to a specific exchange.
@@ -254,21 +255,54 @@ class MQ
     # message stays in memory and is never persisted to non-volatile (slow)
     # storage.
     #
+    # The following standard AMQP header values can also be set as options:
+    #   :content_type         (default application/octet-stream)
+    #   :delivery_mode        (set using :persistent)
+    #   :priority
+    #   :reply_to
+    #   :content_encoding
+    #   :application_headers
+    #   :priority             (default 0)
+    #   :correlation_id
+    #   :reply_to
+    #   :expiration
+    #   :message_id
+    #   :timestamp
+    #   :type
+    #   :user_id
+    #   :app_id
+    #   :cluster_id
+    #
+    # TODO: - breaks with header values that are nil
+    # TODO: - breaks with header values that are ruby objects (convert to strings?)
+    #
     def publish data, opts = {}
-      @mq.callback{
+      @mq.callback {
         out = []
 
-        out << Protocol::Basic::Publish.new({ :exchange => name,
-                                              :routing_key => opts[:key] || @key }.merge(opts))
+        out << Protocol::Basic::Publish.new({:exchange    => name,
+                                             :routing_key => opts[:key] || @key}.merge(opts))
+        headers =  {
+            :content_type        => 'application/octet-stream',
+            :delivery_mode       => (opts[:persistent] ? 2 : 1),
+            :priority            => 0,
+            :reply_to            => nil,
+            :content_encoding    => nil,
+            :application_headers => nil,
+            :priority            => nil,
+            :correlation_id      => nil,
+            :reply_to            => nil,
+            :expiration          => nil,
+            :message_id          => nil,
+            :timestamp           => nil,
+            :type                => nil,
+            :user_id             => nil,
+            :app_id              => nil,
+            :cluster_id          => nil}.merge(opts).delete_if { |key, value| value == nil }
 
-        data = data.to_s
+        out << Protocol::Header.new(Protocol::Basic, data.bytesize, headers)
 
-        out << Protocol::Header.new(Protocol::Basic,
-                                    data.length, { :content_type => 'application/octet-stream',
-                                                   :delivery_mode => (opts[:persistent] ? 2 : 1),
-                                                   :priority => 0 }.merge(opts))
-
-        out << Frame::Body.new(data)
+        out << Frame::Body.new(data.to_s)
 
         @mq.send *out
       }
@@ -298,9 +332,9 @@ class MQ
     # delete it but raises a channel exception instead (MQ:Error).
     #    
     def delete opts = {}
-      @mq.callback{
-        @mq.send Protocol::Exchange::Delete.new({ :exchange => name,
-                                                  :nowait => true }.merge(opts))
+      @mq.callback {
+        @mq.send Protocol::Exchange::Delete.new({:exchange => name,
+                                                 :nowait   => true}.merge(opts))
         @mq.exchanges.delete name
       }
       nil
