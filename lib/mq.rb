@@ -677,6 +677,7 @@ class MQ
   # method it will raise a channel or connection exception.
   #
   def queue name, opts = {}
+    #noinspection RubyArgCount
     queues[name] ||= Queue.new(self, name, opts)
   end
 
@@ -830,7 +831,7 @@ class MQ
   def log *args
     return unless MQ.logging
     pp args
-    puts
+    puts ''
   end
 
   attr_reader :connection
@@ -841,7 +842,7 @@ end
 
 class MQ
   def MQ.default
-    #-- XXX clear this when connection is closed
+    # TODO: clear this when connection is closed
     Thread.current[:mq] ||= MQ.new
   end
 
