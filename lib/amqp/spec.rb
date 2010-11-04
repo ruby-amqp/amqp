@@ -17,14 +17,14 @@ module AMQP
     end
 
     def self.Frame id
-      (@_base_frames ||= {})[id] ||= Class.new(Frame) do
+      (@_base_frames ||= {})[id] ||= Class.new(Frame) {
         class_eval %[
           def self.inherited klass
             klass.const_set(:ID, #{id})
             Frame.types[#{id}] = klass
           end
         ]
-      end
+      }
     end
 
     class Method    < Frame( 1 ); end

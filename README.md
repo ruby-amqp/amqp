@@ -9,8 +9,13 @@ This library was tested primarily with RabbitMQ, although it should be compatibl
 server implementing the [AMQP 0-8 spec](http://www.amqp.org/confluence/download/attachments/720900/amqp0-8.pdf).
 
 
-This fork of AMQP contains following improvements:
---------------------------------------------------
+This fork of AMQP
+=================
+
+Intention is to describe AMQP lib behavior using RSpec, with reasonable level of completeness.
+Given a solid spec suite, it will be easier to expand the library going forward.
+
+Some improvements that are currently merged in, but not yet fully specified:
 
  * Support for setting extended headers in MQ::Exchange#publish. Particularly useful for :reply_to for RPC.
  * Multibyte character support (Ruby 1.9) in MQ::Exchange#publish.
@@ -18,7 +23,8 @@ This fork of AMQP contains following improvements:
  * MQ::Queue only wraps headers with new MQ::Headers if they are not nil. This allows pops to tell more easily when they've requested a message from an empty queue. See (https://github.com/tmm1/amqp/issues#issue/22)
  * Support for receiving Headers with zero-size data packets. Such contents with no body frames are totally legit if indicated header size is zero.
 
-TODO: * Support for AMQP::Protocol::Basic::Return method. See (https://github.com/tmm1/amqp/issues#issue/1).
+Some improvements that are planned:
+ * Support for AMQP::Protocol::Basic::Return method. See (https://github.com/tmm1/amqp/issues#issue/1).
 
 Getting started
 ===============
