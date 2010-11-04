@@ -23,7 +23,7 @@ task :codegen do
   sh 'ruby lib/amqp/spec.rb'
 end
 
-desc "Run spec suite (uses bacon gem)"
+desc "Run test suite (uses bacon gem)"
 task :test do
   sh 'bacon lib/amqp.rb'
 end
