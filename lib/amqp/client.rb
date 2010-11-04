@@ -1,8 +1,7 @@
 require File.expand_path('../frame', __FILE__)
 
 module AMQP
-  class Error < StandardError;
-  end
+  class Error < StandardError; end
 
   module BasicClient
     def process_frame frame
@@ -12,37 +11,37 @@ module AMQP
       end
 
       case frame
-        when Frame::Method
-          case method = frame.payload
-            when Protocol::Connection::Start
-              send Protocol::Connection::StartOk.new({:platform => 'Ruby/EventMachine',
-                                                      :product => 'AMQP',
-                                                      :information => 'http://github.com/tmm1/amqp',
-                                                      :version => VERSION},
-                                                     'AMQPLAIN',
-                                                     {:LOGIN => @settings[:user],
-                                                      :PASSWORD => @settings[:pass]},
-                                                     'en_US')
+      when Frame::Method
+        case method = frame.payload
+        when Protocol::Connection::Start
+          send Protocol::Connection::StartOk.new({:platform => 'Ruby/EventMachine',
+                                                  :product => 'AMQP',
+                                                  :information => 'http://github.com/tmm1/amqp',
+                                                  :version => VERSION},
+                                                 'AMQPLAIN',
+                                                 {:LOGIN => @settings[:user],
+                                                  :PASSWORD => @settings[:pass]},
+                                                 'en_US')
 
-            when Protocol::Connection::Tune
-              send Protocol::Connection::TuneOk.new(:channel_max => 0,
-                                                    :frame_max => 131072,
-                                                    :heartbeat => 0)
+        when Protocol::Connection::Tune
+          send Protocol::Connection::TuneOk.new(:channel_max => 0,
+                                                :frame_max => 131072,
+                                                :heartbeat => 0)
 
-              send Protocol::Connection::Open.new(:virtual_host => @settings[:vhost],
-                                                  :capabilities => '',
-                                                  :insist => @settings[:insist])
+          send Protocol::Connection::Open.new(:virtual_host => @settings[:vhost],
+                                              :capabilities => '',
+                                              :insist => @settings[:insist])
 
-            when Protocol::Connection::OpenOk
-              succeed(self)
+        when Protocol::Connection::OpenOk
+          succeed(self)
 
-            when Protocol::Connection::Close
-              # raise Error, "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]}"
-              STDERR.puts "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]}"
+        when Protocol::Connection::Close
+          # raise Error, "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]}"
+          STDERR.puts "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]}"
 
-            when Protocol::Connection::CloseOk
-              @on_disconnect.call if @on_disconnect
-          end
+        when Protocol::Connection::CloseOk
+          @on_disconnect.call if @on_disconnect
+        end
       end
     end
   end
@@ -63,11 +62,10 @@ module AMQP
       @settings = opts
       extend AMQP.client
 
-#      @on_disconnect ||= proc{ raise Error, "Could not connect to server #{opts[:host]}:#{opts[:port]}" }
-      @on_disconnect ||= method(:disconnected)
+      @on_disconnect ||= proc{ raise Error, "Could not connect to server #{opts[:host]}:#{opts[:port]}" }
 
       timeout @settings[:timeout] if @settings[:timeout]
-      errback { @on_disconnect.call } unless @reconnecting
+      errback{ @on_disconnect.call } unless @reconnecting
 
       @connected = false
     end
@@ -78,7 +76,7 @@ module AMQP
       # @on_disconnect = proc{ raise Error, 'Disconnected from server' }
       unless @closing
         @on_disconnect = method(:disconnected)
-#        @reconnecting = false
+        @reconnecting = false
       end
 
       @connected = true
@@ -96,12 +94,12 @@ module AMQP
     def unbind
       log 'disconnected'
       @connected = false
-      EM.next_tick { @on_disconnect.call }
+      EM.next_tick{ @on_disconnect.call }
     end
 
     def add_channel mq
       (@_channel_mutex ||= Mutex.new).synchronize do
-        channels[key = (channels.keys.max || 0) + 1] = mq
+        channels[ key = (channels.keys.max || 0) + 1 ] = mq
         key
       end
     end
@@ -134,23 +132,16 @@ module AMQP
       send_data data.to_s
     end
 
-    #:stopdoc:
-    # def send_data data
-    #   log 'send_data', data
-    #   super
-    # end
-    #:startdoc:
-
     def close &on_disconnect
       if on_disconnect
         @closing = true
-        @on_disconnect = proc {
+        @on_disconnect = proc{
           on_disconnect.call
           @closing = false
         }
       end
 
-      callback { |c|
+      callback{ |c|
         if c.channels.any?
           c.channels.each do |ch, mq|
             mq.close
@@ -167,8 +158,7 @@ module AMQP
     def reconnect force = false
       if @reconnecting and not force
         # wait 1 second after first reconnect attempt, in between each subsequent attempt
-#        EM.add_timer(1){ reconnect(true) }
-        EM.add_timer(@settings[:reconnect_timer] || 1) { reconnect(true) }
+        EM.add_timer(1){ reconnect(true) }
         return
       end
 
@@ -180,15 +170,12 @@ module AMQP
 
         mqs = @channels
         @channels = {}
-        mqs.each { |_, mq| mq.reset } if mqs
+        mqs.each{ |_,mq| mq.reset } if mqs
       end
 
       log 'reconnecting'
-#      EM.reconnect @settings[:host], @settings[:port], self
-      (try_host, try_port) = determine_reconnect_server
-      EM.reconnect try_host, try_port, self
+      EM.reconnect @settings[:host], @settings[:port], self
     end
-
 
     def self.connect opts = {}
       opts = AMQP.settings.merge(opts)
@@ -206,27 +193,11 @@ module AMQP
       reconnect
     end
 
-    def determine_reconnect_server
-      try_host = @settings[:host]
-      try_port = @settings[:port]
-      @retry_count ||= 0
-      @retry_count += 1
-      if servers = @settings[:fallback_servers]
-        index = @retry_count % (servers.size + 1)
-        if index != 0
-          try = servers[index - 1]
-          try_host = try[:host] || AMQP.settings[:host]
-          try_port = try[:port] || AMQP.settings[:port]
-        end
-      end
-      [try_host, try_port]
-    end
-
     def log *args
       return unless @settings[:logging] or AMQP.logging
       require 'pp'
       pp args
-      puts ''
+      puts
     end
   end
 end

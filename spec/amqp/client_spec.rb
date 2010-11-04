@@ -23,7 +23,8 @@ def stub_em with_connection_completed=nil
   end
 end
 
-describe AMQP::Client, ' when testing :reconnect_timer and :fallback_servers' do
+describe AMQP::Client, ' when testing :reconnect_timer and :fallback_servers',
+         pending: 'No need for these options just yet' do
   include AMQP::SpecHelper
 
 #  after do
