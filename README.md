@@ -17,7 +17,8 @@ This fork of AMQP contains following improvements:
  * MQ::Exchange#publish raises error if no connection to broker.
  * MQ::Queue only wraps headers with new MQ::Headers if they are not nil. This allows pops to tell more easily when they've requested a message from an empty queue. See (https://github.com/tmm1/amqp/issues#issue/22)
  * Support for receiving Headers with zero-size data packets. Such contents with no body frames are totally legit if indicated header size is zero.
-# * Support for AMQP::Protocol::Basic::Return method. See (https://github.com/tmm1/amqp/issues#issue/1).
+
+TODO: * Support for AMQP::Protocol::Basic::Return method. See (https://github.com/tmm1/amqp/issues#issue/1).
 
 Getting started
 ===============
@@ -86,7 +87,7 @@ AMQP gem resources
 Running specifications suite
 ============================
 
-To run the test suite make sure you have [bacon](http://gemcutter.org/gems/bacon) gem installed and run:
+To run the test suite make sure you have [Rspec2](http://gemcutter.org/gems/rspec) gem installed and run:
 
     rake spec
 

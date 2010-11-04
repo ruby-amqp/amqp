@@ -46,7 +46,7 @@ describe AMQP::Client, ' when testing :reconnect_timer and :fallback_servers' do
       arg1.should == "nonexistanthost"
       arg2.should == 5672
     end
-    @times_connected.should == 5
+    @times_connected.should == 6
   end
 
   it 'should reconnect on disconnect before connection_completed (use reconnect_timer)' do
@@ -75,11 +75,11 @@ describe AMQP::Client, ' when testing :reconnect_timer and :fallback_servers' do
                  ])
 
     end
-    @times_connected.should == 5
     # puts "@connect_args: " + @connect_args.inspect
     @connect_args.should == [
         ["nonexistanthost", 5672], ["alsononexistant", 5672], ["alsoalsononexistant", 1234],
         ["nonexistanthost", 5672], ["alsononexistant", 5672]]
+    @times_connected.should == 5
   end
 
   it "should use fallback servers on reconnect when connection_completed" do
@@ -94,10 +94,10 @@ describe AMQP::Client, ' when testing :reconnect_timer and :fallback_servers' do
                  ])
 
     end
-    @times_connected.should == 5
     # puts "@connect_args: " + @connect_args.inspect
     @connect_args.should == [
         ["nonexistanthost", 5672], ["alsononexistant", 5672], ["alsoalsononexistant", 1234],
         ["nonexistanthost", 5672], ["alsononexistant", 5672]]
+    @times_connected.should == 5
   end
 end
