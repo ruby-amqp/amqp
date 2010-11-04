@@ -9,3 +9,7 @@
 == 0.6.9 / 2010-11-04
 
 * Exchange#publish raises error if no connection to broker
+
+== 0.6.10 / 2010-11-04
+
+* Bacon tests converted to Rspec

@@ -1,7 +1,6 @@
 require 'spec_helper'
 require 'amqp/buffer'
 
-
 describe AMQP::Buffer do
   include AMQP
   before { @buf = Buffer.new }
