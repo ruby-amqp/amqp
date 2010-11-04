@@ -108,7 +108,7 @@ class MQ
     #
     def bind exchange, opts = {}
       exchange = exchange.respond_to?(:name) ? exchange.name : exchange
-      @bindings[exchange] = opts
+      @bindings[exchange] = opts.clone
 
       @mq.callback{
         @mq.send Protocol::Queue::Bind.new({ :queue => name,
