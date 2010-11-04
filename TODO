@@ -28,3 +28,5 @@
 
 - add amq.queue('name').size{ |num| "#{num} messages in the queue" } (send declare passive, look at declare-ok response)
 - clean up MQ.default on disconnect
+
+- add proper handling of Basic::Return (:immediate and :mandatory flags)
