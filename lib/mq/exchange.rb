@@ -273,10 +273,11 @@ class MQ
     #   :app_id
     #   :cluster_id
     #
-    # TODO: - breaks with header values that are nil
     # TODO: - breaks with header values that are ruby objects (convert to strings?)
     #
     def publish data, opts = {}
+      raise MQ::Error, "No connection to broker, unable to publish #{data} with #{opts}" unless @mq.connected?
+
       @mq.callback {
         out = []
 
@@ -298,7 +299,9 @@ class MQ
             :type                => nil,
             :user_id             => nil,
             :app_id              => nil,
-            :cluster_id          => nil}.merge(opts).delete_if { |key, value| value == nil }
+            :cluster_id          => nil}.merge(opts)
+
+        headers.delete_if { |key, value| value == nil }
 
         out << Protocol::Header.new(Protocol::Basic, data.bytesize, headers)
 

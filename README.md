@@ -9,26 +9,24 @@ This library was tested primarily with RabbitMQ, although it should be compatibl
 server implementing the [AMQP 0-8 spec](http://www.amqp.org/confluence/download/attachments/720900/amqp0-8.pdf).
 
 
-This fork of AMQP
-=================
+This fork of AMQP contains following improvements:
+--------------------------------------------------
 
-Contains following improvements:
  * Support for setting extended headers in MQ::Exchange#publish. Particularly useful for :reply_to for RPC.
  * Multibyte character support (Ruby 1.9) in MQ::Exchange#publish.
- * MQ::Queue only wraps headers with new MQ::Headers if they are not nil. This allows pops to tell more easily when they've requested a message from an empty queue.
+ * MQ::Exchange#publish raises error if no connection to broker.
+ * MQ::Queue only wraps headers with new MQ::Headers if they are not nil. This allows pops to tell more easily when they've requested a message from an empty queue. See (https://github.com/tmm1/amqp/issues#issue/22)
  * Support for receiving Headers with zero-size data packets. Such contents with no body frames are totally legit if indicated header size is zero.
-
+# * Support for AMQP::Protocol::Basic::Return method. See (https://github.com/tmm1/amqp/issues#issue/1).
 
 Getting started
 ===============
 
-To use examples with RabbitMQ, first [install the broker](http://www.rabbitmq.com/install.html).
-If you have Mercurial and Erlang/OTP installed, here is how to do it in 4 lines:
+First things first, start with:
 
-    hg clone http://hg.rabbitmq.com/rabbitmq-codegen
-    hg clone http://hg.rabbitmq.com/rabbitmq-server
-    cd rabbitmq-server
-    make run
+  $ gem install arvicco-amqp
+
+To use examples with RabbitMQ, first [install the broker](http://www.rabbitmq.com/install.html).
 
 Then have a look at the various bundled examples:
 
@@ -76,12 +74,14 @@ code.
 Same separate thread technique can be used to make EventMachine play nicely with other
 libraries that would block current thread (like [File::Tail](http://rubygems.org/gems/file-tail)).
 
-AMQP gem mailing list
-==============================
+AMQP gem resources
+==================
 
 * [AMQP gem mailing list](http://groups.google.com/group/ruby-amqp)
 * [AMQP gem at GitHub](http://github.com/tmm1/amqp)
-* [AMQP gem at Gemcutter](http://rubygems.org/gems/amqp)
+* [AMQP gem at Rubygems](http://rubygems.org/gems/amqp)
+* [This fork at GitHub](http://github.com/arvicco/amqp)
+* [This fork as a gem at Rubygems](http://rubygems.org/gems/arvicco-amqp)
 
 Running specifications suite
 ============================
@@ -93,6 +93,13 @@ To run the test suite make sure you have [bacon](http://gemcutter.org/gems/bacon
 The lib/amqp/spec.rb file is generated automatically based on the [AMQP specification](http://www.amqp.org/confluence/display/AMQP/AMQP+Specification). To generate it:
 
     rake codegen
+
+Writing your own AMQP/evented specs
+===================================
+
+Writing evented specs properly is a bit difficult due to gory details of event loop management. Libraries such as
+[AMQP-Spec](http://github.com/arvicco/amqp-spec) and [Moqueue](https://github.com/danielsdeleo/moqueue) may be helpful.
+
 
 Credits and more information
 ============================

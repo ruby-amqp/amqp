@@ -28,7 +28,7 @@ Gem::Specification.new do |s|
   # Files setup
   # ruby -rpp -e' pp `git ls-files`.split("\n") '
   versioned  = `git ls-files -z`.split("\0")
-  s.files    = Dir['doc,lib,old,protocol,research,tasks}/**/*', 'Rakefile', 'README*', 'LICENSE*',
+  s.files    = Dir['{doc,lib,old,protocol,research,tasks}/**/*', 'Rakefile', 'README*', 'LICENSE*',
                    'VERSION*', 'TODO', 'HISTORY*', 'amqp.*', '.gitignore'] & versioned
 
   # Dependencies

@@ -726,8 +726,7 @@ class MQ
     end
   end
 
-  # Define a message and callback block to be executed on all
-  # errors.
+  # Define a message and callback block to be executed on all errors.
   def self.error msg = nil, &blk
     if blk
       @error_callback = blk
@@ -807,6 +806,10 @@ class MQ
     qus.each{ |_,q| q.reset } if qus
 
     prefetch(@prefetch_size) if @prefetch_size
+  end
+
+  def connected?
+    connection.connected?
   end
 
   private
