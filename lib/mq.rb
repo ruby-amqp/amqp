@@ -244,6 +244,9 @@ class MQ
     end
   end
 
+  # Sends each argument through @connection, setting its @ticket to one from most recent
+  # Protocol::Access::RequestOk. This operation is Mutex-synchronized.
+  #
   def send *args
     conn.callback { |c|
       (@_send_mutex ||= Mutex.new).synchronize do
@@ -775,6 +778,10 @@ class MQ
     @queues ||= {}
   end
 
+  # Yields a (Mutex-synchronized) FIFO queue of consumers that issued
+  # Protocol::Basic::Get requests (that is, called Queue#pop)
+  #
+  # Not typically called by client code.
   def get_queue
     if block_given?
       (@get_queue_mutex ||= Mutex.new).synchronize {
@@ -815,6 +822,7 @@ class MQ
     prefetch(@prefetch_size) if @prefetch_size
   end
 
+  # Tests connection status of associated AMQP connection
   def connected?
     @connection.connected?
   end

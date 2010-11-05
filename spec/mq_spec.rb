@@ -123,7 +123,33 @@ describe 'MQ', 'object, also vaguely known as "channel"' do
     describe '#prefetch'
     describe '#recover'
     describe '#reset'
-    describe '#get_queue'
+
+    describe '#get_queue' do
+      it 'yields a FIFO queue to a given block' do
+        subject.get_queue do |fifo|
+          fifo.should == []
+        end
+      end
+
+      it 'FIFO queue contains consumers that called Queue#pop' do
+        subject.succeed # Indicates that channel is connected
+        queue = subject.queue('test')
+        queue.pop
+        queue.pop
+        subject.get_queue do |fifo|
+          fifo.should have(2).consumers
+          fifo.each {|consumer| consumer.should == queue }
+        end
+      end
+
+      it 'is Mutex-synchronized' do
+        subject # Evaluates subject, tripping add_channel Mutex at initialize
+        mutex = Mutex.new
+        Mutex.should_receive(:new).and_return(mutex)
+        mutex.should_receive(:synchronize)
+        subject.get_queue {}
+      end
+    end
 
     describe '#connected?' do # This is an addition to standard MQ interface
       it 'delegates to @connection to determine its connectivity status' do
@@ -142,11 +168,11 @@ describe 'MQ', 'object, also vaguely known as "channel"' do
         end
 
         it 'raises error rpc if no name given' do
-           expect {subject.rpc}.to raise_error ArgumentError
+          expect { subject.rpc }.to raise_error ArgumentError
         end
 
         it 'does not replace rpc with existing name' do
-          MQ::RPC.should_receive(:new).with(subject,  'name', nil).and_return('mock_rpc')
+          MQ::RPC.should_receive(:new).with(subject, 'name', nil).and_return('mock_rpc')
           subject.rpc 'name'
           MQ::RPC.should_not_receive(:new)
           subject.rpcs.should_not_receive(:[]=)
@@ -164,11 +190,11 @@ describe 'MQ', 'object, also vaguely known as "channel"' do
         end
 
         it 'raises error Queue if no name given' do
-           expect {subject.queue}.to raise_error ArgumentError
+          expect { subject.queue }.to raise_error ArgumentError
         end
 
         it 'does not replace queue with existing name' do
-          MQ::Queue.should_receive(:new).with(subject,  'name', {}).and_return('mock_queue')
+          MQ::Queue.should_receive(:new).with(subject, 'name', {}).and_return('mock_queue')
           subject.queue 'name'
           MQ::Queue.should_not_receive(:new)
           subject.queues.should_not_receive(:[]=)
