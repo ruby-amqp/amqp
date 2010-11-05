@@ -134,7 +134,48 @@ describe 'MQ', 'object, also vaguely known as "channel"' do
     end
 
     describe '#process_frame' # The meat of mq operations
-    describe '#send'
+
+  # Sends each argument through @connection, setting its *ticket* property to the @ticket
+  # received in most recent Protocol::Access::RequestOk. This operation is Mutex-synchronized.
+  #
+#  def send *args
+#    conn.callback { |c|
+#      (@_send_mutex ||= Mutex.new).synchronize do
+#        args.each do |data|
+#          data.ticket = @ticket if @ticket and data.respond_to? :ticket=
+#          log :sending, data
+#          c.send data, :channel => @channel
+#        end
+#      end
+#    }
+#  end
+
+
+    describe '#send' do
+
+    it 'sends given data through its connection' do
+      args = [mock('data1'), mock('data2'), mock('data3')]
+
+      subject.send *args
+
+      @conn.messages[-3..-1].map{|message| message[:data]}.should == args
+    end
+
+    it 'sets data`s ticket property if @ticket is set for MQ object' do
+      subject.instance_variable_set(:@ticket, ticket = 'mock ticket')
+      data = mock('data1')
+      data.should_receive(:ticket=).with(ticket)
+
+      subject.send data
+    end
+
+    it 'is Mutex-synchronized' do
+      mutex = subject.instance_variable_get(:@_send_mutex)
+      mutex.should_receive(:synchronize)
+      subject.send mock('data1')
+    end
+  end
+
 
     describe '#reset' do
       it 'resets and reinitializes the channel, clears and resets its queues/exchanges' do
@@ -211,7 +252,6 @@ describe 'MQ', 'object, also vaguely known as "channel"' do
       end
 
       it 'FIFO queue contains consumers that called Queue#pop' do
-        subject.succeed
         queue = subject.queue('test')
         queue.pop
         queue.pop
