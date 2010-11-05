@@ -6,24 +6,40 @@ require 'mq'
 # Mocking AMQP::Client::EM_CONNECTION_CLASS in order to
 # specify MQ instance behavior without the need to start EM loop.
 class MockConnection
-  attr_accessor :callbacks, :messages, :channels
 
   def initialize
     EM.should_receive(:reactor_running?).and_return(true)
   end
 
   def callback &block
-    (@callbacks||=[]) << block
+    callbacks << block
     block.call(self) if block
   end
 
   def add_channel mq
-    (@channels||={})[key = (@channels.keys.max || 0) + 1] = mq
+    channels[key = (channels.keys.max || 0) + 1] = mq
     key
   end
 
-  def send *args
-    (@messages||=[]) << args
+  def send data, opts = {}
+    messages << {data: data, opts: opts}
+  end
+
+  def connected?
+    true
+  end
+
+  def channels
+    @channels||={}
+  end
+
+  # Not part of AMQP::Client::EM_CONNECTION_CLASS interface, for mock introspection only
+  def callbacks
+    @callbacks||=[]
+  end
+
+  def messages
+    @messages||=[]
   end
 end
 
@@ -61,8 +77,8 @@ describe 'MQ', 'as a class' do
   describe '.id' do
     it 'returns Thread-local uuid for mq' do
       Thread.current.should_receive(:[]).with(:mq_id)
-      Thread.current.should_receive(:[]=).with(:mq_id, /.*-[0-9]{4}-[0-9]{4}/)
-      MQ.id.should =~ /.*-[0-9]{4}-[0-9]{4}/
+      Thread.current.should_receive(:[]=).with(:mq_id, /.*-[0-9]{4,5}-[0-9]{10}/)
+      MQ.id.should =~ /.*-[0-9]{4,5}-[0-9]{10}/
     end
   end
 
@@ -98,7 +114,7 @@ describe 'MQ', 'object, also vaguely known as "channel"' do
   context 'when initialized with a mock connection' do
     before { @conn = MockConnection.new }
     after { AMQP.cleanup_state }
-    subject { MQ.new(@conn) }
+    subject { MQ.new(@conn).tap { |mq| mq.succeed } } # Indicates that channel is connected
     # its(:connection) { should be_nil } - does not work since in relies on subject.send(:connection)
 
     it 'has public accessors' do
@@ -119,10 +135,30 @@ describe 'MQ', 'object, also vaguely known as "channel"' do
 
     describe '#process_frame' # The meat of mq operations
     describe '#send'
-    describe '#close'
     describe '#prefetch'
     describe '#recover'
     describe '#reset'
+
+    describe '#close' do
+      it 'can be simplified, getting rid of @closing ivar? Just set callback sending Protocol::Channel::Close...'
+
+      it 'sends Protocol::Channel::Close through @connection' do
+        subject.close
+        @conn.messages.last[:data].should be_an AMQP::Protocol::Channel::Close
+      end
+
+      it 'does not actually delete the channel or close connection' do
+        @conn.channels.should_not_receive(:delete)
+        @conn.should_not_receive(:close)
+        subject.close
+      end
+
+      it 'actual closing of the channel happens ONLY when Protocol::Channel::CloseOk is received' do
+        @conn.channels.should_receive(:delete) {|key| key.should == 1; @conn.channels.clear }
+        @conn.should_receive(:close)
+        subject.process_frame AMQP::Frame::Method.new( AMQP::Protocol::Channel::CloseOk.new)
+      end
+    end
 
     describe '#get_queue' do
       it 'yields a FIFO queue to a given block' do
@@ -132,13 +168,13 @@ describe 'MQ', 'object, also vaguely known as "channel"' do
       end
 
       it 'FIFO queue contains consumers that called Queue#pop' do
-        subject.succeed # Indicates that channel is connected
+        subject.succeed
         queue = subject.queue('test')
         queue.pop
         queue.pop
         subject.get_queue do |fifo|
           fifo.should have(2).consumers
-          fifo.each {|consumer| consumer.should == queue }
+          fifo.each { |consumer| consumer.should == queue }
         end
       end
 

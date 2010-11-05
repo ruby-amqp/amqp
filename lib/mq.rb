@@ -244,8 +244,8 @@ class MQ
     end
   end
 
-  # Sends each argument through @connection, setting its @ticket to one from most recent
-  # Protocol::Access::RequestOk. This operation is Mutex-synchronized.
+  # Sends each argument through @connection, setting its *ticket* property to the @ticket
+  # received in most recent Protocol::Access::RequestOk. This operation is Mutex-synchronized.
   #
   def send *args
     conn.callback { |c|
@@ -725,6 +725,9 @@ class MQ
     rpcs[name] ||= RPC.new(self, name, obj)
   end
 
+  # Schedules the request to close the channel to be sent. Actual closing of
+  # the channels happens when Protocol::Channel::CloseOk is received from broker.
+  #
   def close
     if @deferred_status == :succeeded
       send Protocol::Channel::Close.new(:reply_code => 200,
@@ -737,6 +740,7 @@ class MQ
   end
 
   # Define a message and callback block to be executed on all errors.
+  #
   def self.error msg = nil, &blk
     if blk
       @error_callback = blk
@@ -751,10 +755,8 @@ class MQ
     self
   end
 
-  # Asks the broker to redeliver all unacknowledged messages on this
-  # channel.
-  #
-  # * requeue (default false)
+  # Asks the broker to redeliver all unacknowledged messages on this channel.
+  # * :requeue - (default false)
   # If this parameter is false, the message will be redelivered to the original recipient.
   # If this flag is true, the server will attempt to requeue the message, potentially then
   # delivering it to an alternative subscriber.
@@ -823,6 +825,7 @@ class MQ
   end
 
   # Tests connection status of associated AMQP connection
+  #
   def connected?
     @connection.connected?
   end
