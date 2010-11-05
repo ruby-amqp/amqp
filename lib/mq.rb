@@ -148,6 +148,7 @@ class MQ
   end
 
   attr_reader :channel, :connection
+  alias :conn :connection
 
   # May raise a MQ::Error exception when the frame payload contains a
   # Protocol::Channel::Close object. 
@@ -681,7 +682,7 @@ class MQ
     queues[name] ||= Queue.new(self, name, opts)
   end
 
-  # Takes a channel, queue and optional object.
+  # Takes a queue name and optional object.
   #
   # The optional object may be a class name, module name or object
   # instance. When given a class or module name, the object is instantiated
@@ -815,7 +816,7 @@ class MQ
   end
 
   def connected?
-    connection.connected?
+    @connection.connected?
   end
 
   private
@@ -833,14 +834,16 @@ class MQ
     pp args
     puts ''
   end
-
-  attr_reader :connection
-  alias :conn :connection
 end
 
 #-- convenience wrapper (read: HACK) for thread-local MQ object
 
 class MQ
+  # unique identifier
+  def MQ.id
+    Thread.current[:mq_id] ||= "#{`hostname`.strip}-#{Process.pid}-#{Thread.current.object_id}"
+  end
+
   def MQ.default
     # TODO: clear this when connection is closed
     Thread.current[:mq] ||= MQ.new
@@ -850,12 +853,5 @@ class MQ
   # MQ.new so that a new channel is allocated for subsequent operations.
   def MQ.method_missing meth, *args, &blk
     MQ.default.__send__(meth, *args, &blk)
-  end
-end
-
-class MQ
-  # unique identifier
-  def MQ.id
-    Thread.current[:mq_id] ||= "#{`hostname`.strip}-#{Process.pid}-#{Thread.current.object_id}"
   end
 end

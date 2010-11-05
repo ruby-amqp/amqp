@@ -4,10 +4,13 @@ require 'amqp-spec/rspec'
 require 'mq'
 
 # Mocking AMQP::Client::EM_CONNECTION_CLASS in order to
-# spec MQ instance behavior without starting EM loop.
+# specify MQ instance behavior without the need to start EM loop.
 class MockConnection
-
   attr_accessor :callbacks, :messages, :channels
+
+  def initialize
+    EM.should_receive(:reactor_running?).and_return(true)
+  end
 
   def callback &block
     (@callbacks||=[]) << block
@@ -25,8 +28,7 @@ class MockConnection
 end
 
 describe 'MQ', 'as a class' do
-#  after(:all){AMQP.cleanup_state}
-
+#  after{AMQP.cleanup_state} # Tips off Thread.current[:mq] call
   subject { MQ }
 
   its(:logging) { should be_false }
@@ -71,7 +73,7 @@ describe 'MQ', 'as a class' do
     end
 
     it 'is setting @error_callback if block is given' do
-      MQ.error("Whatever"){|message| message.should == "Whatever"; @callback_fired = true}
+      MQ.error("Whatever") { |message| message.should == "Whatever"; @callback_fired = true }
       MQ.instance_variable_get(:@error_callback).should_not be_nil
       @callback_fired.should be_false
     end
@@ -94,64 +96,186 @@ end
 describe 'MQ', 'object, also vaguely known as "channel"' do
 
   context 'when initialized with a mock connection' do
-    before { EM.stub(:reactor_running?).and_return(true) }
-    subject { MQ.new @conn = MockConnection.new }
+    before { @conn = MockConnection.new }
+    after { AMQP.cleanup_state }
+    subject { MQ.new(@conn) }
     # its(:connection) { should be_nil } - does not work since in relies on subject.send(:connection)
 
-    it 'has semi-private? accessors' do
-      pending '#connection is declared as both private and public accessor for some reason... Why?'
-      subject.connection.should == @conn
-      subject.conn.should == @conn
-    end
-
     it 'has public accessors' do
-      subject.channel.should == 1         # Essentially, channel number
+      subject.channel.should == 1 # Essentially, channel number
       subject.consumers.should be_a Hash
       subject.consumers.should be_empty
       subject.exchanges.should be_a Hash
       subject.exchanges.should be_empty
+      subject.queues.should be_a Hash
+      subject.queues.should be_empty
       subject.rpcs.should be_a Hash
       subject.rpcs.should be_empty
+
+      # '#connection was declared as both private and public accessor for some reason... Why?'
+      subject.connection.should == @conn
+      subject.conn.should == @conn
     end
 
-#    its(:closing) { should be_false }
-#    its(:settings) { should == {:host=>"127.0.0.1",
-#                                :port=>5672,
-#                                :user=>"guest",
-#                                :pass=>"guest",
-#                                :vhost=>"/",
-#                                :timeout=>nil,
-#                                :logging=>false,
-#                                :ssl=>false} }
-#    its(:client) { should == AMQP::BasicClient }
-#
+    describe '#process_frame' # The meat of mq operations
+    describe '#send'
+    describe '#close'
+    describe '#prefetch'
+    describe '#recover'
+    describe '#reset'
+    describe '#get_queue'
+
+    describe '#connected?' do # This is an addition to standard MQ interface
+      it 'delegates to @connection to determine its connectivity status' do
+        @conn.should_receive(:connected?).with(no_args)
+        subject.connected?
+      end
+    end
+
+    describe 'setting up exchanges/queues/rpcs' do
+      describe '#rpc' do
+        it 'creates new rpc and saves it into @rpcs Hash' do
+          MQ::RPC.should_receive(:new).with(subject, 'name', nil).and_return('mock_rpc')
+          subject.rpcs.should_receive(:[]=).with('name', 'mock_rpc')
+          rpc = subject.rpc 'name'
+          rpc.should == 'mock_rpc'
+        end
+
+        it 'raises error rpc if no name given' do
+           expect {subject.rpc}.to raise_error ArgumentError
+        end
+
+        it 'does not replace rpc with existing name' do
+          MQ::RPC.should_receive(:new).with(subject,  'name', nil).and_return('mock_rpc')
+          subject.rpc 'name'
+          MQ::RPC.should_not_receive(:new)
+          subject.rpcs.should_not_receive(:[]=)
+          rpc = subject.rpc 'name'
+          rpc.should == 'mock_rpc'
+        end
+      end
+
+      describe '#queue' do
+        it 'creates new Queue and saves it into @queues Hash' do
+          MQ::Queue.should_receive(:new).with(subject, 'name', {}).and_return('mock_queue')
+          subject.queues.should_receive(:[]=).with('name', 'mock_queue')
+          queue = subject.queue 'name'
+          queue.should == 'mock_queue'
+        end
+
+        it 'raises error Queue if no name given' do
+           expect {subject.queue}.to raise_error ArgumentError
+        end
+
+        it 'does not replace queue with existing name' do
+          MQ::Queue.should_receive(:new).with(subject,  'name', {}).and_return('mock_queue')
+          subject.queue 'name'
+          MQ::Queue.should_not_receive(:new)
+          subject.queues.should_not_receive(:[]=)
+          queue = subject.queue 'name'
+          queue.should == 'mock_queue'
+        end
+      end
+
+      describe '#direct' do
+        it 'creates new :direct Exchange and saves it into @exchanges Hash' do
+          MQ::Exchange.should_receive(:new).with(subject, :direct, 'name', {}).and_return('mock_exchange')
+          subject.exchanges.should_receive(:[]=).with('name', 'mock_exchange')
+          exchange = subject.direct 'name'
+          exchange.should == 'mock_exchange'
+        end
+
+        it 'creates "amq.direct" Exchange if no name given' do
+          MQ::Exchange.should_receive(:new).with(subject, :direct, 'amq.direct', {}).and_return('mock_exchange')
+          subject.exchanges.should_receive(:[]=).with('amq.direct', 'mock_exchange')
+          exchange = subject.direct
+          exchange.should == 'mock_exchange'
+        end
+
+        it 'does not replace exchange with existing name' do
+          MQ::Exchange.should_receive(:new).with(subject, :direct, 'name', {}).and_return('mock_exchange')
+          subject.direct 'name'
+          MQ::Exchange.should_not_receive(:new)
+          subject.exchanges.should_not_receive(:[]=)
+          exchange = subject.direct 'name'
+          exchange.should == 'mock_exchange'
+        end
+      end
+
+      describe '#fanout' do
+        it 'creates new :fanout Exchange and saves it into @exchanges Hash' do
+          MQ::Exchange.should_receive(:new).with(subject, :fanout, 'name', {}).and_return('mock_exchange')
+          subject.exchanges.should_receive(:[]=).with('name', 'mock_exchange')
+          exchange = subject.fanout 'name'
+          exchange.should == 'mock_exchange'
+        end
+
+        it 'creates "amq.fanout" Exchange if no name given' do
+          MQ::Exchange.should_receive(:new).with(subject, :fanout, 'amq.fanout', {}).and_return('mock_exchange')
+          subject.exchanges.should_receive(:[]=).with('amq.fanout', 'mock_exchange')
+          exchange = subject.fanout
+          exchange.should == 'mock_exchange'
+        end
+
+        it 'does not replace exchange with existing name' do
+          MQ::Exchange.should_receive(:new).with(subject, :fanout, 'name', {}).and_return('mock_exchange')
+          subject.fanout 'name'
+          MQ::Exchange.should_not_receive(:new)
+          subject.exchanges.should_not_receive(:[]=)
+          exchange = subject.fanout 'name'
+          exchange.should == 'mock_exchange'
+        end
+      end
+
+      describe '#topic' do
+        it 'creates new :topic Exchange and saves it into @exchanges Hash' do
+          MQ::Exchange.should_receive(:new).with(subject, :topic, 'name', {}).and_return('mock_exchange')
+          subject.exchanges.should_receive(:[]=).with('name', 'mock_exchange')
+          exchange = subject.topic 'name'
+          exchange.should == 'mock_exchange'
+        end
+
+        it 'creates "amq.topic" Exchange if no name given' do
+          MQ::Exchange.should_receive(:new).with(subject, :topic, 'amq.topic', {}).and_return('mock_exchange')
+          subject.exchanges.should_receive(:[]=).with('amq.topic', 'mock_exchange')
+          exchange = subject.topic
+          exchange.should == 'mock_exchange'
+        end
+
+        it 'does not replace exchange with existing name' do
+          MQ::Exchange.should_receive(:new).with(subject, :topic, 'name', {}).and_return('mock_exchange')
+          subject.topic 'name'
+          MQ::Exchange.should_not_receive(:new)
+          subject.exchanges.should_not_receive(:[]=)
+          exchange = subject.topic 'name'
+          exchange.should == 'mock_exchange'
+        end
+      end
+
+      describe '#headers' do
+        it 'creates new :headers Exchange and saves it into @exchanges Hash' do
+          MQ::Exchange.should_receive(:new).with(subject, :headers, 'name', {}).and_return('mock_exchange')
+          subject.exchanges.should_receive(:[]=).with('name', 'mock_exchange')
+          exchange = subject.headers 'name'
+          exchange.should == 'mock_exchange'
+        end
+
+        it 'creates "amq.match" Exchange if no name given' do
+          MQ::Exchange.should_receive(:new).with(subject, :headers, 'amq.match', {}).and_return('mock_exchange')
+          subject.exchanges.should_receive(:[]=).with('amq.match', 'mock_exchange')
+          exchange = subject.headers
+          exchange.should == 'mock_exchange'
+        end
+
+        it 'does not replace exchange with existing name' do
+          MQ::Exchange.should_receive(:new).with(subject, :headers, 'name', {}).and_return('mock_exchange')
+          subject.headers 'name'
+          MQ::Exchange.should_not_receive(:new)
+          subject.exchanges.should_not_receive(:[]=)
+          exchange = subject.headers 'name'
+          exchange.should == 'mock_exchange'
+        end
+      end
+    end
   end
-#  describe '.client=' do
-#    after(:all) { AMQP.client = AMQP::BasicClient }
-#
-#    it 'is used to change default client module' do
-#      AMQP.client = MockClientModule
-#      AMQP.client.should == MockClientModule
-#      MockClientModule.ancestors.should include AMQP
-#    end
-#
-#    describe 'new default client module' do
-#      it 'sticks around after being assigned' do
-#        AMQP.client.should == MockClientModule
-#      end
-#
-#      it 'extends any object that includes AMQP::Client' do
-#        @client = MockClient.new
-#        @client.should respond_to :my_mock_method
-#      end
-#    end
-#  end
-#
-#  describe '.connect' do
-#    it 'delegates to Client.connect' do
-#      AMQP::Client.should_receive(:connect).with("args")
-#      AMQP.connect "args"
-#    end
-#
-#    it 'raises error unless called inside EM event loop' do
 end
