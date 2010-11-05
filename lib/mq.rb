@@ -811,6 +811,8 @@ class MQ
     @consumers ||= {}
   end
 
+  # Resets and reinitializes the channel and its queues/exchanges
+  #
   def reset
     @deferred_status = nil
     @channel = nil

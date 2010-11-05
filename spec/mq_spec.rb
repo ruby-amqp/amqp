@@ -135,7 +135,19 @@ describe 'MQ', 'object, also vaguely known as "channel"' do
 
     describe '#process_frame' # The meat of mq operations
     describe '#send'
-    describe '#reset'
+
+    describe '#reset' do
+      it 'resets and reinitializes the channel, clears and resets its queues/exchanges' do
+        subject.queue('test').should_receive(:reset)
+        subject.fanout('fanout').should_receive(:reset)
+        subject.should_receive(:initialize).with(@conn)
+
+        subject.reset
+        subject.queues.should be_empty
+        subject.exchanges.should be_empty
+        subject.consumers.should be_empty
+      end
+    end
 
     describe '#prefetch' do
       it 'sends Protocol::Basic::Qos, setting :prefetch_count for broker' do
@@ -148,7 +160,6 @@ describe 'MQ', 'object, also vaguely known as "channel"' do
         subject.prefetch(1).should == subject
       end
     end
-
 
     describe '#recover' do
       it 'sends Protocol::Basic::Recover, asking broker to redeliver all unack`ed messages on this channel' do
