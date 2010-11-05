@@ -754,9 +754,9 @@ class MQ
   # Applications typically set the prefetch count to 1, which means the processing speed
   # of the consumer exerts complete backpressure on the flow of messages in that channel.
   #
-  def prefetch(size)
-    @prefetch_size = size
-    send Protocol::Basic::Qos.new(:prefetch_size => 0, :prefetch_count => size, :global => false)
+  def prefetch(count)
+    @prefetch_count = count
+    send Protocol::Basic::Qos.new(:prefetch_size => 0, :prefetch_count => count, :global => false)
     self
   end
 
@@ -826,7 +826,7 @@ class MQ
     @queues = {}
     qus.each { |_, q| q.reset } if qus
 
-    prefetch(@prefetch_size) if @prefetch_size
+    prefetch(@prefetch_count) if @prefetch_count
   end
 
   # Tests connection status of associated AMQP connection
