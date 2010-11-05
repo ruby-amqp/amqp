@@ -136,8 +136,35 @@ describe 'MQ', 'object, also vaguely known as "channel"' do
     describe '#process_frame' # The meat of mq operations
     describe '#send'
     describe '#prefetch'
-    describe '#recover'
     describe '#reset'
+
+  # Asks the broker to redeliver all unacknowledged messages on this channel.
+  # * :requeue - (default false)
+  # If this parameter is false, the message will be redelivered to the original recipient.
+  # If this flag is true, the server will attempt to requeue the message, potentially then
+  # delivering it to an alternative subscriber.
+  #
+  def recover requeue = false
+    send Protocol::Basic::Recover.new(:requeue => requeue)
+    self
+  end
+
+    describe '#recover' do
+      it 'sends Protocol::Basic::Recover, asking broker to redeliver all unack`ed messages on this channel' do
+        subject.recover
+        @conn.messages.last[:data].should be_an AMQP::Protocol::Basic::Recover
+      end
+
+      it 'by default, requeue property is nil, so messages will be redelivered to the original recipient' do
+        subject.recover
+        @conn.messages.last[:data].instance_variable_get(:@requeue).should == nil
+      end
+
+      it 'you can set requeue to true, prompting broker to requeue the messages (to other subscribers, potentially)' do
+        subject.recover true
+        @conn.messages.last[:data].instance_variable_get(:@requeue).should == true
+      end
+    end
 
     describe '#close' do
       it 'can be simplified, getting rid of @closing ivar? Just set callback sending Protocol::Channel::Close...'
