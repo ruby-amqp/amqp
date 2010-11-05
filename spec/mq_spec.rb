@@ -41,6 +41,9 @@ class MockConnection
   def messages
     @messages||=[]
   end
+
+  def close;
+  end
 end
 
 describe 'MQ', 'as a class' do
@@ -133,49 +136,56 @@ describe 'MQ', 'object, also vaguely known as "channel"' do
       subject.conn.should == @conn
     end
 
-    describe '#process_frame' # The meat of mq operations
+    describe '#process_frame' do # The meat of mq operations
+      describe ' Frame::Header'
+      describe ' Frame::Body'
+      describe ' Frame::Method'
+      describe ' Protocol::Channel::OpenOk'
+      describe ' Protocol::Access::RequestOk'
+      describe ' Protocol::Basic::CancelOk'
+      describe ' Protocol::Queue::DeclareOk'
+      describe ' Protocol::Basic::GetOk'
+      describe ' Protocol::Basic::Deliver'
+      describe ' Protocol::Basic::GetEmpty'
+      describe ' Protocol::Channel::Close'
+      describe ' Protocol::Basic::ConsumeOk'
 
-  # Sends each argument through @connection, setting its *ticket* property to the @ticket
-  # received in most recent Protocol::Access::RequestOk. This operation is Mutex-synchronized.
-  #
-#  def send *args
-#    conn.callback { |c|
-#      (@_send_mutex ||= Mutex.new).synchronize do
-#        args.each do |data|
-#          data.ticket = @ticket if @ticket and data.respond_to? :ticket=
-#          log :sending, data
-#          c.send data, :channel => @channel
-#        end
-#      end
-#    }
-#  end
+      describe 'Protocol::Channel::CloseOk' do
+        it 'closes the channel down' do
+          @conn.channels.should_receive(:delete) { |key| key.should == 1; @conn.channels.clear }
+          subject.process_frame AMQP::Frame::Method.new(AMQP::Protocol::Channel::CloseOk.new)
+        end
 
+        it 'closes down connection if no other channels' do
+          @conn.should_receive(:close)
+          subject.process_frame AMQP::Frame::Method.new(AMQP::Protocol::Channel::CloseOk.new)
+        end
+      end
+    end
 
     describe '#send' do
+      it 'sends given data through its connection' do
+        args = [mock('data1'), mock('data2'), mock('data3')]
 
-    it 'sends given data through its connection' do
-      args = [mock('data1'), mock('data2'), mock('data3')]
+        subject.send *args
 
-      subject.send *args
+        @conn.messages[-3..-1].map { |message| message[:data] }.should == args
+      end
 
-      @conn.messages[-3..-1].map{|message| message[:data]}.should == args
+      it 'sets data`s ticket property if @ticket is set for MQ object' do
+        subject.instance_variable_set(:@ticket, ticket = 'mock ticket')
+        data = mock('data1')
+        data.should_receive(:ticket=).with(ticket)
+
+        subject.send data
+      end
+
+      it 'is Mutex-synchronized' do
+        mutex = subject.instance_variable_get(:@_send_mutex)
+        mutex.should_receive(:synchronize)
+        subject.send mock('data1')
+      end
     end
-
-    it 'sets data`s ticket property if @ticket is set for MQ object' do
-      subject.instance_variable_set(:@ticket, ticket = 'mock ticket')
-      data = mock('data1')
-      data.should_receive(:ticket=).with(ticket)
-
-      subject.send data
-    end
-
-    it 'is Mutex-synchronized' do
-      mutex = subject.instance_variable_get(:@_send_mutex)
-      mutex.should_receive(:synchronize)
-      subject.send mock('data1')
-    end
-  end
-
 
     describe '#reset' do
       it 'resets and reinitializes the channel, clears and resets its queues/exchanges' do
@@ -238,9 +248,9 @@ describe 'MQ', 'object, also vaguely known as "channel"' do
       end
 
       it 'actual closing of the channel happens ONLY when Protocol::Channel::CloseOk is received' do
-        @conn.channels.should_receive(:delete) {|key| key.should == 1; @conn.channels.clear }
+        @conn.channels.should_receive(:delete) { |key| key.should == 1; @conn.channels.clear }
         @conn.should_receive(:close)
-        subject.process_frame AMQP::Frame::Method.new( AMQP::Protocol::Channel::CloseOk.new)
+        subject.process_frame AMQP::Frame::Method.new(AMQP::Protocol::Channel::CloseOk.new)
       end
     end
 
