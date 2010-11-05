@@ -135,19 +135,20 @@ describe 'MQ', 'object, also vaguely known as "channel"' do
 
     describe '#process_frame' # The meat of mq operations
     describe '#send'
-    describe '#prefetch'
     describe '#reset'
 
-  # Asks the broker to redeliver all unacknowledged messages on this channel.
-  # * :requeue - (default false)
-  # If this parameter is false, the message will be redelivered to the original recipient.
-  # If this flag is true, the server will attempt to requeue the message, potentially then
-  # delivering it to an alternative subscriber.
-  #
-  def recover requeue = false
-    send Protocol::Basic::Recover.new(:requeue => requeue)
-    self
-  end
+    describe '#prefetch' do
+      it 'sends Protocol::Basic::Qos, setting :prefetch_count for broker' do
+        subject.prefetch 13
+        @conn.messages.last[:data].should be_an AMQP::Protocol::Basic::Qos
+        @conn.messages.last[:data].instance_variable_get(:@prefetch_count).should == 13
+      end
+
+      it 'returns MQ object itself, allowing for method chains' do
+        subject.prefetch(1).should == subject
+      end
+    end
+
 
     describe '#recover' do
       it 'sends Protocol::Basic::Recover, asking broker to redeliver all unack`ed messages on this channel' do
@@ -163,6 +164,10 @@ describe 'MQ', 'object, also vaguely known as "channel"' do
       it 'you can set requeue to true, prompting broker to requeue the messages (to other subscribers, potentially)' do
         subject.recover true
         @conn.messages.last[:data].instance_variable_get(:@requeue).should == true
+      end
+
+      it 'returns MQ object itself, allowing for method chains' do
+        subject.recover.should == subject
       end
     end
 

@@ -749,6 +749,11 @@ class MQ
     end
   end
 
+  # Asks the broker to set prefetch_count (size of the prefetch buffer) that the broker
+  # will maintain for outstanding unacknowledged messages on a this channel. This is
+  # Applications typically set the prefetch count to 1, which means the processing speed
+  # of the consumer exerts complete backpressure on the flow of messages in that channel.
+  #
   def prefetch(size)
     @prefetch_size = size
     send Protocol::Basic::Qos.new(:prefetch_size => 0, :prefetch_count => size, :global => false)
