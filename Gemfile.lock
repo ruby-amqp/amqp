@@ -1,0 +1,9 @@
+GEM
+  specs:
+    eventmachine (0.12.10)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  eventmachine
