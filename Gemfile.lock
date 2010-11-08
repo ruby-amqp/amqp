@@ -1,9 +1,14 @@
 GEM
+  remote: http://gemcutter.org/
   specs:
+    bacon (1.1.0)
     eventmachine (0.12.10)
+    json (1.4.6)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  bacon
   eventmachine
+  json
