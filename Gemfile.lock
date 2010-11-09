@@ -2,6 +2,7 @@ GEM
   remote: http://gemcutter.org/
   specs:
     bacon (1.1.0)
+    em-spec (0.2.1)
     eventmachine (0.12.10)
     json (1.4.6)
 
@@ -10,5 +11,6 @@ PLATFORMS
 
 DEPENDENCIES
   bacon
+  em-spec
   eventmachine
   json
