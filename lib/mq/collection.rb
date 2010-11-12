@@ -2,6 +2,12 @@
 
 class MQ
   class Collection < ::Array
+    class IncompatibleItemError < StandardError
+      def initialize(item)
+        super("Instance of #{item.class} doesn't respond to #name!")
+      end
+    end
+
     def [](name)
       self.find do |object|
         object.name == name
@@ -17,6 +23,15 @@ class MQ
 
     # Use Collection#<< for adding items to the collection.
     undef_method :[]=
+
+    def <<(item)
+      unless item.respond_to?(:name)
+        raise IncompatibleItemError.new(item)
+      end
+
+      super(item) if item.name.nil? || ! self[item.name]
+      return item
+    end
   end
 end
 
@@ -31,13 +46,46 @@ if $0 =~ /bacon/ or $0 == __FILE__
       @collection = MQ::Collection.new(@items)
     end
 
-    should "be accessible by its name" do
-      @collection["name-1"].should.not.be.nil
-      @collection["name-1"].should.eql(@items[1])
+    describe "accessors" do
+      should "be accessible by its name" do
+        @collection["name-1"].should.not.be.nil
+        @collection["name-1"].should.eql(@items[1])
+      end
+
+      should "not allow to change already existing object" do
+        lambda { @collection["name-1"] = Item.new("test") }.should.raise(NoMethodError)
+      end
     end
 
-    should "not allow to change already existing object" do
-      lambda { @collection["name-1"] = Item.new("test") }.should.raise(NoMethodError)
+    describe "#<<" do
+      should "raise IncompatibleItemError if the argument doesn't have method :name" do
+        lambda { @collection << nil }.should.raise(MQ::Collection::IncompatibleItemError)
+      end
+
+      should "add an item into the collection" do
+        length = @collection.length
+        @collection << Item.new("test")
+        @collection.length.should.eql(length + 1)
+      end
+
+      should "not add an item to the collection if another item with given name already exists and the name IS NOT nil" do
+        @collection << Item.new("test")
+        length = @collection.length
+        @collection << Item.new("test")
+        @collection.length.should.eql(length)
+      end
+
+      should "add an item to the collection if another item with given name already exists and the name IS nil" do
+        @collection << Item.new(nil)
+        length = @collection.length
+        @collection << Item.new(nil)
+        @collection.length.should.eql(length + 1)
+      end
+
+      should "return the item" do
+        item = Item.new("test")
+        (@collection << item).should.eql item
+      end
     end
   end
 end
