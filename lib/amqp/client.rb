@@ -186,13 +186,15 @@ module AMQP
       EM.reconnect @settings[:host], @settings[:port], self
     end
 
-    def self.connect amqp_url, opts = {}
-      if amqp_url.class == Hash
-        # Be backwards compatible, treat first argument as opts.
-        opts = amqp_url
-      else
-        opts = parse_amqp_url(amqp_url).merge(opts)
+    def self.connect amqp_url_or_opts = nil
+      if amqp_url_or_opts.is_a?(String)
+        opts = parse_amqp_url(amqp_url_or_opts)
+      elsif amqp_url_or_opts.is_a?(Hash)
+        opts = amqp_url_or_opts
+      elsif amqp_url_or_opts.nil?
+        opts = Hash.new
       end
+
       opts = AMQP.settings.merge(opts)
       EM.connect opts[:host], opts[:port], self, opts
     end
