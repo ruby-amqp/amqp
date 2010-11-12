@@ -20,3 +20,13 @@ AMQP.start(:host => "localhost") do
     EM.stop if @counter == 3
   end
 end
+
+__END__
+Queue amq.gen-qeaCcyVCG50S6QC4U/zNoA== declared.
+All queues: [nil, nil, "amq.gen-qeaCcyVCG50S6QC4U/zNoA=="]
+
+Queue amq.gen-AinMI7PBa2n1fFRIaGEAog== declared.
+All queues: [nil, "amq.gen-AinMI7PBa2n1fFRIaGEAog==", "amq.gen-qeaCcyVCG50S6QC4U/zNoA=="]
+
+Queue amq.gen-ROdJW1LZJVJulUIh8KZqkw== declared.
+All queues: ["amq.gen-ROdJW1LZJVJulUIh8KZqkw==", "amq.gen-AinMI7PBa2n1fFRIaGEAog==", "amq.gen-qeaCcyVCG50S6QC4U/zNoA=="]
