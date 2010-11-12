@@ -2,3 +2,5 @@
 *.rbc
 ~*
 #*
+.rvmrc
+.bundle

@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+
+require "irb"
+require "mq"
+
+IRB.start(__FILE__)
