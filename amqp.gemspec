@@ -1,3 +1,6 @@
+#!/usr/bin/env gem build
+# encoding: utf-8
+
 require File.expand_path('../lib/amqp/version', __FILE__)
 
 spec = Gem::Specification.new do |s|
