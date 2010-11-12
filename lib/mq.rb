@@ -3,6 +3,7 @@
 
 $:.unshift File.expand_path(File.dirname(File.expand_path(__FILE__)))
 require 'amqp'
+require 'mq/collection'
 
 class MQ
   %w[ exchange queue rpc header ].each do |file|
@@ -32,7 +33,7 @@ end
 # One consumer prints messages every second while the second consumer prints
 # messages every 2 seconds. After 5 seconds has elapsed, the 1 second
 # consumer is deleted.
-# 
+#
 # Of interest is the relationship of EventMachine to the process. All MQ
 # operations must occur within the context of an EM.run block. We start
 # EventMachine in its own thread with an empty block; all subsequent calls
@@ -44,39 +45,39 @@ end
 #
 #   require 'rubygems'
 #   require 'mq'
-#  
+#
 #   thr = Thread.new { EM.run }
-#  
+#
 #   # turns on extreme logging
 #   #AMQP.logging = true
-#  
+#
 #   def log *args
 #     p args
 #   end
-#  
+#
 #   def publisher
 #     clock = MQ.fanout('clock')
 #     EM.add_periodic_timer(1) do
 #       puts
-#  
+#
 #       log :publishing, time = Time.now
 #       clock.publish(Marshal.dump(time))
 #     end
 #   end
-#  
+#
 #   def one_second_consumer
 #     MQ.queue('every second').bind(MQ.fanout('clock')).subscribe do |time|
 #       log 'every second', :received, Marshal.load(time)
 #     end
 #   end
-#  
+#
 #   def two_second_consumer
 #     MQ.queue('every 2 seconds').bind('clock').subscribe do |time|
 #       time = Marshal.load(time)
 #       log 'every 2 seconds', :received, time if time.sec % 2 == 0
 #     end
 #   end
-#  
+#
 #   def delete_one_second
 #     EM.add_timer(5) do
 #       # delete the 'every second' queue
@@ -84,33 +85,33 @@ end
 #       MQ.queue('every second').delete
 #     end
 #   end
-#  
+#
 #   publisher
 #   one_second_consumer
 #   two_second_consumer
 #   delete_one_second
 #   thr.join
-#  
+#
 #  __END__
-#  
+#
 #  [:publishing, Tue Jan 06 22:46:14 -0600 2009]
 #  ["every second", :received, Tue Jan 06 22:46:14 -0600 2009]
 #  ["every 2 seconds", :received, Tue Jan 06 22:46:14 -0600 2009]
-#  
+#
 #  [:publishing, Tue Jan 06 22:46:16 -0600 2009]
 #  ["every second", :received, Tue Jan 06 22:46:16 -0600 2009]
 #  ["every 2 seconds", :received, Tue Jan 06 22:46:16 -0600 2009]
-#  
+#
 #  [:publishing, Tue Jan 06 22:46:17 -0600 2009]
 #  ["every second", :received, Tue Jan 06 22:46:17 -0600 2009]
-#  
+#
 #  [:publishing, Tue Jan 06 22:46:18 -0600 2009]
 #  ["every second", :received, Tue Jan 06 22:46:18 -0600 2009]
 #  ["every 2 seconds", :received, Tue Jan 06 22:46:18 -0600 2009]
 #  ["Deleting [every second] queue"]
-#  
+#
 #  [:publishing, Tue Jan 06 22:46:19 -0600 2009]
-#  
+#
 #  [:publishing, Tue Jan 06 22:46:20 -0600 2009]
 #  ["every 2 seconds", :received, Tue Jan 06 22:46:20 -0600 2009]
 #
@@ -156,7 +157,7 @@ class MQ
   end
 
   # May raise a MQ::Error exception when the frame payload contains a
-  # Protocol::Channel::Close object. 
+  # Protocol::Channel::Close object.
   #
   # This usually occurs when a client attempts to perform an illegal
   # operation. A short, and incomplete, list of potential illegal operations
@@ -204,7 +205,11 @@ class MQ
         end
 
       when Protocol::Queue::DeclareOk
-        queues[ method.queue ].receive_status method
+        # We can't use queues[method.queue] because if the name would
+        # be an empty string, then AMQP broker generated a random one.
+        queues = self.queues.select { |queue| queue.opts[:nowait].eql?(false) }
+        queue  = queues.reverse.find { |queue| queue.status.eql?(:unfinished) }
+        queue.receive_status method
 
       when Protocol::Basic::Deliver, Protocol::Basic::GetOk
         @method = method
@@ -264,8 +269,8 @@ class MQ
   # == Direct
   # A direct exchange is useful for 1:1 communication between a publisher and
   # subscriber. Messages are routed to the queue with a binding that shares
-  # the same name as the exchange. Alternately, the messages are routed to 
-  # the bound queue that shares the same name as the routing key used for 
+  # the same name as the exchange. Alternately, the messages are routed to
+  # the bound queue that shares the same name as the routing key used for
   # defining the exchange. This exchange type does not honor the +:key+ option
   # when defining a new instance with a name. It _will_ honor the +:key+ option
   # if the exchange name is the empty string.
@@ -292,19 +297,19 @@ class MQ
   # If set, the server will not create the exchange if it does not
   # already exist. The client can use this to check whether an exchange
   # exists without modifying  the server state.
-  # 
+  #
   # * :durable => true | false (default false)
   # If set when creating a new exchange, the exchange will be marked as
   # durable.  Durable exchanges remain active when a server restarts.
   # Non-durable exchanges (transient exchanges) are purged if/when a
-  # server restarts. 
+  # server restarts.
   #
   # A transient exchange (the default) is stored in memory-only. The
   # exchange and all bindings will be lost on a server restart.
   # It makes no sense to publish a persistent message to a transient
   # exchange.
   #
-  # Durable exchanges and their bindings are recreated upon a server 
+  # Durable exchanges and their bindings are recreated upon a server
   # restart. Any published messages not routed to a bound queue are lost.
   #
   # * :auto_delete => true | false (default false)
@@ -339,17 +344,17 @@ class MQ
   # point for all published messages.
   #
   # == Fanout
-  # A fanout exchange is useful for 1:N communication where one publisher 
-  # feeds multiple subscribers. Like direct exchanges, messages published 
-  # to a fanout exchange are delivered to queues whose name matches the 
-  # exchange name (or are bound to that exchange name). Each queue gets 
+  # A fanout exchange is useful for 1:N communication where one publisher
+  # feeds multiple subscribers. Like direct exchanges, messages published
+  # to a fanout exchange are delivered to queues whose name matches the
+  # exchange name (or are bound to that exchange name). Each queue gets
   # its own copy of the message.
   #
   # Any published message, regardless of its persistence setting, is thrown
   # away by the exchange when there are no queues bound to it.
   #
-  # Like the direct exchange type, this exchange type does not honor the 
-  # +:key+ option when defining a new instance with a name. It _will_ honor 
+  # Like the direct exchange type, this exchange type does not honor the
+  # +:key+ option when defining a new instance with a name. It _will_ honor
   # the +:key+ option if the exchange name is the empty string.
   # Allocating this exchange without a name _or_ with the empty string
   # will use the internal 'amq.fanout' exchange.
@@ -378,19 +383,19 @@ class MQ
   # If set, the server will not create the exchange if it does not
   # already exist. The client can use this to check whether an exchange
   # exists without modifying  the server state.
-  # 
+  #
   # * :durable => true | false (default false)
   # If set when creating a new exchange, the exchange will be marked as
   # durable.  Durable exchanges remain active when a server restarts.
   # Non-durable exchanges (transient exchanges) are purged if/when a
-  # server restarts. 
+  # server restarts.
   #
   # A transient exchange (the default) is stored in memory-only. The
   # exchange and all bindings will be lost on a server restart.
   # It makes no sense to publish a persistent message to a transient
   # exchange.
   #
-  # Durable exchanges and their bindings are recreated upon a server 
+  # Durable exchanges and their bindings are recreated upon a server
   # restart. Any published messages not routed to a bound queue are lost.
   #
   # * :auto_delete => true | false (default false)
@@ -425,10 +430,10 @@ class MQ
   # point for all published messages.
   #
   # == Topic
-  # A topic exchange allows for messages to be published to an exchange 
+  # A topic exchange allows for messages to be published to an exchange
   # tagged with a specific routing key. The Exchange uses the routing key
-  # to determine which queues to deliver the message. Wildcard matching 
-  # is allowed. The topic must be declared using dot notation to separate 
+  # to determine which queues to deliver the message. Wildcard matching
+  # is allowed. The topic must be declared using dot notation to separate
   # each subtopic.
   #
   # This is the only exchange type to honor the +key+ hash key for all
@@ -437,14 +442,14 @@ class MQ
   # Any published message, regardless of its persistence setting, is thrown
   # away by the exchange when there are no queues bound to it.
   #
-  # As part of the AMQP standard, each server _should_ predeclare a topic 
+  # As part of the AMQP standard, each server _should_ predeclare a topic
   # exchange called 'amq.topic' (this is not required by the standard).
   # Allocating this exchange without a name _or_ with the empty string
   # will use the internal 'amq.topic' exchange.
   #
   # The classic example is delivering market data. When publishing market
-  # data for stocks, we may subdivide the stream based on 2 
-  # characteristics: nation code and trading symbol. The topic tree for 
+  # data for stocks, we may subdivide the stream based on 2
+  # characteristics: nation code and trading symbol. The topic tree for
   # Apple Computer would look like:
   #  'stock.us.aapl'
   # For a foreign stock, it may look like:
@@ -479,10 +484,10 @@ class MQ
   #    end
   #  end
   #
-  # For matching, the '*' (asterisk) wildcard matches against one 
-  # dot-separated item only. The '#' wildcard (hash or pound symbol) 
-  # matches against 0 or more dot-separated items. If none of these 
-  # symbols are used, the exchange performs a comparison looking for an 
+  # For matching, the '*' (asterisk) wildcard matches against one
+  # dot-separated item only. The '#' wildcard (hash or pound symbol)
+  # matches against 0 or more dot-separated items. If none of these
+  # symbols are used, the exchange performs a comparison looking for an
   # exact match.
   #
   # == Options
@@ -490,19 +495,19 @@ class MQ
   # If set, the server will not create the exchange if it does not
   # already exist. The client can use this to check whether an exchange
   # exists without modifying  the server state.
-  # 
+  #
   # * :durable => true | false (default false)
   # If set when creating a new exchange, the exchange will be marked as
   # durable.  Durable exchanges remain active when a server restarts.
   # Non-durable exchanges (transient exchanges) are purged if/when a
-  # server restarts. 
+  # server restarts.
   #
   # A transient exchange (the default) is stored in memory-only. The
   # exchange and all bindings will be lost on a server restart.
   # It makes no sense to publish a persistent message to a transient
   # exchange.
   #
-  # Durable exchanges and their bindings are recreated upon a server 
+  # Durable exchanges and their bindings are recreated upon a server
   # restart. Any published messages not routed to a bound queue are lost.
   #
   # * :auto_delete => true | false (default false)
@@ -537,17 +542,17 @@ class MQ
   # point for all published messages.
   #
   # == Headers
-  # A headers exchange allows for messages to be published to an exchange 
+  # A headers exchange allows for messages to be published to an exchange
   #
   # Any published message, regardless of its persistence setting, is thrown
   # away by the exchange when there are no queues bound to it.
   #
-  # As part of the AMQP standard, each server _should_ predeclare a headers 
+  # As part of the AMQP standard, each server _should_ predeclare a headers
   # exchange called 'amq.match' (this is not required by the standard).
   # Allocating this exchange without a name _or_ with the empty string
   # will use the internal 'amq.match' exchange.
   #
-  # TODO: The classic example is ... 
+  # TODO: The classic example is ...
   #
   # When publishing data to the exchange, bound queues subscribing to the
   # exchange indicate which data interests them by passing arguments
@@ -556,8 +561,8 @@ class MQ
   # may be 'any' or 'all'. If unspecified (in RabbitMQ at least), it defaults
   # to "all".
   #
-  # A value of 'all' for 'x-match' implies that all values must match (i.e. 
-  # it does an AND of the headers ), while a value of 'any' implies that 
+  # A value of 'all' for 'x-match' implies that all values must match (i.e.
+  # it does an AND of the headers ), while a value of 'any' implies that
   # at least one should match (ie. it does an OR).
   #
   # TODO: document behavior when either the binding or the message is missing
@@ -570,19 +575,19 @@ class MQ
   # If set, the server will not create the exchange if it does not
   # already exist. The client can use this to check whether an exchange
   # exists without modifying  the server state.
-  # 
+  #
   # * :durable => true | false (default false)
   # If set when creating a new exchange, the exchange will be marked as
   # durable.  Durable exchanges remain active when a server restarts.
   # Non-durable exchanges (transient exchanges) are purged if/when a
-  # server restarts. 
+  # server restarts.
   #
   # A transient exchange (the default) is stored in memory-only. The
   # exchange and all bindings will be lost on a server restart.
   # It makes no sense to publish a persistent message to a transient
   # exchange.
   #
-  # Durable exchanges and their bindings are recreated upon a server 
+  # Durable exchanges and their bindings are recreated upon a server
   # restart. Any published messages not routed to a bound queue are lost.
   #
   # * :auto_delete => true | false (default false)
@@ -629,7 +634,7 @@ class MQ
   # If set, the server will not create the exchange if it does not
   # already exist. The client can use this to check whether an exchange
   # exists without modifying  the server state.
-  # 
+  #
   # * :durable => true | false (default false)
   # If set when creating a new queue, the queue will be marked as
   # durable.  Durable queues remain active when a server restarts.
@@ -662,7 +667,7 @@ class MQ
   # If set, the queue is deleted when all consumers have finished
   # using it. Last consumer can be cancelled either explicitly or because
   # its channel is closed. If there was no consumer ever on the queue, it
-  # won't be deleted. 
+  # won't be deleted.
   #
   # The server waits for a short period of time before
   # determining the queue is unused to give time to the client code
@@ -679,8 +684,8 @@ class MQ
   # not wait for a reply method.  If the server could not complete the
   # method it will raise a channel or connection exception.
   #
-  def queue name, opts = {}
-    queues[name] ||= Queue.new(self, name, opts)
+  def queue name, opts = {}, &block
+    self.queues << Queue.new(self, name, opts, &block)
   end
 
   # Takes a channel, queue and optional object.
@@ -692,14 +697,14 @@ class MQ
   #
   # Marshalling and unmarshalling the objects is handled internally. This
   # marshalling is subject to the same restrictions as defined in the
-  # Marshal[http://ruby-doc.org/core/classes/Marshal.html] standard 
+  # Marshal[http://ruby-doc.org/core/classes/Marshal.html] standard
   # library. See that documentation for further reference.
   #
-  # When the optional object is not passed, the returned rpc reference is 
-  # used to send messages and arguments to the queue. See #method_missing 
-  # which does all of the heavy lifting with the proxy. Some client 
-  # elsewhere must call this method *with* the optional block so that 
-  # there is a valid destination. Failure to do so will just enqueue 
+  # When the optional object is not passed, the returned rpc reference is
+  # used to send messages and arguments to the queue. See #method_missing
+  # which does all of the heavy lifting with the proxy. Some client
+  # elsewhere must call this method *with* the optional block so that
+  # there is a valid destination. Failure to do so will just enqueue
   # marshalled messages that are never consumed.
   #
   #  EM.run do
@@ -774,7 +779,7 @@ class MQ
   #
   # Not typically called by client code.
   def queues
-    @queues ||= {}
+    @queues ||= MQ::Collection.new
   end
 
   def get_queue
