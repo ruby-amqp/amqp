@@ -14,7 +14,7 @@ spec = Gem::Specification.new do |s|
 
   # ruby -rpp -e' pp `git ls-files`.split("\n").grep(/^(doc|README)/) '
   s.extra_rdoc_files = [
-    "README",
+    "README.md",
     "doc/EXAMPLE_01_PINGPONG",
     "doc/EXAMPLE_02_CLOCK",
     "doc/EXAMPLE_03_STOCKS",
@@ -29,7 +29,7 @@ spec = Gem::Specification.new do |s|
 
   # ruby -rpp -e' pp `git ls-files`.split("\n") '
   s.files = [
-    "README",
+    "README.md",
     "Rakefile",
     "amqp.gemspec",
     "amqp.todo",
