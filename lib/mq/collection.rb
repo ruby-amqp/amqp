@@ -2,7 +2,7 @@
 
 class MQ
   class Collection < ::Array
-    class IncompatibleItemError < StandardError
+    class IncompatibleItemError < ArgumentError
       def initialize(item)
         super("Instance of #{item.class} doesn't respond to #name!")
       end
@@ -25,11 +25,20 @@ class MQ
     undef_method :[]=
 
     def <<(item)
+      if (item.name rescue nil).nil? || ! self[item.name]
+        self.add!(item)
+      end
+    end
+
+    alias_method :__push__, :push
+    alias_method :push, :<<
+
+    def add!(item)
       unless item.respond_to?(:name)
         raise IncompatibleItemError.new(item)
       end
 
-      super(item) if item.name.nil? || ! self[item.name]
+      __push__(item)
       return item
     end
   end
@@ -79,6 +88,30 @@ if $0 =~ /bacon/ or $0 == __FILE__
         @collection << Item.new(nil)
         length = @collection.length
         @collection << Item.new(nil)
+        @collection.length.should.eql(length + 1)
+      end
+
+      should "return the item" do
+        item = Item.new("test")
+        (@collection << item).should.eql item
+      end
+    end
+
+    describe "#add!" do
+      should "raise IncompatibleItemError if the argument doesn't have method :name" do
+        lambda { @collection << nil }.should.raise(MQ::Collection::IncompatibleItemError)
+      end
+
+      should "add an item into the collection" do
+        length = @collection.length
+        @collection << Item.new("test")
+        @collection.length.should.eql(length + 1)
+      end
+
+      should "add an item to the collection if another item with given name already exists" do
+        @collection.add! Item.new("test")
+        length = @collection.length
+        @collection.add! Item.new("test")
         @collection.length.should.eql(length + 1)
       end
 

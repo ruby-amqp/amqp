@@ -211,6 +211,13 @@ class MQ
         queue  = queues.reverse.find { |queue| queue.status.eql?(:unfinished) }
         queue.receive_status method
 
+      when Protocol::Queue::BindOk
+        # We can't use queues[method.queue] because if the name would
+        # be an empty string, then AMQP broker generated a random one.
+        queues = self.queues.select { |queue| queue.opts[:nowait].eql?(false) }
+        queue  = queues.reverse.find { |queue| queue.status.eql?(:unbound) }
+        queue.after_bind method
+
       when Protocol::Basic::Deliver, Protocol::Basic::GetOk
         @method = method
         @header = nil
@@ -686,6 +693,10 @@ class MQ
   #
   def queue name, opts = {}, &block
     self.queues << Queue.new(self, name, opts, &block)
+  end
+
+  def queue! name, opts = {}, &block
+    self.queues.add! Queue.new(self, name, opts, &block)
   end
 
   # Takes a channel, queue and optional object.

@@ -75,7 +75,7 @@ class MQ
     end
 
     attr_reader :name
-    attr_accessor :opts, :callback
+    attr_accessor :opts, :callback, :bind_callback
 
     # This method binds a queue to an exchange.  Until a queue is
     # bound it will not receive any messages.  In a classic messaging
@@ -110,7 +110,8 @@ class MQ
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
-    def bind exchange, opts = {}
+    def bind exchange, opts = {}, &block
+      @status = :unbound
       exchange = exchange.respond_to?(:name) ? exchange.name : exchange
       @bindings[exchange] = opts
 
@@ -118,8 +119,9 @@ class MQ
         @mq.send Protocol::Queue::Bind.new({ :queue => name,
                                              :exchange => exchange,
                                              :routing_key => opts[:key],
-                                             :nowait => true }.merge(opts))
+                                             :nowait => block.nil? }.merge(opts))
       }
+      self.bind_callback = block
       self
     end
 
@@ -418,13 +420,20 @@ class MQ
       @status = :finished
 
       if self.callback
-        self.callback.call(declare_ok)
+        self.callback.call(self, declare_ok.message_count, declare_ok.consumer_count)
       end
 
       if @on_status
         m, c = declare_ok.message_count, declare_ok.consumer_count
         @on_status.call *(@on_status.arity == 1 ? [m] : [m, c])
         @on_status = nil
+      end
+    end
+
+    def after_bind bind_ok
+      @status = :bound
+      if self.bind_callback
+        self.bind_callback.call(self)
       end
     end
 
