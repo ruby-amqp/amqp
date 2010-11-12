@@ -1,5 +1,7 @@
 require File.expand_path('../frame', __FILE__)
 
+require 'uri'
+
 module AMQP
   class Error < StandardError; end
 
@@ -184,7 +186,15 @@ module AMQP
       EM.reconnect @settings[:host], @settings[:port], self
     end
 
-    def self.connect opts = {}
+    def self.connect amqp_url_or_opts = nil
+      if amqp_url_or_opts.is_a?(String)
+        opts = parse_amqp_url(amqp_url_or_opts)
+      elsif amqp_url_or_opts.is_a?(Hash)
+        opts = amqp_url_or_opts
+      elsif amqp_url_or_opts.nil?
+        opts = Hash.new
+      end
+
       opts = AMQP.settings.merge(opts)
       EM.connect opts[:host], opts[:port], self, opts
     end
@@ -205,6 +215,20 @@ module AMQP
       require 'pp'
       pp args
       puts
+    end
+
+    def self.parse_amqp_url(amqp_url)
+      uri = URI.parse(amqp_url)
+      raise("amqp:// uri required!") unless %w{amqp amqps}.include? uri.scheme
+      opts = {}
+      opts[:user] = URI.unescape(uri.user) if uri.user
+      opts[:pass] = URI.unescape(uri.password) if uri.password
+      opts[:vhost] = URI.unescape(uri.path) if uri.path
+      opts[:host] = uri.host if uri.host
+      opts[:port] = uri.port ? uri.port :
+                      {"amqp"=>5672, "amqps"=>5671}[uri.scheme]
+      opts[:ssl] = uri.scheme == "amqps"
+      return opts
     end
   end
 end
