@@ -10,7 +10,7 @@ class MQ
   # There are three (3) supported Exchange types: direct, fanout and topic.
   #
   # As part of the standard, the server _must_ predeclare the direct exchange
-  # 'amq.direct' and the fanout exchange 'amq.fanout' (all exchange names 
+  # 'amq.direct' and the fanout exchange 'amq.fanout' (all exchange names
   # starting with 'amq.' are reserved). Attempts to declare an exchange using
   # 'amq.' as the name will raise an MQ:Error and fail. In practice these
   # default exchanges are never used directly by client code.
@@ -28,7 +28,7 @@ class MQ
     # There are three (3) supported Exchange types: direct, fanout and topic.
     #
     # As part of the standard, the server _must_ predeclare the direct exchange
-    # 'amq.direct' and the fanout exchange 'amq.fanout' (all exchange names 
+    # 'amq.direct' and the fanout exchange 'amq.fanout' (all exchange names
     # starting with 'amq.' are reserved). Attempts to declare an exchange using
     # 'amq.' as the name will raise an MQ:Error and fail. In practice these
     # default exchanges are never used directly by client code.
@@ -36,8 +36,8 @@ class MQ
     # == Direct
     # A direct exchange is useful for 1:1 communication between a publisher and
     # subscriber. Messages are routed to the queue with a binding that shares
-    # the same name as the exchange. Alternately, the messages are routed to 
-    # the bound queue that shares the same name as the routing key used for 
+    # the same name as the exchange. Alternately, the messages are routed to
+    # the bound queue that shares the same name as the routing key used for
     # defining the exchange. This exchange type does not honor the :key option
     # when defining a new instance with a name. It _will_ honor the :key option
     # if the exchange name is the empty string. This is because an exchange
@@ -57,14 +57,14 @@ class MQ
     #  queue.pop { |data| puts "received data [#{data}]" }
     #
     # == Fanout
-    # A fanout exchange is useful for 1:N communication where one publisher 
-    # feeds multiple subscribers. Like direct exchanges, messages published 
-    # to a fanout exchange are delivered to queues whose name matches the 
-    # exchange name (or are bound to that exchange name). Each queue gets 
+    # A fanout exchange is useful for 1:N communication where one publisher
+    # feeds multiple subscribers. Like direct exchanges, messages published
+    # to a fanout exchange are delivered to queues whose name matches the
+    # exchange name (or are bound to that exchange name). Each queue gets
     # its own copy of the message.
     #
-    # Like the direct exchange type, this exchange type does not honor the 
-    # :key option when defining a new instance with a name. It _will_ honor 
+    # Like the direct exchange type, this exchange type does not honor the
+    # :key option when defining a new instance with a name. It _will_ honor
     # the :key option if the exchange name is the empty string. Fanout exchanges
     # defined with the empty string as the name use the default 'amq.fanout'.
     # In this case it needs to use :key to do its matching.
@@ -91,20 +91,20 @@ class MQ
     #  end
     #
     # == Topic
-    # A topic exchange allows for messages to be published to an exchange 
+    # A topic exchange allows for messages to be published to an exchange
     # tagged with a specific routing key. The Exchange uses the routing key
-    # to determine which queues to deliver the message. Wildcard matching 
-    # is allowed. The topic must be declared using dot notation to separate 
+    # to determine which queues to deliver the message. Wildcard matching
+    # is allowed. The topic must be declared using dot notation to separate
     # each subtopic.
     #
     # This is the only exchange type to honor the :key parameter.
     #
-    # As part of the AMQP standard, each server _should_ predeclare a topic 
+    # As part of the AMQP standard, each server _should_ predeclare a topic
     # exchange called 'amq.topic' (this is not required by the standard).
     #
     # The classic example is delivering market data. When publishing market
-    # data for stocks, we may subdivide the stream based on 2 
-    # characteristics: nation code and trading symbol. The topic tree for 
+    # data for stocks, we may subdivide the stream based on 2
+    # characteristics: nation code and trading symbol. The topic tree for
     # Apple Computer would look like:
     #  'stock.us.aapl'
     # For a foreign stock, it may look like:
@@ -139,10 +139,10 @@ class MQ
     #    end
     #  end
     #
-    # For matching, the '*' (asterisk) wildcard matches against one 
-    # dot-separated item only. The '#' wildcard (hash or pound symbol) 
-    # matches against 0 or more dot-separated items. If none of these 
-    # symbols are used, the exchange performs a comparison looking for an 
+    # For matching, the '*' (asterisk) wildcard matches against one
+    # dot-separated item only. The '#' wildcard (hash or pound symbol)
+    # matches against 0 or more dot-separated items. If none of these
+    # symbols are used, the exchange performs a comparison looking for an
     # exact match.
     #
     # == Options
@@ -150,12 +150,12 @@ class MQ
     # If set, the server will not create the exchange if it does not
     # already exist. The client can use this to check whether an exchange
     # exists without modifying  the server state.
-    # 
+    #
     # * :durable => true | false (default false)
     # If set when creating a new exchange, the exchange will be marked as
     # durable.  Durable exchanges remain active when a server restarts.
     # Non-durable exchanges (transient exchanges) are purged if/when a
-    # server restarts. 
+    # server restarts.
     #
     # A transient exchange (the default) is stored in memory-only
     # therefore it is a good choice for high-performance and low-latency
@@ -198,21 +198,39 @@ class MQ
     # * redeclare an already-declared exchange to a different type
     # * :passive => true and the exchange does not exist (NOT_FOUND)
     #
-    def initialize mq, type, name, opts = {}
+    def initialize mq, type, name, opts = {}, &block
       @mq = mq
-      @type, @name, @opts = type, name, opts
-      @mq.exchanges[@name = name] ||= self
+      @type, @opts = type, opts
+      @opts = { :exchange => name, :type => type, :nowait => block.nil? }.merge(opts)
       @key = opts[:key]
-      
+      @name = name unless name.empty?
+      @status = @opts[:nowait] ? :unknown : :unfinished
+
+      # The AMQP 0.8 specification (as well as 0.9.1) in 1.1.4.2 mentiones
+      # that Exchange.Declare-Ok confirms the name of the exchange (because
+      # of automatically­named), which is logical to interpret that this
+      # functionality should be the same as for Queue (though it isn't
+      # explicitely told in the specification). In fact, RabbitMQ (and
+      # probably other implementations as well) doesn't support it and
+      # there is a default exchange with an empty name (so-called default
+      # or nameless exchange), so if we'd send Exchange.Declare(exchange=""),
+      # then RabbitMQ interpret it as if we'd try to redefine this default
+      # exchange so it'd produce an error.
       unless name == "amq.#{type}" or name == '' or opts[:no_declare]
-        @mq.callback{
-          @mq.send Protocol::Exchange::Declare.new({ :exchange => name,
-                                                     :type => type,
-                                                     :nowait => true }.merge(opts))
+        @mq.callback {
+          @mq.send Protocol::Exchange::Declare.new(@opts)
         }
+      else
+        # Call the callback immediately, as given exchange is already
+        # declared.
+        block.call(self)
       end
+
+      self.callback = block
     end
-    attr_reader :name, :type, :key
+
+    attr_reader :name, :type, :key, :status
+    attr_accessor :opts, :callback
 
     # This method publishes a staged file message to a specific exchange.
     # The file message will be routed to queues as defined by the exchange
@@ -222,7 +240,7 @@ class MQ
     #  exchange = MQ.direct('name', :key => 'foo.bar')
     #  exchange.publish("some data")
     #
-    # The method takes several hash key options which modify the behavior or 
+    # The method takes several hash key options which modify the behavior or
     # lifecycle of the message.
     #
     # * :routing_key => 'string'
@@ -246,7 +264,7 @@ class MQ
     # no guarantee that it will ever be consumed.
     #
     #  * :persistent
-    # True or False. When true, this message will remain in the queue until 
+    # True or False. When true, this message will remain in the queue until
     # it is consumed (if the queue is durable). When false, the message is
     # lost if the server restarts and the queue is recreated.
     #
@@ -296,7 +314,7 @@ class MQ
     # If set, the server will only delete the exchange if it has no queue
     # bindings. If the exchange has queue bindings the server does not
     # delete it but raises a channel exception instead (MQ:Error).
-    #    
+    #
     def delete opts = {}
       @mq.callback{
         @mq.send Protocol::Exchange::Delete.new({ :exchange => name,
@@ -309,6 +327,10 @@ class MQ
     def reset
       @deferred_status = nil
       initialize @mq, @type, @name, @opts
+    end
+
+    def receive_response response
+      self.callback && self.callback.call(self)
     end
   end
 end

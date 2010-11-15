@@ -204,6 +204,13 @@ class MQ
           MQ.error "Basic.CancelOk for invalid consumer tag: #{method.consumer_tag}"
         end
 
+      when Protocol::Exchange::DeclareOk
+        # We can't use exchanges[method.exchange] because if the name would
+        # be an empty string, then AMQP broker generated a random one.
+        exchanges = self.exchanges.select { |exchange| exchange.opts[:nowait].eql?(false) }
+        exchange  = exchanges.reverse.find { |exchange| exchange.status.eql?(:unfinished) }
+        exchange.receive_response method
+
       when Protocol::Queue::DeclareOk
         # We can't use queues[method.queue] because if the name would
         # be an empty string, then AMQP broker generated a random one.
@@ -343,8 +350,8 @@ class MQ
   # * redeclare an already-declared exchange to a different type
   # * :passive => true and the exchange does not exist (NOT_FOUND)
   #
-  def direct name = 'amq.direct', opts = {}
-    exchanges[name] ||= Exchange.new(self, :direct, name, opts)
+  def direct name = 'amq.direct', opts = {}, &block
+    self.exchanges << Exchange.new(self, :direct, name, opts, &block)
   end
 
   # Defines, intializes and returns an Exchange to act as an ingress
@@ -429,8 +436,8 @@ class MQ
   # * redeclare an already-declared exchange to a different type
   # * :passive => true and the exchange does not exist (NOT_FOUND)
   #
-  def fanout name = 'amq.fanout', opts = {}
-    exchanges[name] ||= Exchange.new(self, :fanout, name, opts)
+  def fanout name = 'amq.fanout', opts = {}, &block
+    self.exchanges << Exchange.new(self, :fanout, name, opts, &block)
   end
 
   # Defines, intializes and returns an Exchange to act as an ingress
@@ -541,8 +548,8 @@ class MQ
   # * redeclare an already-declared exchange to a different type
   # * :passive => true and the exchange does not exist (NOT_FOUND)
   #
-  def topic name = 'amq.topic', opts = {}
-    exchanges[name] ||= Exchange.new(self, :topic, name, opts)
+  def topic name = 'amq.topic', opts = {}, &block
+    self.exchanges << Exchange.new(self, :topic, name, opts, &block)
   end
 
   # Defines, intializes and returns an Exchange to act as an ingress
@@ -621,8 +628,8 @@ class MQ
   # * redeclare an already-declared exchange to a different type
   # * :passive => true and the exchange does not exist (NOT_FOUND)
   # * using a value other than "any" or "all" for "x-match"
-  def headers name = 'amq.match', opts = {}
-    exchanges[name] ||= Exchange.new(self, :headers, name, opts)
+  def headers name = 'amq.match', opts = {}, &block
+    self.exchanges << Exchange.new(self, :headers, name, opts, &block)
   end
 
   # Queues store and forward messages.  Queues can be configured in the server
@@ -783,7 +790,7 @@ class MQ
   #
   # Not typically called by client code.
   def exchanges
-    @exchanges ||= {}
+    @exchanges ||= MQ::Collection.new
   end
 
   # Returns a hash of all the queue proxy objects.
