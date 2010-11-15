@@ -1,7 +1,7 @@
 class MQ
   class Queue
     include AMQP
-    
+
     # Queues store and forward messages.  Queues can be configured in the server
     # or created at runtime.  Queues must be attached to at least one exchange
     # in order to receive messages from publishers.
@@ -10,7 +10,7 @@ class MQ
     # internal use. Attempts to create queue names in violation of this
     # reservation will raise MQ:Error (ACCESS_REFUSED).
     #
-    # When a queue is created without a name, the server will generate a 
+    # When a queue is created without a name, the server will generate a
     # unique name internally (not currently supported in this library).
     #
     # == Options
@@ -18,7 +18,7 @@ class MQ
     # If set, the server will not create the exchange if it does not
     # already exist. The client can use this to check whether an exchange
     # exists without modifying  the server state.
-    # 
+    #
     # * :durable => true | false (default false)
     # If set when creating a new queue, the queue will be marked as
     # durable.  Durable queues remain active when a server restarts.
@@ -47,7 +47,7 @@ class MQ
     # If set, the queue is deleted when all consumers have finished
     # using it. Last consumer can be cancelled either explicitly or because
     # its channel is closed. If there was no consumer ever on the queue, it
-    # won't be deleted. 
+    # won't be deleted.
     #
     # The server waits for a short period of time before
     # determining the queue is unused to give time to the client code
@@ -61,17 +61,21 @@ class MQ
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
-    def initialize mq, name, opts = {}
+    def initialize mq, name, opts = {}, &block
       @mq = mq
-      @opts = opts
+      @opts = { :queue => name, :nowait => block.nil? }.merge(opts)
       @bindings ||= {}
-      @mq.queues[@name = name] ||= self
-      @mq.callback{
-        @mq.send Protocol::Queue::Declare.new({ :queue => name,
-                                                :nowait => true }.merge(opts))
+      @name = name unless name.empty?
+      @status = @opts[:nowait] ? :unknown : :unfinished
+      @mq.callback {
+        @mq.send Protocol::Queue::Declare.new(@opts)
       }
+
+      self.callback = block
     end
+
     attr_reader :name
+    attr_accessor :opts, :callback, :bind_callback
 
     # This method binds a queue to an exchange.  Until a queue is
     # bound it will not receive any messages.  In a classic messaging
@@ -106,7 +110,8 @@ class MQ
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
-    def bind exchange, opts = {}
+    def bind exchange, opts = {}, &block
+      @status = :unbound
       exchange = exchange.respond_to?(:name) ? exchange.name : exchange
       @bindings[exchange] = opts
 
@@ -114,13 +119,14 @@ class MQ
         @mq.send Protocol::Queue::Bind.new({ :queue => name,
                                              :exchange => exchange,
                                              :routing_key => opts[:key],
-                                             :nowait => true }.merge(opts))
+                                             :nowait => block.nil? }.merge(opts))
       }
+      self.bind_callback = block
       self
     end
 
     # Remove the binding between the queue and exchange. The queue will
-    # not receive any more messages until it is bound to another 
+    # not receive any more messages until it is bound to another
     # exchange.
     #
     # Due to the asynchronous nature of the protocol, it is possible for
@@ -197,7 +203,7 @@ class MQ
     #    EM.add_periodic_timer(1) do
     #      exchange.publish("random number #{rand(1000)}")
     #    end
-    #    
+    #
     #    # note that #bind is never called; it is implicit because
     #    # the exchange and queue names match
     #    queue = MQ.queue('foo queue')
@@ -215,9 +221,9 @@ class MQ
     #    EM.add_periodic_timer(1) do
     #      exchange.publish("random number #{rand(1000)}")
     #    end
-    #    
+    #
     #    queue = MQ.queue('foo queue')
-    #    queue.pop do |header, body| 
+    #    queue.pop do |header, body|
     #      p header
     #      puts "received payload [#{body}]"
     #    end
@@ -268,7 +274,7 @@ class MQ
     #    EM.add_periodic_timer(1) do
     #      exchange.publish("random number #{rand(1000)}")
     #    end
-    #    
+    #
     #    queue = MQ.queue('foo queue')
     #    queue.subscribe { |body| puts "received payload [#{body}]" }
     #  end
@@ -282,11 +288,11 @@ class MQ
     #    EM.add_periodic_timer(1) do
     #      exchange.publish("random number #{rand(1000)}")
     #    end
-    #    
+    #
     #    # note that #bind is never called; it is implicit because
     #    # the exchange and queue names match
     #    queue = MQ.queue('foo queue')
-    #    queue.subscribe do |header, body| 
+    #    queue.subscribe do |header, body|
     #      p header
     #      puts "received payload [#{body}]"
     #    end
@@ -340,11 +346,11 @@ class MQ
     # Those messages will be serviced by the last block used in a
     # #subscribe or #pop call.
     #
-    # Additionally, if the queue was created with _autodelete_ set to 
+    # Additionally, if the queue was created with _autodelete_ set to
     # true, the server will delete the queue after its wait period
     # has expired unless the queue is bound to an active exchange.
     #
-    # The method accepts a block which will be executed when the 
+    # The method accepts a block which will be executed when the
     # unsubscription request is acknowledged as complete by the server.
     #
     # * :nowait => true | false (default true)
@@ -363,21 +369,21 @@ class MQ
     def publish data, opts = {}
       exchange.publish(data, opts)
     end
-    
+
     # Boolean check to see if the current queue has already been subscribed
-    # to an exchange. 
+    # to an exchange.
     #
     # Attempts to #subscribe multiple times to any exchange will raise an
-    # Exception. Only a single block at a time can be associated with any 
+    # Exception. Only a single block at a time can be associated with any
     # one queue for processing incoming messages.
     #
     def subscribed?
       !!@on_msg
     end
 
-    # Passes the message to the block passed to pop or subscribe. 
+    # Passes the message to the block passed to pop or subscribe.
     #
-    # Performs an arity check on the block's parameters. If arity == 1, 
+    # Performs an arity check on the block's parameters. If arity == 1,
     # pass only the message body. If arity != 1, pass the headers and
     # the body to the block.
     #
@@ -399,6 +405,8 @@ class MQ
     #  }
     #
     def status opts = {}, &blk
+      return @status if opts.empty? && blk.nil?
+
       @on_status = blk
       @mq.callback{
         @mq.send Protocol::Queue::Declare.new({ :queue => name,
@@ -408,10 +416,24 @@ class MQ
     end
 
     def receive_status declare_ok
+      @name = declare_ok.queue
+      @status = :finished
+
+      if self.callback
+        self.callback.call(self, declare_ok.message_count, declare_ok.consumer_count)
+      end
+
       if @on_status
         m, c = declare_ok.message_count, declare_ok.consumer_count
         @on_status.call *(@on_status.arity == 1 ? [m] : [m, c])
         @on_status = nil
+      end
+    end
+
+    def after_bind bind_ok
+      @status = :bound
+      if self.bind_callback
+        self.bind_callback.call(self)
       end
     end
 
@@ -445,9 +467,9 @@ class MQ
         pop @on_pop_opts, &@on_pop
       end
     end
-  
+
     private
-    
+
     def exchange
       @exchange ||= Exchange.new(@mq, :direct, '', :key => name)
     end
