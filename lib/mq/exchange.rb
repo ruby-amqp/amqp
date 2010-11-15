@@ -204,7 +204,7 @@ class MQ
       @opts = { :exchange => name, :type => type, :nowait => block.nil? }.merge(opts)
       @key = opts[:key]
       @name = name unless name.empty?
-      @status = @opts[:nowait] ? :unknown : :unfinished
+      @status = :unknown
 
       # The AMQP 0.8 specification (as well as 0.9.1) in 1.1.4.2 mentiones
       # that Exchange.Declare-Ok confirms the name of the exchange (because
@@ -217,12 +217,14 @@ class MQ
       # then RabbitMQ interpret it as if we'd try to redefine this default
       # exchange so it'd produce an error.
       unless name == "amq.#{type}" or name == '' or opts[:no_declare]
+        @status = :unfinished
         @mq.callback {
           @mq.send Protocol::Exchange::Declare.new(@opts)
         }
       else
         # Call the callback immediately, as given exchange is already
         # declared.
+        @status = :finished
         block.call(self)
       end
 
