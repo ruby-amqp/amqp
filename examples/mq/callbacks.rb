@@ -8,8 +8,8 @@ AMQP.start(:host => "localhost") do
   amq = MQ.new
 
   3.times do
-    amq.queue("") do |method|
-      puts "Queue #{method.queue} declared."
+    amq.queue("") do |queue|
+      puts "Queue #{queue.name} declared."
       puts "All queues: #{amq.queues.map(&:name).inspect}", ""
 
       @counter += 1
