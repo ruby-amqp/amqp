@@ -249,6 +249,8 @@ class MQ
         raise Error, "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]} on #{@channel}"
 
       when Protocol::Channel::CloseOk
+        @on_close && @on_close.call(self)
+
         @closing = false
         conn.callback{ |c|
           c.channels.delete @channel
@@ -746,7 +748,8 @@ class MQ
     rpcs[name] ||= RPC.new(self, name, obj)
   end
 
-  def close
+  def close(&block)
+    @on_close = block
     if @deferred_status == :succeeded
       send Protocol::Channel::Close.new(:reply_code => 200,
                                         :reply_text => 'bye',
