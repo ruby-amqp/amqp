@@ -28,6 +28,8 @@ class MQ
       if (item.name rescue nil).nil? || ! self[item.name]
         self.add!(item)
       end
+
+      return item
     end
 
     alias_method :__push__, :push
@@ -93,6 +95,12 @@ if $0 =~ /bacon/ or $0 == __FILE__
 
       should "return the item" do
         item = Item.new("test")
+        (@collection << item).should.eql item
+      end
+
+      should "return the item even if it already existed" do
+        item = Item.new("test")
+        @collection << item
         (@collection << item).should.eql item
       end
     end
