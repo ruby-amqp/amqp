@@ -1,5 +1,5 @@
 = Version 0.7
   * [BUG] Sync API for queues and exchanges, support for server-generated queues & exchange names (via semi-lazy collection).
   * [BUG] Sync API for MQ#close (Channel.Close) [issue #34].
-  * [FEATURE] From majek's fork, with some fixes. Example: AMQP.start("amqps://")
-  * [DEVELOP] some em-spec-based specs, bin/irb, Gemfile.
+  * [FEATURE] AMQP URL from majek's fork, with some fixes. Example: AMQP.start("amqps://")
+  * [DEVELOP] Added some em-spec-based specs, bin/irb, Gemfile.
