@@ -87,6 +87,8 @@ Credits and more information
 
 (c) 2008—2010 [Aman Gupta](http://github.com/tmm1) (tmm1)
 
+Current maintainer: [Jakub Stastny](http://github.com/botanicus) aka [botanicus](http://twitter.com/botanicus).
+
 This project was inspired by [py-amqplib](http://barryp.org/software/py-amqplib/), [rabbitmq](http://rabbitmq.com), [qpid](http://qpid.apache.org/) and [rubbyt](http://github.com/rubbyt/rubbyt).
 Special thanks to Dmitriy Samovskiy, Ben Hood and Tony Garnock-Jones.
 
