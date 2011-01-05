@@ -61,6 +61,12 @@ In a Ruby on Rails app, probably the best place for this code is initializer
 Sinatra and pure Rack applications, place it next to other configuration
 code.
 
+If you want to integrate AMQP with Thin or another EventMachine-based software which already runs an event loop, you might want to use following code:
+
+    EM.next_tick { AMQP.connect(...) }
+
+So in case the reactor isn't running yet (which seems to be the case with Ruby on Rails 3.x and Thin combination), it won't fail, but wait when the reactor is started (see [issue #21](https://github.com/tmm1/amqp/issues/21)).
+
 Same separate thread technique can be used to make EventMachine play nicely with other
 libraries that would block current thread (like [File::Tail](http://rubygems.org/gems/file-tail)).
 
