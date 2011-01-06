@@ -91,7 +91,10 @@ The lib/amqp/spec.rb file is generated automatically based on the [AMQP specific
 Credits and more information
 ============================
 
-(c) 2008—2010 [Aman Gupta](http://github.com/tmm1) (tmm1)
+* The Original Code is tmm1/amqp.
+* The Initial Developer of the Original Code is Aman Gupta.
+* Copyright (c) 2008 - 2010 [Aman Gupta](http://github.com/tmm1) (tmm1).
+* Contributions from Jakub Stastny are Copyright (c) 2011 VMware, Inc.
 
 Current maintainer: [Jakub Stastny](http://github.com/botanicus) aka [botanicus](http://twitter.com/botanicus).
 
