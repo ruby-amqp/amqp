@@ -70,23 +70,24 @@ So in case the reactor isn't running yet (which seems to be the case with Ruby o
 Same separate thread technique can be used to make EventMachine play nicely with other
 libraries that would block current thread (like [File::Tail](http://rubygems.org/gems/file-tail)).
 
-AMQP gem mailing list
+Links
 ==============================
 
+* Jabber chat [amqp-dev@conf.netlab.cz](xmpp://amqp-dev@conf.netlab.cz)
 * [AMQP gem mailing list](http://groups.google.com/group/ruby-amqp)
 * [AMQP gem at GitHub](http://github.com/tmm1/amqp)
 * [AMQP gem at Gemcutter](http://rubygems.org/gems/amqp)
 
-Running specifications suite
+Contributions
 ============================
 
-To run the test suite make sure you have [bacon](http://gemcutter.org/gems/bacon) gem installed and run:
+All the dependencies are specified in <code>Gemfile</code>, so if you have [Bundler](http://gembundler.com), you can just run <code>bundle install</code>.
 
-    rake spec
-
-The lib/amqp/spec.rb file is generated automatically based on the [AMQP specification](http://www.amqp.org/confluence/display/AMQP/AMQP+Specification). To generate it:
+The <code>lib/amqp/spec.rb</code> file is generated automatically based on the [AMQP specification](http://www.amqp.org/confluence/display/AMQP/AMQP+Specification). To generate it:
 
     rake codegen
+
+For running specs, use <code>rake spec</code>.
 
 Credits and more information
 ============================
