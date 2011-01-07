@@ -2,10 +2,12 @@
 
 require File.expand_path("../spec_helper", __FILE__)
 
-EM.describe "MQ#close(&callback)" do
+describe MQ, "#close(&callback)" do
+  include AMQP::EMSpec
+
   default_timeout 5
 
-  should "take a callback which will run when we get back Channel.Close-Ok" do
+  it "takes a callback which will run when we get back Channel.Close-Ok" do
     MQ.new.close do |amq|
       done
     end
