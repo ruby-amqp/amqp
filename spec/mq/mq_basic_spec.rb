@@ -12,8 +12,9 @@ describe MQ do
   end
 
   it 'should have a channel' do
-    @mq.channel.should.be.kind_of? Fixnum
+    @mq.channel.should be_kind_of Fixnum
     @mq.channel.should == 1
+    done
   end
 
   it 'should give each thread a message queue' do
@@ -23,20 +24,24 @@ describe MQ do
     MQ.channel.should == 1
     Thread.new { MQ.channel }.value.should == 2
     Thread.new { MQ.channel }.value.should == 3
+    done
   end
 
   it 'should create direct exchanges' do
     @mq.direct.name.should == 'amq.direct'
     @mq.direct(nil).name.should =~ /^\d+$/
     @mq.direct('name').name.should == 'name'
+    done
   end
 
   it 'should create fanout and topic exchanges' do
     @mq.fanout.name.should == 'amq.fanout'
     @mq.topic.name.should == 'amq.topic'
+    done
   end
 
   it 'should create queues' do
     q = @mq.queue('test')
+    done
   end
 end

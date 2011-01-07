@@ -32,7 +32,7 @@ describe AMQP::Client do
         it 'either hits connection timeout (with :timeout option), or' do
           expect { em do
             Client.connect(:host => 'example.com', :timeout => 0.001)
-            done(1)
+            done(2)
           end
           }.to raise_error AMQP::Error, /Could not connect to server example.com:5672/
         end
@@ -40,13 +40,13 @@ describe AMQP::Client do
         it 'raises connection error (with unresolvable AMQP broker address), or' do
           expect { em do
             Client.connect(:host => 'impossible.')
-            done(0.1)
+            done(2)
           end
           }.to raise_error EventMachine::ConnectionError, /unable to resolve server address/
         end
 
         it 'raises connection error (with wrong AMQP host), or' do
-          pending 'Failing, cannot find any reason why'
+#          pending 'Failing, cannot find any reason why'
           expect { em do
             Client.connect(:host => 'example.com')
             done(2)
@@ -128,7 +128,7 @@ describe AMQP::Client do
             EM.add_timer(0.2) {
               @client.should be_connected
               @client.should_receive(:send) do |message|
-                message.should be_an AMQP::Protocol::Connection::Close
+                message.should be_a Protocol::Connection::Close
               end
               @client.close
               done }
@@ -139,7 +139,7 @@ describe AMQP::Client do
           it 'client receives Protocol::Connection::CloseOk method from broker' do
             EM.add_timer(0.2) {
               @client.should_receive(:process_frame) do |frame|
-                frame.payload.should be_an AMQP::Protocol::Connection::CloseOk
+                frame.payload.should be_a Protocol::Connection::CloseOk
               end
               @client.close
               done(0.2) }
@@ -271,9 +271,9 @@ describe AMQP::Client do
         describe "#receive_data" do
           it 'is a callback method that EM calls when it gets raw data from broker' do
             @client.should_receive(:receive_data) do |data|
-              frame = AMQP::Frame.parse(data)
-              frame.should be_an AMQP::Frame::Method
-              frame.payload.should be_an AMQP::Protocol::Connection::Start
+              frame = Frame.parse(data)
+              frame.should be_an Frame::Method
+              frame.payload.should be_an Protocol::Connection::Start
               done
             end
           end
@@ -315,20 +315,18 @@ describe AMQP::Client do
           describe ' Frame::Method', '(Method with args received)' do
             describe 'Protocol::Connection::Start',
                      '(broker initiated start of AMQP connection)' do
-              let(:frame) { AMQP::Frame::Method.new(AMQP::Protocol::Connection::Start.new) }
+              let(:frame) { Frame::Method.new(Protocol::Connection::Start.new) }
 
               it 'sends back to broker Protocol::Connection::StartOk with details' do
                 EM.add_timer(0.2) {
                   @client.should_receive(:send).
-                      with(AMQP::Protocol::Connection::StartOk.new(
-                               {platform: 'Ruby/EventMachine',
-                                product: 'AMQP',
-                                information: 'http://github.com/tmm1/amqp',
-                                version: AMQP::VERSION},
-                               'AMQPLAIN',
-                               {LOGIN: AMQP.settings[:user],
-                                PASSWORD: AMQP.settings[:pass]},
-                               'en_US'))
+                      with(Protocol::Connection::StartOk.new(
+                               {:platform => 'Ruby/EventMachine',
+                                :product => 'AMQP',
+                                :information => 'http://github.com/tmm1/amqp',
+                                :version => AMQP::VERSION}, 'AMQPLAIN',
+                               {:LOGIN => AMQP.settings[:user],
+                                :PASSWORD => AMQP.settings[:pass]}, 'en_US'))
                   @client.process_frame(frame)
                   done }
               end
@@ -336,23 +334,21 @@ describe AMQP::Client do
 
             describe 'Protocol::Connection::Tune',
                      '(broker suggested connection parameters)' do
-              let(:frame) { AMQP::Frame::Method.new(AMQP::Protocol::Connection::Tune.new) }
+              let(:frame) { Frame::Method.new(Protocol::Connection::Tune.new) }
 
               it 'sends back to broker TuneOk with parameters and Open' do
                 EM.add_timer(0.2) {
                   @client.should_receive(:send) do |method|
-                    if method.is_a? AMQP::Protocol::Connection::TuneOk
-                      method.should ==
-                          AMQP::Protocol::Connection::TuneOk.new(
-                              channel_max: 0,
-                              frame_max: 131072,
-                              heartbeat: 0)
+                    if method.is_a? Protocol::Connection::TuneOk
+                      method.should == Protocol::Connection::TuneOk.new(
+                          :channel_max => 0,
+                          :frame_max => 131072,
+                          :heartbeat => 0)
                     else
-                      method.should ==
-                          AMQP::Protocol::Connection::Open.new(
-                              virtual_host: AMQP.settings[:vhost],
-                              capabilities: '',
-                              insist: AMQP.settings[:insist])
+                      method.should == Protocol::Connection::Open.new(
+                          :virtual_host => AMQP.settings[:vhost],
+                          :capabilities => '',
+                          :insist => AMQP.settings[:insist])
                     end
                   end.exactly(2).times
                   @client.process_frame(frame)
@@ -362,8 +358,7 @@ describe AMQP::Client do
 
             describe 'Protocol::Connection::OpenOk',
                      '(broker confirmed connection opening)' do
-              let(:frame) { AMQP::Frame::Method.new(
-                  AMQP::Protocol::Connection::OpenOk.new) }
+              let(:frame) { Frame::Method.new(AMQP::Protocol::Connection::OpenOk.new) }
 
               it 'succeeds @client (as a deferrable)' do
                 @client.instance_variable_get(:@deferred_status).should == :unknown
@@ -375,12 +370,11 @@ describe AMQP::Client do
 
             describe 'Protocol::Connection::Close',
                      '(unexpectedly received connection close from broker)' do
-              let(:frame) { AMQP::Frame::Method.new(
-                  AMQP::Protocol::Connection::Close.new(
-                      reply_code: 320,
-                      reply_text: "Nyanya",
-                      class_id: 10,
-                      method_id: 40)) }
+              let(:frame) { Frame::Method.new(Protocol::Connection::Close.new(
+                                                  :reply_code => 320,
+                                                  :reply_text => "Nyanya",
+                                                  :class_id => 10,
+                                                  :method_id => 40)) }
 
               it 'just prints debug info to STDERR' do
                 STDERR.should_receive(:puts).
@@ -394,8 +388,7 @@ describe AMQP::Client do
 
             describe 'Protocol::Connection::CloseOk',
                      '(broker confirmed our connection close request)' do
-              let(:frame) { AMQP::Frame::Method.new(
-                  AMQP::Protocol::Connection::CloseOk.new) }
+              let(:frame) { Frame::Method.new(Protocol::Connection::CloseOk.new) }
 
               it 'calls registered @on_disconnect hook' do
                 EM.add_timer(0.1) {
@@ -463,9 +456,9 @@ describe AMQP::Client do
             data = basic_header
             @client.should_receive(:send_data) do |data|
               data.should be_a String
-              frame = AMQP::Frame.parse(data)
-              frame.class.should == AMQP::Frame::Header
-              frame.payload.class.should == AMQP::Protocol::Header
+              frame = Frame.parse(data)
+              frame.class.should == Frame::Header
+              frame.payload.class.should == Protocol::Header
               frame.channel.should == 0
             end
             @client.send data
@@ -482,7 +475,6 @@ describe AMQP::Client do
         end
 
       end #connection_status
-
     end #given a connected client
   end # context with AMQP.client set to BasicClient (default)
 end
