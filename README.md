@@ -45,8 +45,8 @@ How to use AMQP gem with Ruby on Rails, Merb, Sinatra and other web frameworks
 ==============================================================================
 
 To use AMQP gem from web applications, you would need to have EventMachine reactor running.
-If you use [Thin](http://code.macournoyer.com/thin/), you are set: Thin uses EventMachine under
-the hook.
+If you use [Thin](http://code.macournoyer.com/thin/), you are all set: Thin uses EventMachine under
+the hood.
 
 With other web servers, you need to start EventMachine reactor in it's own thread like this:
 
