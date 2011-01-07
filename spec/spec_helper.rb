@@ -19,3 +19,20 @@ require "mq"
 # else
 #   amqp_url = "amqp://localhost"
 # end
+
+# Shorthand for mocking subject's instance variable
+def subject_mock(name, as_null = false)
+  mock = mock(name)
+  mock.as_null_object if as_null
+  subject.instance_variable_set(name.to_sym, mock)
+  mock
+end
+
+# Returns Header that should be correctly parsed
+def basic_header opts = {}
+  AMQP::Frame::Header.new(
+      AMQP::Protocol::Header.new(
+          AMQP::Protocol::Basic, :priority => 1), opts[:channel] || 0)
+end
+
+
