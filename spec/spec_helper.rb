@@ -8,17 +8,22 @@ Bundler.require :default, :test
 
 require "mq"
 
-# EM.spec_backend = EventMachine::Spec::Rspec
+amqp_config = File.dirname(__FILE__) + '/amqp.yml'
 
-# Usage with tracer:
-# 1) Start tracer on a PORT_NUMBER
-# 2) ruby spec/sync_async_spec.rb amqp://localhost:PORT_NUMBER
-# if ARGV.first && ARGV.first.match(/^amqps?:/)
-#   amqp_url = ARGV.first
-#   puts "Using AMQP URL #{amqp_url}"
-# else
-#   amqp_url = "amqp://localhost"
-# end
+if File.exists? amqp_config
+  class Hash
+    def symbolize_keys
+      self.inject({}) do |result, (key, value)|
+        new_key = key.is_a?(String) ? key.to_sym : key
+        new_value = value.is_a?(Hash) ? value.symbolize_keys : value
+        result[new_key] = new_value
+        result
+      end
+    end
+  end
+
+  AMQP_OPTS = YAML::load_file(amqp_config).symbolize_keys[:test]
+end
 
 # Shorthand for mocking subject's instance variable
 def subject_mock(name, as_null = false)

@@ -5,3 +5,5 @@
 .rvmrc
 .bundle
 Gemfile.lock
+
+spec/amqp.yml
