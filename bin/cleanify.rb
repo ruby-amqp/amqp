@@ -18,7 +18,7 @@ while line = ARGF.gets
   line.rstrip!
 
   # encoding
-  if ARGF.lineno == 1 && ! line.match(/^#.*coding/)
+  if line.length == (ARGF.pos - 1) && ! line.match(/^#.*coding/)
     puts "# encoding: #{ENCODING}\n\n"
   end
 
@@ -29,7 +29,7 @@ while line = ARGF.gets
   end
 
   # foo{} => foo {}
-  line.gsub!(/([\w\d]+)(\{)/, '\1 \2')
+  line.gsub!(/([^%][\w\d])(\{)/, '\1 \2')
 
   # foo=>bar
   line.gsub!(/([^\s])=>/, '\1 =>')
