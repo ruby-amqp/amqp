@@ -1,16 +1,18 @@
+# encoding: utf-8
+
 $:.unshift File.dirname(__FILE__) + '/../../lib'
 require 'mq'
 
 AMQP.start(:host => 'localhost') do
 
-  def log *args
+  def log(*args)
     p args
   end
 
   # AMQP.logging = true
 
   clock = MQ.new.fanout('clock')
-  EM.add_periodic_timer(1){
+  EM.add_periodic_timer(1) {
     puts
 
     log :publishing, time = Time.now
@@ -18,12 +20,12 @@ AMQP.start(:host => 'localhost') do
   }
 
   amq = MQ.new
-  amq.queue('every second').bind(amq.fanout('clock')).subscribe{ |time|
+  amq.queue('every second').bind(amq.fanout('clock')).subscribe { |time|
     log 'every second', :received, Marshal.load(time)
   }
 
   amq = MQ.new
-  amq.queue('every 5 seconds').bind(amq.fanout('clock')).subscribe{ |time|
+  amq.queue('every 5 seconds').bind(amq.fanout('clock')).subscribe { |time|
     time = Marshal.load(time)
     log 'every 5 seconds', :received, time if time.strftime('%S').to_i%5 == 0
   }

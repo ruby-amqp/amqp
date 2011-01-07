@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 class MQ
   # Basic RPC (remote procedure call) facility.
   #
@@ -40,7 +42,7 @@ class MQ
     # there is a valid destination. Failure to do so will just enqueue
     # marshalled messages that are never consumed.
     #
-    def initialize mq, queue, obj = nil
+    def initialize(mq, queue, obj = nil)
       @mq = mq
       @mq.rpcs[queue] ||= self
 
@@ -54,7 +56,7 @@ class MQ
                  obj
                end
 
-        @mq.queue(queue).subscribe(:ack=>true){ |info, request|
+        @mq.queue(queue).subscribe(:ack => true) { |info, request|
           method, *args = ::Marshal.load(request)
           ret = @obj.__send__(method, *args)
 
@@ -67,7 +69,7 @@ class MQ
       else
         @callbacks ||= {}
         # XXX implement and use queue(nil)
-        @queue = @mq.queue(@name = "random identifier #{::Kernel.rand(999_999_999_999)}", :auto_delete => true).subscribe{|info, msg|
+        @queue = @mq.queue(@name = "random identifier #{::Kernel.rand(999_999_999_999)}", :auto_delete => true).subscribe { |info, msg|
           if blk = @callbacks.delete(info.message_id)
             blk.call ::Marshal.load(msg)
           end
@@ -90,7 +92,7 @@ class MQ
     #    ....
     #  end
     #
-    def method_missing meth, *args, &blk
+    def method_missing(meth, *args, &blk)
       # XXX use uuids instead
       message_id = "random message id #{::Kernel.rand(999_999_999_999)}"
       @callbacks[message_id] = blk if blk

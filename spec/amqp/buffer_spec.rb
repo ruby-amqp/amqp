@@ -136,9 +136,9 @@ describe AMQP::Buffer do
       bits = [true, false, false, true, true, false, false, true, true, false]
       subject.write(:bit, bits)
       subject.write(:octet, 100)
-      
+
       subject.rewind
-      
+
       bits.map do
         subject.read(:bit)
       end.should == bits
@@ -154,11 +154,11 @@ describe AMQP::Buffer do
                      [:shortstr, nil],
                      [:timestamp, nil],
                      [:table, { :a => 'hash' }],
-                    ]*5).sort_by{rand}
-      
+                    ]*5).sort_by {rand}
+
       subject.write(:properties, properties)
       subject.rewind
-      subject.read(:properties, *properties.map{|type,_| type }).should == properties.map{|_,value| value }
+      subject.read(:properties, *properties.map { |type, _| type }).should == properties.map { |_, value| value }
       subject.should be_empty
     end
 
@@ -174,6 +174,6 @@ describe AMQP::Buffer do
 
       subject.pos.should == 0
       subject.data.should == orig
-    end    
+    end
   end # each
 end # describe

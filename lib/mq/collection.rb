@@ -21,10 +21,10 @@ class MQ
     # run declare twice in order to change options, because the AMQP
     # broker closes the connection if we try to do so).
 
-    # Use Collection#<< for adding items to the collection.
+    # Use Collection# << for adding items to the collection.
     undef_method :[]=
 
-    def <<(item)
+    def << (item)
       if (item.name rescue nil).nil? || ! self[item.name]
         self.add!(item)
       end

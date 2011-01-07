@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 class MQ
   # An Exchange acts as an ingress point for all published messages. An
   # exchange may also be described as a router or a matcher. Every
@@ -198,7 +200,7 @@ class MQ
     # * redeclare an already-declared exchange to a different type
     # * :passive => true and the exchange does not exist (NOT_FOUND)
     #
-    def initialize mq, type, name, opts = {}, &block
+    def initialize(mq, type, name, opts = {}, &block)
       @mq = mq
       @type, @opts = type, opts
       @opts = { :exchange => name, :type => type, :nowait => block.nil? }.merge(opts)
@@ -274,8 +276,8 @@ class MQ
     # message stays in memory and is never persisted to non-volatile (slow)
     # storage.
     #
-    def publish data, opts = {}
-      @mq.callback{
+    def publish(data, opts = {})
+      @mq.callback {
         out = []
 
         out << Protocol::Basic::Publish.new({ :exchange => name,
@@ -317,8 +319,8 @@ class MQ
     # bindings. If the exchange has queue bindings the server does not
     # delete it but raises a channel exception instead (MQ:Error).
     #
-    def delete opts = {}
-      @mq.callback{
+    def delete(opts = {})
+      @mq.callback {
         @mq.send Protocol::Exchange::Delete.new({ :exchange => name,
                                                   :nowait => true }.merge(opts))
         @mq.exchanges.delete name
@@ -331,7 +333,7 @@ class MQ
       initialize @mq, @type, @name, @opts
     end
 
-    def receive_response response
+    def receive_response(response)
       self.callback && self.callback.call(self)
     end
   end

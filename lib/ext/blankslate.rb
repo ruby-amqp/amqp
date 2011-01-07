@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 unless defined?(BlankSlate)
   class BlankSlate < BasicObject; end if defined?(BasicObject)
 

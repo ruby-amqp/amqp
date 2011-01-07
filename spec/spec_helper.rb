@@ -29,7 +29,7 @@ def subject_mock(name, as_null = false)
 end
 
 # Returns Header that should be correctly parsed
-def basic_header opts = {}
+def basic_header(opts = {})
   AMQP::Frame::Header.new(
       AMQP::Protocol::Header.new(
           AMQP::Protocol::Basic, :priority => 1), opts[:channel] || 0)

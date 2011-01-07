@@ -1,8 +1,10 @@
+# encoding: utf-8
+
 $:.unshift File.dirname(__FILE__) + '/../../lib'
 require 'amqp'
 
 module SimpleClient
-  def process_frame frame
+  def process_frame(frame)
     case frame
     when Frame::Body
       EM.stop_event_loop
@@ -72,7 +74,7 @@ module SimpleClient
   end
 end
 
-EM.run{
+EM.run {
   AMQP.logging = true
   AMQP.client = SimpleClient
   AMQP.start

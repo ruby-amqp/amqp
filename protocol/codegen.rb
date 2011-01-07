@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require 'rubygems'
 require 'json'
 
@@ -40,21 +42,21 @@ puts ERB.new(%q[
         end
       end
 
-      <%- s['constants'].select{|c| (1..8).include? c['value'] }.each do |c| -%>
-      class <%= c['name'].gsub(/^FRAME-/,'').split('-').map{|w| w.downcase.capitalize}.join.ljust(9) -%> < Frame( <%= c['value'] -%> ); end
+      <%- s['constants'].select { |c| (1..8).include? c['value'] }.each do |c| -%>
+      class <%= c['name'].gsub(/^FRAME-/, '').split('-').map { |w| w.downcase.capitalize}.join.ljust(9) -%> < Frame( <%= c['value'] -%> ); end
       <%- end -%>
 
-      FOOTER = <%= frame_end = s['constants'].find{|c| c['name'] == 'FRAME-END' }['value'] %>
+      FOOTER = <%= frame_end = s['constants'].find { |c| c['name'] == 'FRAME-END' }['value'] %>
     end
 
     RESPONSES = {
-      <%- s['constants'].select{|c| c['value'] != frame_end and (200..500).include? c['value'] }.each do |c| -%>
-      <%= c['value'] %> => :<%= c['name'].tr('-', '_').gsub(/^FRAME_/,'').upcase -%>,
+      <%- s['constants'].select { |c| c['value'] != frame_end and (200..500).include? c['value'] }.each do |c| -%>
+      <%= c['value'] %> => :<%= c['name'].tr('-', '_').gsub(/^FRAME_/, '').upcase -%>,
       <%- end -%>
     }
 
     FIELDS = [
-      <%- s['domains'].select{|d| d.first == d.last }.each do |d| -%>
+      <%- s['domains'].select { |d| d.first == d.last }.each do |d| -%>
       :<%= d.first -%>,
       <%- end -%>
     ]
@@ -70,7 +72,7 @@ puts ERB.new(%q[
               end
             ]
           end
-          
+
           def properties() @properties ||= [] end
 
           def id()   self::ID end
@@ -87,10 +89,10 @@ puts ERB.new(%q[
                 end
               ]
             end
-            
+
             def arguments() @arguments ||= [] end
 
-            def section() Protocol.const_get(self.to_s[/Protocol::(.+?)::/,1]) end
+            def section() Protocol.const_get(self.to_s[/Protocol::(.+?)::/, 1]) end
             def id()      self::ID end
             def name()    self::NAME end
           end
@@ -101,9 +103,9 @@ puts ERB.new(%q[
             end
           end
         end
-      
+
         def self.methods() @methods ||= {} end
-      
+
         def self.Method(id, name)
           @_base_methods ||= {}
           @_base_methods[id] ||= ::Class.new(Method) do
@@ -136,7 +138,7 @@ puts ERB.new(%q[
       end
     end
   end
-    
+
   module AMQP
     module Protocol
       <%- s['classes'].each do |c| -%>
@@ -146,20 +148,20 @@ puts ERB.new(%q[
       <%- s['classes'].each do |c| -%>
       class <%= c['name'].capitalize %>
         <%- c['properties'].each do |p| -%>
-        <%= p['type'].ljust(10) %> :<%= p['name'].tr('-','_') %>
+        <%= p['type'].ljust(10) %> :<%= p['name'].tr('-', '_') %>
         <%- end if c['properties'] -%>
 
         <%- c['methods'].each do |m| -%>
-        class <%= m['name'].capitalize.gsub(/-(.)/){ "#{$1.upcase}"}.ljust(12) %> < Method( <%= m['id'].to_s.rjust(3) %>, :<%= m['name'].tr('- ','_').ljust(14) %> ); end
+        class <%= m['name'].capitalize.gsub(/-(.)/) { "#{$1.upcase}"}.ljust(12) %> < Method( <%= m['id'].to_s.rjust(3) %>, :<%= m['name'].tr('- ', '_').ljust(14) %> ); end
         <%- end -%>
 
         <%- c['methods'].each do |m| -%>
-        class <%= m['name'].capitalize.gsub(/-(.)/){ "#{$1.upcase}"} %>
+        class <%= m['name'].capitalize.gsub(/-(.)/) { "#{$1.upcase}"} %>
           <%- m['arguments'].each do |a| -%>
           <%- if a['domain'] -%>
-          <%= s['domains'].find{|k,v| k == a['domain']}.last.ljust(10) %> :<%= a['name'].tr('- ','_') %>
+          <%= s['domains'].find { |k, v| k == a['domain']}.last.ljust(10) %> :<%= a['name'].tr('- ', '_') %>
           <%- else -%>
-          <%= a['type'].ljust(10) %> :<%= a['name'].tr('- ','_') %>
+          <%= a['type'].ljust(10) %> :<%= a['name'].tr('- ', '_') %>
           <%- end -%>
           <%- end if m['arguments'] -%>
         end
@@ -170,4 +172,4 @@ puts ERB.new(%q[
       <%- end -%>
     end
   end
-].gsub!(/^  /,''), nil, '>-%').result(binding)
+].gsub!(/^  /, ''), nil, '>-%').result(binding)

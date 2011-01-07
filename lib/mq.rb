@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 #:main: README
 #
 
@@ -136,12 +138,12 @@ class MQ
   #    channel = MQ.new AMQP::connect
   #  end
   #
-  def initialize connection = nil
-    raise 'MQ can only be used from within EM.run{}' unless EM.reactor_running?
+  def initialize(connection = nil)
+    raise 'MQ can only be used from within EM.run {}' unless EM.reactor_running?
 
     @connection = connection || AMQP.start
 
-    conn.callback{ |c|
+    conn.callback { |c|
       @channel = c.add_channel(self)
       send Protocol::Channel::Open.new
     }
@@ -165,7 +167,7 @@ class MQ
   # * publish a message to a deleted exchange (NOT_FOUND)
   # * declare an exchange using the reserved 'amq.' naming structure (ACCESS_REFUSED)
   #
-  def process_frame frame
+  def process_frame(frame)
     log :received, frame
 
     case frame
@@ -189,7 +191,7 @@ class MQ
 
       when Protocol::Access::RequestOk
         @ticket = method.ticket
-        callback{
+        callback {
           send Protocol::Channel::Close.new(:reply_code => 200,
                                             :reply_text => 'bye',
                                             :method_id => 0,
@@ -231,7 +233,7 @@ class MQ
         @body = ''
 
         if method.is_a? Protocol::Basic::GetOk
-          @consumer = get_queue{|q| q.shift }
+          @consumer = get_queue { |q| q.shift }
           MQ.error "No pending Basic.GetOk requests" unless @consumer
         else
           @consumer = consumers[ method.consumer_tag ]
@@ -239,7 +241,7 @@ class MQ
         end
 
       when Protocol::Basic::GetEmpty
-        if @consumer = get_queue{|q| q.shift }
+        if @consumer = get_queue { |q| q.shift }
           @consumer.receive nil, nil
         else
           MQ.error "Basic.GetEmpty for invalid consumer"
@@ -252,7 +254,7 @@ class MQ
         @on_close && @on_close.call(self)
 
         @closing = false
-        conn.callback{ |c|
+        conn.callback { |c|
           c.channels.delete @channel
           c.close if c.channels.empty?
         }
@@ -267,8 +269,8 @@ class MQ
     end
   end
 
-  def send *args
-    conn.callback{ |c|
+  def send(*args)
+    conn.callback { |c|
       (@_send_mutex ||= Mutex.new).synchronize do
         args.each do |data|
           data.ticket = @ticket if @ticket and data.respond_to? :ticket=
@@ -352,7 +354,7 @@ class MQ
   # * redeclare an already-declared exchange to a different type
   # * :passive => true and the exchange does not exist (NOT_FOUND)
   #
-  def direct name = 'amq.direct', opts = {}, &block
+  def direct(name = 'amq.direct', opts = {}, &block)
     self.exchanges << Exchange.new(self, :direct, name, opts, &block)
   end
 
@@ -438,7 +440,7 @@ class MQ
   # * redeclare an already-declared exchange to a different type
   # * :passive => true and the exchange does not exist (NOT_FOUND)
   #
-  def fanout name = 'amq.fanout', opts = {}, &block
+  def fanout(name = 'amq.fanout', opts = {}, &block)
     self.exchanges << Exchange.new(self, :fanout, name, opts, &block)
   end
 
@@ -550,7 +552,7 @@ class MQ
   # * redeclare an already-declared exchange to a different type
   # * :passive => true and the exchange does not exist (NOT_FOUND)
   #
-  def topic name = 'amq.topic', opts = {}, &block
+  def topic(name = 'amq.topic', opts = {}, &block)
     self.exchanges << Exchange.new(self, :topic, name, opts, &block)
   end
 
@@ -630,7 +632,7 @@ class MQ
   # * redeclare an already-declared exchange to a different type
   # * :passive => true and the exchange does not exist (NOT_FOUND)
   # * using a value other than "any" or "all" for "x-match"
-  def headers name = 'amq.match', opts = {}, &block
+  def headers(name = 'amq.match', opts = {}, &block)
     self.exchanges << Exchange.new(self, :headers, name, opts, &block)
   end
 
@@ -700,7 +702,7 @@ class MQ
   # not wait for a reply method.  If the server could not complete the
   # method it will raise a channel or connection exception.
   #
-  def queue name, opts = {}, &block
+  def queue(name, opts = {}, &block)
     self.queues << Queue.new(self, name, opts, &block)
   end
 
@@ -744,7 +746,7 @@ class MQ
   #    end
   #  end
   #
-  def rpc name, obj = nil
+  def rpc(name, obj = nil)
     rpcs[name] ||= RPC.new(self, name, obj)
   end
 
@@ -784,7 +786,7 @@ class MQ
   # If this flag is true, the server will attempt to requeue the message, potentially then
   # delivering it to an alternative subscriber.
   #
-  def recover requeue = false
+  def recover(requeue = false)
     send Protocol::Basic::Recover.new(:requeue => requeue)
     self
   end
@@ -805,7 +807,7 @@ class MQ
 
   def get_queue
     if block_given?
-      (@get_queue_mutex ||= Mutex.new).synchronize{
+      (@get_queue_mutex ||= Mutex.new).synchronize {
         yield( @get_queue ||= [] )
       }
     end
@@ -834,18 +836,18 @@ class MQ
 
     exs = @exchanges
     @exchanges = {}
-    exs.each{ |_,e| e.reset } if exs
+    exs.each { |_, e| e.reset } if exs
 
     qus = @queues
     @queues = {}
-    qus.each{ |_,q| q.reset } if qus
+    qus.each { |_, q| q.reset } if qus
 
     prefetch(@prefetch_size) if @prefetch_size
   end
 
   private
 
-  def log *args
+  def log(*args)
     return unless MQ.logging
     pp args
     puts

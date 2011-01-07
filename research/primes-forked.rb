@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 $:.unshift File.dirname(__FILE__) + '/../lib'
 require 'mq'
 
@@ -7,8 +9,8 @@ def EM.fork &blk
   raise if reactor_running?
 
   unless @forks
-    at_exit{
-      @forks.each{ |pid| Process.kill('KILL', pid) }
+    at_exit {
+      @forks.each { |pid| Process.kill('KILL', pid) }
     }
   end
 
@@ -17,7 +19,7 @@ def EM.fork &blk
   end
 end
 
-def log *args
+def log(*args)
   p args
 end
 
@@ -28,7 +30,7 @@ end
   workers = ARGV[0] ? (Integer(ARGV[0]) rescue 2) : 2
 
   workers.times do
-    EM.fork{
+    EM.fork {
       log "prime checker", Process.pid, :started
 
       class Fixnum
@@ -37,7 +39,7 @@ end
         end
       end
 
-      MQ.queue('prime checker').subscribe{ |info, num|
+      MQ.queue('prime checker').subscribe { |info, num|
         log "prime checker #{Process.pid}", :prime?, num
         if Integer(num).prime?
           MQ.queue(info.reply_to).publish(num, :reply_to => Process.pid)
@@ -48,8 +50,8 @@ end
 
 # controller
 
-  EM.run{
-    MQ.queue('prime collector').subscribe{ |info, prime|
+  EM.run {
+    MQ.queue('prime collector').subscribe { |info, prime|
       log 'prime collector', :received, prime, :from, info.reply_to
       (@primes ||= []) << Integer(prime)
       EM.stop_event_loop if prime == '499'
