@@ -1,5 +1,6 @@
+# encoding: utf-8
+
 require 'spec_helper'
-require 'amqp/frame'
 
 describe AMQP::Frame do
   include AMQP
