@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 class MQ
   class Queue
     include AMQP
@@ -61,7 +63,7 @@ class MQ
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
-    def initialize mq, name, opts = {}, &block
+    def initialize(mq, name, opts = {}, &block)
       @mq = mq
       @opts = { :queue => name, :nowait => block.nil? }.merge(opts)
       @bindings ||= {}
@@ -110,12 +112,12 @@ class MQ
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
-    def bind exchange, opts = {}, &block
+    def bind(exchange, opts = {}, &block)
       @status = :unbound
       exchange = exchange.respond_to?(:name) ? exchange.name : exchange
       @bindings[exchange] = opts
 
-      @mq.callback{
+      @mq.callback {
         @mq.send Protocol::Queue::Bind.new({ :queue => name,
                                              :exchange => exchange,
                                              :routing_key => opts[:key],
@@ -139,11 +141,11 @@ class MQ
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
-    def unbind exchange, opts = {}
+    def unbind(exchange, opts = {})
       exchange = exchange.respond_to?(:name) ? exchange.name : exchange
       @bindings.delete exchange
 
-      @mq.callback{
+      @mq.callback {
         @mq.send Protocol::Queue::Unbind.new({ :queue => name,
                                                :exchange => exchange,
                                                :routing_key => opts[:key],
@@ -172,8 +174,8 @@ class MQ
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
-    def delete opts = {}
-      @mq.callback{
+    def delete(opts = {})
+      @mq.callback {
         @mq.send Protocol::Queue::Delete.new({ :queue => name,
                                                :nowait => true }.merge(opts))
       }
@@ -183,8 +185,8 @@ class MQ
 
     # Purge all messages from the queue.
     #
-    def purge opts = {}
-      @mq.callback{
+    def purge(opts = {})
+      @mq.callback {
         @mq.send Protocol::Queue::Purge.new({ :queue => name,
                                               :nowait => true }.merge(opts))
       }
@@ -245,14 +247,14 @@ class MQ
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
-    def pop opts = {}, &blk
+    def pop(opts = {}, &blk)
       if blk
         @on_pop = blk
         @on_pop_opts = opts
       end
 
-      @mq.callback{
-        @mq.get_queue{ |q|
+      @mq.callback {
+        @mq.get_queue { |q|
           q.push(self)
           @mq.send Protocol::Basic::Get.new({ :queue => name,
                                               :consumer_tag => name,
@@ -318,7 +320,7 @@ class MQ
     # automatically set :nowait => false. This is required for the server
     # to send a confirmation.
     #
-    def subscribe opts = {}, &blk
+    def subscribe(opts = {}, &blk)
       @consumer_tag = "#{name}-#{Kernel.rand(999_999_999_999)}"
       @mq.consumers[@consumer_tag] = self
 
@@ -328,7 +330,7 @@ class MQ
       @on_msg_opts = opts
       opts[:nowait] = false if (@on_confirm_subscribe = opts[:confirm])
 
-      @mq.callback{
+      @mq.callback {
         @mq.send Protocol::Basic::Consume.new({ :queue => name,
                                                 :consumer_tag => @consumer_tag,
                                                 :no_ack => !opts[:ack],
@@ -358,15 +360,15 @@ class MQ
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
-    def unsubscribe opts = {}, &blk
+    def unsubscribe(opts = {}, &blk)
       @on_cancel = blk
-      @mq.callback{
+      @mq.callback {
         @mq.send Protocol::Basic::Cancel.new({ :consumer_tag => @consumer_tag }.merge(opts))
       }
       self
     end
 
-    def publish data, opts = {}
+    def publish(data, opts = {})
       exchange.publish(data, opts)
     end
 
@@ -390,7 +392,7 @@ class MQ
     # See AMQP::Protocol::Header for the hash properties available from
     # the headers parameter. See #pop or #subscribe for a code example.
     #
-    def receive headers, body
+    def receive(headers, body)
       headers = MQ::Header.new(@mq, headers) unless headers.nil?
 
       if cb = (@on_msg || @on_pop)
@@ -400,22 +402,22 @@ class MQ
 
     # Get the number of messages and consumers on a queue.
     #
-    #  MQ.queue('name').status{ |num_messages, num_consumers|
+    #  MQ.queue('name').status { |num_messages, num_consumers|
     #   puts num_messages
     #  }
     #
-    def status opts = {}, &blk
+    def status(opts = {}, &blk)
       return @status if opts.empty? && blk.nil?
 
       @on_status = blk
-      @mq.callback{
+      @mq.callback {
         @mq.send Protocol::Queue::Declare.new({ :queue => name,
                                                 :passive => true }.merge(opts))
       }
       self
     end
 
-    def receive_status declare_ok
+    def receive_status(declare_ok)
       @name = declare_ok.queue
       @status = :finished
 
@@ -430,7 +432,7 @@ class MQ
       end
     end
 
-    def after_bind bind_ok
+    def after_bind(bind_ok)
       @status = :bound
       if self.bind_callback
         self.bind_callback.call(self)
@@ -456,7 +458,7 @@ class MQ
 
       binds = @bindings
       @bindings = {}
-      binds.each{|ex,opts| bind(ex, opts) }
+      binds.each { |ex, opts| bind(ex, opts) }
 
       if blk = @on_msg
         @on_msg = nil

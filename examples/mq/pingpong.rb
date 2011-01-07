@@ -1,16 +1,18 @@
+# encoding: utf-8
+
 $:.unshift File.dirname(__FILE__) + '/../../lib'
 require 'mq'
 
 AMQP.start(:host => 'localhost') do
 
-  def log *args
+  def log(*args)
     p [ Time.now, *args ]
   end
-  
+
   # AMQP.logging = true
 
   amq = MQ.new
-  EM.add_periodic_timer(1){
+  EM.add_periodic_timer(1) {
     puts
 
     log :sending, 'ping'
@@ -18,13 +20,13 @@ AMQP.start(:host => 'localhost') do
   }
 
   amq = MQ.new
-  amq.queue('one').subscribe{ |msg|
+  amq.queue('one').subscribe { |msg|
     log 'one', :received, msg, :sending, 'pong'
     amq.queue('two').publish('pong')
   }
-  
+
   amq = MQ.new
-  amq.queue('two').subscribe{ |msg|
+  amq.queue('two').subscribe { |msg|
     log 'two', :received, msg
   }
 

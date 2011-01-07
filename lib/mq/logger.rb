@@ -1,6 +1,8 @@
+# encoding: utf-8
+
 class MQ
   class Logger
-    def initialize *args, &block
+    def initialize(*args, &block)
       opts = args.pop if args.last.is_a? Hash
       opts ||= {}
 
@@ -13,7 +15,7 @@ class MQ
     attr_reader :prop
     alias :base :prop
 
-    def log severity, *args
+    def log(severity, *args)
       opts = args.pop if args.last.is_a? Hash and args.size != 1
       opts ||= {}
       opts = @prop.clone.update(opts)
@@ -56,7 +58,7 @@ class MQ
     end
     alias :method_missing :log
 
-    def print data = nil, &block
+    def print(data = nil, &block)
       if block
         @printer = block
       elsif data.is_a? Proc
@@ -68,7 +70,7 @@ class MQ
       end
     end
     alias :printer :print
-    
+
     def self.printer &block
       @printer = block if block
       @printer
@@ -77,11 +79,11 @@ class MQ
     def self.disabled?
       !!@disabled
     end
-    
+
     def self.enable
       @disabled = false
     end
-    
+
     def self.disable
       @disabled = true
     end

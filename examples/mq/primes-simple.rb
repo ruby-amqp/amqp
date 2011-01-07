@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 MAX = 1000
 
 class Fixnum

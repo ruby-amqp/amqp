@@ -1,15 +1,17 @@
+# encoding: utf-8
+
 $:.unshift File.dirname(__FILE__) + '/../../lib'
 require 'mq'
 
 AMQP.start(:host => 'localhost') do
 
-  def log *args
+  def log(*args)
     p [ Time.now, *args ]
   end
 
   def publish_stock_prices
     mq = MQ.new
-    EM.add_periodic_timer(1){
+    EM.add_periodic_timer(1) {
       puts
 
       { :appl => 170+rand(1000)/100.0,
@@ -25,14 +27,14 @@ AMQP.start(:host => 'localhost') do
 
   def watch_appl_stock
     mq = MQ.new
-    mq.queue('apple stock').bind(mq.topic('stocks'), :key => 'usd.appl').subscribe{ |price|
+    mq.queue('apple stock').bind(mq.topic('stocks'), :key => 'usd.appl').subscribe { |price|
       log 'apple stock', price
     }
   end
 
   def watch_us_stocks
     mq = MQ.new
-    mq.queue('us stocks').bind(mq.topic('stocks'), :key => 'usd.*').subscribe{ |info, price|
+    mq.queue('us stocks').bind(mq.topic('stocks'), :key => 'usd.*').subscribe { |info, price|
       log 'us stock', info.routing_key, price
     }
   end

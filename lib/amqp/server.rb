@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require File.expand_path('../frame', __FILE__)
 
 module AMQP
@@ -8,12 +10,12 @@ module AMQP
       @started = false
     end
 
-    def receive_data data
+    def receive_data(data)
       @buf << data
 
       unless @started
         if @buf.size >= 8
-          if @buf.slice!(0,8) == "AMQP\001\001\b\000"
+          if @buf.slice!(0, 8) == "AMQP\001\001\b\000"
             send Protocol::Connection::Start.new(
               8,
               0,
@@ -42,7 +44,7 @@ module AMQP
       end
     end
 
-    def process_frame frame
+    def process_frame(frame)
       channel = frame.channel
 
       case method = frame.payload
@@ -67,7 +69,7 @@ module AMQP
       end
     end
 
-    def send data, opts = {}
+    def send(data, opts = {})
       channel = opts[:channel] ||= 0
       data = data.to_frame(channel) unless data.is_a? Frame
       data.channel = channel
@@ -81,8 +83,8 @@ module AMQP
     end
 
     private
-  
-    def log *args
+
+    def log(*args)
       require 'pp'
       pp args
       puts
@@ -93,7 +95,7 @@ end
 if __FILE__ == $0
   require 'rubygems'
   require 'eventmachine'
-  EM.run{
+  EM.run {
     AMQP::Server.start
   }
 end

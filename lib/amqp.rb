@@ -1,6 +1,8 @@
+# encoding: utf-8
+
 require File.expand_path('../ext/em', __FILE__)
 require File.expand_path('../ext/blankslate', __FILE__)
-  
+
 %w[ version buffer spec protocol frame client ].each do |file|
   require File.expand_path("../amqp/#{file}", __FILE__)
 end
@@ -76,7 +78,7 @@ module AMQP
   # block. See the code examples in MQ for details.
   #
   def self.start *args, &blk
-    EM.run{
+    EM.run {
       @conn ||= connect *args
       @conn.callback(&blk) if blk
       @conn
@@ -86,11 +88,11 @@ module AMQP
   class << self
     alias :run :start
   end
-  
+
   def self.stop
     if @conn and not @closing
       @closing = true
-      @conn.close{
+      @conn.close {
         yield if block_given?
         @conn = nil
         @closing = false

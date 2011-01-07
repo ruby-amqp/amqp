@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 if [].map.respond_to? :with_index
   class Array #:nodoc:
     def enum_with_index
@@ -12,14 +14,14 @@ module AMQP
   class Buffer #:nodoc: all
     class Overflow < StandardError; end
     class InvalidType < StandardError; end
-    
-    def initialize data = ''
+
+    def initialize(data = '')
       @data = data
       @pos = 0
     end
 
     attr_reader :pos
-    
+
     def data
       @data.clone
     end
@@ -30,22 +32,22 @@ module AMQP
       @data << data.to_s
       self
     end
-    
+
     def length
       @data.bytesize
     end
-    
+
     def empty?
       pos == length
     end
-    
+
     def rewind
       @pos = 0
     end
-    
-    def read_properties *types
+
+    def read_properties(*types)
       types.shift if types.first == :properties
-      
+
       i = 0
       values = []
 
@@ -53,9 +55,9 @@ module AMQP
         (0..14).each do |n|
           # no more property types
           break unless types[i]
-          
+
           # if flag is set
-          if props & (1<<(15-n)) != 0
+          if props & (1 << (15-n)) != 0
             if types[i] == :bit
               # bit values exist in flags only
               values << true
@@ -68,7 +70,7 @@ module AMQP
             values << (types[i] == :bit ? false : nil)
           end
 
-          i+=1
+          i += 1
         end
 
         # bit(0) == 0 means no more property flags
@@ -80,7 +82,7 @@ module AMQP
       end
     end
 
-    def read *types
+    def read(*types)
       if types.first == :properties
         return read_properties(*types)
       end
@@ -129,7 +131,7 @@ module AMQP
         when :bit
           if (@bits ||= []).empty?
             val = read(:octet)
-            @bits = (0..7).map{|i| (val & 1<<i) != 0 }
+            @bits = (0..7).map { |i| (val & 1 << i) != 0 }
           end
 
           @bits.shift
@@ -137,11 +139,11 @@ module AMQP
           raise InvalidType, "Cannot read data of type #{type}"
         end
       end
-      
+
       types.size == 1 ? values.first : values
     end
-    
-    def write type, data
+
+    def write(type, data)
       case type
       when :octet
         _write(data, 'C')
@@ -195,9 +197,9 @@ module AMQP
                           table
                         end)
       when :bit
-        [*data].to_enum(:each_slice, 8).each{|bits|
-          write(:octet, bits.enum_with_index.inject(0){ |byte, (bit, i)|
-            byte |= 1<<i if bit
+        [*data].to_enum(:each_slice, 8).each { |bits|
+          write(:octet, bits.enum_with_index.inject(0) { |byte, (bit, i)|
+            byte |= 1 << i if bit
             byte
            })
          }
@@ -209,10 +211,10 @@ module AMQP
 
           if (n == 0 and i != 0) or last
             if data.size > i+1
-              short |= 1<<0
+              short |= 1 << 0
             elsif last and value
-              values << [type,value]
-              short |= 1<<(15-n)
+              values << [type, value]
+              short |= 1 << (15-n)
             end
 
             write(:short, short)
@@ -220,20 +222,20 @@ module AMQP
           end
 
           if value and !last
-            values << [type,value] 
-            short |= 1<<(15-n)
+            values << [type, value]
+            short |= 1 << (15-n)
           end
 
           short
         end
-        
+
         values.each do |type, value|
           write(type, value) unless type == :bit
         end
       else
         raise InvalidType, "Cannot write data of type #{type}"
       end
-      
+
       self
     end
 
@@ -247,12 +249,12 @@ module AMQP
       end
     end
 
-    def _read size, pack = nil
+    def _read(size, pack = nil)
       if @pos + size > length
         raise Overflow
       else
-        data = @data[@pos,size]
-        @data[@pos,size] = ''
+        data = @data[@pos, size]
+        @data[@pos, size] = ''
         if pack
           data = data.unpack(pack)
           data = data.pop if data.size == 1
@@ -260,10 +262,10 @@ module AMQP
         data
       end
     end
-    
-    def _write data, pack = nil
+
+    def _write(data, pack = nil)
       data = [*data].pack(pack) if pack
-      @data[@pos,0] = data
+      @data[@pos, 0] = data
       @pos += data.bytesize
     end
   end

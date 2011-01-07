@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 $:.unshift File.dirname(__FILE__) + '/../../lib'
 require 'mq'
 
@@ -5,7 +7,7 @@ require 'mq'
 MAX = 1000
 
 # logging
-def log *args
+def log(*args)
   p args
 end
 
@@ -34,7 +36,7 @@ end
 
 # use workers to check which numbers are prime
 AMQP.start(:host => 'localhost') do
-  
+
   prime_checker = MQ.rpc('prime checker')
 
   (10_000...(10_000+MAX)).each do |num|
@@ -43,7 +45,7 @@ AMQP.start(:host => 'localhost') do
     prime_checker.is_prime?(num) { |is_prime|
       log :prime?, num, is_prime
       (@primes||=[]) << num if is_prime
-      
+
       if (@responses = (@responses || 0) + 1) == MAX
         log :primes=, @primes
         EM.stop_event_loop
@@ -51,7 +53,7 @@ AMQP.start(:host => 'localhost') do
     }
 
   end
-  
+
 end
 
 __END__
@@ -62,7 +64,7 @@ Linux gc 2.6.24-ARCH #1 SMP PREEMPT Sun Mar 30 10:50:22 CEST 2008 x86_64 Intel(R
 $ cat /proc/cpuinfo | grep processor | wc -l
 4
 
-$ time ruby primes-simple.rb 
+$ time ruby primes-simple.rb
 
 real  0m16.055s
 user  0m16.052s

@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require File.expand_path('../frame', __FILE__)
 
 require 'uri'
@@ -6,7 +8,7 @@ module AMQP
   class Error < StandardError; end
 
   module BasicClient
-    def process_frame frame
+    def process_frame(frame)
       if mq = channels[frame.channel]
         mq.process_frame(frame)
         return
@@ -60,14 +62,14 @@ module AMQP
   module Client
     include EM::Deferrable
 
-    def initialize opts = {}
+    def initialize(opts = {})
       @settings = opts
       extend AMQP.client
 
-      @on_disconnect ||= proc{ raise Error, "Could not connect to server #{opts[:host]}:#{opts[:port]}" }
+      @on_disconnect ||= proc { raise Error, "Could not connect to server #{opts[:host]}:#{opts[:port]}" }
 
       timeout @settings[:timeout] if @settings[:timeout]
-      errback{ @on_disconnect.call } unless @reconnecting
+      errback { @on_disconnect.call } unless @reconnecting
 
       @connected = false
     end
@@ -75,7 +77,7 @@ module AMQP
     def connection_completed
       start_tls if @settings[:ssl]
       log 'connected'
-      # @on_disconnect = proc{ raise Error, 'Disconnected from server' }
+      # @on_disconnect = proc { raise Error, 'Disconnected from server' }
       unless @closing
         @on_disconnect = method(:disconnected)
         @reconnecting = false
@@ -96,10 +98,10 @@ module AMQP
     def unbind
       log 'disconnected'
       @connected = false
-      EM.next_tick{ @on_disconnect.call }
+      EM.next_tick { @on_disconnect.call }
     end
 
-    def add_channel mq
+    def add_channel(mq)
       (@_channel_mutex ||= Mutex.new).synchronize do
         channels[ key = (channels.keys.max || 0) + 1 ] = mq
         key
@@ -110,7 +112,7 @@ module AMQP
       @channels ||= {}
     end
 
-    def receive_data data
+    def receive_data(data)
       # log 'receive_data', data
       @buf << data
 
@@ -120,12 +122,12 @@ module AMQP
       end
     end
 
-    def process_frame frame
+    def process_frame(frame)
       # this is a stub meant to be
       # replaced by the module passed into initialize
     end
 
-    def send data, opts = {}
+    def send(data, opts = {})
       channel = opts[:channel] ||= 0
       data = data.to_frame(channel) unless data.is_a? Frame
       data.channel = channel
@@ -141,16 +143,16 @@ module AMQP
     # end
     #:startdoc:
 
-    def close &on_disconnect
+    def close(&on_disconnect)
       if on_disconnect
         @closing = true
-        @on_disconnect = proc{
+        @on_disconnect = proc {
           on_disconnect.call
           @closing = false
         }
       end
 
-      callback{ |c|
+      callback { |c|
         if c.channels.any?
           c.channels.each do |ch, mq|
             mq.close
@@ -164,10 +166,10 @@ module AMQP
       }
     end
 
-    def reconnect force = false
+    def reconnect(force = false)
       if @reconnecting and not force
         # wait 1 second after first reconnect attempt, in between each subsequent attempt
-        EM.add_timer(1){ reconnect(true) }
+        EM.add_timer(1) { reconnect(true) }
         return
       end
 
@@ -179,7 +181,7 @@ module AMQP
 
         mqs = @channels
         @channels = {}
-        mqs.each{ |_,mq| mq.reset } if mqs
+        mqs.each { |_, mq| mq.reset } if mqs
       end
 
       log 'reconnecting'
@@ -199,7 +201,7 @@ module AMQP
       EM.connect opts[:host], opts[:port], self, opts
     end
 
-    def connection_status &blk
+    def connection_status(&blk)
       @connection_status = blk
     end
 
@@ -210,7 +212,7 @@ module AMQP
       reconnect
     end
 
-    def log *args
+    def log(*args)
       return unless @settings[:logging] or AMQP.logging
       require 'pp'
       pp args
@@ -226,7 +228,7 @@ module AMQP
       opts[:vhost] = URI.unescape(uri.path) if uri.path
       opts[:host] = uri.host if uri.host
       opts[:port] = uri.port ? uri.port :
-                      {"amqp"=>5672, "amqps"=>5671}[uri.scheme]
+                      {"amqp" => 5672, "amqps" => 5671}[uri.scheme]
       opts[:ssl] = uri.scheme == "amqps"
       return opts
     end
