@@ -1,6 +1,8 @@
 # encoding: utf-8
 
-require 'spec_helper'
+require File.expand_path("../../spec_helper", __FILE__)
+require 'amqp/buffer'
+
 
 if [].map.respond_to? :with_index
   class Array #:nodoc:
