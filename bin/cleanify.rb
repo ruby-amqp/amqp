@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 # Usage:
-# find . | egrep '\.rb$' | xargs ./bin/cleanify.rb
+# find . | egrep '\.rb$' | egrep -v cleanify.rb | xargs ./bin/cleanify.rb
 
 # \n at the end of the file
 # def foo a, b, &block
