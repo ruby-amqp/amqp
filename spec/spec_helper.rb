@@ -21,8 +21,9 @@ if File.exists? amqp_config
       end
     end
   end
-
   AMQP_OPTS = YAML::load_file(amqp_config).symbolize_keys[:test]
+else
+  AMQP_OPTS = {:host => 'localhost', :port => 5672}
 end
 
 # Shorthand for mocking subject's instance variable

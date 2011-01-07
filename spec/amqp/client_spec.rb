@@ -7,8 +7,6 @@ describe AMQP::Client do
   include AMQP::SpecHelper
   include AMQP
 
-  AMQP_OPTS = {:host => 'localhost'}
-
   em_after { AMQP.cleanup_state }
 
   context 'with AMQP.client set to BasicClient (default)' do
@@ -99,7 +97,7 @@ describe AMQP::Client do
 
     context 'given a client that is attempting to connect to AMQP broker using AMQP_OPTS' do
       include AMQP::EMSpec
-      em_before { @client = Client.connect AMQP_OPTS.merge(example: example) }
+      em_before { @client = Client.connect AMQP_OPTS }
       subject { @client }
 
       describe 'closing down' do
@@ -307,8 +305,8 @@ describe AMQP::Client do
             EM.add_timer(0.2) {
               MQ.new(@client)
               @client.channels[1].should_receive(:process_frame).
-                  with(basic_header(channel: 1))
-              @client.process_frame(basic_header(channel: 1))
+                  with(basic_header(:channel => 1))
+              @client.process_frame(basic_header(:channel => 1))
               done }
           end
 
@@ -440,7 +438,7 @@ describe AMQP::Client do
           framed_data = mock('framed data')
           data.should_receive(:to_frame).and_return(framed_data)
           framed_data.should_receive(:channel=).with(1313)
-          @client.send data, channel: 1313
+          @client.send data, :channel =>1313
           done
         end
 
