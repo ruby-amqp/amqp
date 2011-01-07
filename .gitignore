@@ -4,3 +4,4 @@
 #*
 .rvmrc
 .bundle
+Gemfile.lock
