@@ -1,12 +1,18 @@
+require 'rspec/core/rake_task'
+
+desc "Run spec suite (uses Rspec2)"
+RSpec::Core::RakeTask.new(:spec) { |t|}
+
+desc "Run specs with RCov"
+RSpec::Core::RakeTask.new(:rcov) do |t|
+  t.rcov = true
+  t.rcov_opts = ['--exclude', 'spec']
+end
+
 desc "Generate AMQP specification classes"
 task :codegen do
   sh 'ruby protocol/codegen.rb > lib/amqp/spec.rb'
   sh 'ruby lib/amqp/spec.rb'
-end
-
-desc "Run spec suite (uses bacon gem)"
-task :spec do
-  sh 'bacon lib/amqp.rb'
 end
 
 desc "Build the gem"
