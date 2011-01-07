@@ -29,11 +29,19 @@ while line = ARGF.gets
   end
 
   # foo{} => foo {}
-  line.gsub!(/([^%][\w\d])(\{)/, '\1 \2')
+  line.gsub!(/([^%][^#( ])(\{)/, '\1 \2')
+
+  # a=foo => a = foo
+  line.gsub!(/([^ ])(\+=)/, '\1 \2')
+  line.gsub!(/(\+=)([^ ])/, '\1 \2')
+  line.gsub!(/([^ :])(<<)/, '\1 \2')
+  line.gsub!(/(<<)([^ ])/, '\1 \2')
 
   # foo=>bar
   line.gsub!(/([^\s])=>/, '\1 =>')
   line.gsub!(/=>([^\s])/, '=> \1')
+
+  line.gsub!(/\{\|/, '{ |')
 
   line.gsub!(/,\s*/, ', ')
   line.rstrip!
