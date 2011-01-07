@@ -106,7 +106,6 @@ AMQP brokers
 ------------
 
  * [RabbitMQ](http://rabbitmq.com) (Rabbit Technologies, Erlang/OTP, MPL)
- * [ZeroMQ](http://www.zeromq.org) (iMatix/FastMQ/Intel, C++, GPL3)
  * [OpenAMQ](http://openamq.org) (iMatix, C, GPL2)
  * [ActiveMQ](http://activemq.apache.org) (Apache Foundation, Java, Apache2)
 
