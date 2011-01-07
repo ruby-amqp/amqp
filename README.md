@@ -75,7 +75,7 @@ Links
 
 * Jabber chat [amqp-dev@conf.netlab.cz](xmpp://amqp-dev@conf.netlab.cz)
 * [AMQP gem mailing list](http://groups.google.com/group/ruby-amqp)
-* [AMQP gem at GitHub](http://github.com/tmm1/amqp)
+* [AMQP gem at GitHub](http://github.com/amqp-dev/amqp)
 * [AMQP gem at Gemcutter](http://rubygems.org/gems/amqp)
 
 Contributions
