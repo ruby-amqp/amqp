@@ -29,6 +29,7 @@ class MQ
         self.add!(item)
       end
 
+      # TODO: For items already in collection, should probably return self[item.name], NOT item that wasn't really added?
       return item
     end
 

@@ -240,136 +240,178 @@ describe 'MQ', 'object, also known as "channel"' do
       end #rps
 
       describe '#queue' do
-        it 'creates new Queue and saves it into @queues Hash' do
-          MQ::Queue.should_receive(:new).with(subject, 'name', {}).and_return('mock_queue')
-          subject.queues.should_receive(:[]=).with('name', 'mock_queue')
+        it 'creates new Queue and adds it into @queues collection' do
+          mock_queue = mock('mock_queue', :name => 'name')
+          MQ::Queue.should_receive(:new).with(subject, 'name', {}).and_return(mock_queue)
           queue = subject.queue 'name'
-          queue.should == 'mock_queue'
+          queue.should == mock_queue
+          subject.queues['name'].should == mock_queue
         end
 
         it 'raises error Queue if no name given' do
           expect { subject.queue }.to raise_error ArgumentError
         end
 
-        it 'does not replace queue with existing name' do
-          MQ::Queue.should_receive(:new).with(subject, 'name', {}).and_return('mock_queue')
-          subject.queue 'name'
-          MQ::Queue.should_not_receive(:new)
-          subject.queues.should_not_receive(:[]=)
+        it 'does not replace existing queue with the same name' do
+          original_queue = mock('original_queue', :name => 'name')
+          subject.queues << original_queue
+          original_length = subject.queues.length
+          new_queue = mock('new_queue', :name => 'name')
+          MQ::Queue.should_receive(:new).with(subject, 'name', {}).and_return(new_queue)
           queue = subject.queue 'name'
-          queue.should == 'mock_queue'
+          subject.queues['name'].should == original_queue
+          subject.queues.length.should == original_length
+          queue.should == original_queue
         end
       end #queue
 
+      describe '#queue!' do
+         it 'adds new Queue into @queues even if Queue with such name is already there' do
+           original_queue = mock('original_queue', :name => 'name')
+           subject.queues << original_queue
+           original_length = subject.queues.length
+           new_queue = mock('new_queue', :name => 'name')
+           MQ::Queue.should_receive(:new).with(subject, 'name', {}).and_return(new_queue)
+           queue = subject.queue! 'name'
+           queue.should == new_queue
+           subject.queues['name'].should == original_queue
+           subject.queues.length.should == original_length + 1
+         end
+
+         it 'raises error Queue if no name given' do
+           expect { subject.queue! }.to raise_error ArgumentError
+         end
+       end #queue!
+
       describe '#direct' do
         it 'creates new :direct Exchange and saves it into @exchanges Hash' do
+          mock_exchange = mock('mock_exchange', :name => 'name')
           MQ::Exchange.should_receive(:new).with(subject, :direct, 'name', {}).
-              and_return('mock_exchange')
-          subject.exchanges.should_receive(:[]=).with('name', 'mock_exchange')
+              and_return(mock_exchange)
           exchange = subject.direct 'name'
-          exchange.should == 'mock_exchange'
+          exchange.should == mock_exchange
+          subject.exchanges['name'].should == mock_exchange
         end
 
         it 'creates "amq.direct" Exchange if no name given' do
+          mock_exchange = mock('mock_exchange', :name => 'amq.direct')
           MQ::Exchange.should_receive(:new).with(subject, :direct, 'amq.direct', {}).
-              and_return('mock_exchange')
-          subject.exchanges.should_receive(:[]=).with('amq.direct', 'mock_exchange')
+              and_return(mock_exchange)
           exchange = subject.direct
-          exchange.should == 'mock_exchange'
+          exchange.should == mock_exchange
+          subject.exchanges['amq.direct'].should == mock_exchange
         end
 
         it 'does not replace exchange with existing name' do
+          original_exchange = mock('original_exchange', :name => 'name')
+          subject.exchanges << original_exchange
+          original_length = subject.exchanges.length
+          new_exchange = mock('new_exchange', :name => 'name')
           MQ::Exchange.should_receive(:new).with(subject, :direct, 'name', {}).
-              and_return('mock_exchange')
-          subject.direct 'name'
-          MQ::Exchange.should_not_receive(:new)
-          subject.exchanges.should_not_receive(:[]=)
+              and_return(new_exchange)
           exchange = subject.direct 'name'
-          exchange.should == 'mock_exchange'
+          subject.exchanges['name'].should == original_exchange
+          subject.exchanges.length.should == original_length
+          exchange.should == original_exchange
         end
       end #direct
 
       describe '#fanout' do
         it 'creates new :fanout Exchange and saves it into @exchanges Hash' do
+          mock_exchange = mock('mock_exchange', :name => 'name')
           MQ::Exchange.should_receive(:new).with(subject, :fanout, 'name', {}).
-              and_return('mock_exchange')
-          subject.exchanges.should_receive(:[]=).with('name', 'mock_exchange')
+              and_return(mock_exchange)
           exchange = subject.fanout 'name'
-          exchange.should == 'mock_exchange'
+          exchange.should == mock_exchange
+          subject.exchanges['name'].should == mock_exchange
         end
 
         it 'creates "amq.fanout" Exchange if no name given' do
+          mock_exchange = mock('mock_exchange', :name => 'amq.fanout')
           MQ::Exchange.should_receive(:new).with(subject, :fanout, 'amq.fanout', {}).
-              and_return('mock_exchange')
-          subject.exchanges.should_receive(:[]=).with('amq.fanout', 'mock_exchange')
+              and_return(mock_exchange)
           exchange = subject.fanout
-          exchange.should == 'mock_exchange'
+          exchange.should == mock_exchange
+          subject.exchanges['amq.fanout'].should == mock_exchange
         end
 
         it 'does not replace exchange with existing name' do
+          original_exchange = mock('original_exchange', :name => 'name')
+          subject.exchanges << original_exchange
+          original_length = subject.exchanges.length
+          new_exchange = mock('new_exchange', :name => 'name')
           MQ::Exchange.should_receive(:new).with(subject, :fanout, 'name', {}).
-              and_return('mock_exchange')
-          subject.fanout 'name'
-          MQ::Exchange.should_not_receive(:new)
-          subject.exchanges.should_not_receive(:[]=)
+              and_return(new_exchange)
           exchange = subject.fanout 'name'
-          exchange.should == 'mock_exchange'
+          subject.exchanges['name'].should == original_exchange
+          subject.exchanges.length.should == original_length
+          exchange.should == original_exchange
         end
       end #fanout
 
       describe '#topic' do
         it 'creates new :topic Exchange and saves it into @exchanges Hash' do
+          mock_exchange = mock('mock_exchange', :name => 'name')
           MQ::Exchange.should_receive(:new).with(subject, :topic, 'name', {}).
-              and_return('mock_exchange')
-          subject.exchanges.should_receive(:[]=).with('name', 'mock_exchange')
+              and_return(mock_exchange)
           exchange = subject.topic 'name'
-          exchange.should == 'mock_exchange'
+          exchange.should == mock_exchange
+          subject.exchanges['name'].should == mock_exchange
         end
 
         it 'creates "amq.topic" Exchange if no name given' do
+          mock_exchange = mock('mock_exchange', :name => 'amq.topic')
           MQ::Exchange.should_receive(:new).with(subject, :topic, 'amq.topic', {}).
-              and_return('mock_exchange')
-          subject.exchanges.should_receive(:[]=).with('amq.topic', 'mock_exchange')
+              and_return(mock_exchange)
           exchange = subject.topic
-          exchange.should == 'mock_exchange'
+          exchange.should == mock_exchange
+          subject.exchanges['amq.topic'].should == mock_exchange
         end
 
         it 'does not replace exchange with existing name' do
+          original_exchange = mock('original_exchange', :name => 'name')
+          subject.exchanges << original_exchange
+          original_length = subject.exchanges.length
+          new_exchange = mock('new_exchange', :name => 'name')
           MQ::Exchange.should_receive(:new).with(subject, :topic, 'name', {}).
-              and_return('mock_exchange')
-          subject.topic 'name'
-          MQ::Exchange.should_not_receive(:new)
-          subject.exchanges.should_not_receive(:[]=)
+              and_return(new_exchange)
           exchange = subject.topic 'name'
-          exchange.should == 'mock_exchange'
+          subject.exchanges['name'].should == original_exchange
+          subject.exchanges.length.should == original_length
+          exchange.should == original_exchange
         end
       end #topic
 
       describe '#headers' do
         it 'creates new :headers Exchange and saves it into @exchanges Hash' do
+          mock_exchange = mock('mock_exchange', :name => 'name')
           MQ::Exchange.should_receive(:new).with(subject, :headers, 'name', {}).
-              and_return('mock_exchange')
-          subject.exchanges.should_receive(:[]=).with('name', 'mock_exchange')
+              and_return(mock_exchange)
           exchange = subject.headers 'name'
-          exchange.should == 'mock_exchange'
+          exchange.should == mock_exchange
+          subject.exchanges['name'].should == mock_exchange
         end
 
-        it 'creates "amq.match" Exchange if no name given' do
-          MQ::Exchange.should_receive(:new).with(subject, :headers, 'amq.match', {}).
-              and_return('mock_exchange')
-          subject.exchanges.should_receive(:[]=).with('amq.match', 'mock_exchange')
+        it 'creates "amq.headers" Exchange if no name given' do
+          mock_exchange = mock('mock_exchange', :name => 'amq.headers')
+          MQ::Exchange.should_receive(:new).with(subject, :headers, 'amq.headers', {}).
+              and_return(mock_exchange)
           exchange = subject.headers
-          exchange.should == 'mock_exchange'
+          exchange.should == mock_exchange
+          subject.exchanges['amq.headers'].should == mock_exchange
         end
 
         it 'does not replace exchange with existing name' do
+          original_exchange = mock('original_exchange', :name => 'name')
+          subject.exchanges << original_exchange
+          original_length = subject.exchanges.length
+          new_exchange = mock('new_exchange', :name => 'name')
           MQ::Exchange.should_receive(:new).with(subject, :headers, 'name', {}).
-              and_return('mock_exchange')
-          subject.headers 'name'
-          MQ::Exchange.should_not_receive(:new)
-          subject.exchanges.should_not_receive(:[]=)
+              and_return(new_exchange)
           exchange = subject.headers 'name'
-          exchange.should == 'mock_exchange'
+          subject.exchanges['name'].should == original_exchange
+          subject.exchanges.length.should == original_length
+          exchange.should == original_exchange
         end
       end #headers
     end # describe 'setting up exchanges/queues/rpcs'

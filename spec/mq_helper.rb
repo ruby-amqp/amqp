@@ -7,7 +7,7 @@ require 'mq'
 class MockConnection
 
   def initialize
-    EM.should_receive(:reactor_running?).and_return(true)
+    EM.stub(:reactor_running?).and_return(true)
   end
 
   def callback &block
