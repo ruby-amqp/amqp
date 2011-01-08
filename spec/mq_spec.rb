@@ -43,24 +43,30 @@ describe 'MQ', 'as a class' do
   end # .id
 
   describe '.error' do
-    before {@callback_fired = false}
+
     after(:all) { MQ.instance_variable_set(:@error_callback, nil) } # clear error callback
+
     it 'is noop unless @error_callback was previously set' do
       MQ.instance_variable_get(:@error_callback).should be_nil
       MQ.error("Msg").should be_nil
     end
 
-    it 'is setting @error_callback if block is given' do
-      MQ.error { |message| message.should == "Msg"; @callback_fired = true }
-      MQ.instance_variable_get(:@error_callback).should_not be_nil
-      @callback_fired.should be_false
-    end
+    context 'when @error_callback is set' do
+      before { MQ.error { |message| message.should == "Msg"; @callback_fired = true } }
 
-    it 'is causes @error_callback to fire if it was set' do
-      MQ.instance_variable_get(:@error_callback).should_not be_nil
-      p MQ.instance_variable_get(:@error_callback)
-      MQ.error("Msg")
-      @callback_fired.should be_true
+      it 'is setting @error_callback to given block' do
+        MQ.instance_variable_get(:@error_callback).should_not be_nil
+        @callback_fired.should be_false
+      end
+
+      it 'does not fire @error_callback immediately' do
+        @callback_fired.should be_false
+      end
+
+      it 'fires @error_callback on subsequent .error calls' do
+        MQ.error("Msg")
+        @callback_fired.should be_true
+      end
     end
   end # .error
 
