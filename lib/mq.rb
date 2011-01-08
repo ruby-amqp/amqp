@@ -835,12 +835,12 @@ class MQ
     @consumers = {}
 
     exs = @exchanges
-    @exchanges = {}
-    exs.each { |_, e| e.reset } if exs
+    @exchanges = MQ::Collection.new
+    exs.each { |e| e.reset } if exs
 
     qus = @queues
-    @queues = {}
-    qus.each { |_, q| q.reset } if qus
+    @queues = MQ::Collection.new
+    qus.each { |q| q.reset } if qus
 
     prefetch(@prefetch_size) if @prefetch_size
   end

@@ -77,9 +77,9 @@ describe MQ::Collection do
       @collection.length.should eql(length + 1)
     end
 
-    it "shouldreturn the item" do
+    it "should return the item" do
       item = Item.new("test")
-      (@collection << item).should eql(item)
+      (@collection.add! item).should eql(item)
     end
   end
 end

@@ -85,7 +85,6 @@ describe 'MQ', 'object, also known as "channel"' do
     before { @client = MockConnection.new }
     after { AMQP.cleanup_state }
     subject { MQ.new(@client).tap { |mq| mq.succeed } } # Indicates that channel is connected
-    # its(:connection) { should be_nil } - relies on subject.send(:connection), not working
 
     it 'has public accessors' do
       subject.channel.should == 1 # Essentially, this channel (mq) number
@@ -97,7 +96,7 @@ describe 'MQ', 'object, also known as "channel"' do
 
     describe '#send' do
       it 'sends given data through its connection' do
-        args = [mock('data1'), mock('data2'), mock('data3')]
+        args = [ 'data1', 'data2', 'data3']
         subject.send *args
         @client.messages[-3..-1].map { |message| message[:data] }.should == args
       end #send
