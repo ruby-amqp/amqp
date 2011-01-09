@@ -392,13 +392,13 @@ describe 'MQ', 'object, also known as "channel"' do
           subject.exchanges['name'].should == mock_exchange
         end
 
-        it 'creates "amq.headers" Exchange if no name given' do
-          mock_exchange = mock('mock_exchange', :name => 'amq.headers')
-          MQ::Exchange.should_receive(:new).with(subject, :headers, 'amq.headers', {}).
+        it 'creates "amq.match" Exchange if no name given' do
+          mock_exchange = mock('mock_exchange', :name => 'amq.match')
+          MQ::Exchange.should_receive(:new).with(subject, :headers, 'amq.match', {}).
               and_return(mock_exchange)
           exchange = subject.headers
           exchange.should == mock_exchange
-          subject.exchanges['amq.headers'].should == mock_exchange
+          subject.exchanges['amq.match'].should == mock_exchange
         end
 
         it 'does not replace exchange with existing name' do
@@ -545,13 +545,20 @@ describe 'MQ', 'object, also known as "channel"' do
                                                     consumer_count: 0)) }
 
           it 'sets status for Queue for which declaration was confirmed' do
-            queue = subject.queue('queue')
+            queue = subject.queue('queue', :nowait => false)
             queue.should_receive(:receive_status).with(
                 instance_of(AMQP::Protocol::Queue::DeclareOk))
             subject.process_frame frame
           end
 
-          it 'should report MQ.error if no such queue exists'
+          it 'does not blow up when we declare Queue with :nowait => true and no block' do
+            queue = subject.queue('queue', :nowait => true)
+            queue.should_receive(:receive_status).with(
+                instance_of(AMQP::Protocol::Queue::DeclareOk))
+            subject.process_frame frame
+          end
+
+          it 'should report MQ.error if no queue with :unfinished status exists'
           it 'should not depend on received :consumer_tag - wrong for implicit queues'
         end # Protocol::Queue::DeclareOk
 
