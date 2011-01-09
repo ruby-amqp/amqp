@@ -433,7 +433,7 @@ describe 'MQ', 'object, also known as "channel"' do
           header.klass.should == AMQP::Protocol::Test
           header.size.should == 4
           header.weight.should == 2
-          header.properties.should == {delivery_mode: 1}
+          header.properties.should == {:delivery_mode => 1}
         end
 
         it 'sets @body to ""' do
@@ -463,7 +463,7 @@ describe 'MQ', 'object, also known as "channel"' do
         context 'if Frame payload exceeds @header size' do
 
           it 'updates @header with @method.args and passes @header/data to consumer' do
-            should_pass_updated_header_and_data_to @consumer, size: 4, body: 'data'
+            should_pass_updated_header_and_data_to @consumer, :size => 4, :body => 'data'
             subject.process_frame AMQP::Frame::Body.new('data')
           end
 
@@ -475,7 +475,7 @@ describe 'MQ', 'object, also known as "channel"' do
 
         context 'when @body + Frame payload exceeds @header size' do
           it 'updates @header with @method.args and passes @header/data to consumer' do
-            should_pass_updated_header_and_data_to @consumer, size: 4, body: 'data'
+            should_pass_updated_header_and_data_to @consumer, :size => 4, :body => 'data'
             subject.process_frame AMQP::Frame::Body.new('da')
             subject.process_frame AMQP::Frame::Body.new('ta')
           end
@@ -509,7 +509,7 @@ describe 'MQ', 'object, also known as "channel"' do
         describe ' Protocol::Access::RequestOk',
                  '(broker granted access to security realm /data)' do
           let(:frame) { AMQP::Frame::Method.new(AMQP::Protocol::Access::RequestOk.new(
-                                                    ticket: 1313)) }
+                                                    :ticket => 1313)) }
 
           it 'sets @ticket (security token received from broker)' +
                  ' - it is later presented to broker where appropriate' do
@@ -540,9 +540,9 @@ describe 'MQ', 'object, also known as "channel"' do
         describe ' Protocol::Queue::DeclareOk',
                  '(broker confirms Queue declaration)' do
           let(:frame) { AMQP::Frame::Method.new(AMQP::Protocol::Queue::DeclareOk.new(
-                                                    queue: 'queue',
-                                                    message_count: 0,
-                                                    consumer_count: 0)) }
+                                                    :queue => 'queue',
+                                                    :message_count => 0,
+                                                    :consumer_count => 0)) }
 
           it 'sets status for Queue for which declaration was confirmed' do
             queue = subject.queue('queue', :nowait => false)
@@ -565,7 +565,7 @@ describe 'MQ', 'object, also known as "channel"' do
         describe ' Protocol::Basic::CancelOk',
                  '(broker confirms cancellation of consumer/subscriber)' do
           let(:frame) { AMQP::Frame::Method.new(AMQP::Protocol::Basic::CancelOk.new(
-                                                    consumer_tag: 'test_consumer')) }
+                                                    :consumer_tag => 'test_consumer')) }
 
           it 'cancels @consumer matching received :consumer_tag' do
             subject.consumers['test_consumer'] = consumer = mock('consumer')
@@ -664,7 +664,7 @@ describe 'MQ', 'object, also known as "channel"' do
         describe ' Protocol::Basic::ConsumeOk',
                  '(broker confirmed requested subscription)' do
           let(:frame) { AMQP::Frame::Method.new(AMQP::Protocol::Basic::ConsumeOk.new(
-                                                    consumer_tag: 'zorro')) }
+                                                    :consumer_tag => 'zorro')) }
 
           it 'reports MQ.error if no consumer with given consumer_tag' do
             MQ.should_receive(:error).
@@ -687,10 +687,10 @@ describe 'MQ', 'object, also known as "channel"' do
             expect {
               subject.process_frame AMQP::Frame::Method.new(
                                         AMQP::Protocol::Channel::Close.new(
-                                            reply_code: 200,
-                                            reply_text: 'byebye',
-                                            class_id: :test,
-                                            method_id: :content))
+                                            :reply_code => 200,
+                                            :reply_text => 'byebye',
+                                            :class_id => :test,
+                                            :method_id => :content))
             }.to raise_error MQ::Error, /byebye in AMQP::Protocol::Test::Content on 1/
           end
         end # Protocol::Channel::Close
