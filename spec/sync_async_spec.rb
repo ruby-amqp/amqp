@@ -28,7 +28,7 @@ describe MQ::Queue do
       queue.bind(exchange) do
         3.times { exchange.publish("foobar") }
         # We have 1 channel per 1 MQ instance, so we can just send a sync request
-        # and once the requst is finished, we can be sure that the previous one is
+        # and once the request is finished, we can be sure that the previous one is
         # finished as well. So we can be sure that all the Basic.Publish actions are done.
         @mq.queue!(name) do |queue, message_count, *args|
           message_count.should == 3

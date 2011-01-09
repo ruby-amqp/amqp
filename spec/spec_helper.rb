@@ -49,7 +49,7 @@ def test_header opts = {}
           opts[:klass] || AMQP::Protocol::Test,
           opts[:size] || 4,
           opts[:weight] || 2,
-          opts[:properties] || {delivery_mode: 1}))
+          opts[:properties] || {:delivery_mode => 1}))
 end
 
 # Returns AMQP Frame::Method frame that contains Protocol::Basic::Deliver
@@ -57,5 +57,5 @@ end
 def test_method_deliver opts = {}
   AMQP::Frame::Method.new(
       AMQP::Protocol::Basic::Deliver.new(
-          consumer_tag: opts[:consumer_tag] || 'test_consumer'))
+          :consumer_tag => opts[:consumer_tag] || 'test_consumer'))
 end

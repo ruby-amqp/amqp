@@ -21,7 +21,7 @@ class MockConnection
   end
 
   def send data, opts = {}
-    messages << {data: data, opts: opts}
+    messages << {:data => data, :opts => opts}
   end
 
   def connected?
@@ -51,12 +51,13 @@ def should_pass_updated_header_and_data_to consumer, opts={}
   # - Because @consumer receives @header and may inspect its properties
 
   subject_mock(:@method).should_receive(:arguments).
-      with(no_args).and_return(myprop: 'mine')
+      with(no_args).and_return(:myprop => 'mine')
   consumer.should_receive(:receive) do |header, body|
     header.klass.should == (opts[:klass] || AMQP::Protocol::Test)
     header.size.should == (opts[:size] || 4)
     header.weight.should == (opts[:weight] || 2)
-    header.properties.should == (opts[:properties] || {delivery_mode: 1, myprop: 'mine'})
+    header.properties.should == (opts[:properties] ||
+        {:delivery_mode => 1, :myprop => 'mine'})
     body.should == (opts[:body] || 'data')
   end
 end
