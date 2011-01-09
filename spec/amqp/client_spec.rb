@@ -36,6 +36,7 @@ describe AMQP::Client do
         end
 
         it 'raises connection error (with unresolvable AMQP broker address), or' do
+          pending 'Need to rewrite to eliminate dependency on DNS loockup mechanism'
           expect { em do
             Client.connect(:host => 'impossible.')
             done(2)
@@ -44,12 +45,12 @@ describe AMQP::Client do
         end
 
         it 'raises connection error (with wrong AMQP host), or' do
-#          pending 'Failing, cannot find any reason why'
+          pending 'Need to rewrite to eliminate dependency on DNS loockup mechanism'
           expect { em do
             Client.connect(:host => 'example.com')
             done(2)
           end
-          }.to raise_error #AMQP::Error, /Could not connect to server example.com:5672/
+          }.to raise_error AMQP::Error, /Could not connect to server example.com:5672/
         end
 
         it 'raises connection error (with wrong AMQP port), or' do

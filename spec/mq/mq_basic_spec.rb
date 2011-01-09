@@ -18,6 +18,7 @@ describe MQ do
   end
 
   it 'should give each thread a message queue' do
+    pending 'This is not implemented in current lib'
     class MQ
       @@cur_channel = 0
     end
