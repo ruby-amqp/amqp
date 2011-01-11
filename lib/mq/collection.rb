@@ -24,13 +24,14 @@ class MQ
     # Use Collection# << for adding items to the collection.
     undef_method :[]=
 
-    def << (item)
+    def <<(item)
       if (item.name rescue nil).nil? || ! self[item.name]
         self.add!(item)
       end
 
-      # TODO: For items already in collection, should probably return self[item.name], NOT item that wasn't really added?
-      return item
+      # We can't just return the item, because in case the item isn't added
+      # to the collection, then it'd be different from self[item.name].
+      return self[item.name]
     end
 
     alias_method :__push__, :push
