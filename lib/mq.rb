@@ -147,6 +147,9 @@ class MQ
   def initialize(connection = nil)
     raise 'MQ can only be used from within EM.run {}' unless EM.reactor_running?
 
+    @_send_mutex = Mutex.new
+    @get_queue_mutex = Mutex.new
+
     @connection = connection || AMQP.start
 
     conn.callback { |c|
@@ -277,7 +280,7 @@ class MQ
 
   def send(*args)
     conn.callback { |c|
-      (@_send_mutex ||= Mutex.new).synchronize do
+      @_send_mutex.synchronize do
         args.each do |data|
           data.ticket = @ticket if @ticket and data.respond_to? :ticket=
           log :sending, data
@@ -858,7 +861,7 @@ class MQ
 
   def get_queue
     if block_given?
-      (@get_queue_mutex ||= Mutex.new).synchronize {
+      @get_queue_mutex.synchronize {
         yield( @get_queue ||= [] )
       }
     end

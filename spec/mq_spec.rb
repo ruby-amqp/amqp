@@ -213,9 +213,7 @@ describe 'MQ', 'object, also known as "channel"' do
 
       it 'is Mutex-synchronized' do
         subject # Evaluates subject, tripping add_channel Mutex at initialize
-        mutex = Mutex.new
-        Mutex.should_receive(:new).and_return(mutex)
-        mutex.should_receive(:synchronize)
+        subject.instance_eval { @get_queue_mutex }.should_receive(:synchronize)
         subject.get_queue {}
       end
     end #get_queue
