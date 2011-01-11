@@ -52,6 +52,23 @@ describe MQ::Collection do
       (@collection << item).should eql item
     end
 
+    context "when adding new item with duplicate name" do
+      before do
+        @original_item = Item.new("test")
+        @new_item = Item.new("test")
+        @collection << @original_item
+      end
+
+      it "keeps item already in collection" do
+        @collection << @new_item
+        @collection['test'].should eql @original_item
+      end
+
+      it "returns item already in collection" do
+        (@collection << @new_item).should eql @original_item
+      end
+    end
+
     it "should return the item even if it already existed" do
       item = Item.new("test")
       @collection << item
