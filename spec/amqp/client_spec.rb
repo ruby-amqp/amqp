@@ -409,8 +409,7 @@ describe AMQP::Client do
 
         context '#add_channel' do
           it 'is Mutex-synchronized for Thread-safety' do
-            Mutex.should_receive(:new).and_return(mutex = mock("mutex"))
-            mutex.should_receive(:synchronize)
+            @client.instance_eval { @_channel_mutex }.should_receive(:synchronize)
             @client.add_channel mock('mq')
             done
           end

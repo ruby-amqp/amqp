@@ -66,6 +66,8 @@ module AMQP
       @settings = opts
       extend AMQP.client
 
+      @_channel_mutex = Mutex.new
+
       @on_disconnect ||= proc { raise Error, "Could not connect to server #{opts[:host]}:#{opts[:port]}" }
 
       timeout @settings[:timeout] if @settings[:timeout]
@@ -102,7 +104,7 @@ module AMQP
     end
 
     def add_channel(mq)
-      (@_channel_mutex ||= Mutex.new).synchronize do
+      @_channel_mutex.synchronize do
         channels[ key = (channels.keys.max || 0) + 1 ] = mq
         key
       end
