@@ -2,19 +2,13 @@
 
 require 'spec_helper'
 
-describe MQ do
+describe MQ, ' basic specs' do
   include AMQP::Spec
 
   default_timeout 5
 
   amqp_before do
     @mq = MQ.new
-  end
-
-  it 'should have a channel' do
-    @mq.channel.should be_kind_of Fixnum
-    @mq.channel.should == 1
-    done
   end
 
   it 'should give each thread a message queue' do

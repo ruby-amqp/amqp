@@ -86,11 +86,15 @@ describe 'MQ', 'object, also known as "channel"' do
     after { AMQP.cleanup_state }
     subject { MQ.new(@client).tap { |mq| mq.succeed } } # Indicates that channel is connected
 
-    it 'has public accessors' do
+    it 'should have a channel' do
+      subject.channel.should be_kind_of Fixnum
       subject.channel.should == 1 # Essentially, this channel (mq) number
-      subject.consumers.should be_empty
+    end
+
+    it 'has publicly accessible collections' do
       subject.exchanges.should be_empty
       subject.queues.should be_empty
+      subject.consumers.should be_empty
       subject.rpcs.should be_empty
     end
 
