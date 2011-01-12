@@ -322,7 +322,7 @@ describe AMQP::Client do
                       with(Protocol::Connection::StartOk.new(
                                {:platform => 'Ruby/EventMachine',
                                 :product => 'AMQP',
-                                :information => 'http://github.com/tmm1/amqp',
+                                :information => 'http://github.com/ruby-amqp/amqp',
                                 :version => AMQP::VERSION}, 'AMQPLAIN',
                                {:LOGIN => AMQP.settings[:user],
                                 :PASSWORD => AMQP.settings[:pass]}, 'en_US'))

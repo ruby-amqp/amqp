@@ -14,7 +14,7 @@ module SimpleClient
       when Protocol::Connection::Start
         send Protocol::Connection::StartOk.new({:platform => 'Ruby/EventMachine',
                                                 :product => 'AMQP',
-                                                :information => 'http://github.com/tmm1/amqp',
+                                                :information => 'http://github.com/ruby-amqp/amqp',
                                                 :version => '0.1.0'},
                                                'AMQPLAIN',
                                                {:LOGIN => 'guest',
