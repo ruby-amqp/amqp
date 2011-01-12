@@ -20,7 +20,7 @@ module AMQP
         when Protocol::Connection::Start
           send Protocol::Connection::StartOk.new({:platform => 'Ruby/EventMachine',
                                                   :product => 'AMQP',
-                                                  :information => 'http://github.com/tmm1/amqp',
+                                                  :information => 'http://github.com/ruby-amqp/amqp',
                                                   :version => VERSION},
                                                  'AMQPLAIN',
                                                  {:LOGIN => @settings[:user],

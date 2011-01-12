@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.name = "amqp"
   s.version = AMQP::VERSION
   s.authors = ["Aman Gupta", "Jakub Stastny aka botanicus"]
-  s.homepage = "http://github.com/tmm1/amqp"
+  s.homepage = "http://github.com/ruby-amqp/amqp"
   s.summary = "AMQP client implementation in Ruby/EventMachine."
   s.description = "An implementation of the AMQP protocol in Ruby/EventMachine for writing clients to the RabbitMQ message broker."
   s.cert_chain = nil

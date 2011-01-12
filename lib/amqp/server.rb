@@ -20,7 +20,7 @@ module AMQP
               8,
               0,
               {
-                :information => 'Licensed under the Ruby license. See http://github.com/tmm1/amqp',
+                :information => 'Licensed under the Ruby license. See http://github.com/ruby-amqp/amqp',
                 :copyright => 'Copyright (c) 2008-2009 Aman Gupta',
                 :platform => 'Ruby/EventMachine',
                 :version => '0.6.1',
