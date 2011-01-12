@@ -76,7 +76,7 @@ class MQ
       self.callback = block
     end
 
-    attr_reader :name
+    attr_reader :name, :sync_bind
     attr_accessor :opts, :callback, :bind_callback
 
     # This method binds a queue to an exchange.  Until a queue is
@@ -114,6 +114,7 @@ class MQ
     #
     def bind(exchange, opts = {}, &block)
       @status = :unbound
+      @sync_bind = ! opts[:nowait]
       exchange = exchange.respond_to?(:name) ? exchange.name : exchange
       @bindings[exchange] = opts
 
