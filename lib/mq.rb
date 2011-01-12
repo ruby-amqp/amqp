@@ -649,8 +649,8 @@ class MQ
   #
   # == Options
   # * :passive => true | false (default false)
-  # If set, the server will not create the exchange if it does not
-  # already exist. The client can use this to check whether an exchange
+  # If set, the server will not create the queue if it does not
+  # already exist. The client can use this to check whether the queue
   # exists without modifying  the server state.
   #
   # * :durable => true | false (default false)
@@ -689,7 +689,7 @@ class MQ
   #
   # The server waits for a short period of time before
   # determining the queue is unused to give time to the client code
-  # to bind an exchange to it.
+  # to bind a queue to it.
   #
   # If the queue has been previously declared, this option is ignored
   # on subsequent declarations.
