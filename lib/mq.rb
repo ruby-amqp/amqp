@@ -254,7 +254,7 @@ class MQ
         end
 
       when Protocol::Channel::Close
-        raise Error, "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]} on #{@channel}"
+        MQ.error "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]} on #{@channel}"
 
       when Protocol::Channel::CloseOk
         @on_close && @on_close.call(self)
