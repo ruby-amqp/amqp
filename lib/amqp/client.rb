@@ -36,6 +36,8 @@ module AMQP
                                               :capabilities => '',
                                               :insist => @settings[:insist])
 
+          @on_disconnect = method(:disconnected)
+
         when Protocol::Connection::OpenOk
           succeed(self)
 
@@ -79,7 +81,6 @@ module AMQP
       log 'connected'
       # @on_disconnect = proc { raise Error, 'Disconnected from server' }
       unless @closing
-        @on_disconnect = method(:disconnected)
         @reconnecting = false
       end
 
