@@ -92,11 +92,13 @@ module AMQP
   def self.stop
     if @conn and not @closing
       @closing = true
-      @conn.close {
-        yield if block_given?
-        @conn = nil
-        @closing = false
-      }
+      EM.next_tick do
+        @conn.close {
+          yield if block_given?
+          @conn = nil
+          @closing = false
+        }
+      end
     end
   end
 
