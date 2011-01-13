@@ -3,7 +3,15 @@
 $:.unshift File.expand_path("../../../lib", __FILE__)
 require "mq"
 
-AMQP.start(:host => "localhost") do
+AMQP.start(:host => "localhost") do |connection|
+
+  # Send Connection.Close on Ctrl+C
+  trap(:INT) do
+    unless connection.closing?
+      connection.close { exit! }
+    end
+  end
+
   @counter = 0
   amq = MQ.new
 

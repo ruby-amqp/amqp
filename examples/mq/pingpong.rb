@@ -3,7 +3,14 @@
 $:.unshift File.dirname(__FILE__) + '/../../lib'
 require 'mq'
 
-AMQP.start(:host => 'localhost') do
+AMQP.start(:host => 'localhost') do |connection|
+
+  # Send Connection.Close on Ctrl+C
+  trap(:INT) do
+    unless connection.closing?
+      connection.close { exit! }
+    end
+  end
 
   def log(*args)
     p [ Time.now, *args ]

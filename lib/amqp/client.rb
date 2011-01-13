@@ -167,6 +167,10 @@ module AMQP
       }
     end
 
+    def closing?
+      @closing
+    end
+
     def reconnect(force = false)
       if @reconnecting and not force
         # wait 1 second after first reconnect attempt, in between each subsequent attempt
