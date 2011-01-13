@@ -19,6 +19,12 @@ class MQ
 
   # Raised whenever an illegal operation is attempted.
   class Error < StandardError; end
+
+  class IncompatibleOptionsError < Error
+    def initialize(name, opts_1, opts_2)
+      super("There is already an instance called #{name} with options #{opts_1.inspect}, you can't define the same instance with different options (#{opts_2.inspect})!")
+    end
+  end
 end
 
 # The top-level class for building AMQP clients. This class contains several
@@ -355,7 +361,16 @@ class MQ
   # * :passive => true and the exchange does not exist (NOT_FOUND)
   #
   def direct(name = 'amq.direct', opts = {}, &block)
-    self.exchanges << Exchange.new(self, :direct, name, opts, &block)
+    if exchange = self.exchanges.find { |exchange| exchange.name == name }
+      extended_opts = Exchange.add_default_options(type, name, opts, block)
+      if exchange.opts == extended_opts
+        return exchange
+      else
+        raise IncompatibleOptionsError.new(name, exchange.opts, extended_opts)
+      end
+    else
+      self.exchanges << Exchange.new(self, :direct, name, opts, &block)
+    end
   end
 
   # Defines, intializes and returns an Exchange to act as an ingress
@@ -441,7 +456,16 @@ class MQ
   # * :passive => true and the exchange does not exist (NOT_FOUND)
   #
   def fanout(name = 'amq.fanout', opts = {}, &block)
-    self.exchanges << Exchange.new(self, :fanout, name, opts, &block)
+    if exchange = self.exchanges.find { |exchange| exchange.name == name }
+      extended_opts = Exchange.add_default_options(type, name, opts, block)
+      if exchange.opts == extended_opts
+        return exchange
+      else
+        raise IncompatibleOptionsError.new(name, exchange.opts, extended_opts)
+      end
+    else
+      self.exchanges << Exchange.new(self, :fanout, name, opts, &block)
+    end
   end
 
   # Defines, intializes and returns an Exchange to act as an ingress
@@ -553,7 +577,16 @@ class MQ
   # * :passive => true and the exchange does not exist (NOT_FOUND)
   #
   def topic(name = 'amq.topic', opts = {}, &block)
-    self.exchanges << Exchange.new(self, :topic, name, opts, &block)
+    if exchange = self.exchanges.find { |exchange| exchange.name == name }
+      extended_opts = Exchange.add_default_options(type, name, opts, block)
+      if exchange.opts == extended_opts
+        return exchange
+      else
+        raise IncompatibleOptionsError.new(name, exchange.opts, extended_opts)
+      end
+    else
+      self.exchanges << Exchange.new(self, :topic, name, opts, &block)
+    end
   end
 
   # Defines, intializes and returns an Exchange to act as an ingress
@@ -633,7 +666,16 @@ class MQ
   # * :passive => true and the exchange does not exist (NOT_FOUND)
   # * using a value other than "any" or "all" for "x-match"
   def headers(name = 'amq.match', opts = {}, &block)
-    self.exchanges << Exchange.new(self, :headers, name, opts, &block)
+    if exchange = self.exchanges.find { |exchange| exchange.name == name }
+      extended_opts = Exchange.add_default_options(type, name, opts, block)
+      if exchange.opts == extended_opts
+        return exchange
+      else
+        raise IncompatibleOptionsError.new(name, exchange.opts, extended_opts)
+      end
+    else
+      self.exchanges << Exchange.new(self, :headers, name, opts, &block)
+    end
   end
 
   # Queues store and forward messages.  Queues can be configured in the server
@@ -703,10 +745,19 @@ class MQ
   # method it will raise a channel or connection exception.
   #
   def queue(name, opts = {}, &block)
-    self.queues << Queue.new(self, name, opts, &block)
+    if queue = self.queues.find { |queue| queue.name == name }
+      extended_opts = Queue.add_default_options(name, opts, block)
+      if queue.opts == extended_opts
+        return queue
+      else
+        raise IncompatibleOptionsError.new(name, queue.opts, extended_opts)
+      end
+    else
+      self.queues << Queue.new(self, name, opts, &block)
+    end
   end
 
-  def queue! name, opts = {}, &block
+  def queue!(name, opts = {}, &block)
     self.queues.add! Queue.new(self, name, opts, &block)
   end
 

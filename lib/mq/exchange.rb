@@ -24,6 +24,10 @@ class MQ
   class Exchange
     include AMQP
 
+    def self.add_default_options(type, name, opts, block)
+      { :exchange => name, :type => type, :nowait => block.nil? }.merge(opts)
+    end
+
     # Defines, intializes and returns an Exchange to act as an ingress
     # point for all published messages.
     #
@@ -203,7 +207,7 @@ class MQ
     def initialize(mq, type, name, opts = {}, &block)
       @mq = mq
       @type, @opts = type, opts
-      @opts = { :exchange => name, :type => type, :nowait => block.nil? }.merge(opts)
+      @opts = self.class.add_default_options(type, name, opts, block)
       @key = opts[:key]
       @name = name unless name.empty?
       @status = :unknown

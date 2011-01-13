@@ -4,6 +4,10 @@ class MQ
   class Queue
     include AMQP
 
+    def self.add_default_options(name, opts, block)
+      { :queue => name, :nowait => block.nil? }.merge(opts)
+    end
+
     # Queues store and forward messages.  Queues can be configured in the server
     # or created at runtime.  Queues must be attached to at least one exchange
     # in order to receive messages from publishers.
@@ -65,7 +69,7 @@ class MQ
     #
     def initialize(mq, name, opts = {}, &block)
       @mq = mq
-      @opts = { :queue => name, :nowait => block.nil? }.merge(opts)
+      @opts = self.class.add_default_options(name, opts, block)
       @bindings ||= {}
       @name = name unless name.empty?
       @status = @opts[:nowait] ? :unknown : :unfinished
