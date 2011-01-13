@@ -8,6 +8,8 @@ module AMQP
   class Error < StandardError; end
 
   module BasicClient
+    attr_reader :broker
+
     def process_frame(frame)
       if mq = channels[frame.channel]
         mq.process_frame(frame)
@@ -18,6 +20,7 @@ module AMQP
       when Frame::Method
         case method = frame.payload
         when Protocol::Connection::Start
+          @broker = method
           send Protocol::Connection::StartOk.new({:platform => 'Ruby/EventMachine',
                                                   :product => 'AMQP',
                                                   :information => 'http://github.com/ruby-amqp/amqp',
