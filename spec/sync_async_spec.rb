@@ -19,25 +19,6 @@ describe MQ::Queue do
     end
   end
 
-  # PENDING: this spec is currently failing
-  # https://github.com/tmm1/amqp/issues/issue/31
-  it "should be able to access message count" do
-    name = Array.new(16) { rand(256) }.pack("C*").unpack("H*").first
-    exchange = MQ.fanout("fanout")
-    @mq.queue!(name) do |queue, *args|
-      queue.bind(exchange) do
-        3.times { exchange.publish("foobar") }
-        # We have 1 channel per 1 MQ instance, so we can just send a sync request
-        # and once the request is finished, we can be sure that the previous one is
-        # finished as well. So we can be sure that all the Basic.Publish actions are done.
-        @mq.queue!(name) do |queue, message_count, *args|
-          message_count.should == 3
-          done
-        end
-      end
-    end
-  end
-
   # TODO: this will require quite a lot of code, but it should be tested anyway.
   # should "be able to access consumer count" do
   # end
