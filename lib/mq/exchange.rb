@@ -231,7 +231,7 @@ class MQ
         # Call the callback immediately, as given exchange is already
         # declared.
         @status = :finished
-        block.call(self)
+        block.call(self) if block
       end
 
       self.callback = block
