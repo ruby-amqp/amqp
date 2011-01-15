@@ -427,7 +427,12 @@ class MQ
       @status = :finished
 
       if self.callback
-        self.callback.call(self, declare_ok.message_count, declare_ok.consumer_count)
+        # compatibility for a common case when callback only takes one argument
+        if self.callback.arity == 1
+          self.callback.call(self)
+        else
+          self.callback.call(self, declare_ok.message_count, declare_ok.consumer_count)
+        end
       end
 
       if @on_status
