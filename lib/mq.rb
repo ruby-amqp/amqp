@@ -25,6 +25,12 @@ class MQ
       super("There is already an instance called #{name} with options #{opts_1.inspect}, you can't define the same instance with different options (#{opts_2.inspect})!")
     end
   end
+
+  class ChannelClosedError < Error
+    def initialize(instance)
+      super("The channel #{instance.channel} was closed, you can't use it anymore!")
+    end
+  end
 end
 
 # The top-level class for building AMQP clients. This class contains several
@@ -157,7 +163,7 @@ class MQ
       send Protocol::Channel::Open.new
     }
   end
-  attr_reader :channel, :connection
+  attr_reader :channel, :connection, :status
 
   def check_content_completion
     if @body.length >= @header.size
@@ -165,6 +171,10 @@ class MQ
       @consumer.receive @header, @body if @consumer
       @body = @header = @consumer = @method = nil
     end
+  end
+
+  def closed?
+    @status.eql?(:closed)
   end
 
   # May raise a MQ::Error exception when the frame payload contains a
@@ -257,9 +267,11 @@ class MQ
         end
 
       when Protocol::Channel::Close
+        @status = :closed
         MQ.error "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]} on #{@channel}"
 
       when Protocol::Channel::CloseOk
+        @status = :closed
         @on_close && @on_close.call(self)
 
         @closing = false
@@ -282,9 +294,15 @@ class MQ
     conn.callback { |c|
       @_send_mutex.synchronize do
         args.each do |data|
-          data.ticket = @ticket if @ticket and data.respond_to? :ticket=
-          log :sending, data
-          c.send data, :channel => @channel
+          unless self.closed?
+            data.ticket = @ticket if @ticket and data.respond_to? :ticket=
+            log :sending, data
+            c.send data, :channel => @channel
+          else
+            unless data.class == AMQP::Protocol::Channel::CloseOk
+              raise ChannelClosedError.new(self)
+            end
+          end
         end
       end
     }
@@ -900,7 +918,6 @@ class MQ
   end
 
   private
-
   def log(*args)
     return unless MQ.logging
     pp args
