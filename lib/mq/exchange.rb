@@ -24,6 +24,23 @@ class MQ
   class Exchange
     include AMQP
 
+    # The default exchange.
+    # Every queue is bind to this (direct) exchange by default.
+    # You can't remove it or bind there queue explicitly.
+
+    # Do NOT confuse with amq.direct: it's only a normal direct
+    # exchange and the only special thing about it is that it's
+    # predefined in the system, so you can use it straightaway.
+
+    # Example:
+    # MQ.new.queue("tasks")
+    # MQ::Exchange.default.publish("make clean", routing_key: "tasks")
+
+    # For more info see section 2.1.2.4 Automatic Mode of the AMQP 0.9.1 spec.
+    def self.default
+      @@default ||= self.new(MQ.new, :direct, "", :no_declare => true)
+    end
+
     def self.add_default_options(type, name, opts, block)
       { :exchange => name, :type => type, :nowait => block.nil? }.merge(opts)
     end
@@ -340,20 +357,5 @@ class MQ
     def receive_response(response)
       self.callback && self.callback.call(self)
     end
-
-    # The default exchange.
-    # Every queue is bind to this (direct) exchange by default.
-    # You can't remove it or bind there queue explicitly.
-
-    # Do NOT confuse with amq.direct: it's only a normal direct
-    # exchange and the only special thing about it is that it's
-    # predefined in the system, so you can use it straightaway.
-
-    # Example:
-    # MQ.new.queue("tasks")
-    # MQ::Exchange::DEFAULT.publish("make clean", routing_key: "tasks")
-
-    # For more info see section 2.1.2.4 Automatic Mode of the AMQP 0.9.1 spec.
-    DEFAULT ||= self.new(MQ.new, :direct, "", :no_declare => true)
   end
 end

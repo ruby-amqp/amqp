@@ -42,7 +42,7 @@ EM.run do
   queues    = [queue1, queue2, queue3]
 
   # Rely on default direct exchange binding, see section 2.1.2.4 Automatic Mode in AMQP 0.9.1 spec.
-  exchange = MQ::Exchange::DEFAULT
+  exchange = MQ::Exchange.default
 
   queue1.subscribe do |payload|
     puts "Got #{payload} for #{queue1.name}"
