@@ -5,7 +5,7 @@
   * [DEVELOP] Added some em-spec-based specs, bin/irb, Gemfile.
   * [FEATURE] Added MQ::Exchange.default for the default exchange.
   * [FEATURE] Raise an exception if we're trying to use Basic.Reject with RabbitMQ.
-  * [FEATURE] Fail if an entity is declared each time with a different options.
+  * [FEATURE] Fail if an entity is re-declared with different options.
   * [BUG] Don't reconnect if the credentials are wrong.
   * [BUG] Fixed an exception which occurred when Queue#bind was called synchronously with a callback.
   * [DEVELOPMENT] Added a lot of specs (Bacon replaced by rSpec 2).

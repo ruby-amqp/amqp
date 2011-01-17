@@ -2,6 +2,7 @@
 *.rbc
 ~*
 #*
+*~
 .rvmrc
 .bundle
 Gemfile.lock
