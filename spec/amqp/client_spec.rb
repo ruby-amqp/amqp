@@ -408,12 +408,6 @@ describe AMQP::Client do
         end
 
         context '#add_channel' do
-          it 'is Mutex-synchronized for Thread-safety' do
-            @client.instance_eval { @_channel_mutex }.should_receive(:synchronize)
-            @client.add_channel mock('mq')
-            done
-          end
-
           it 'adds given channel to channels set' do
             mq = mock('mq')
             @client.add_channel mq

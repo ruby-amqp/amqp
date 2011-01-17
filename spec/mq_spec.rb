@@ -111,12 +111,6 @@ describe 'MQ', 'object, also known as "channel"' do
         data.should_receive(:ticket=).with(ticket)
         subject.send data
       end
-
-      it 'is Mutex-synchronized' do
-        mutex = subject.instance_variable_get(:@_send_mutex)
-        mutex.should_receive(:synchronize)
-        subject.send mock('data1')
-      end
     end
 
     describe '#reset' do
@@ -209,12 +203,6 @@ describe 'MQ', 'object, also known as "channel"' do
           fifo.first.should == queue1
           fifo.last.should == queue2
         end
-      end
-
-      it 'is Mutex-synchronized' do
-        subject # Evaluates subject, tripping add_channel Mutex at initialize
-        subject.instance_eval { @get_queue_mutex }.should_receive(:synchronize)
-        subject.get_queue {}
       end
     end #get_queue
 
