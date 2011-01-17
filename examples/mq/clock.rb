@@ -34,7 +34,7 @@ AMQP.start(:host => 'localhost') do |connection|
   amq = MQ.new
   amq.queue('every 5 seconds').bind(amq.fanout('clock')).subscribe { |time|
     time = Marshal.load(time)
-    log 'every 5 seconds', :received, time if time.strftime('%S').to_i%5 == 0
+    log 'every 5 seconds', :received, time if time.strftime('%S').to_i % 5 == 0
   }
 
 end
