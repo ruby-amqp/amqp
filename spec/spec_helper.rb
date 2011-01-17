@@ -59,3 +59,23 @@ def test_method_deliver opts = {}
       AMQP::Protocol::Basic::Deliver.new(
           :consumer_tag => opts[:consumer_tag] || 'test_consumer'))
 end
+
+require "stringio"
+
+def capture_stdout(&block)
+  $stdout = StringIO.new
+  block.call
+  $stdout.rewind
+  result = $stdout.read
+  $stdout = STDOUT
+  return result
+end
+
+def capture_stderr(&block)
+  $stderr = StringIO.new
+  block.call
+  $stderr.rewind
+  result = $stderr.read
+  $stderr = STDOUT
+  return result
+end

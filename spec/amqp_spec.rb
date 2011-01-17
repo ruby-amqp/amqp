@@ -20,14 +20,14 @@ describe AMQP, 'as a class' do
     its(:connection) { should be_nil }
     its(:conn) { should be_nil } # Alias for #connection
     its(:closing) { should be_false }
-    its(:settings) { should == {:host=>"127.0.0.1",
-                                :port=>5672,
-                                :user=>"guest",
-                                :pass=>"guest",
-                                :vhost=>"/",
-                                :timeout=>nil,
-                                :logging=>false,
-                                :ssl=>false} }
+    its(:settings) { should == {:host    => "127.0.0.1",
+                                :port    => 5672,
+                                :user    => "guest",
+                                :pass    => "guest",
+                                :vhost   => "/",
+                                :timeout => nil,
+                                :logging => false,
+                                :ssl     => false} }
     its(:client) { should == AMQP::BasicClient }
 
   end
@@ -54,8 +54,21 @@ describe AMQP, 'as a class' do
   end # .client
 
   describe '.logging=' do
+    before(:all) do
+      @client = Class.new { include AMQP::Client; public :log }.new
+    end
+
+    after(:all) do
+      AMQP.logging = false
+    end
+
+    it 'is silent by default' do
+      capture_stdout { @client.log("foobar") }.should be_empty
+    end
+
     it 'changes logging setting' do
-      pending 'require "pp"; pp XX - not sure how to intercept'
+      AMQP.logging = true
+      capture_stdout { @client.log("foobar") }.should match(/foobar/)
     end
   end # .logging=
 
