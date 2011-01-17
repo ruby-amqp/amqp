@@ -24,9 +24,23 @@ describe MQ, ' basic specs' do
 
   it 'should create direct exchanges' do
     @mq.direct('name').name.should == 'name'
-    @mq.direct.name.should == 'amq.direct'
-    @mq.direct(nil).name.should =~ /^\d+$/
     done
+  end
+
+  it 'should return amq.direct if no name given' do
+    @mq.direct.name.should == 'amq.direct'
+    done
+  end
+
+  it 'should generate a new name if the name was nil' do
+    pending <<-EOF
+      This has to be fixed in RabbitMQ first
+      https://bugzilla.rabbitmq.com/show_bug.cgi?id=23509
+    EOF
+    @mq.direct("") do |exchange|
+      exchange.name.should_not be_empty
+      done
+    end
   end
 
   it 'should create fanout and topic exchanges' do
