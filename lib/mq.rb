@@ -383,7 +383,7 @@ class MQ
   #
   def direct(name = 'amq.direct', opts = {}, &block)
     if exchange = self.exchanges.find { |exchange| exchange.name == name }
-      extended_opts = Exchange.add_default_options(type, name, opts, block)
+      extended_opts = Exchange.add_default_options(:direct, name, opts, block)
       if exchange.opts == extended_opts
         return exchange
       else
@@ -478,7 +478,7 @@ class MQ
   #
   def fanout(name = 'amq.fanout', opts = {}, &block)
     if exchange = self.exchanges.find { |exchange| exchange.name == name }
-      extended_opts = Exchange.add_default_options(type, name, opts, block)
+      extended_opts = Exchange.add_default_options(:fanout, name, opts, block)
       if exchange.opts == extended_opts
         return exchange
       else
@@ -599,7 +599,7 @@ class MQ
   #
   def topic(name = 'amq.topic', opts = {}, &block)
     if exchange = self.exchanges.find { |exchange| exchange.name == name }
-      extended_opts = Exchange.add_default_options(type, name, opts, block)
+      extended_opts = Exchange.add_default_options(:topic, name, opts, block)
       if exchange.opts == extended_opts
         return exchange
       else
@@ -688,7 +688,7 @@ class MQ
   # * using a value other than "any" or "all" for "x-match"
   def headers(name = 'amq.match', opts = {}, &block)
     if exchange = self.exchanges.find { |exchange| exchange.name == name }
-      extended_opts = Exchange.add_default_options(type, name, opts, block)
+      extended_opts = Exchange.add_default_options(:headers, name, opts, block)
       if exchange.opts == extended_opts
         return exchange
       else
