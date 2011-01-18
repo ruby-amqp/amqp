@@ -33,8 +33,13 @@ describe MQ do
       end
     end # context
 
-    context "when queue name is omitted" do
-      it "uses server-assigned queue name"
+    context "when queue name is passed on as an empty string" do
+      it "uses server-assigned queue name" do
+        @channel.queue("") do |queue, *args|
+          queue.name.should_not be_empty
+          done
+        end
+      end
     end # context
 
 

@@ -1,7 +1,7 @@
 # encoding: utf-8
 
-require File.expand_path("../../spec_helper", __FILE__)
-require 'amqp/client'
+require "spec_helper"
+require "amqp/client"
 
 describe AMQP::Client do
   include AMQP::SpecHelper

@@ -1,7 +1,8 @@
 # encoding: utf-8
 
-require File.expand_path("../../spec_helper", __FILE__)
-require 'amqp/frame'
+
+require "spec_helper"
+require "amqp/frame"
 
 describe AMQP::Frame do
   include AMQP
