@@ -26,6 +26,21 @@ else
   AMQP_OPTS = {:host => 'localhost', :port => 5672}
 end
 
+
+if RUBY_VERSION == "1.8.7"
+  module ArrayExtensions
+    def sample
+      self.choice
+    end # sample
+  end
+
+  class Array
+    include ArrayExtensions
+  end
+end
+
+
+
 # Shorthand for mocking subject's instance variable
 def subject_mock(name, as_null = false)
   mock = mock(name)
