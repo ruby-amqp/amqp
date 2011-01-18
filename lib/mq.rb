@@ -476,7 +476,7 @@ class MQ
   def topic(name = 'amq.topic', opts = {}, &block)
     if exchange = self.exchanges.find { |exchange| exchange.name == name }
       extended_opts = Exchange.add_default_options(:topic, name, opts, block)
-      if exchange.opts == extended_opts
+      if exchange.opts == extended_opts || extended_opts[:passive]
         return exchange
       else
         raise IncompatibleOptionsError.new(name, exchange.opts, extended_opts)

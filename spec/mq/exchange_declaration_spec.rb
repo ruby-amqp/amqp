@@ -304,5 +304,96 @@ describe MQ do
         done
       end
     end # context
+
+    context "when passive option is used" do
+      context "and exchange with given name already exists" do
+        it "silently returns" do
+          name = "a_new_topic_exchange declared at #{Time.now.to_i}"
+
+          original_exchange = @channel.topic(name)
+          exchange          = @channel.topic(name, :passive => true)
+
+          exchange.should == original_exchange
+
+          done
+        end # it
+      end
+
+      context "and exchange with given name DOES NOT exist" do
+        it "raises an exception" do
+          pending "Not yet supported"
+
+          expect {
+            exchange = @channel.topic("topic exchange declared at #{Time.now.to_i}", :passive => true)
+          }.to raise_error
+
+          done
+        end # it
+      end # context
+    end # context
+
+
+    context "when exchange is declared as durable" do
+      it "returns a new durable topic exchange" do
+        exchange = @channel.topic("a_new_durable_topic_exchange", :durable => true)
+        exchange.should be_durable
+        exchange.should_not be_transient
+
+        done
+      end # it
+    end # context
+
+
+    context "when exchange is declared as non-durable" do
+      it "returns a new NON-durable topic exchange" do
+        exchange = @channel.topic("a_new_non_durable_topic_exchange", :durable => false)
+        exchange.should_not be_durable
+        exchange.should be_transient
+
+        done
+      end # it
+    end # context
+
+
+    context "when exchange is declared as auto-deleted" do
+      it "returns a new auto-deleted topic exchange" do
+        exchange = @channel.topic("a new auto-deleted topic exchange", :auto_delete => true)
+
+        exchange.should be_auto_deleted
+        done
+      end # it
+    end # context
+
+
+    context "when exchange is declared as auto-deleted" do
+      it "returns a new auto-deleted topic exchange" do
+        exchange = @channel.topic("a new non-auto-deleted topic exchange", :auto_delete => false)
+
+        exchange.should_not be_auto_deleted
+        done
+      end # it
+    end # context
+
+
+    context "when exchange is declared without explicit :nowait parameter" do
+      it "is declared with :nowait by default" do
+        exchange = @channel.topic("a new non-auto-deleted topic exchange", :auto_delete => false)
+
+        exchange.should_not be_auto_deleted
+        done
+      end # it
+    end # context
+
+
+    context "when exchange is re-declared with parameters different from original declaration" do
+      it "raises an exception" do
+        expect {
+          @channel.topic("previously.declared.durable.topic.exchange", :durable => true)
+          @channel.topic("previously.declared.durable.topic.exchange", :durable => false)
+        }.to raise_error(MQ::IncompatibleOptionsError)
+
+        done
+      end # it
+    end # context
   end # describe
 end # describe MQ
