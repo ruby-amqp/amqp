@@ -25,7 +25,7 @@ describe MQ::Queue, :broker => true do
   #
 
   context 'declared with name of "test_queue"' do
-    amqp_after {@queue.unsubscribe; @queue.delete}
+    amqp_after { @queue.unsubscribe }
     # TODO: Fix amqp_after: it is NOT run in case of raised exceptions, it seems
 
     it 'supports asynchronous subscription to broker-predefined amq.direct exchange' do
