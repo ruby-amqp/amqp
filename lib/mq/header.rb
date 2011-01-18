@@ -16,7 +16,7 @@ class MQ
       }
     end
 
-    # Reject this message (XXX currently unimplemented in rabbitmq)
+    # Reject this message.
     # * :requeue => true | false (default false)
     def reject(opts = {})
       @mq.callback {
