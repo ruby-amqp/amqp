@@ -31,6 +31,13 @@ describe MQ do
 
         done
       end
+
+      it "caches that queue" do
+        queue = @channel.queue(name)
+        @channel.queue(name).object_id.should == queue.object_id
+
+        done
+      end
     end # context
 
     context "when queue name is passed on as an empty string" do
