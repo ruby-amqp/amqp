@@ -10,7 +10,7 @@ describe MQ do
 
   include AMQP::Spec
 
-  default_timeout 5
+  default_timeout 10
 
   amqp_before do
     @channel = MQ.new
@@ -393,6 +393,128 @@ describe MQ do
 
         expect {
           @channel.topic("previously.declared.durable.topic.exchange", :durable => false)
+        }.to raise_error(MQ::IncompatibleOptionsError)
+
+        done
+      end # it
+    end # context
+  end # describe
+
+
+
+
+  describe "#headers" do
+    context "when exchange name is specified" do
+      let(:name) { "new.headers.exchange" }
+
+      it "declares a new headers exchange with that name" do
+        exchange = @channel.headers(name)
+
+        exchange.name.should == name
+
+        done
+      end
+    end # context
+
+    context "when exchange name is omitted" do
+      xit "uses amq.match" do
+        pending "Times out. MK."
+
+        exchange = @channel.headers
+        exchange.name.should == "amq.match"
+        exchange.name.should_not == "amq.headers"
+
+        done
+      end
+    end # context
+
+    context "when passive option is used" do
+      context "and exchange with given name already exists" do
+        it "silently returns" do
+          name = "a_new_headers_exchange declared at #{Time.now.to_i}"
+
+          original_exchange = @channel.headers(name)
+          exchange          = @channel.headers(name, :passive => true)
+
+          exchange.should == original_exchange
+
+          done
+        end # it
+      end
+
+      context "and exchange with given name DOES NOT exist" do
+        it "raises an exception" do
+          pending "Not yet supported"
+
+          expect {
+            exchange = @channel.headers("headers exchange declared at #{Time.now.to_i}", :passive => true)
+          }.to raise_error
+
+          done
+        end # it
+      end # context
+    end # context
+
+
+    context "when exchange is declared as durable" do
+      it "returns a new durable headers exchange" do
+        exchange = @channel.headers("a_new_durable_headers_exchange", :durable => true)
+        exchange.should be_durable
+        exchange.should_not be_transient
+
+        done
+      end # it
+    end # context
+
+
+    context "when exchange is declared as non-durable" do
+      it "returns a new NON-durable headers exchange" do
+        exchange = @channel.headers("a_new_non_durable_headers_exchange", :durable => false)
+        exchange.should_not be_durable
+        exchange.should be_transient
+
+        done
+      end # it
+    end # context
+
+
+    context "when exchange is declared as auto-deleted" do
+      it "returns a new auto-deleted headers exchange" do
+        exchange = @channel.headers("a new auto-deleted headers exchange", :auto_delete => true)
+
+        exchange.should be_auto_deleted
+        done
+      end # it
+    end # context
+
+
+    context "when exchange is declared as auto-deleted" do
+      it "returns a new auto-deleted headers exchange" do
+        exchange = @channel.headers("a new non-auto-deleted headers exchange", :auto_delete => false)
+
+        exchange.should_not be_auto_deleted
+        done
+      end # it
+    end # context
+
+
+    context "when exchange is declared without explicit :nowait parameter" do
+      it "is declared with :nowait by default" do
+        exchange = @channel.headers("a new non-auto-deleted headers exchange", :auto_delete => false)
+
+        exchange.should_not be_auto_deleted
+        done
+      end # it
+    end # context
+
+
+    context "when exchange is re-declared with parameters different from original declaration" do
+      xit "raises an exception" do
+        pending "Times out. MK."
+        @channel.headers("previously.declared.durable.topic.exchange", :durable => true)
+
+        expect {
+          @channel.headers("previously.declared.durable.topic.exchange", :durable => false)
         }.to raise_error(MQ::IncompatibleOptionsError)
 
         done

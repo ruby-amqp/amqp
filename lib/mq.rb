@@ -562,11 +562,10 @@ class MQ
   def headers(name = 'amq.match', opts = {}, &block)
     if exchange = self.exchanges.find { |exchange| exchange.name == name }
       extended_opts = Exchange.add_default_options(:headers, name, opts, block)
-      if exchange.opts == extended_opts
-        return exchange
-      else
-        raise IncompatibleOptionsError.new(name, exchange.opts, extended_opts)
-      end
+
+      validate_parameters_match!(exchange, extended_opts)
+
+      exchange
     else
       self.exchanges << Exchange.new(self, :headers, name, opts, &block)
     end
