@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 $:.unshift File.dirname(__FILE__) + '/../../lib'
-require 'mq'
+require 'amqp'
 
 # For ack to work appropriately you must shutdown AMQP gracefully,
 # otherwise all items in your queue will be returned

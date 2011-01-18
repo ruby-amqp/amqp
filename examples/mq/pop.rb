@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 $:.unshift File.dirname(__FILE__) + '/../../lib'
-require 'mq'
+require 'amqp'
 require 'pp'
 
 Signal.trap('INT') { AMQP.stop { EM.stop } }

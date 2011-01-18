@@ -1,8 +1,8 @@
 # encoding: utf-8
 
 $:.unshift File.dirname(__FILE__) + '/../../lib'
-require 'mq'
-require 'mq/logger'
+require 'amqp'
+require 'amqp/logger'
 
 Logger = MQ::Logger
 

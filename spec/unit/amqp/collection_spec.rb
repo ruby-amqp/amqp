@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 require "spec_helper"
-require "mq/collection"
+require "amqp/collection"
 
 Item = Struct.new(:name)
 

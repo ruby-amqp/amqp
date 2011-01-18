@@ -1,8 +1,8 @@
 # encoding: utf-8
 
-require File.expand_path('../spec', __FILE__)
-require File.expand_path('../buffer', __FILE__)
-require File.expand_path('../protocol', __FILE__)
+require "amqp/spec"
+require "amqp/buffer"
+require "amqp/protocol"
 
 module AMQP
   class Frame #:nodoc: all

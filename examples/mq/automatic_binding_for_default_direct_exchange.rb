@@ -2,7 +2,7 @@
 
 $:.unshift File.dirname(__FILE__) + '/../../lib'
 
-require 'mq'
+require 'amqp'
 
 if RUBY_VERSION == "1.8.7"
   module ArrayExtensions

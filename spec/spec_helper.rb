@@ -6,7 +6,7 @@ require 'bundler'
 Bundler.setup
 Bundler.require :default, :test
 
-require "mq"
+require "amqp"
 
 amqp_config = File.dirname(__FILE__) + '/amqp.yml'
 

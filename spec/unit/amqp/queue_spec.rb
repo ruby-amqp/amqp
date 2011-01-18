@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'mq_helper'
+require 'amqp_helper'
 
 describe MQ::Queue, :broker => true do
 
