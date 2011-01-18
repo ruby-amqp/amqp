@@ -73,6 +73,7 @@ libraries that would block current thread (like [File::Tail](http://rubygems.org
 Links
 ==============================
 
+* [RDoc](http://rubydoc.info/github/ruby-amqp/amqp/master/file/README.md)
 * Jabber chat [amqp-dev@conf.netlab.cz](xmpp://amqp-dev@conf.netlab.cz)
 * [AMQP gem mailing list](http://groups.google.com/group/ruby-amqp)
 * [AMQP gem at GitHub](http://github.com/amqp-dev/amqp)
