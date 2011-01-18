@@ -48,7 +48,10 @@ class MQ
     end
 
     def delete(name)
-      self.delete_at(self.index(self[name]))
+      idx = self.index(self[name])
+
+      raise ArgumentError, "there seems to be no item with name = #{name} in #{self.inspect}" unless idx
+      self.delete_at(idx)
     end
   end
 end
