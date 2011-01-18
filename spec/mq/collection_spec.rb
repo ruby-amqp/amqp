@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-require File.expand_path("../../spec_helper", __FILE__)
+require "spec_helper"
 require "mq/collection"
 
 Item = Struct.new(:name)
