@@ -11,16 +11,15 @@ describe MQ::Collection do
     @collection = MQ::Collection.new(@items)
   end
 
-  describe "accessors" do
-    it "should be accessible by its name" do
-      @collection["name-1"].should_not be_nil
-      @collection["name-1"].should eql(@items[1])
-    end
-
-    it "should not allow to change already existing object" do
-      lambda { @collection["name-1"] = Item.new("test") }.should raise_error(NoMethodError)
-    end
+  it "provides access to items by name" do
+    @collection["name-1"].should_not be_nil
+    @collection["name-1"].should eql(@items[1])
   end
+
+  it "DOES NOT allow modification of existing items" do
+    lambda { @collection["name-1"] = Item.new("test") }.should raise_error(NoMethodError)
+  end
+
 
   describe "#<<" do
     it "should raise IncompatibleItemError if the argument doesn't have method :name" do
@@ -77,26 +76,30 @@ describe MQ::Collection do
   end
 
   describe "#add!" do
-    it "should raise IncompatibleItemError if the argument doesn't have method :name" do
-      lambda { @collection << nil }.should raise_error(MQ::Collection::IncompatibleItemError)
-    end
+    context "when the argument doesn't respond to :name" do
+      it "should raise IncompatibleItemError " do
+        lambda { @collection << nil }.should raise_error(MQ::Collection::IncompatibleItemError)
+      end # it
+    end # context
 
-    it "should add an item into the collection" do
-      length = @collection.length
-      @collection << Item.new("test")
-      @collection.length.should eql(length + 1)
-    end
+    context "when the argument DOES respond to :name" do
+      it "should add an item into the collection" do
+        length = @collection.length
+        @collection << Item.new("test")
+        @collection.length.should eql(length + 1)
+      end
 
-    it "should add an item to the collection if another item with given name already exists" do
-      @collection.add! Item.new("test")
-      length = @collection.length
-      @collection.add! Item.new("test")
-      @collection.length.should eql(length + 1)
-    end
+      it "should add an item to the collection if another item with given name already exists" do
+        @collection.add! Item.new("test")
+        length = @collection.length
+        @collection.add! Item.new("test")
+        @collection.length.should eql(length + 1)
+      end
 
-    it "should return the item" do
-      item = Item.new("test")
-      (@collection.add! item).should eql(item)
-    end
-  end
-end
+      it "should return the item" do
+        item = Item.new("test")
+        (@collection.add! item).should eql(item)
+      end # it
+    end # context
+  end # describe
+end # describe MQ::Collection
