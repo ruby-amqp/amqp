@@ -229,8 +229,9 @@ class MQ
     # sensitive to the ordering of clients' actions!
     #
     # == Exceptions
-    # Doing any of these activities are illegal and will raise MQ:Error.
-    # * redeclare an already-declared exchange to a different type
+    # Doing any of these activities are illegal and will raise exceptions:
+    # 
+    # * redeclare an already-declared exchange to a different type (raises MQ::IncompatibleOptionsError)
     # * :passive => true and the exchange does not exist (NOT_FOUND)
     #
     def initialize(mq, type, name, opts = {}, &block)
