@@ -260,11 +260,10 @@ class MQ
   def direct(name = 'amq.direct', opts = {}, &block)
     if exchange = self.exchanges.find { |exchange| exchange.name == name }
       extended_opts = Exchange.add_default_options(:direct, name, opts, block)
-      if exchange.opts == extended_opts || extended_opts[:passive]
-        return exchange
-      else
-        raise IncompatibleOptionsError.new(name, exchange.opts, extended_opts)
-      end
+
+      validate_parameters_match!(exchange, extended_opts)
+
+      exchange
     else
       self.exchanges << Exchange.new(self, :direct, name, opts, &block)
     end
@@ -355,11 +354,10 @@ class MQ
   def fanout(name = 'amq.fanout', opts = {}, &block)
     if exchange = self.exchanges.find { |exchange| exchange.name == name }
       extended_opts = Exchange.add_default_options(:fanout, name, opts, block)
-      if exchange.opts == extended_opts || extended_opts[:passive]
-        return exchange
-      else
-        raise IncompatibleOptionsError.new(name, exchange.opts, extended_opts)
-      end
+
+      validate_parameters_match!(exchange, extended_opts)
+
+      exchange
     else
       self.exchanges << Exchange.new(self, :fanout, name, opts, &block)
     end
@@ -476,11 +474,10 @@ class MQ
   def topic(name = 'amq.topic', opts = {}, &block)
     if exchange = self.exchanges.find { |exchange| exchange.name == name }
       extended_opts = Exchange.add_default_options(:topic, name, opts, block)
-      if exchange.opts == extended_opts || extended_opts[:passive]
-        return exchange
-      else
-        raise IncompatibleOptionsError.new(name, exchange.opts, extended_opts)
-      end
+
+      validate_parameters_match!(exchange, extended_opts)
+
+      exchange
     else
       self.exchanges << Exchange.new(self, :topic, name, opts, &block)
     end
@@ -949,6 +946,12 @@ class MQ
     pp args
     puts
   end # log
+
+  def validate_parameters_match!(entity, parameters)
+    unless entity.opts == parameters || parameters[:passive]
+      raise IncompatibleOptionsError.new(entity.name, entity.opts, parameters)
+    end
+  end # validate_parameters_match!(entity, parameters)
 end
 
 #-- convenience wrapper (read: HACK) for thread-local MQ object
