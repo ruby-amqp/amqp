@@ -25,9 +25,28 @@ describe MQ do
     context "when exchange name is specified" do
       it 'declares a new direct exchange with that name' do
         @channel.direct('name').name.should == 'name'
+
+        done
+      end
+
+      it "declares direct exchange as transient (non-durable)" do
+        exchange = @channel.direct('name')
+
+        exchange.should_not be_durable
+        exchange.should be_transient
+
+        done
+      end
+
+      it "declares direct exchange as non-auto-deleted" do
+        exchange = @channel.direct('name')
+
+        exchange.should_not be_auto_deleted
+
         done
       end
     end
+
 
     context "when exchange name is omitted" do
       it 'uses amq.direct' do
@@ -35,6 +54,7 @@ describe MQ do
         done
       end # it
     end # context
+
 
     context "when exchange name was specified as a blank string" do
       it 'returns direct exchange with server-generated name' do
@@ -47,6 +67,102 @@ describe MQ do
           done
         end
       end
+    end # context
+
+
+    context "when passive option is used" do
+      context "and exchange with given name already exists" do
+        it "silently returns" do
+          pending "Incompatible options exception kicks in. We need to handle :passive option better."
+          name = "a_new_direct_exchange declared at #{Time.now.to_i}"
+
+          @channel.direct(name)
+          exchange = @channel.direct(name, :passive => true)
+
+          exchange.name.should == name
+          # this predicate signifies that this object should not be used
+          # for publishing
+          exchange.should be_passive
+
+          done
+        end # it
+      end
+
+      context "and exchange with given name DOES NOT exist" do
+        it "raises an exception" do
+          pending "Not yet supported"
+
+          expect {
+            exchange = @channel.direct("direct exchange declared at #{Time.now.to_i}", :passive => true)
+          }.to raise_error
+
+          done
+        end # it
+      end # context
+    end # context
+
+
+    context "when exchange is declared as durable" do
+      it "returns a new durable direct exchange" do
+        exchange = @channel.direct("a_new_durable_direct_exchange", :durable => true)
+        exchange.should be_durable
+        exchange.should_not be_transient
+
+        done
+      end # it
+    end # context
+
+
+    context "when exchange is declared as non-durable" do
+      it "returns a new NON-durable direct exchange" do
+        exchange = @channel.direct("a_new_non_durable_direct_exchange", :durable => false)
+        exchange.should_not be_durable
+        exchange.should be_transient
+
+        done
+      end # it
+    end # context
+
+
+    context "when exchange is declared as auto-deleted" do
+      it "returns a new auto-deleted direct exchange" do
+        exchange = @channel.direct("a new auto-deleted direct exchange", :auto_delete => true)
+
+        exchange.should be_auto_deleted
+        done
+      end # it
+    end # context
+
+
+    context "when exchange is declared as auto-deleted" do
+      it "returns a new auto-deleted direct exchange" do
+        exchange = @channel.direct("a new non-auto-deleted direct exchange", :auto_delete => false)
+
+        exchange.should_not be_auto_deleted
+        done
+      end # it
+    end # context
+
+
+    context "when exchange is declared without explicit :nowait parameter" do
+      it "is declared with :nowait by default" do
+        exchange = @channel.direct("a new non-auto-deleted direct exchange", :auto_delete => false)
+
+        exchange.should_not be_auto_deleted
+        done
+      end # it
+    end # context
+
+
+    context "when exchange is re-declared with parameters different from original declaration" do
+      it "raises an exception" do
+        expect {
+          @channel.direct("previously.declared.durable.exchange", :durable => true)
+          @channel.direct("previously.declared.durable.exchange", :durable => false)
+        }.to raise_error(MQ::IncompatibleOptionsError)
+
+        done
+      end # it
     end # context
   end # describe
 
