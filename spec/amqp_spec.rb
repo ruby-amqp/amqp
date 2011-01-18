@@ -57,7 +57,7 @@ describe AMQP, 'class object' do
 
 
 
-  describe '.logging=' do
+  describe 'logging' do
     before(:all) do
       @client = Class.new { include AMQP::Client; public :log }.new
     end
@@ -67,12 +67,7 @@ describe AMQP, 'class object' do
     end
 
     it 'is silent by default' do
-      capture_stdout { @client.log("foobar") }.should be_empty
-    end
-
-    it 'changes logging setting' do
-      AMQP.logging = true
-      capture_stdout { @client.log("foobar") }.should match(/foobar/)
+      AMQP.logging.should be_false
     end
   end # .logging=
 
