@@ -11,8 +11,7 @@ class MockClient
   include AMQP::Client
 end
 
-describe AMQP, 'as a class' do
-
+describe AMQP, 'class object' do
   context 'has class accessors, with default values' do
     subject { AMQP }
 
@@ -28,9 +27,11 @@ describe AMQP, 'as a class' do
                                 :timeout => nil,
                                 :logging => false,
                                 :ssl     => false} }
-    its(:client) { should == AMQP::BasicClient }
 
+    its(:client) { should == AMQP::BasicClient }
   end
+
+
 
   describe '.client=' do
     after(:all) { AMQP.client = AMQP::BasicClient }
@@ -53,6 +54,9 @@ describe AMQP, 'as a class' do
     end
   end # .client
 
+
+
+
   describe '.logging=' do
     before(:all) do
       @client = Class.new { include AMQP::Client; public :log }.new
@@ -72,36 +76,13 @@ describe AMQP, 'as a class' do
     end
   end # .logging=
 
-#  describe '.connect' do it 'delegates to Client.connect'
+
+
 
   describe '.start' do
-    it 'starts new EM loop and never returns from it' do
-      EM.should_receive(:run).with no_args
-      AMQP.start "connect_args"
-    end
-
-    it 'calls .connect inside EM loop' do
-      EM.should_receive(:run) do |*args, &block|
-        args.should be_empty
-        block.should_not be_nil
-        AMQP.should_receive(:connect).with("connect_args")
-        block.call
-      end
-      AMQP.start "connect_args"
-    end
-
     context 'inside EM loop' do
       include AMQP::SpecHelper
       em_after { AMQP.cleanup_state }
-
-      it 'sets AMQP.connection property with client instance returned by .connect' do
-        em do
-          AMQP.connection.should be_nil
-          AMQP.start AMQP_OPTS
-          AMQP.connection.should be_kind_of AMQP::Client::EM_CONNECTION_CLASS
-          done
-        end
-      end
 
       it 'yields to given block AFTER connection is established' do
         em do
@@ -115,6 +96,9 @@ describe AMQP, 'as a class' do
     end # context 'inside EM loop'
   end # .start
 
+
+
+
   describe '.stop' do
     it 'is noop if connection is not established' do
       expect { @res = AMQP.stop }.to_not raise_error
@@ -126,14 +110,10 @@ describe AMQP, 'as a class' do
       after { AMQP.cleanup_state; done }
       default_options AMQP_OPTS
 
-      it 'closes existing connection' do
-        AMQP.connection.should_receive(:close).with(no_args)
-        AMQP.stop
-        done
-      end
-
       it 'unsets AMQP.connection property. Mind the delay!' do
+        AMQP.start(AMQP_OPTS)
         AMQP.connection.should be_connected
+
         AMQP.stop
         AMQP.connection.should_not be_nil
         done(0.1) { AMQP.connection.should be_nil }
@@ -149,26 +129,4 @@ describe AMQP, 'as a class' do
       end
     end # context 'with established AMQP connection'
   end # .stop
-
-  describe '.fork' do
-
-    it 'yields to given block in EM.fork' do
-      EM.should_receive(:fork) do |workers, &block|
-        workers.should == 'workers'
-        block.should_not be_nil
-        block.call
-      end
-      AMQP.fork('workers') { @block_called = true }
-      @block_called.should == true
-    end
-
-    it 'cleans its own process-local properties' do
-      EM.should_receive(:fork) do |workers, &block|
-        Thread.current[:mq].should be_nil
-        AMQP.connection.should be_nil
-      end
-      AMQP.fork('workers') { }
-    end
-  end # .fork
-
 end
