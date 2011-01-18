@@ -640,11 +640,10 @@ class MQ
   def queue(name, opts = {}, &block)
     if queue = self.queues.find { |queue| queue.name == name }
       extended_opts = Queue.add_default_options(name, opts, block)
-      if queue.opts == extended_opts
-        return queue
-      else
-        raise IncompatibleOptionsError.new(name, queue.opts, extended_opts)
-      end
+
+      validate_parameters_match!(queue, extended_opts)
+
+      queue
     else
       self.queues << Queue.new(self, name, opts, &block)
     end
