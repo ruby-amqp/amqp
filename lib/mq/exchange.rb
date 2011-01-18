@@ -376,12 +376,6 @@ class MQ
     end # auto_deleted?
     alias auto_deletable? auto_deleted?
 
-    # Signifies that exchange object was created with :passive parameter set to true and
-    # thus should not really be used for publishing.
-    def passive?
-      !!@opts[:passive]
-    end # passive?
-
 
     def reset
       @deferred_status = nil

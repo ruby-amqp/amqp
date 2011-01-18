@@ -73,16 +73,12 @@ describe MQ do
     context "when passive option is used" do
       context "and exchange with given name already exists" do
         it "silently returns" do
-          pending "Incompatible options exception kicks in. We need to handle :passive option better."
           name = "a_new_direct_exchange declared at #{Time.now.to_i}"
 
-          @channel.direct(name)
-          exchange = @channel.direct(name, :passive => true)
+          original_exchange = @channel.direct(name)
+          exchange          = @channel.direct(name, :passive => true)
 
-          exchange.name.should == name
-          # this predicate signifies that this object should not be used
-          # for publishing
-          exchange.should be_passive
+          exchange.should == original_exchange
 
           done
         end # it
