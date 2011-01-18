@@ -129,51 +129,50 @@ describe AMQP::Buffer do
       subject.read(type).should == value
       subject.should be_empty
     end # it
-
-
-
-    it 'can read and write multiple bits' do
-      bits = [true, false, false, true, true, false, false, true, true, false]
-      subject.write(:bit, bits)
-      subject.write(:octet, 100)
-
-      subject.rewind
-
-      bits.map do
-        subject.read(:bit)
-      end.should == bits
-      subject.read(:octet).should == 100
-    end
-
-    it 'can read and write property tables' do
-      properties = ([
-                     [:octet, 1],
-                     [:shortstr, 'abc'],
-                     [:bit, true],
-                     [:bit, false],
-                     [:shortstr, nil],
-                     [:timestamp, nil],
-                     [:table, { :a => 'hash' }],
-                    ]*5).sort_by {rand}
-
-      subject.write(:properties, properties)
-      subject.rewind
-      subject.read(:properties, *properties.map { |type, _| type }).should == properties.map { |_, value| value }
-      subject.should be_empty
-    end
-
-    it 'does transactional reads with #extract' do
-      subject.write :octet, 8
-      orig = subject.to_s
-
-      subject.rewind
-      subject.extract do |b|
-        b.read :octet
-        b.read :short
-      end
-
-      subject.pos.should == 0
-      subject.data.should == orig
-    end
   end # each
+
+
+  it 'can read and write multiple bits' do
+    bits = [true, false, false, true, true, false, false, true, true, false]
+    subject.write(:bit, bits)
+    subject.write(:octet, 100)
+
+    subject.rewind
+
+    bits.map do
+      subject.read(:bit)
+    end.should == bits
+    subject.read(:octet).should == 100
+  end
+
+  it 'can read and write property tables' do
+    properties = ([
+                   [:octet, 1],
+                   [:shortstr, 'abc'],
+                   [:bit, true],
+                   [:bit, false],
+                   [:shortstr, nil],
+                   [:timestamp, nil],
+                   [:table, { :a => 'hash' }],
+                  ]*5).sort_by {rand}
+
+    subject.write(:properties, properties)
+    subject.rewind
+    subject.read(:properties, *properties.map { |type, _| type }).should == properties.map { |_, value| value }
+    subject.should be_empty
+  end
+
+  it 'does transactional reads with #extract' do
+    subject.write :octet, 8
+    orig = subject.to_s
+
+    subject.rewind
+    subject.extract do |b|
+      b.read :octet
+      b.read :short
+    end
+
+    subject.pos.should == 0
+    subject.data.should == orig
+  end
 end # describe
