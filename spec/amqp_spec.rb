@@ -58,10 +58,6 @@ describe AMQP, 'class object' do
 
 
   describe 'logging' do
-    before(:all) do
-      @client = Class.new { include AMQP::Client; public :log }.new
-    end
-
     after(:all) do
       AMQP.logging = false
     end
