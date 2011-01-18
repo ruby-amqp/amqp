@@ -46,5 +46,9 @@ class MQ
       __push__(item)
       return item
     end
+
+    def delete(name)
+      self.delete_at(self.index(self[name]))
+    end
   end
 end

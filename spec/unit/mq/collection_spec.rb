@@ -126,4 +126,19 @@ describe MQ::Collection do
       end
     end # context
   end # describe
+
+
+
+
+
+  describe "#delete" do
+    it "should remove item with the given name from the collection" do
+      items = [Item.new("test-0"), Item.new("test-1")]
+      collection = MQ::Collection.new(items)
+      lambda {
+        collection.delete("test-1")
+      }.should change(collection, :length).by(-1)
+      collection.should_not include("test-1")
+    end
+  end # describe
 end # describe MQ::Collection
