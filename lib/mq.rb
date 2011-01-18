@@ -130,8 +130,19 @@ end
 #  ["every 2 seconds", :received, Tue Jan 06 22:46:20 -0600 2009]
 #
 class MQ
+
+  #
+  # Behaviors
+  #
+
   include AMQP
   include EM::Deferrable
+
+
+
+  #
+  # API
+  #
 
   # Returns a new channel. A channel is a bidirectional virtual
   # connection between the client and the AMQP server. Elsewhere in the
@@ -163,150 +174,15 @@ class MQ
       send Protocol::Channel::Open.new
     }
   end
-  attr_reader :channel, :connection, :status
 
-  def check_content_completion
-    if @body.length >= @header.size
-      @header.properties.update(@method.arguments)
-      @consumer.receive @header, @body if @consumer
-      @body = @header = @consumer = @method = nil
-    end
-  end
+  attr_reader :channel, :connection, :status
+  alias :conn :connection
 
   def closed?
     @status.eql?(:closed)
   end
 
-  # May raise a MQ::Error exception when the frame payload contains a
-  # Protocol::Channel::Close object.
-  #
-  # This usually occurs when a client attempts to perform an illegal
-  # operation. A short, and incomplete, list of potential illegal operations
-  # follows:
-  # * publish a message to a deleted exchange (NOT_FOUND)
-  # * declare an exchange using the reserved 'amq.' naming structure (ACCESS_REFUSED)
-  #
-  def process_frame(frame)
-    log :received, frame
 
-    case frame
-    when Frame::Header
-      @header = frame.payload
-      @body = ''
-      check_content_completion
-
-    when Frame::Body
-      @body << frame.payload
-      check_content_completion
-
-    when Frame::Method
-      case method = frame.payload
-      when Protocol::Channel::OpenOk
-        send Protocol::Access::Request.new(:realm => '/data',
-                                           :read => true,
-                                           :write => true,
-                                           :active => true,
-                                           :passive => true)
-
-      when Protocol::Access::RequestOk
-        @ticket = method.ticket
-        callback {
-          send Protocol::Channel::Close.new(:reply_code => 200,
-                                            :reply_text => 'bye',
-                                            :method_id => 0,
-                                            :class_id => 0)
-        } if @closing
-        succeed
-
-      when Protocol::Basic::CancelOk
-        if @consumer = consumers[ method.consumer_tag ]
-          @consumer.cancelled
-        else
-          MQ.error "Basic.CancelOk for invalid consumer tag: #{method.consumer_tag}"
-        end
-
-      when Protocol::Exchange::DeclareOk
-        # We can't use exchanges[method.exchange] because if the name would
-        # be an empty string, then AMQP broker generated a random one.
-        exchanges = self.exchanges.select { |exchange| exchange.opts[:nowait].eql?(false) }
-        exchange  = exchanges.reverse.find { |exchange| exchange.status.eql?(:unfinished) }
-        exchange.receive_response method
-
-      when Protocol::Queue::DeclareOk
-        # We can't use queues[method.queue] because if the name would
-        # be an empty string, then AMQP broker generated a random one.
-        queues = self.queues.select { |queue| queue.opts[:nowait].eql?(false) }
-        queue  = queues.reverse.find { |queue| queue.status.eql?(:unfinished) }
-        queue.receive_status method
-
-      when Protocol::Queue::BindOk
-        # We can't use queues[method.queue] because if the name would
-        # be an empty string, then AMQP broker generated a random one.
-        queues = self.queues.select { |queue| queue.sync_bind }
-        queue  = queues.reverse.find { |queue| queue.status.eql?(:unbound) }
-        queue.after_bind method
-
-      when Protocol::Basic::Deliver, Protocol::Basic::GetOk
-        @method = method
-        @header = nil
-        @body = ''
-
-        if method.is_a? Protocol::Basic::GetOk
-          @consumer = get_queue { |q| q.shift }
-          MQ.error "No pending Basic.GetOk requests" unless @consumer
-        else
-          @consumer = consumers[ method.consumer_tag ]
-          MQ.error "Basic.Deliver for invalid consumer tag: #{method.consumer_tag}" unless @consumer
-        end
-
-      when Protocol::Basic::GetEmpty
-        if @consumer = get_queue { |q| q.shift }
-          @consumer.receive nil, nil
-        else
-          MQ.error "Basic.GetEmpty for invalid consumer"
-        end
-
-      when Protocol::Channel::Close
-        @status = :closed
-        MQ.error "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]} on #{@channel}"
-
-      when Protocol::Channel::CloseOk
-        @status = :closed
-        @on_close && @on_close.call(self)
-
-        @closing = false
-        conn.callback { |c|
-          c.channels.delete @channel
-          c.close if c.channels.empty?
-        }
-
-      when Protocol::Basic::ConsumeOk
-        if @consumer = consumers[ method.consumer_tag ]
-          @consumer.confirm_subscribe
-        else
-          MQ.error "Basic.ConsumeOk for invalid consumer tag: #{method.consumer_tag}"
-        end
-      end
-    end
-  end
-
-  def send(*args)
-    conn.callback { |c|
-      @_send_mutex.synchronize do
-        args.each do |data|
-          unless self.closed?
-            data.ticket = @ticket if @ticket and data.respond_to? :ticket=
-            log :sending, data
-            c.send data, :channel => @channel
-          else
-            unless data.class == AMQP::Protocol::Channel::CloseOk
-              raise ChannelClosedError.new(self)
-            end
-          end
-        end
-      end
-    }
-  end
 
   # Defines, intializes and returns an Exchange to act as an ingress
   # point for all published messages.
@@ -846,7 +722,9 @@ class MQ
 
   def prefetch(size)
     @prefetch_size = size
+
     send Protocol::Basic::Qos.new(:prefetch_size => 0, :prefetch_count => size, :global => false)
+
     self
   end
 
@@ -917,15 +795,160 @@ class MQ
     prefetch(@prefetch_size) if @prefetch_size
   end
 
+
+  #
+  # Implementation
+  #
+
+  # May raise a MQ::Error exception when the frame payload contains a
+  # Protocol::Channel::Close object.
+  #
+  # This usually occurs when a client attempts to perform an illegal
+  # operation. A short, and incomplete, list of potential illegal operations
+  # follows:
+  # * publish a message to a deleted exchange (NOT_FOUND)
+  # * declare an exchange using the reserved 'amq.' naming structure (ACCESS_REFUSED)
+  #
+  def process_frame(frame)
+    log :received, frame
+
+    case frame
+    when Frame::Header
+      @header = frame.payload
+      @body = ''
+      check_content_completion
+
+    when Frame::Body
+      @body << frame.payload
+      check_content_completion
+
+    when Frame::Method
+      case method = frame.payload
+      when Protocol::Channel::OpenOk
+        send Protocol::Access::Request.new(:realm => '/data',
+                                           :read => true,
+                                           :write => true,
+                                           :active => true,
+                                           :passive => true)
+
+      when Protocol::Access::RequestOk
+        @ticket = method.ticket
+        callback {
+          send Protocol::Channel::Close.new(:reply_code => 200,
+                                            :reply_text => 'bye',
+                                            :method_id => 0,
+                                            :class_id => 0)
+        } if @closing
+        succeed
+
+      when Protocol::Basic::CancelOk
+        if @consumer = consumers[ method.consumer_tag ]
+          @consumer.cancelled
+        else
+          MQ.error "Basic.CancelOk for invalid consumer tag: #{method.consumer_tag}"
+        end
+
+      when Protocol::Exchange::DeclareOk
+        # We can't use exchanges[method.exchange] because if the name would
+        # be an empty string, then AMQP broker generated a random one.
+        exchanges = self.exchanges.select { |exchange| exchange.opts[:nowait].eql?(false) }
+        exchange  = exchanges.reverse.find { |exchange| exchange.status.eql?(:unfinished) }
+        exchange.receive_response method
+
+      when Protocol::Queue::DeclareOk
+        # We can't use queues[method.queue] because if the name would
+        # be an empty string, then AMQP broker generated a random one.
+        queues = self.queues.select { |queue| queue.opts[:nowait].eql?(false) }
+        queue  = queues.reverse.find { |queue| queue.status.eql?(:unfinished) }
+        queue.receive_status method
+
+      when Protocol::Queue::BindOk
+        # We can't use queues[method.queue] because if the name would
+        # be an empty string, then AMQP broker generated a random one.
+        queues = self.queues.select { |queue| queue.sync_bind }
+        queue  = queues.reverse.find { |queue| queue.status.eql?(:unbound) }
+        queue.after_bind method
+
+      when Protocol::Basic::Deliver, Protocol::Basic::GetOk
+        @method = method
+        @header = nil
+        @body = ''
+
+        if method.is_a? Protocol::Basic::GetOk
+          @consumer = get_queue { |q| q.shift }
+          MQ.error "No pending Basic.GetOk requests" unless @consumer
+        else
+          @consumer = consumers[ method.consumer_tag ]
+          MQ.error "Basic.Deliver for invalid consumer tag: #{method.consumer_tag}" unless @consumer
+        end
+
+      when Protocol::Basic::GetEmpty
+        if @consumer = get_queue { |q| q.shift }
+          @consumer.receive nil, nil
+        else
+          MQ.error "Basic.GetEmpty for invalid consumer"
+        end
+
+      when Protocol::Channel::Close
+        @status = :closed
+        MQ.error "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]} on #{@channel}"
+
+      when Protocol::Channel::CloseOk
+        @status = :closed
+        @on_close && @on_close.call(self)
+
+        @closing = false
+        conn.callback { |c|
+          c.channels.delete @channel
+          c.close if c.channels.empty?
+        }
+
+      when Protocol::Basic::ConsumeOk
+        if @consumer = consumers[ method.consumer_tag ]
+          @consumer.confirm_subscribe
+        else
+          MQ.error "Basic.ConsumeOk for invalid consumer tag: #{method.consumer_tag}"
+        end
+      end
+    end
+  end # process_frame
+
+
+  def send(*args)
+    conn.callback { |c|
+      @_send_mutex.synchronize do
+        args.each do |data|
+          unless self.closed?
+            data.ticket = @ticket if @ticket and data.respond_to? :ticket=
+            log :sending, data
+            c.send data, :channel => @channel
+          else
+            unless data.class == AMQP::Protocol::Channel::CloseOk
+              raise ChannelClosedError.new(self)
+            end
+          end
+        end
+      end
+    }
+  end # send
+
+
+  def check_content_completion
+    if @body.length >= @header.size
+      @header.properties.update(@method.arguments)
+      @consumer.receive @header, @body if @consumer
+      @body = @header = @consumer = @method = nil
+    end
+  end # check_content_completion
+
+
   private
+
   def log(*args)
     return unless MQ.logging
     pp args
     puts
-  end
-
-  attr_reader :connection
-  alias :conn :connection
+  end # log
 end
 
 #-- convenience wrapper (read: HACK) for thread-local MQ object
