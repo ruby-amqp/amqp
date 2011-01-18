@@ -1,8 +1,6 @@
 - breaks with header values that are nil
 - breaks with header values that are ruby objects (convert to strings?)
-- sending utf8 data in 1.9 breaks
 
-- generate amqp/spec.rb from original xml spec
 - add peek and pop to queues
 - use rabbitmq generated consumer tag from basic.consume-ok reply
 
