@@ -19,13 +19,9 @@ class MQ
     # Reject this message (XXX currently unimplemented in rabbitmq)
     # * :requeue => true | false (default false)
     def reject(opts = {})
-      if @mq.broker.server_properties[:product] == "RabbitMQ"
-        raise NotImplementedError.new("RabbitMQ doesn't implement the Basic.Reject method\nSee http://lists.rabbitmq.com/pipermail/rabbitmq-discuss/2009-February/002853.html")
-      else
-        @mq.callback {
-          @mq.send Protocol::Basic::Reject.new(opts.merge(:delivery_tag => properties[:delivery_tag]))
-        }
-      end
+      @mq.callback {
+        @mq.send Protocol::Basic::Reject.new(opts.merge(:delivery_tag => properties[:delivery_tag]))
+      }
     end
 
     def method_missing(meth, *args, &blk)
