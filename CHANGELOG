@@ -1,3 +1,8 @@
+= Version 0.8
+
+  * [FEATURE] Introduce MQ::Exchange #durable?, #transient?, #auto_deleted? and #passive?
+
+
 = Version 0.7
   * [BUG] Sync API for queues and exchanges, support for server-generated queues & exchange names (via semi-lazy collection).
   * [BUG] Sync API for MQ#close (Channel.Close) [issue #34].
