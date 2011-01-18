@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 class MQ
+  # MQ::Collection is used to store named AMQ model entities (exchanges, queues)
   class Collection < ::Array
     class IncompatibleItemError < ArgumentError
       def initialize(item)
@@ -25,7 +26,7 @@ class MQ
     undef_method :[]=
 
     def <<(item)
-      if (item.name rescue nil).nil? || ! self[item.name]
+      if (item.name rescue nil).nil? || !self[item.name]
         self.add!(item)
       end
 
