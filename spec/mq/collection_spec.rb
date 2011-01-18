@@ -78,28 +78,39 @@ describe MQ::Collection do
   describe "#add!" do
     context "when the argument doesn't respond to :name" do
       it "should raise IncompatibleItemError " do
+        lambda { @collection.add!(nil) }.should raise_error(MQ::Collection::IncompatibleItemError)
+      end # it
+    end
+
+    context "when another item with given name already exists" do
+      it "should add an item to the collection" do
+        @collection.add! Item.new("test")
+        lambda do
+          @collection.add!(Item.new("test"))
+        end.should change(@collection, :length).by(1)
+      end # it
+    end # context
+
+    it "should return the item" do
+      item = Item.new("test")
+      (@collection.add! item).should eql(item)
+    end # it
+  end # describe
+
+
+  describe "#<<" do
+    context "when the argument doesn't respond to :name" do
+      it "should raise IncompatibleItemError " do
         lambda { @collection << nil }.should raise_error(MQ::Collection::IncompatibleItemError)
       end # it
     end # context
 
     context "when the argument DOES respond to :name" do
       it "should add an item into the collection" do
-        length = @collection.length
-        @collection << Item.new("test")
-        @collection.length.should eql(length + 1)
+        lambda do
+          @collection << Item.new("test")
+        end.should change(@collection, :length).by(1)
       end
-
-      it "should add an item to the collection if another item with given name already exists" do
-        @collection.add! Item.new("test")
-        length = @collection.length
-        @collection.add! Item.new("test")
-        @collection.length.should eql(length + 1)
-      end
-
-      it "should return the item" do
-        item = Item.new("test")
-        (@collection.add! item).should eql(item)
-      end # it
     end # context
   end # describe
 end # describe MQ::Collection
