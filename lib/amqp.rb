@@ -3,14 +3,14 @@
 #:main: README
 #
 
-$:.unshift File.expand_path(File.dirname(File.expand_path(__FILE__)))
-require 'amqp'
-require 'mq/collection'
+require "amqp/connection"
+require "amqp/collection"
 
 class MQ
-  %w[ exchange queue rpc header ].each do |file|
-    require "mq/#{file}"
-  end
+  require "amqp/exchange"
+  require "amqp/queue"
+  require "amqp/rpc"
+  require "amqp/header"
 
   class << self
     @logging = false

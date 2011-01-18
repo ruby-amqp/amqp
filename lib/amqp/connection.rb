@@ -1,11 +1,14 @@
 # encoding: utf-8
 
-require File.expand_path('../ext/em', __FILE__)
-require File.expand_path('../ext/blankslate', __FILE__)
+require "amqp/ext/em"
+require "amqp/ext/blankslate"
 
-%w[ version buffer spec protocol frame client ].each do |file|
-  require File.expand_path("../amqp/#{file}", __FILE__)
-end
+require "amqp/version"
+require "amqp/buffer"
+require "amqp/spec"
+require "amqp/protocol"
+require "amqp/frame"
+require "amqp/client"
 
 module AMQP
   class << self
