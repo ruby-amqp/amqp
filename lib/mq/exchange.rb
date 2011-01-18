@@ -22,7 +22,19 @@ class MQ
   # the default exchange for publishing the messages.
   #
   class Exchange
+
+    #
+    # Behaviors
+    #
+
     include AMQP
+
+
+
+    #
+    # API
+    #
+
 
     # The default exchange.
     # Every queue is bind to this (direct) exchange by default.
@@ -349,13 +361,40 @@ class MQ
       nil
     end
 
+
+    def durable?
+      !!@opts[:durable]
+    end # durable?
+
+    def transient?
+      !self.durable?
+    end # transient?
+
+    def auto_deleted?
+      !!@opts[:auto_delete]
+    end # auto_deleted?
+    alias auto_deletable? auto_deleted?
+
+    # Signifies that exchange object was created with :passive parameter set to true and
+    # thus should not really be used for publishing.
+    def passive?
+      !!@opts[:passive]
+    end # passive?
+
+
     def reset
       @deferred_status = nil
       initialize @mq, @type, @name, @opts
     end
 
+
+
+    #
+    # Implementation
+    #
+
     def receive_response(response)
       self.callback && self.callback.call(self)
-    end
-  end
-end
+    end # receive_response
+  end # Exchange
+end # MQ
