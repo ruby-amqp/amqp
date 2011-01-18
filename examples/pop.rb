@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-$:.unshift File.dirname(__FILE__) + '/../../lib'
+$:.unshift(File.expand_path("../../lib", __FILE__))
 require 'amqp'
 require 'pp'
 
