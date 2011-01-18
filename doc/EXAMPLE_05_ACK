@@ -1,2 +1,2 @@
 == Ack Example
-  :include: mq/ack.rb
+  :include: ack.rb

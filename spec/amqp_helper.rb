@@ -1,6 +1,6 @@
 # This helper supports writing specs for MQ (channel)
 
-require 'mq'
+require 'amqp'
 
 # Mocking AMQP::Client::EM_CONNECTION_CLASS in order to
 # specify MQ instance behavior without the need to start EM loop.

@@ -1,2 +1,2 @@
 == Stocks Example
-  :include: mq/stocks.rb
+  :include: stocks.rb

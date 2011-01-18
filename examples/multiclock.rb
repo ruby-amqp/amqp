@@ -1,7 +1,7 @@
 # encoding: utf-8
 
-$:.unshift File.dirname(__FILE__) + '/../../lib'
-require 'mq'
+$:.unshift(File.expand_path("../../lib", __FILE__))
+require 'amqp'
 require 'time'
 
 AMQP.start(:host => 'localhost') do |connection|

@@ -1,8 +1,8 @@
 # encoding: utf-8
 
-$:.unshift File.dirname(__FILE__) + '/../../lib'
+$:.unshift(File.expand_path("../../lib", __FILE__))
 
-require 'mq'
+require 'amqp'
 
 if RUBY_VERSION == "1.8.7"
   module ArrayExtensions

@@ -7,4 +7,4 @@ rescue LoadError
   require 'eventmachine'
 end
 
-require 'ext/emfork'
+require 'amqp/ext/emfork'

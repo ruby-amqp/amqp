@@ -1,2 +1,2 @@
 == Pop Example
-  :include: mq/pop.rb
+  :include: pop.rb
