@@ -12,7 +12,16 @@ class MockClient
 end
 
 describe AMQP, 'class object' do
+
+  #
+  # Environment
+  #
+
   subject { AMQP }
+
+  #
+  # Examples
+  #
 
   its(:settings) do
     should == {
@@ -108,18 +117,27 @@ describe AMQP, 'class object' do
 
 
     context 'with established AMQP connection' do
+
+      #
+      #
+      #
+
       include AMQP::Spec
-      after { AMQP.cleanup_state; done }
+      after           { AMQP.cleanup_state; done }
       default_options AMQP_OPTS
 
-      it 'unsets AMQP.connection property. Mind the delay!' do
+      #
+      # Examples
+      #
+
+      it 'unsets active AMQP broker connection. Mind the delay!' do
         AMQP.start(AMQP_OPTS)
         AMQP.connection.should be_connected
 
         AMQP.stop
         AMQP.connection.should_not be_nil
         done(0.1) { AMQP.connection.should be_nil }
-      end
+      end # it
 
       it 'yields to given block AFTER disconnect (BUT before AMQP.conn is cleared!)' do
         AMQP.stop do
@@ -128,7 +146,7 @@ describe AMQP, 'class object' do
           AMQP.instance_variable_get(:@closing).should be_true
         end
         done(0.1) { @block_fired.should be_true }
-      end
-    end # context 'with established AMQP connection'
-  end # .stop
-end
+      end # it
+    end # context
+  end # describe
+end # describe AMQP
