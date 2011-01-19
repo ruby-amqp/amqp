@@ -1,13 +1,15 @@
+# encoding: utf-8
+
 require 'spec_helper'
 require 'amqp_helper'
 
-describe 'MQ', 'class object' do
+describe 'AMQP', 'class object' do
 
   #
   # Environment
   #
 
-  subject { MQ }
+  subject { AMQP }
 
   its(:logging) { should be_false }
 
@@ -30,4 +32,4 @@ describe 'MQ', 'class object' do
       AMQP::Channel.logging = false
     end # it
   end # .logging=
-end # describe 'MQ class object'
+end # describe 'AMQP class'

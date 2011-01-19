@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe MQ do
+describe AMQP do
 
   #
   # Environment
@@ -94,4 +94,4 @@ describe MQ do
       end # it
     end # context
   end # describe
-end # describe MQ
+end # describe AMQP
