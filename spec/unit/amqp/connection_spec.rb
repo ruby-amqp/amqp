@@ -12,24 +12,22 @@ class MockClient
 end
 
 describe AMQP, 'class object' do
-  context 'has class accessors, with default values' do
-    subject { AMQP }
+  subject { AMQP }
 
-    its(:logging) { should be_false }
-    its(:connection) { should be_nil }
-    its(:conn) { should be_nil } # Alias for #connection
-    its(:closing) { should be_false }
-    its(:settings) { should == {:host    => "127.0.0.1",
-                                :port    => 5672,
-                                :user    => "guest",
-                                :pass    => "guest",
-                                :vhost   => "/",
-                                :timeout => nil,
-                                :logging => false,
-                                :ssl     => false} }
-
-    its(:client) { should == AMQP::BasicClient }
+  its(:settings) do
+    should == {
+      :host    => "127.0.0.1",
+      :port    => 5672,
+      :user    => "guest",
+      :pass    => "guest",
+      :vhost   => "/",
+      :timeout => nil,
+      :logging => false,
+      :ssl     => false
+    }
   end
+
+  its(:client) { should == AMQP::BasicClient }
 
 
 
