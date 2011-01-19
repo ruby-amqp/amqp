@@ -5,8 +5,6 @@ require "amqp/basic_client"
 require 'uri'
 
 module AMQP
-  class Error < StandardError; end
-
   def self.client
     @client ||= BasicClient
   end
