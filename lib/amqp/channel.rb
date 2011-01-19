@@ -8,7 +8,7 @@ module AMQP
   # delegate/forward to subclasses, but this is the preferred API. The subclass
   # API is subject to change while this high-level API will likely remain
   # unchanged as the library evolves. All code examples will be written using
-  # the MQ API.
+  # the AMQP API.
   #
   # Below is a somewhat complex example that demonstrates several capabilities
   # of the library. The example starts a clock using a +fanout+ exchange which
@@ -18,10 +18,10 @@ module AMQP
   # messages every 2 seconds. After 5 seconds has elapsed, the 1 second
   # consumer is deleted.
   #
-  # Of interest is the relationship of EventMachine to the process. All MQ
+  # Of interest is the relationship of EventMachine to the process. All AMQP
   # operations must occur within the context of an EM.run block. We start
   # EventMachine in its own thread with an empty block; all subsequent calls
-  # to the MQ API add their blocks to the EM.run block. This demonstrates how
+  # to the AMQP API add their blocks to the EM.run block. This demonstrates how
   # the library could be used to build up and tear down communications outside
   # the context of an EventMachine block and/or integrate the library with
   # other synchronous operations. See the EventMachine documentation for
@@ -131,7 +131,7 @@ module AMQP
     #  end
     #
     def initialize(connection = nil)
-      raise 'MQ can only be used from within EM.run {}' unless EM.reactor_running?
+      raise 'AMQP can only be used from within EM.run {}' unless EM.reactor_running?
 
       @_send_mutex = Mutex.new
       @get_queue_mutex = Mutex.new
@@ -222,7 +222,7 @@ module AMQP
     # method it will raise a channel or connection exception.
     #
     # == Exceptions
-    # Doing any of these activities are illegal and will raise MQ:Error.
+    # Doing any of these activities are illegal and will raise AMQP::Error.
     # * redeclare an already-declared exchange to a different type
     # * :passive => true and the exchange does not exist (NOT_FOUND)
     #
@@ -316,7 +316,7 @@ module AMQP
     # method it will raise a channel or connection exception.
     #
     # == Exceptions
-    # Doing any of these activities are illegal and will raise MQ:Error.
+    # Doing any of these activities are illegal and will raise AMQP::Error.
     # * redeclare an already-declared exchange to a different type
     # * :passive => true and the exchange does not exist (NOT_FOUND)
     #
@@ -436,7 +436,7 @@ module AMQP
     # method it will raise a channel or connection exception.
     #
     # == Exceptions
-    # Doing any of these activities are illegal and will raise MQ:Error.
+    # Doing any of these activities are illegal and will raise AMQP::Error.
     # * redeclare an already-declared exchange to a different type
     # * :passive => true and the exchange does not exist (NOT_FOUND)
     #
@@ -524,7 +524,7 @@ module AMQP
     # method it will raise a channel or connection exception.
     #
     # == Exceptions
-    # Doing any of these activities are illegal and will raise MQ:Error.
+    # Doing any of these activities are illegal and will raise AMQP::Error.
     # * redeclare an already-declared exchange to a different type
     # * :passive => true and the exchange does not exist (NOT_FOUND)
     # * using a value other than "any" or "all" for "x-match"
@@ -546,7 +546,7 @@ module AMQP
     #
     # Like an Exchange, queue names starting with 'amq.' are reserved for
     # internal use. Attempts to create queue names in violation of this
-    # reservation will raise MQ:Error (ACCESS_REFUSED).
+    # reservation will raise AMQP::Error (ACCESS_REFUSED).
     #
     # It is not supported to create a queue without a name; some string
     # (even the empty string) must be passed in the +name+ parameter.
@@ -583,7 +583,7 @@ module AMQP
     # from this queue.
     #
     # Attempting to redeclare an already-declared queue as :exclusive => true
-    # will raise MQ:Error.
+    # will raise AMQP::Error.
     #
     # * :auto_delete = true | false (default false)
     # If set, the queue is deleted when all consumers have finished

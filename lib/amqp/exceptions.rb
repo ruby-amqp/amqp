@@ -1,6 +1,4 @@
-module AMQP
-  class Error < StandardError; end
-end # AMQP
+# encoding: utf-8
 
 module AMQP
   # Raised whenever an illegal operation is attempted.
@@ -17,4 +15,4 @@ module AMQP
       super("The channel #{instance.channel} was closed, you can't use it anymore!")
     end
   end # ChannelClosedError
-end # MQ
+end # AMQP

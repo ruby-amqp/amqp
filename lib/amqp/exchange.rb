@@ -14,7 +14,7 @@ module AMQP
   # As part of the standard, the server _must_ predeclare the direct exchange
   # 'amq.direct' and the fanout exchange 'amq.fanout' (all exchange names
   # starting with 'amq.' are reserved). Attempts to declare an exchange using
-  # 'amq.' as the name will raise an MQ:Error and fail. In practice these
+  # 'amq.' as the name will raise an AMQP::Error and fail. In practice these
   # default exchanges are never used directly by client code.
   #
   # These predececlared exchanges are used when the client code declares
@@ -57,7 +57,7 @@ module AMQP
     # As part of the standard, the server _must_ predeclare the direct exchange
     # 'amq.direct' and the fanout exchange 'amq.fanout' (all exchange names
     # starting with 'amq.' are reserved). Attempts to declare an exchange using
-    # 'amq.' as the name will raise an MQ:Error and fail. In practice these
+    # 'amq.' as the name will raise an AMQP::Error and fail. In practice these
     # default exchanges are never used directly by client code.
     #
     # == Direct
@@ -222,7 +222,7 @@ module AMQP
     #
     # == Exceptions
     # Doing any of these activities are illegal and will raise exceptions:
-    # 
+    #
     # * redeclare an already-declared exchange to a different type (raises AMQP::Channel::IncompatibleOptionsError)
     # * :passive => true and the exchange does not exist (NOT_FOUND)
     #
@@ -343,7 +343,7 @@ module AMQP
     # * :if_unused => true | false (default false)
     # If set, the server will only delete the exchange if it has no queue
     # bindings. If the exchange has queue bindings the server does not
-    # delete it but raises a channel exception instead (MQ:Error).
+    # delete it but raises a channel exception instead (AMQP::Error).
     #
     def delete(opts = {})
       @mq.callback {
@@ -384,4 +384,4 @@ module AMQP
       self.callback && self.callback.call(self)
     end # receive_response
   end # Exchange
-end # MQ
+end # AMQP

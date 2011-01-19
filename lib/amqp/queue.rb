@@ -12,7 +12,7 @@ module AMQP
     #
     # Like an Exchange, queue names starting with 'amq.' are reserved for
     # internal use. Attempts to create queue names in violation of this
-    # reservation will raise MQ:Error (ACCESS_REFUSED).
+    # reservation will raise AMQP::Error (ACCESS_REFUSED).
     #
     # When a queue is created without a name, the server will generate a
     # unique name internally (not currently supported in this library).
@@ -45,7 +45,7 @@ module AMQP
     # from this queue.
     #
     # Attempting to redeclare an already-declared queue as :exclusive => true
-    # will raise MQ:Error.
+    # will raise AMQP::Error.
     #
     # * :auto_delete = true | false (default false)
     # If set, the queue is deleted when all consumers have finished

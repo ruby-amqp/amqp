@@ -77,7 +77,7 @@ module AMQP
   # Most code will use the MQ api. Any calls to AMQP::Channel.direct / AMQP::Channel.fanout /
   # AMQP::Channel.topic / AMQP::Channel.queue will implicitly call #start. In those cases,
   # it is sufficient to put your code inside of an EventMachine.run
-  # block. See the code examples in MQ for details.
+  # block. See the code examples in AMQP for details.
   #
   def self.start *args, &blk
     EM.run {

@@ -1,9 +1,10 @@
-# This helper supports writing specs for MQ (channel)
+# encoding: utf-8
 
+# This helper makes writing specs for AMQP::Channel easier.
 require 'amqp'
 
 # Mocking AMQP::Client::EM_CONNECTION_CLASS in order to
-# specify MQ instance behavior without the need to start EM loop.
+# specify channel instance behavior without the need to start EM loop.
 class MockConnection
 
   def initialize

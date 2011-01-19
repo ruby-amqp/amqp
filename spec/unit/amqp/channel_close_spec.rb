@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-describe MQ, "#close(&callback)" do
+describe AMQP, "#close(&callback)" do
   include AMQP::EMSpec
 
   default_timeout 5
