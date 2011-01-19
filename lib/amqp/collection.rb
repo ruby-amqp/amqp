@@ -47,8 +47,14 @@ module AMQP
       return item
     end
 
+    def include?(name)
+      not self[name].nil?
+    end
+
     def delete(name)
-      self.delete_at(self.index(self[name]))
+      if self.include?(name)
+        self.delete_at(self.index(self[name]))
+      end
     end
   end
 end
