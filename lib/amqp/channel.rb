@@ -916,8 +916,11 @@ module AMQP
 
     def validate_parameters_match!(entity, parameters)
       unless entity.opts == parameters || parameters[:passive]
-        raise IncompatibleOptionsError.new(entity.name, entity.opts, parameters)
+        raise AMQP::IncompatibleOptionsError.new(entity.name, entity.opts, parameters)
       end
     end # validate_parameters_match!(entity, parameters)
-  end
-end
+  end # Channel  
+end # AMQP
+
+
+MQ = AMQP::Channel
