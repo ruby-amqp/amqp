@@ -156,7 +156,7 @@ describe MQ do
 
         expect {
           @channel.direct("previously.declared.durable.direct.exchange", :durable => false)
-        }.to raise_error(AMQP::Channel::IncompatibleOptionsError)
+        }.to raise_error(AMQP::IncompatibleOptionsError)
 
         done
       end # it
@@ -275,7 +275,7 @@ describe MQ do
 
         expect {
           @channel.fanout("previously.declared.durable.topic.exchange", :durable => false)
-        }.to raise_error(AMQP::Channel::IncompatibleOptionsError)
+        }.to raise_error(AMQP::IncompatibleOptionsError)
 
         done
       end # it
@@ -393,7 +393,7 @@ describe MQ do
 
         expect {
           @channel.topic("previously.declared.durable.topic.exchange", :durable => false)
-        }.to raise_error(AMQP::Channel::IncompatibleOptionsError)
+        }.to raise_error(AMQP::IncompatibleOptionsError)
 
         done
       end # it
@@ -515,7 +515,7 @@ describe MQ do
 
         expect {
           @channel.headers("previously.declared.durable.topic.exchange", :durable => false)
-        }.to raise_error(AMQP::Channel::IncompatibleOptionsError)
+        }.to raise_error(AMQP::IncompatibleOptionsError)
 
         done
       end # it

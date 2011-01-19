@@ -88,7 +88,7 @@ describe MQ do
 
         expect {
           @channel.queue("previously.declared.durable.queue", :durable => false)
-        }.to raise_error(AMQP::Channel::IncompatibleOptionsError)
+        }.to raise_error(AMQP::IncompatibleOptionsError)
 
         done
       end # it
