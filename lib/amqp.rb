@@ -3,6 +3,7 @@
 #:main: README
 #
 
+require "amqp/version"
 require "amqp/connection"
 require "amqp/collection"
 

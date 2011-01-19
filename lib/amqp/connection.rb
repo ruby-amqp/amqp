@@ -3,7 +3,6 @@
 require "amqp/ext/em"
 require "amqp/ext/blankslate"
 
-require "amqp/version"
 require "amqp/buffer"
 require "amqp/spec"
 require "amqp/protocol"
