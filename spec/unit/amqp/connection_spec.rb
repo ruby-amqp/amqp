@@ -99,10 +99,13 @@ describe AMQP, 'class object' do
 
 
   describe '.stop' do
-    it 'is noop if connection is not established' do
-      expect { @res = AMQP.stop }.to_not raise_error
-      @res.should be_nil
-    end
+    context "when connection is not established" do
+      it 'is a no-op' do
+        expect { @res = AMQP.stop }.to_not raise_error
+        @res.should be_nil
+      end # it
+    end # context
+
 
     context 'with established AMQP connection' do
       include AMQP::Spec
