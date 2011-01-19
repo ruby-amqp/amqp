@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-class MQ
+module AMQP
   class Logger
     def initialize(*args, &block)
       opts = args.pop if args.last.is_a? Hash
@@ -51,7 +51,7 @@ class MQ
 
       print(opts)
       unless Logger.disabled?
-        MQ.fanout('logging', :durable => true).publish Marshal.dump(opts)
+        AMQP::Channel.fanout('logging', :durable => true).publish Marshal.dump(opts)
       end
 
       opts

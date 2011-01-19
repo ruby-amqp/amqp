@@ -1,9 +1,7 @@
 # encoding: utf-8
 
-class MQ
+module AMQP
   class Queue
-    include AMQP
-
     def self.add_default_options(name, opts, block)
       { :queue => name, :nowait => block.nil? }.merge(opts)
     end
@@ -90,8 +88,8 @@ class MQ
     #
     # A valid exchange name (or reference) must be passed as the first
     # parameter. Both of these are valid:
-    #  exch = MQ.direct('foo exchange')
-    #  queue = MQ.queue('bar queue')
+    #  exch = AMQP::Channel.direct('foo exchange')
+    #  queue = AMQP::Channel.queue('bar queue')
     #  queue.bind('foo.exchange') # OR
     #  queue.bind(exch)
     #
@@ -206,14 +204,14 @@ class MQ
     # The provided block is passed a single message each time pop is called.
     #
     #  EM.run do
-    #    exchange = MQ.direct("foo queue")
+    #    exchange = AMQP::Channel.direct("foo queue")
     #    EM.add_periodic_timer(1) do
     #      exchange.publish("random number #{rand(1000)}")
     #    end
     #
     #    # note that #bind is never called; it is implicit because
     #    # the exchange and queue names match
-    #    queue = MQ.queue('foo queue')
+    #    queue = AMQP::Channel.queue('foo queue')
     #    queue.pop { |body| puts "received payload [#{body}]" }
     #
     #    EM.add_periodic_timer(1) { queue.pop }
@@ -224,12 +222,12 @@ class MQ
     # AMQP::Protocol::Header.
     #
     #  EM.run do
-    #    exchange = MQ.direct("foo queue")
+    #    exchange = AMQP::Channel.direct("foo queue")
     #    EM.add_periodic_timer(1) do
     #      exchange.publish("random number #{rand(1000)}")
     #    end
     #
-    #    queue = MQ.queue('foo queue')
+    #    queue = AMQP::Channel.queue('foo queue')
     #    queue.pop do |header, body|
     #      p header
     #      puts "received payload [#{body}]"
@@ -277,12 +275,12 @@ class MQ
     # exchange matches a message to this queue.
     #
     #  EM.run do
-    #    exchange = MQ.direct("foo queue")
+    #    exchange = AMQP::Channel.direct("foo queue")
     #    EM.add_periodic_timer(1) do
     #      exchange.publish("random number #{rand(1000)}")
     #    end
     #
-    #    queue = MQ.queue('foo queue')
+    #    queue = AMQP::Channel.queue('foo queue')
     #    queue.subscribe { |body| puts "received payload [#{body}]" }
     #  end
     #
@@ -291,14 +289,14 @@ class MQ
     # AMQP::Protocol::Header.
     #
     #  EM.run do
-    #    exchange = MQ.direct("foo queue")
+    #    exchange = AMQP::Channel.direct("foo queue")
     #    EM.add_periodic_timer(1) do
     #      exchange.publish("random number #{rand(1000)}")
     #    end
     #
     #    # note that #bind is never called; it is implicit because
     #    # the exchange and queue names match
-    #    queue = MQ.queue('foo queue')
+    #    queue = AMQP::Channel.queue('foo queue')
     #    queue.subscribe do |header, body|
     #      p header
     #      puts "received payload [#{body}]"
@@ -398,7 +396,7 @@ class MQ
     # the headers parameter. See #pop or #subscribe for a code example.
     #
     def receive(headers, body)
-      headers = MQ::Header.new(@mq, headers) unless headers.nil?
+      headers = AMQP::Header.new(@mq, headers) unless headers.nil?
 
       if cb = (@on_msg || @on_pop)
         cb.call *(cb.arity == 1 ? [body] : [headers, body])
@@ -407,7 +405,7 @@ class MQ
 
     # Get the number of messages and consumers on a queue.
     #
-    #  MQ.queue('name').status { |num_messages, num_consumers|
+    #  AMQP::Channel.queue('name').status { |num_messages, num_consumers|
     #   puts num_messages
     #  }
     #

@@ -13,7 +13,7 @@ describe MQ do
   default_timeout 10
 
   amqp_before do
-    @channel = MQ.new
+    @channel = AMQP::Channel.new
   end
 
 
@@ -156,7 +156,7 @@ describe MQ do
 
         expect {
           @channel.direct("previously.declared.durable.direct.exchange", :durable => false)
-        }.to raise_error(MQ::IncompatibleOptionsError)
+        }.to raise_error(AMQP::Channel::IncompatibleOptionsError)
 
         done
       end # it
@@ -275,7 +275,7 @@ describe MQ do
 
         expect {
           @channel.fanout("previously.declared.durable.topic.exchange", :durable => false)
-        }.to raise_error(MQ::IncompatibleOptionsError)
+        }.to raise_error(AMQP::Channel::IncompatibleOptionsError)
 
         done
       end # it
@@ -393,7 +393,7 @@ describe MQ do
 
         expect {
           @channel.topic("previously.declared.durable.topic.exchange", :durable => false)
-        }.to raise_error(MQ::IncompatibleOptionsError)
+        }.to raise_error(AMQP::Channel::IncompatibleOptionsError)
 
         done
       end # it
@@ -515,7 +515,7 @@ describe MQ do
 
         expect {
           @channel.headers("previously.declared.durable.topic.exchange", :durable => false)
-        }.to raise_error(MQ::IncompatibleOptionsError)
+        }.to raise_error(AMQP::Channel::IncompatibleOptionsError)
 
         done
       end # it

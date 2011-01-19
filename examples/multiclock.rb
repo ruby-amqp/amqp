@@ -19,7 +19,7 @@ AMQP.start(:host => 'localhost') do |connection|
 
   #AMQP.logging = true
 
-  clock = MQ.new.headers('multiformat_clock')
+  clock = AMQP::Channel.new.headers('multiformat_clock')
   EM.add_periodic_timer(1) {
     puts
 
@@ -32,7 +32,7 @@ AMQP.start(:host => 'localhost') do |connection|
   }
 
   ["iso8601", "rfc2822"].each do |format|
-    amq = MQ.new
+    amq = AMQP::Channel.new
     amq.queue(format.to_s).bind(amq.headers('multiformat_clock'), :arguments => {"format" => format}).subscribe { |time|
       log "received #{format}", time
     }

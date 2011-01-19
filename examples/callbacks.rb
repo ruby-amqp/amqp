@@ -13,7 +13,7 @@ AMQP.start(:host => "localhost") do |connection|
   end
 
   @counter = 0
-  amq = MQ.new
+  amq = AMQP::Channel.new
 
   3.times do
     amq.queue("") do |queue|

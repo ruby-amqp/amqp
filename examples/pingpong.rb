@@ -18,7 +18,7 @@ AMQP.start(:host => 'localhost') do |connection|
 
   # AMQP.logging = true
 
-  amq = MQ.new
+  amq = AMQP::Channel.new
   EM.add_periodic_timer(1) {
     puts
 
@@ -26,13 +26,13 @@ AMQP.start(:host => 'localhost') do |connection|
     amq.queue('one').publish('ping')
   }
 
-  amq = MQ.new
+  amq = AMQP::Channel.new
   amq.queue('one').subscribe { |msg|
     log 'one', :received, msg, :sending, 'pong'
     amq.queue('two').publish('pong')
   }
 
-  amq = MQ.new
+  amq = AMQP::Channel.new
   amq.queue('two').subscribe { |msg|
     log 'two', :received, msg
   }

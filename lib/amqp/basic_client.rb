@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require "amqp/frame"
 require "amqp/protocol"
 

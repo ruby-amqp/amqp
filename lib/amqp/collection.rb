@@ -1,7 +1,7 @@
 # encoding: utf-8
 
-class MQ
-  # MQ::Collection is used to store named AMQ model entities (exchanges, queues)
+module AMQP
+  # AMQP::Collection is used to store named AMQ model entities (exchanges, queues)
   class Collection < ::Array
     class IncompatibleItemError < ArgumentError
       def initialize(item)
@@ -48,10 +48,7 @@ class MQ
     end
 
     def delete(name)
-      idx = self.index(self[name])
-
-      raise ArgumentError, "there seems to be no item with name = #{name} in #{self.inspect}" unless idx
-      self.delete_at(idx)
+      self.delete_at(self.index(self[name]))
     end
   end
 end

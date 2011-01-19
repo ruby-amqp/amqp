@@ -18,7 +18,7 @@ AMQP.start(:host => 'localhost') do |connection|
 
   # AMQP.logging = true
 
-  clock = MQ.new.fanout('clock')
+  clock = AMQP::Channel.new.fanout('clock')
   EM.add_periodic_timer(1) {
     puts
 
@@ -26,12 +26,12 @@ AMQP.start(:host => 'localhost') do |connection|
     clock.publish(Marshal.dump(time))
   }
 
-  amq = MQ.new
+  amq = AMQP::Channel.new
   amq.queue('every second').bind(amq.fanout('clock')).subscribe { |time|
     log 'every second', :received, Marshal.load(time)
   }
 
-  amq = MQ.new
+  amq = AMQP::Channel.new
   amq.queue('every 5 seconds').bind(amq.fanout('clock')).subscribe { |time|
     time = Marshal.load(time)
     log 'every 5 seconds', :received, time if time.strftime('%S').to_i % 5 == 0

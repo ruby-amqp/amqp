@@ -13,7 +13,7 @@ describe MQ do
   default_timeout 5
 
   amqp_before do
-    @channel = MQ.new
+    @channel = AMQP::Channel.new
   end
 
 
@@ -25,7 +25,7 @@ describe MQ do
   describe ".channel" do
     it 'gives each thread a separate channel' do
       pending 'This is not implemented in current lib'
-      class MQ
+      module AMQP
         @@cur_channel = 0
       end
 

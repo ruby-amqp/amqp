@@ -17,7 +17,7 @@ AMQP.start(:host => 'localhost') do |connection|
   end
 
   def publish_stock_prices
-    mq = MQ.new
+    mq = AMQP::Channel.new
     EM.add_periodic_timer(1) {
       puts
 
@@ -33,14 +33,14 @@ AMQP.start(:host => 'localhost') do |connection|
   end
 
   def watch_appl_stock
-    mq = MQ.new
+    mq = AMQP::Channel.new
     mq.queue('apple stock').bind(mq.topic('stocks'), :key => 'usd.appl').subscribe { |price|
       log 'apple stock', price
     }
   end
 
   def watch_us_stocks
-    mq = MQ.new
+    mq = AMQP::Channel.new
     mq.queue('us stocks').bind(mq.topic('stocks'), :key => 'usd.*').subscribe { |info, price|
       log 'us stock', info.routing_key, price
     }

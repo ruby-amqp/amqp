@@ -74,8 +74,8 @@ module AMQP
   #    # is called.
   #  end
   #
-  # Most code will use the MQ api. Any calls to MQ.direct / MQ.fanout /
-  # MQ.topic / MQ.queue will implicitly call #start. In those cases,
+  # Most code will use the MQ api. Any calls to AMQP::Channel.direct / AMQP::Channel.fanout /
+  # AMQP::Channel.topic / AMQP::Channel.queue will implicitly call #start. In those cases,
   # it is sufficient to put your code inside of an EventMachine.run
   # block. See the code examples in MQ for details.
   #

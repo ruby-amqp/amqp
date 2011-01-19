@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'amqp_helper'
 
-describe MQ::Queue, :broker => true do
+describe AMQP::Channel::Queue, :broker => true do
 
   #
   # Environment
@@ -13,8 +13,8 @@ describe MQ::Queue, :broker => true do
   default_timeout 3
 
   amqp_before do
-    @channel = MQ.new
-    @queue   = MQ::Queue.new(@channel, 'test_queue', :option => 'useless')
+    @channel = AMQP::Channel.new
+    @queue   = AMQP::Channel::Queue.new(@channel, 'test_queue', :option => 'useless')
   end
 
   amqp_after { @queue.purge; AMQP.cleanup_state }
@@ -25,14 +25,14 @@ describe MQ::Queue, :broker => true do
   #
 
   context 'declared with name of "test_queue"' do
-    amqp_after { @queue.unsubscribe }
+    amqp_after {@queue.unsubscribe; @queue.delete}
     # TODO: Fix amqp_after: it is NOT run in case of raised exceptions, it seems
 
     it 'supports asynchronous subscription to broker-predefined amq.direct exchange' do
       data = "data sent via amq.direct exchange"
 
       @queue.subscribe do |header, message|
-        header.should be_an MQ::Header
+        header.should be_an AMQP::Header
         message.should == data
         done
       end
@@ -43,7 +43,7 @@ describe MQ::Queue, :broker => true do
       @queue.publish('send some data down the pipe')
 
       @queue.pop do |header, message|
-        header.should be_an MQ::Header
+        header.should be_an AMQP::Header
         message.should == 'send some data down the pipe'
         done
       end
@@ -68,4 +68,4 @@ describe MQ::Queue, :broker => true do
       done(1)
     end # it
   end # context
-end # MQ::Queue, 'with real connection
+end # AMQP::Channel::Queue, 'with real connection

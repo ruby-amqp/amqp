@@ -8,7 +8,7 @@ Signal.trap('INT') { AMQP.stop { EM.stop } }
 Signal.trap('TERM') { AMQP.stop { EM.stop } }
 
 AMQP.start do
-  queue = MQ.queue('awesome')
+  queue = AMQP::Channel.queue('awesome')
 
   queue.publish('Totally rad 1')
   queue.publish('Totally rad 2')

@@ -13,13 +13,13 @@ describe "Queue that was bound to default direct exchange thanks to Automatic Mo
   default_timeout 10
 
   amqp_before do
-    @channel   = MQ.new
+    @channel   = AMQP::Channel.new
 
     @queue1    = @channel.queue("queue1")
     @queue2    = @channel.queue("queue2")
 
     # Rely on default direct exchange binding, see section 2.1.2.4 Automatic Mode in AMQP 0.9.1 spec.
-    @exchange = MQ::Exchange.default
+    @exchange = AMQP::Channel::Exchange.default
   end
 
 

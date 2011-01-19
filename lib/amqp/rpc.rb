@@ -1,14 +1,14 @@
 # encoding: utf-8
 
-class MQ
+module AMQP
   # Basic RPC (remote procedure call) facility.
   #
   # Needs more detail and explanation.
   #
   #  EM.run do
-  #    server = MQ.rpc('hash table node', Hash)
+  #    server = AMQP::Channel.rpc('hash table node', Hash)
   #
-  #    client = MQ.rpc('hash table node')
+  #    client = AMQP::Channel.rpc('hash table node')
   #    client[:now] = Time.now
   #    client[:one] = 1
   #
@@ -78,13 +78,13 @@ class MQ
       end
     end
 
-    # Calling MQ.rpc(*args) returns a proxy object without any methods beyond
+    # Calling AMQP::Channel.rpc(*args) returns a proxy object without any methods beyond
     # those in Object. All calls to the proxy are handled by #method_missing which
     # works to marshal and unmarshal all method calls and their arguments.
     #
     #  EM.run do
-    #    server = MQ.rpc('hash table node', Hash)
-    #    client = MQ.rpc('hash table node')
+    #    server = AMQP::Channel.rpc('hash table node', Hash)
+    #    client = AMQP::Channel.rpc('hash table node')
     #
     #    # calls #method_missing on #[] which marshals the method name and
     #    # arguments to publish them to the remote

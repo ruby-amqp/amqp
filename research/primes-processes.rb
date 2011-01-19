@@ -11,7 +11,7 @@ EM.run {
     p args
   end
 
-  # MQ.logging = true
+  # AMQP::Channel.logging = true
 
   if ARGV[0] == 'worker'
 
@@ -23,24 +23,24 @@ EM.run {
       end
     end
 
-    MQ.queue('prime checker').subscribe { |info, num|
+    AMQP::Channel.queue('prime checker').subscribe { |info, num|
       log "prime checker #{Process.pid}", :prime?, num
       if Integer(num).prime?
-        MQ.queue(info.reply_to).publish(num, :reply_to => Process.pid)
+        AMQP::Channel.queue(info.reply_to).publish(num, :reply_to => Process.pid)
         EM.stop_event_loop if num == (MAX-1).to_s
       end
     }
 
   elsif ARGV[0] == 'controller'
 
-    MQ.queue('prime collector').subscribe { |info, prime|
+    AMQP::Channel.queue('prime collector').subscribe { |info, prime|
       log 'prime collector', :received, prime, :from, info.reply_to
       (@primes ||= []) << Integer(prime)
     }
 
     MAX.times do |i|
       EM.next_tick do
-        MQ.queue('prime checker').publish((i+1).to_s, :reply_to => 'prime collector')
+        AMQP::Channel.queue('prime checker').publish((i+1).to_s, :reply_to => 'prime collector')
       end
     end
 

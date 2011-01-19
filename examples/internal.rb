@@ -10,13 +10,13 @@ EM.run do
   connection = AMQP.connect(:host => 'localhost', :logging => false)
 
   # open a channel on the AMQP connection
-  channel = MQ.new(connection)
+  channel = AMQP::Channel.new(connection)
 
   # declare a queue on the channel
-  queue = MQ::Queue.new(channel, 'queue name')
+  queue = AMQP::Channel::Queue.new(channel, 'queue name')
 
   # create a fanout exchange
-  exchange = MQ::Exchange.new(channel, :fanout, 'all queues')
+  exchange = AMQP::Channel::Exchange.new(channel, :fanout, 'all queues')
 
   # bind the queue to the exchange
   queue.bind(exchange)

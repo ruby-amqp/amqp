@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-require File.expand_path('../frame', __FILE__)
+require "amqp/frame"
 
 module AMQP
   module Server

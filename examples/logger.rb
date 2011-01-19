@@ -4,12 +4,12 @@ $:.unshift(File.expand_path("../../lib", __FILE__))
 require 'amqp'
 require 'amqp/logger'
 
-Logger = MQ::Logger
+Logger = AMQP::Channel::Logger
 
 AMQP.start(:host => 'localhost') do
   if ARGV[0] == 'server'
 
-    MQ.queue('logger').bind(MQ.fanout('logging', :durable => true)).subscribe { |msg|
+    AMQP::Channel.queue('logger').bind(AMQP::Channel.fanout('logging', :durable => true)).subscribe { |msg|
       msg = Marshal.load(msg)
       require 'pp'
       pp(msg)

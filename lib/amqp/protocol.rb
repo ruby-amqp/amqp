@@ -1,7 +1,7 @@
 # encoding: utf-8
 
-require File.expand_path('../spec', __FILE__)
-require File.expand_path('../buffer', __FILE__)
+require "amqp/spec"
+require "amqp/buffer"
 
 module AMQP
   module Protocol

@@ -15,7 +15,7 @@ end
 workers = ARGV[0] ? (Integer(ARGV[0]) rescue 1) : 1
 AMQP.fork(workers) do
 
-  log MQ.id, :started
+  log AMQP::Channel.id, :started
 
   class Fixnum
     def prime?
@@ -25,19 +25,19 @@ AMQP.fork(workers) do
 
   class PrimeChecker
     def is_prime? number
-      log "prime checker #{MQ.id}", :prime?, number
+      log "prime checker #{AMQP::Channel.id}", :prime?, number
       number.prime?
     end
   end
 
-  MQ.rpc('prime checker', PrimeChecker.new)
+  AMQP::Channel.rpc('prime checker', PrimeChecker.new)
 
 end
 
 # use workers to check which numbers are prime
 AMQP.start(:host => 'localhost') do
 
-  prime_checker = MQ.rpc('prime checker')
+  prime_checker = AMQP::Channel.rpc('prime checker')
 
   (10_000...(10_000+MAX)).each do |num|
     log :checking, num

@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-class MQ
+module AMQP
   # An Exchange acts as an ingress point for all published messages. An
   # exchange may also be described as a router or a matcher. Every
   # published message is received by an exchange which, depending on its
@@ -24,14 +24,6 @@ class MQ
   class Exchange
 
     #
-    # Behaviors
-    #
-
-    include AMQP
-
-
-
-    #
     # API
     #
 
@@ -45,12 +37,12 @@ class MQ
     # predefined in the system, so you can use it straightaway.
 
     # Example:
-    # MQ.new.queue("tasks")
-    # MQ::Exchange.default.publish("make clean", routing_key: "tasks")
+    # AMQP::Channel.new.queue("tasks")
+    # AMQP::Channel::Exchange.default.publish("make clean", routing_key: "tasks")
 
     # For more info see section 2.1.2.4 Automatic Mode of the AMQP 0.9.1 spec.
     def self.default
-      @@default ||= self.new(MQ.new, :direct, "", :no_declare => true)
+      @@default ||= self.new(AMQP::Channel.new, :direct, "", :no_declare => true)
     end
 
     def self.add_default_options(type, name, opts, block)
@@ -80,14 +72,14 @@ class MQ
     # called 'amq.direct'. In this case it needs to use :key to do its matching.
     #
     #  # exchange is named 'foo'
-    #  exchange = MQ::Exchange.new(MQ.new, :direct, 'foo')
+    #  exchange = AMQP::Channel::Exchange.new(AMQP::Channel.new, :direct, 'foo')
     #
     #  # or, the exchange can use the default name (amq.direct) and perform
     #  # routing comparisons using the :key
-    #  exchange = MQ::Exchange.new(MQ.new, :direct, "", :key => 'foo')
+    #  exchange = AMQP::Channel::Exchange.new(AMQP::Channel.new, :direct, "", :key => 'foo')
     #  exchange.publish('some data') # will be delivered to queue bound to 'foo'
     #
-    #  queue = MQ::Queue.new(MQ.new, 'foo')
+    #  queue = AMQP::Channel::Queue.new(AMQP::Channel.new, 'foo')
     #  # can receive data since the queue name and the exchange key match exactly
     #  queue.pop { |data| puts "received data [#{data}]" }
     #
@@ -105,21 +97,21 @@ class MQ
     # In this case it needs to use :key to do its matching.
     #
     #  EM.run do
-    #    clock = MQ::Exchange.new(MQ.new, :fanout, 'clock')
+    #    clock = AMQP::Channel::Exchange.new(AMQP::Channel.new, :fanout, 'clock')
     #    EM.add_periodic_timer(1) do
     #      puts "\npublishing #{time = Time.now}"
     #      clock.publish(Marshal.dump(time))
     #    end
     #
     #    # one way of defining a queue
-    #    amq = MQ::Queue.new(MQ.new, 'every second')
-    #    amq.bind(MQ.fanout('clock')).subscribe do |time|
+    #    amq = AMQP::Channel::Queue.new(AMQP::Channel.new, 'every second')
+    #    amq.bind(AMQP::Channel.fanout('clock')).subscribe do |time|
     #      puts "every second received #{Marshal.load(time)}"
     #    end
     #
     #    # defining a queue using the convenience method
     #    # note the string passed to #bind
-    #    MQ.queue('every 5 seconds').bind('clock').subscribe do |time|
+    #    AMQP::Channel.queue('every 5 seconds').bind('clock').subscribe do |time|
     #      time = Marshal.load(time)
     #      puts "every 5 seconds received #{time}" if time.strftime('%S').to_i%5 == 0
     #    end
@@ -150,7 +142,7 @@ class MQ
     # for matching against the published routing key.
     #
     #  EM.run do
-    #    exch = MQ::Exchange.new(MQ.new, :topic, "stocks")
+    #    exch = AMQP::Channel::Exchange.new(AMQP::Channel.new, :topic, "stocks")
     #    keys = ['stock.us.aapl', 'stock.de.dax']
     #
     #    EM.add_periodic_timer(1) do # every second
@@ -159,17 +151,17 @@ class MQ
     #    end
     #
     #    # match against one dot-separated item
-    #    MQ.queue('us stocks').bind(exch, :key => 'stock.us.*').subscribe do |price|
+    #    AMQP::Channel.queue('us stocks').bind(exch, :key => 'stock.us.*').subscribe do |price|
     #      puts "us stock price [#{price}]"
     #    end
     #
     #    # match against multiple dot-separated items
-    #    MQ.queue('all stocks').bind(exch, :key => 'stock.#').subscribe do |price|
+    #    AMQP::Channel.queue('all stocks').bind(exch, :key => 'stock.#').subscribe do |price|
     #      puts "all stocks: price [#{price}]"
     #    end
     #
     #    # require exact match
-    #    MQ.queue('only dax').bind(exch, :key => 'stock.de.dax').subscribe do |price|
+    #    AMQP::Channel.queue('only dax').bind(exch, :key => 'stock.de.dax').subscribe do |price|
     #      puts "dax price [#{price}]"
     #    end
     #  end
@@ -231,7 +223,7 @@ class MQ
     # == Exceptions
     # Doing any of these activities are illegal and will raise exceptions:
     # 
-    # * redeclare an already-declared exchange to a different type (raises MQ::IncompatibleOptionsError)
+    # * redeclare an already-declared exchange to a different type (raises AMQP::Channel::IncompatibleOptionsError)
     # * :passive => true and the exchange does not exist (NOT_FOUND)
     #
     def initialize(mq, type, name, opts = {}, &block)
@@ -275,7 +267,7 @@ class MQ
     # configuration and distributed to any active consumers when the
     # transaction, if any, is committed.
     #
-    #  exchange = MQ.direct('name', :key => 'foo.bar')
+    #  exchange = AMQP::Channel.direct('name', :key => 'foo.bar')
     #  exchange.publish("some data")
     #
     # The method takes several hash key options which modify the behavior or
@@ -335,9 +327,9 @@ class MQ
     # bindings on the exchange are cancelled.
     #
     # Further attempts to publish messages to a deleted exchange will raise
-    # an MQ::Error due to a channel close exception.
+    # an AMQP::Channel::Error due to a channel close exception.
     #
-    #  exchange = MQ.direct('name', :key => 'foo.bar')
+    #  exchange = AMQP::Channel.direct('name', :key => 'foo.bar')
     #  exchange.delete
     #
     # == Options

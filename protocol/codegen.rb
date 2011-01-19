@@ -4,7 +4,7 @@ require 'rubygems'
 require 'json'
 
 name = 'amqp-0.8.json'
-path = File.dirname(__FILE__)+'/'+name
+path = File.join(File.dirname(__FILE__), name)
 s = JSON.parse(File.read(path))
 
 # require 'pp'

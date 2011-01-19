@@ -8,7 +8,7 @@ describe MQ, "#close(&callback)" do
   default_timeout 5
 
   it "takes a callback which will run when we get back Channel.Close-Ok" do
-    MQ.new.close do |amq|
+    AMQP::Channel.new.close do |amq|
       done
     end
   end

@@ -1,9 +1,7 @@
 # encoding: utf-8
 
-class MQ
+module AMQP
   class Header
-    include AMQP
-
     def initialize(mq, header_obj)
       @mq = mq
       @header = header_obj

@@ -19,15 +19,15 @@ describe 'MQ', 'class object' do
   describe '.logging=' do
     it 'is independent from AMQP.logging' do
       AMQP.logging = true
-      MQ.logging.should be_false
-      MQ.logging = false
+      AMQP::Channel.logging.should be_false
+      AMQP::Channel.logging = false
       AMQP.logging.should == true
 
 
       AMQP.logging = false
-      MQ.logging = true
+      AMQP::Channel.logging = true
       AMQP.logging.should be_false
-      MQ.logging = false
+      AMQP::Channel.logging = false
     end # it
   end # .logging=
 end # describe 'MQ class object'

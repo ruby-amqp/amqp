@@ -2,7 +2,7 @@ module AMQP
   class Error < StandardError; end
 end # AMQP
 
-class MQ
+module AMQP
   # Raised whenever an illegal operation is attempted.
   class Error < StandardError; end
 

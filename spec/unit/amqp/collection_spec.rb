@@ -5,10 +5,10 @@ require "amqp/collection"
 
 Item = Struct.new(:name)
 
-describe MQ::Collection do
+describe AMQP::Collection do
   before do
     @items = 3.times.map { |int| Item.new("name-#{int}") }
-    @collection = MQ::Collection.new(@items)
+    @collection = AMQP::Collection.new(@items)
   end
 
   it "provides access to items by name" do
@@ -23,7 +23,7 @@ describe MQ::Collection do
 
   describe "#<<" do
     it "should raise IncompatibleItemError if the argument doesn't have method :name" do
-      lambda { @collection << nil }.should raise_error(MQ::Collection::IncompatibleItemError)
+      lambda { @collection << nil }.should raise_error(AMQP::Collection::IncompatibleItemError)
     end
 
     it "should add an item into the collection" do
@@ -88,7 +88,7 @@ describe MQ::Collection do
   describe "#add!" do
     context "when the argument doesn't respond to :name" do
       it "should raise IncompatibleItemError " do
-        lambda { @collection.add!(nil) }.should raise_error(MQ::Collection::IncompatibleItemError)
+        lambda { @collection.add!(nil) }.should raise_error(AMQP::Collection::IncompatibleItemError)
       end # it
     end
 
@@ -114,7 +114,7 @@ describe MQ::Collection do
   describe "#<<" do
     context "when the argument doesn't respond to :name" do
       it "should raise IncompatibleItemError " do
-        lambda { @collection << nil }.should raise_error(MQ::Collection::IncompatibleItemError)
+        lambda { @collection << nil }.should raise_error(AMQP::Collection::IncompatibleItemError)
       end # it
     end # context
 
@@ -134,11 +134,11 @@ describe MQ::Collection do
   describe "#delete" do
     it "should remove item with the given name from the collection" do
       items = [Item.new("test-0"), Item.new("test-1")]
-      collection = MQ::Collection.new(items)
+      collection = AMQP::Collection.new(items)
       lambda {
         collection.delete("test-1")
       }.should change(collection, :length).by(-1)
       collection.should_not include("test-1")
     end
   end # describe
-end # describe MQ::Collection
+end # describe AMQP::Collection

@@ -4,8 +4,6 @@ require "spec_helper"
 require "amqp/protocol"
 
 describe AMQP::Protocol do
-  include AMQP
-
   it 'should instantiate methods with arguments' do
     meth = Protocol::Connection::StartOk.new nil, 'PLAIN', nil, 'en_US'
     meth.locale.should == 'en_US'

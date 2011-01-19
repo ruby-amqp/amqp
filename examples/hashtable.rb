@@ -35,9 +35,9 @@ AMQP.start(:host => 'localhost') do |connection|
     end
   end
 
-  server = MQ.new.rpc('hash table node', HashTable.new)
+  server = AMQP::Channel.new.rpc('hash table node', HashTable.new)
 
-  client = MQ.new.rpc('hash table node')
+  client = AMQP::Channel.new.rpc('hash table node')
   client.set(:now, time = Time.now)
   client.get(:now) do |res|
     log 'client', :now => res, :eql? => res == time

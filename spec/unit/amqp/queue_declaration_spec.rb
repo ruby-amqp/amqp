@@ -13,7 +13,7 @@ describe MQ do
   default_timeout 5
 
   amqp_before do
-    @channel = MQ.new
+    @channel = AMQP::Channel.new
   end
 
 
@@ -88,7 +88,7 @@ describe MQ do
 
         expect {
           @channel.queue("previously.declared.durable.queue", :durable => false)
-        }.to raise_error(MQ::IncompatibleOptionsError)
+        }.to raise_error(AMQP::Channel::IncompatibleOptionsError)
 
         done
       end # it

@@ -31,11 +31,11 @@ AMQP.start do |amqp|
   end
 end
 
-def MQ.method_missing meth, *args, &blk
-  (Thread.current[:mq] ||= MQ.new).__send__(meth, *args, &blk)
+def AMQP::Channel.method_missing meth, *args, &blk
+  (Thread.current[:mq] ||= AMQP::Channel.new).__send__(meth, *args, &blk)
 end
 
-mq = MQ.new
+mq = AMQP::Channel.new
 mq.direct.publish('alkjsdf', :key => 'name')
 mq.topic # 'amq.topic'
 mq.topic('test').publish('some data', :key => 'stock.usd.*')
