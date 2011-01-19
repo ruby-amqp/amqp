@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'amqp_helper'
 
-describe AMQP::Channel::Queue, :broker => true do
+describe AMQP::Queue, :broker => true do
 
   #
   # Environment
@@ -14,7 +14,7 @@ describe AMQP::Channel::Queue, :broker => true do
 
   amqp_before do
     @channel = AMQP::Channel.new
-    @queue   = AMQP::Channel::Queue.new(@channel, 'test_queue', :option => 'useless')
+    @queue   = AMQP::Queue.new(@channel, 'test_queue', :option => 'useless')
   end
 
   amqp_after { @queue.purge; AMQP.cleanup_state }
