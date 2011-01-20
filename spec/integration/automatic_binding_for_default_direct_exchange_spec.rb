@@ -22,6 +22,13 @@ describe "Queue that was bound to default direct exchange thanks to Automatic Mo
     @exchange = AMQP::Exchange.default
   end
 
+  after(:all) do
+    AMQP.cleanup_state
+    done
+  end
+
+  default_options AMQP_OPTS
+
 
 
   #
