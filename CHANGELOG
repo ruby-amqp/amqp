@@ -1,6 +1,13 @@
 = Version 0.8
 
-  * [FEATURE] Introduce MQ::Exchange #durable?, #transient?, #auto_deleted? and #passive?
+  * [API] Introduce AMQP::Exchange #durable?, #transient?, #auto_deleted? and #passive?
+  * [API] Introduce AMQP::Channel#open?
+  * [BUG] AMQP connection was considered established prematurely.
+  * [API] MQ.logging is removed; please use AMQP.logging from now on.
+  * [API] MQ::Queue class is deprecated; please use AMQP::Queue from now on.
+  * [API] MQ::Exchange class is deprecated; please use AMQP::Exchange from now on.
+  * [API] MQ class is deprecated; please use AMQP::Channel from now on.
+  * [API] require "mq" is deprecated; please use require "amqp" from now on.
 
 
 = Version 0.7
