@@ -154,17 +154,19 @@ module AMQP
       EM.reconnect @settings[:host], @settings[:port], self
     end
 
-    def self.connect amqp_url_or_opts = nil
-      if amqp_url_or_opts.is_a?(String)
-        opts = parse_amqp_url(amqp_url_or_opts)
-      elsif amqp_url_or_opts.is_a?(Hash)
-        opts = amqp_url_or_opts
-      elsif amqp_url_or_opts.nil?
-        opts = Hash.new
-      end
+    def self.connect(arg = nil)
+      opts = case arg
+             when String then
+               opts = parse_connection_uri(arg)
+             when Hash then
+               arg
+             else
+               Hash.new
+             end
 
-      opts = AMQP.settings.merge(opts)
-      EM.connect opts[:host], opts[:port], self, opts
+      options = AMQP.settings.merge(opts)
+
+      EM.connect options[:host], options[:port], self, options
     end
 
     def connection_status(&blk)
@@ -172,6 +174,23 @@ module AMQP
     end
 
     private
+
+    def self.parse_connection_uri(connection_string)
+      uri = URI.parse(connection_string)
+      raise("amqp:// uri required!") unless %w{amqp amqps}.include?(uri.scheme)
+
+      opts = {}
+
+      opts[:user]  = URI.unescape(uri.user) if uri.user
+      opts[:pass]  = URI.unescape(uri.password) if uri.password
+      opts[:vhost] = URI.unescape(uri.path) if uri.path
+      opts[:host]  = uri.host if uri.host
+      opts[:port]  = uri.port || Hash["amqp" => 5672, "amqps" => 5671][uri.scheme]
+      opts[:ssl]   = uri.scheme == "amqps"
+
+      opts
+    end
+
 
     def disconnected
       @connection_status.call(:disconnected) if @connection_status
@@ -183,20 +202,6 @@ module AMQP
       require 'pp'
       pp args
       puts
-    end
-
-    def self.parse_amqp_url(amqp_url)
-      uri = URI.parse(amqp_url)
-      raise("amqp:// uri required!") unless %w{amqp amqps}.include? uri.scheme
-      opts = {}
-      opts[:user] = URI.unescape(uri.user) if uri.user
-      opts[:pass] = URI.unescape(uri.password) if uri.password
-      opts[:vhost] = URI.unescape(uri.path) if uri.path
-      opts[:host] = uri.host if uri.host
-      opts[:port] = uri.port ? uri.port :
-                      {"amqp" => 5672, "amqps" => 5671}[uri.scheme]
-      opts[:ssl] = uri.scheme == "amqps"
-      return opts
     end
   end
 end
