@@ -151,7 +151,9 @@ module AMQP
       @status.eql?(:closed)
     end
 
-
+    def open?
+      !self.closed?
+    end # open?
 
     # Defines, intializes and returns an Exchange to act as an ingress
     # point for all published messages.

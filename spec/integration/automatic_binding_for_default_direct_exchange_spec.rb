@@ -14,6 +14,7 @@ describe "Queue that was bound to default direct exchange thanks to Automatic Mo
 
   amqp_before do
     @channel   = AMQP::Channel.new
+    @channel.should be_open
 
     @queue1    = @channel.queue("queue1")
     @queue2    = @channel.queue("queue2")
