@@ -36,6 +36,8 @@ module AMQP
           @on_disconnect = method(:disconnected)
 
         when Protocol::Connection::OpenOk
+          @connected = true
+          @connection_status.call(:connected) if @connection_status
           succeed(self)
 
         when Protocol::Connection::Close
@@ -43,6 +45,7 @@ module AMQP
           STDERR.puts "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]}"
 
         when Protocol::Connection::CloseOk
+          @connected = false
           @on_disconnect.call if @on_disconnect
         end # when
       end # case

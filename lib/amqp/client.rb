@@ -39,8 +39,7 @@ module AMQP
         @reconnecting = false
       end
 
-      @connected = true
-      @connection_status.call(:connected) if @connection_status
+      @tcp_connection_established = true
 
       @buf = Buffer.new
       send_data HEADER
