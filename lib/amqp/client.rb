@@ -166,6 +166,14 @@ module AMQP
 
       options = AMQP.settings.merge(opts)
 
+      if options[:username]
+        options[:user] = options.delete(:username)
+      end
+
+      if options[:password]
+        options[:pass] = options.delete(:password)
+      end
+
       EM.connect options[:host], options[:port], self, options
     end
 

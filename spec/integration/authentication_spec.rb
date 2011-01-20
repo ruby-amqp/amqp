@@ -52,7 +52,7 @@ describe "Authentication attempt" do
 
       context "and provided credentials are correct" do
         it "succeeds" do
-          connection = AMQP.connect :user => "amqp_gem", :pass => "amqp_gem_password", :vhost => "/amqp_gem_testbed"
+          connection = AMQP.connect :username => "amqp_gem", :password => "amqp_gem_password", :vhost => "/amqp_gem_testbed"
 
           done(0.3) {
             connection.should be_connected
