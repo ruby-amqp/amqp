@@ -28,7 +28,10 @@ module AMQP
       timeout @settings[:timeout] if @settings[:timeout]
       errback { @on_disconnect.call } unless @reconnecting
 
-      @connected = false
+      # TCP connection "openness"
+      @tcp_connection_established = false
+      # AMQP connection "openness"
+      @connected                  = false
     end
 
     def connection_completed
@@ -46,6 +49,10 @@ module AMQP
       send_data [1, 1, VERSION_MAJOR, VERSION_MINOR].pack('C4')
     end
 
+    def tcp_connection_established?
+      @tcp_connection_established
+    end # tcp_connection_established?
+
     def connected?
       @connected
     end
@@ -53,7 +60,7 @@ module AMQP
     def unbind
       log 'disconnected'
       @connected = false
-      EM.next_tick { @on_disconnect.call }
+      EM.next_tick { @on_disconnect.call; @tcp_connection_established = false }
     end
 
     def add_channel(mq)
