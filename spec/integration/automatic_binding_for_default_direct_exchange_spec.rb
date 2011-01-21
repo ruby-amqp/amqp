@@ -10,7 +10,7 @@ describe "Queue that was bound to default direct exchange thanks to Automatic Mo
 
   include AMQP::Spec
 
-  default_timeout 10
+  default_timeout 2
 
   amqp_before do
     @channel   = AMQP::Channel.new
@@ -44,14 +44,6 @@ describe "Queue that was bound to default direct exchange thanks to Automatic Mo
     @queue1.subscribe do |payload|
       number_of_received_messages += 1
       payload.should == dispatched_data
-
-      if number_of_received_messages == expected_number_of_messages
-        $stdout.puts "Got all the messages I expected, wrapping up..."
-        done
-      else
-        n = expected_number_of_messages - number_of_received_messages
-        $stdout.puts "Still waiting for #{n} more message(s)"
-      end
     end # subscribe
 
     4.times do
@@ -65,5 +57,9 @@ describe "Queue that was bound to default direct exchange thanks to Automatic Mo
     4.times do
       @exchange.publish("some white noise", :routing_key => "killa key")
     end
+
+    done(0.2) {
+      number_of_received_messages.should == expected_number_of_messages
+    }
   end # it
 end # describe
