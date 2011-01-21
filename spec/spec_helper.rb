@@ -40,15 +40,6 @@ if RUBY_VERSION == "1.8.7"
 end
 
 
-
-# Shorthand for mocking subject's instance variable
-def subject_mock(name, as_null = false)
-  mock = mock(name)
-  mock.as_null_object if as_null
-  subject.instance_variable_set(name.to_sym, mock)
-  mock
-end
-
 # Returns Header that should be correctly parsed
 def basic_header(opts = {})
   AMQP::Frame::Header.new(
@@ -73,24 +64,4 @@ def test_method_deliver opts = {}
   AMQP::Frame::Method.new(
       AMQP::Protocol::Basic::Deliver.new(
           :consumer_tag => opts[:consumer_tag] || 'test_consumer'))
-end
-
-require "stringio"
-
-def capture_stdout(&block)
-  $stdout = StringIO.new
-  block.call
-  $stdout.rewind
-  result = $stdout.read
-  $stdout = STDOUT
-  return result
-end
-
-def capture_stderr(&block)
-  $stderr = StringIO.new
-  block.call
-  $stderr.rewind
-  result = $stderr.read
-  $stderr = STDOUT
-  return result
 end

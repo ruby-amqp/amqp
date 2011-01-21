@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'amqp_helper'
 
 describe AMQP::Queue, :broker => true do
 
