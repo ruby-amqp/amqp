@@ -62,7 +62,7 @@ describe "Authentication attempt" do
       end # context
 
       context "and provided credentials ARE INCORRECT" do
-        it "succeeds" do
+        it "fails" do
           connection = AMQP.connect :user => "amqp_gem", :pass => Time.now.to_i.to_s, :vhost => "/amqp_gem_testbed"
 
           done(0.5) {
