@@ -302,6 +302,8 @@ module AMQP
     # message stays in memory and is never persisted to non-volatile (slow)
     # storage.
     #
+    #  * :content_type
+    # Content type you want to send the message with. It defaults to "application/octet-stream".
     def publish(data, opts = {})
       @mq.callback {
         out = []
@@ -312,7 +314,7 @@ module AMQP
         data = data.to_s
 
         out << Protocol::Header.new(Protocol::Basic,
-                                    data.bytesize, { :content_type => 'application/octet-stream',
+                                    data.bytesize, { opts[:content_type] || :content_type => "application/octet-stream",
                                                    :delivery_mode => (opts[:persistent] ? 2 : 1),
                                                    :priority => 0 }.merge(opts))
 
