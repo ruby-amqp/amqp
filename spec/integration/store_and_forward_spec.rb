@@ -33,7 +33,7 @@ describe "Store-and-forward routing" do
 
   context "that uses fanout exchange" do
     context "with a single bound queue" do
-      it "routes all messages to the same queue" do
+      it "allows asynchronous subscription to messages" do
         exchange = @channel.fanout("amqpgem.integration.snf.fanout", :auto_delete => true)
         queue    = @channel.queue("amqpgem.integration.snf.queue1",  :auto_delete => true)
 
@@ -55,6 +55,34 @@ describe "Store-and-forward routing" do
         end
 
         done(2.5) {
+          number_of_received_messages.should == expected_number_of_messages
+        }
+      end # it
+
+
+      it "allows synchronous fetching of messages" do
+        exchange = @channel.fanout("amqpgem.integration.snf.fanout", :auto_delete => true)
+        queue    = @channel.queue("amqpgem.integration.snf.queue1",  :auto_delete => true)
+
+        number_of_received_messages = 0
+        expected_number_of_messages = 300
+
+        dispatched_data             = "fetch me synchronously"
+
+        queue.bind(exchange)
+
+        expected_number_of_messages.times do
+          exchange.publish(dispatched_data)
+        end
+
+        expected_number_of_messages.times do
+          queue.pop do |payload|
+            number_of_received_messages += 1
+            payload.force_encoding("UTF-8").should == dispatched_data
+          end # pop
+        end # do
+
+        done(0.5) {
           number_of_received_messages.should == expected_number_of_messages
         }
       end # it
