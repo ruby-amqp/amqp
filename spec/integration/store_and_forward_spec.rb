@@ -33,10 +33,14 @@ describe "Store-and-forward routing" do
 
   context "that uses fanout exchange" do
     context "with a single bound queue" do
-      it "allows asynchronous subscription to messages" do
-        exchange = @channel.fanout("amqpgem.integration.snf.fanout", :auto_delete => true)
-        queue    = @channel.queue("amqpgem.integration.snf.queue1",  :auto_delete => true)
+      amqp_before do
+        @exchange = @channel.fanout("amqpgem.integration.snf.fanout", :auto_delete => true)
+        @queue    = @channel.queue("amqpgem.integration.snf.queue1",  :auto_delete => true)
 
+        @queue.bind(@exchange)
+      end
+
+      it "allows asynchronous subscription to messages" do
         number_of_received_messages = 0
         # put a little pressure
         expected_number_of_messages = 3000
@@ -44,39 +48,34 @@ describe "Store-and-forward routing" do
         # various test suites. MK.
         dispatched_data             = "libertà è participazione (inviato a #{Time.now.to_i})"
 
-
-        queue.bind(exchange).subscribe do |payload|
+        @queue.subscribe do |payload|
           number_of_received_messages += 1
           payload.force_encoding("UTF-8").should == dispatched_data
         end # subscribe
 
         expected_number_of_messages.times do
-          exchange.publish(dispatched_data)
+          @exchange.publish(dispatched_data)
         end
 
         done(2.5) {
           number_of_received_messages.should == expected_number_of_messages
+          @queue.unsubscribe
         }
       end # it
 
 
       it "allows synchronous fetching of messages" do
-        exchange = @channel.fanout("amqpgem.integration.snf.fanout", :auto_delete => true)
-        queue    = @channel.queue("amqpgem.integration.snf.queue1",  :auto_delete => true)
-
         number_of_received_messages = 0
         expected_number_of_messages = 300
 
         dispatched_data             = "fetch me synchronously"
 
-        queue.bind(exchange)
-
         expected_number_of_messages.times do
-          exchange.publish(dispatched_data)
+          @exchange.publish(dispatched_data)
         end
 
         expected_number_of_messages.times do
-          queue.pop do |payload|
+          @queue.pop do |payload|
             number_of_received_messages += 1
             payload.force_encoding("UTF-8").should == dispatched_data
           end # pop
