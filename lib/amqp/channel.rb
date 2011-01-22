@@ -875,6 +875,8 @@ module AMQP
           else
             AMQP::Channel.error "Basic.ConsumeOk for invalid consumer tag: #{method.consumer_tag}"
           end
+        when Protocol::Basic::Return
+          @method = method
         end
       end
     end # process_frame
