@@ -40,7 +40,7 @@ describe "Store-and-forward routing" do
         @queue.bind(@exchange)
       end
 
-      it "allows asynchronous subscription to messages" do
+      it "allows asynchronous subscription to messages WITHOUT acknowledgements" do
         number_of_received_messages = 0
         # put a little pressure
         expected_number_of_messages = 3000
@@ -62,6 +62,26 @@ describe "Store-and-forward routing" do
           @queue.unsubscribe
         }
       end # it
+
+
+      it "allows asynchronous subscription to messages WITH acknowledgements" do
+        number_of_received_messages = 0
+        expected_number_of_messages = 3000
+
+        @queue.subscribe(:ack => true) do |payload|
+          number_of_received_messages += 1
+        end # subscribe
+
+        expected_number_of_messages.times do
+          @exchange.publish(rand)
+        end
+
+        done(2.5) {
+          number_of_received_messages.should == expected_number_of_messages
+          @queue.unsubscribe
+        }
+      end # it
+
 
 
       it "allows synchronous fetching of messages" do
