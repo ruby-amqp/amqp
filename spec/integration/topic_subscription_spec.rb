@@ -70,6 +70,8 @@ describe "Topic-based subscription" do
 
       done(0.2) {
         received_messages.should == expected_messages
+        @aapl_queue.unsubscribe
+        @amzn_queue.unsubscribe
       }
     end # it
   end # context
@@ -117,6 +119,10 @@ describe "Topic-based subscription" do
 
       done(0.2) {
         received_messages.should == expected_messages
+
+        @nba_queue.unsubscribe
+        @knicks_queue.unsubscribe
+        @celtics_queue.unsubscribe
       }
     end # it
   end # context
@@ -176,6 +182,11 @@ describe "Topic-based subscription" do
 
       done(0.2) {
         received_messages.should == expected_messages
+
+        @sports_queue.unsubscribe
+        @nba_queue.unsubscribe
+        @knicks_queue.unsubscribe
+        @celtics_queue.unsubscribe
       }
     end # it
   end # context
