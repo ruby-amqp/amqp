@@ -923,7 +923,7 @@ module AMQP
         raise AMQP::IncompatibleOptionsError.new(entity.name, entity.opts, parameters)
       end
     end # validate_parameters_match!(entity, parameters)
-  end # Channel  
+  end # Channel
 end # AMQP
 
 
