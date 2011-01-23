@@ -57,7 +57,7 @@ describe "Store-and-forward routing" do
           @exchange.publish(dispatched_data)
         end
 
-        done(2.5) {
+        done(3.0) {
           number_of_received_messages.should == expected_number_of_messages
           @queue.unsubscribe
         }
@@ -76,7 +76,7 @@ describe "Store-and-forward routing" do
           @exchange.publish(rand)
         end
 
-        done(2.5) {
+        done(3.0) {
           number_of_received_messages.should == expected_number_of_messages
           @queue.unsubscribe
         }
