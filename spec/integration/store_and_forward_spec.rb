@@ -50,7 +50,11 @@ describe "Store-and-forward routing" do
 
         @queue.subscribe do |payload|
           number_of_received_messages += 1
-          payload.force_encoding("UTF-8").should == dispatched_data
+          if RUBY_VERSION =~ /^1.9/
+            payload.force_encoding("UTF-8").should == dispatched_data
+          else
+            payload.should == dispatched_data
+          end
         end # subscribe
 
         expected_number_of_messages.times do
@@ -97,7 +101,12 @@ describe "Store-and-forward routing" do
         expected_number_of_messages.times do
           @queue.pop do |payload|
             number_of_received_messages += 1
-            payload.force_encoding("UTF-8").should == dispatched_data
+
+            if RUBY_VERSION =~ /^1.9/
+              payload.force_encoding("UTF-8").should == dispatched_data
+            else
+              payload.should == dispatched_data
+            end
           end # pop
         end # do
 
