@@ -1,15 +1,5 @@
 require 'spec_helper'
-
 require 'amqp'
-
-module MockClientModule
-  def my_mock_method
-  end
-end
-
-class MockClient
-  include AMQP::Client
-end
 
 describe AMQP, 'class object' do
 
@@ -37,29 +27,6 @@ describe AMQP, 'class object' do
   end
 
   its(:client) { should == AMQP::BasicClient }
-
-
-
-  describe '.client=' do
-    after(:all) { AMQP.client = AMQP::BasicClient }
-
-    it 'is used to change default client module' do
-      AMQP.client = MockClientModule
-      AMQP.client.should == MockClientModule
-      MockClientModule.ancestors.should include AMQP
-    end
-
-    describe 'new default client module' do
-      it 'sticks around after being assigned' do
-        AMQP.client.should == MockClientModule
-      end
-
-      it 'extends any object that includes AMQP::Client' do
-        @client = MockClient.new
-        @client.should respond_to :my_mock_method
-      end
-    end
-  end # .client
 
 
 
