@@ -63,7 +63,7 @@ module AMQP
           info.ack
 
           if info.reply_to
-            @mq.queue(info.reply_to).publish(::Marshal.dump(ret), :key => info.reply_to, :message_id => info.message_id)
+            @mq.queue(info.reply_to, :auto_delete => true).publish(::Marshal.dump(ret), :key => info.reply_to, :message_id => info.message_id)
           end
         }
       else
