@@ -41,8 +41,8 @@ module AMQP
     # AMQP::Channel::Exchange.default.publish("make clean", routing_key: "tasks")
 
     # For more info see section 2.1.2.4 Automatic Mode of the AMQP 0.9.1 spec.
-    def self.default
-      @@default ||= self.new(AMQP::Channel.new, :direct, "", :no_declare => true)
+    def self.default(channel = nil)
+      self.new(channel || AMQP::Channel.new, :direct, "", :no_declare => true)
     end
 
     def self.add_default_options(type, name, opts, block)
@@ -261,6 +261,10 @@ module AMQP
 
     attr_reader :name, :type, :key, :status
     attr_accessor :opts, :callback
+
+    def channel
+      @mq
+    end # channel
 
     # This method publishes a staged file message to a specific exchange.
     # The file message will be routed to queues as defined by the exchange
