@@ -644,9 +644,9 @@ module AMQP
     # marshalled messages that are never consumed.
     #
     #  EM.run do
-    #    server = AMQP::Channel.rpc('hash table node', Hash)
+    #    server = AMQP::Channel.new.rpc('hash table node', Hash)
     #
-    #    client = AMQP::Channel.rpc('hash table node')
+    #    client = AMQP::Channel.new.rpc('hash table node')
     #    client[:now] = Time.now
     #    client[:one] = 1
     #
