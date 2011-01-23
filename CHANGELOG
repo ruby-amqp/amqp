@@ -1,5 +1,13 @@
 = Version 0.8
 
+  * [API] AMQP::Exchange.default no longer caches exchange object between calls
+          because it may lead to very obscure issues when channel that exchange was
+	  using is closed (due to connection loss, as part of test suite teardown
+	  or in any other way).
+
+  * [API] AMQP::Exchange.default now accepts channel as a parameter.
+  * [API] AMQP::Exchange#channel
+  * [BUG] Basic.Return is not supported by amqp gem yet, but it should not result in obscure exceptions
   * [API] AMQP::Exchange#publish now supports content type overriding.
   * [API] Introduce AMQP::Exchange #durable?, #transient?, #auto_deleted? and #passive?
   * [API] Introduce AMQP::Channel#open?
