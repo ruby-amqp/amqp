@@ -20,16 +20,11 @@ describe "Queue that was bound to default direct exchange thanks to Automatic Mo
     @queue2    = @channel.queue("queue2")
 
     # Rely on default direct exchange binding, see section 2.1.2.4 Automatic Mode in AMQP 0.9.1 spec.
-    @exchange = AMQP::Exchange.default
+    @exchange = AMQP::Exchange.default(@channel)
   end
 
-  after(:all) do
-    AMQP.cleanup_state
-    done
-  end
 
   default_options AMQP_OPTS
-
 
 
   #
@@ -37,6 +32,8 @@ describe "Queue that was bound to default direct exchange thanks to Automatic Mo
   #
 
   it "receives messages with routing key equals it's name" do
+    @exchange.channel.should == @channel
+
     number_of_received_messages = 0
     expected_number_of_messages = 3
     dispatched_data             = "to be received by queue1"
