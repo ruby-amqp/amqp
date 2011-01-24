@@ -43,12 +43,12 @@ describe "Store-and-forward routing" do
       it "allows asynchronous subscription to messages WITHOUT acknowledgements" do
         number_of_received_messages = 0
         # put a little pressure
-        expected_number_of_messages = 3000
+        expected_number_of_messages = 300
         # It is always a good idea to use non-ASCII charachters in
         # various test suites. MK.
         dispatched_data             = "libertà è participazione (inviato a #{Time.now.to_i})"
 
-        @queue.subscribe do |payload|
+        @queue.subscribe(:ack => false) do |payload|
           number_of_received_messages += 1
           if RUBY_VERSION =~ /^1.9/
             payload.force_encoding("UTF-8").should == dispatched_data
@@ -62,7 +62,7 @@ describe "Store-and-forward routing" do
         end
 
         # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-        done(8.0) {
+        done(4.0) {
           number_of_received_messages.should == expected_number_of_messages
           @queue.unsubscribe
         }
@@ -71,7 +71,7 @@ describe "Store-and-forward routing" do
 
       it "allows asynchronous subscription to messages WITH acknowledgements" do
         number_of_received_messages = 0
-        expected_number_of_messages = 3000
+        expected_number_of_messages = 500
 
         @queue.subscribe(:ack => true) do |payload|
           number_of_received_messages += 1
@@ -82,7 +82,7 @@ describe "Store-and-forward routing" do
         end
 
         # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-        done(6.0) {
+        done(3.0) {
           number_of_received_messages.should == expected_number_of_messages
           @queue.unsubscribe
         }
