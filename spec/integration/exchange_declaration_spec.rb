@@ -388,11 +388,18 @@ describe AMQP do
 
 
     context "when exchange is re-declared with parameters different from original declaration" do
-      xit "raises an exception" do
-        @channel.topic("previously.declared.durable.topic.exchange", :durable => true)
+      amqp_after do
+        done
+      end
+
+      it "raises an exception" do
+        channel = AMQP::Channel.new
+
+        channel.topic("previously.declared.durable.topic.exchange", :durable => true)
+        channel.should be_open
 
         expect {
-          @channel.topic("previously.declared.durable.topic.exchange", :durable => false)
+          channel.topic("previously.declared.durable.topic.exchange", :durable => false)
         }.to raise_error(AMQP::IncompatibleOptionsError)
 
         done
