@@ -14,7 +14,7 @@ describe "Store-and-forward routing" do
   em_after  { AMQP.cleanup_state }
 
   default_options AMQP_OPTS
-  default_timeout 8
+  default_timeout 10
 
   amqp_before do
     @channel   = AMQP::Channel.new
@@ -62,7 +62,7 @@ describe "Store-and-forward routing" do
         end
 
         # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-        done(6.0) {
+        done(8.0) {
           number_of_received_messages.should == expected_number_of_messages
           @queue.unsubscribe
         }
