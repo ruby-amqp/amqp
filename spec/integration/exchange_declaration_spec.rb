@@ -518,8 +518,11 @@ describe AMQP do
 
 
     context "when exchange is re-declared with parameters different from original declaration" do
-      xit "raises an exception" do
-        pending "Times out. MK."
+      amqp_after do
+        done
+      end
+
+      it "raises an exception" do
         @channel.headers("previously.declared.durable.topic.exchange", :durable => true)
 
         expect {
