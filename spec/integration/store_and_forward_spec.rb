@@ -14,7 +14,7 @@ describe "Store-and-forward routing" do
   em_after  { AMQP.cleanup_state }
 
   default_options AMQP_OPTS
-  default_timeout 4
+  default_timeout 8
 
   amqp_before do
     @channel   = AMQP::Channel.new
@@ -61,7 +61,8 @@ describe "Store-and-forward routing" do
           @exchange.publish(dispatched_data)
         end
 
-        done(3.0) {
+        # 6 seconds are for Rubinius, it is surprisingly slow on this workload
+        done(6.0) {
           number_of_received_messages.should == expected_number_of_messages
           @queue.unsubscribe
         }
@@ -80,7 +81,8 @@ describe "Store-and-forward routing" do
           @exchange.publish(rand)
         end
 
-        done(3.0) {
+        # 6 seconds are for Rubinius, it is surprisingly slow on this workload
+        done(6.0) {
           number_of_received_messages.should == expected_number_of_messages
           @queue.unsubscribe
         }

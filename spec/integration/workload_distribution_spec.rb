@@ -14,7 +14,7 @@ describe "Workload distribution" do
   em_after  { AMQP.cleanup_state }
 
   default_options AMQP_OPTS
-  default_timeout 4
+  default_timeout 8
 
   amqp_before do
     @channel   = AMQP::Channel.new
@@ -87,7 +87,8 @@ describe "Workload distribution" do
             @exchange.publish(dispatched_data, :mandatory => false)
           end
 
-          done(2.5) {
+          # for Rubinius, it is surprisingly slow on this workload
+          done(4.5) {
             [@queue1, @queue2, @queue3].each do |q|
               @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
 
@@ -109,7 +110,8 @@ describe "Workload distribution" do
             @exchange.publish(dispatched_data, :mandatory => true)
           end
 
-          done(2.5) {
+          # 6 seconds are for Rubinius, it is surprisingly slow on this workload
+          done(5.5) {
             [@queue1, @queue2, @queue3].each do |q|
               @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
 
@@ -131,7 +133,8 @@ describe "Workload distribution" do
             @exchange.publish(dispatched_data, :persistent => false)
           end
 
-          done(2.5) {
+          # 6 seconds are for Rubinius, it is surprisingly slow on this workload
+          done(5.5) {
             [@queue1, @queue2, @queue3].each do |q|
               @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
 
@@ -153,7 +156,8 @@ describe "Workload distribution" do
             @exchange.publish(dispatched_data, :persistent => true)
           end
 
-          done(2.5) {
+          # 6 seconds are for Rubinius, it is surprisingly slow on this workload
+          done(5.5) {
             [@queue1, @queue2, @queue3].each do |q|
               @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
 
@@ -174,7 +178,8 @@ describe "Workload distribution" do
             @exchange.publish(dispatched_data, :immediate => false)
           end
 
-          done(2.5) {
+          # 6 seconds are for Rubinius, it is surprisingly slow on this workload
+          done(5.5) {
             [@queue1, @queue2, @queue3].each do |q|
               @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
 
@@ -202,7 +207,8 @@ describe "Workload distribution" do
             @exchange.publish(dispatched_data)
           end
 
-          done(2.5) {
+          # 6 seconds are for Rubinius, it is surprisingly slow on this workload
+          done(5.5) {
             [@queue1, @queue2, @queue3].each do |q|
               @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
 
@@ -223,7 +229,8 @@ describe "Workload distribution" do
             @exchange.publish(dispatched_data, :routing_key => @queues.sample.name)
           end
 
-          done(2.5) {
+          # 6 seconds are for Rubinius, it is surprisingly slow on this workload
+          done(5.5) {
             [@queue1, @queue2, @queue3].each do |q|
               @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
 
