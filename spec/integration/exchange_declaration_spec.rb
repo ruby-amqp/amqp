@@ -424,9 +424,11 @@ describe AMQP do
     end # context
 
     context "when exchange name is omitted" do
-      xit "uses amq.match" do
-        pending "Times out. MK."
+      amqp_after do
+        done
+      end
 
+      it "uses amq.match" do
         exchange = @channel.headers
         exchange.name.should == "amq.match"
         exchange.name.should_not == "amq.headers"
