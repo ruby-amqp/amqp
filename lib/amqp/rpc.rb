@@ -6,9 +6,9 @@ module AMQP
   # Needs more detail and explanation.
   #
   #  EM.run do
-  #    server = AMQP::Channel.rpc('hash table node', Hash)
+  #    server = AMQP::Channel.new.rpc('hash table node', Hash)
   #
-  #    client = AMQP::Channel.rpc('hash table node')
+  #    client = AMQP::Channel.new.rpc('hash table node')
   #    client[:now] = Time.now
   #    client[:one] = 1
   #
@@ -63,7 +63,7 @@ module AMQP
           info.ack
 
           if info.reply_to
-            @mq.queue(info.reply_to).publish(::Marshal.dump(ret), :key => info.reply_to, :message_id => info.message_id)
+            @mq.queue(info.reply_to, :auto_delete => true).publish(::Marshal.dump(ret), :key => info.reply_to, :message_id => info.message_id)
           end
         }
       else
@@ -83,8 +83,8 @@ module AMQP
     # works to marshal and unmarshal all method calls and their arguments.
     #
     #  EM.run do
-    #    server = AMQP::Channel.rpc('hash table node', Hash)
-    #    client = AMQP::Channel.rpc('hash table node')
+    #    server = AMQP::Channel.new.rpc('hash table node', Hash)
+    #    client = AMQP::Channel.new.rpc('hash table node')
     #
     #    # calls #method_missing on #[] which marshals the method name and
     #    # arguments to publish them to the remote
