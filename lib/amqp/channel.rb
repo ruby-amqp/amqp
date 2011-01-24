@@ -789,95 +789,7 @@ module AMQP
         check_content_completion
 
       when Frame::Method
-        case method = frame.payload
-        when Protocol::Channel::OpenOk
-          send Protocol::Access::Request.new(:realm => '/data',
-                                             :read => true,
-                                             :write => true,
-                                             :active => true,
-                                             :passive => true)
-
-        when Protocol::Access::RequestOk
-          @ticket = method.ticket
-          callback {
-            send Protocol::Channel::Close.new(:reply_code => 200,
-                                              :reply_text => 'bye',
-                                              :method_id => 0,
-                                              :class_id => 0)
-          } if @closing
-          succeed
-
-        when Protocol::Basic::CancelOk
-          if @consumer = consumers[ method.consumer_tag ]
-            @consumer.cancelled
-          else
-            AMQP::Channel.error "Basic.CancelOk for invalid consumer tag: #{method.consumer_tag}"
-          end
-
-        when Protocol::Exchange::DeclareOk
-          # We can't use exchanges[method.exchange] because if the name would
-          # be an empty string, then AMQP broker generated a random one.
-          exchanges = self.exchanges.select { |exchange| exchange.opts[:nowait].eql?(false) }
-          exchange  = exchanges.reverse.find { |exchange| exchange.status.eql?(:unfinished) }
-          exchange.receive_response method
-
-        when Protocol::Queue::DeclareOk
-          # We can't use queues[method.queue] because if the name would
-          # be an empty string, then AMQP broker generated a random one.
-          queues = self.queues.select { |queue| queue.opts[:nowait].eql?(false) }
-          queue  = queues.reverse.find { |queue| queue.status.eql?(:unfinished) }
-          queue.receive_status method
-
-        when Protocol::Queue::BindOk
-          # We can't use queues[method.queue] because if the name would
-          # be an empty string, then AMQP broker generated a random one.
-          queues = self.queues.select { |queue| queue.sync_bind }
-          queue  = queues.reverse.find { |queue| queue.status.eql?(:unbound) }
-          queue.after_bind method
-
-        when Protocol::Basic::Deliver, Protocol::Basic::GetOk
-          @method = method
-          @header = nil
-          @body = ''
-
-          if method.is_a? Protocol::Basic::GetOk
-            @consumer = get_queue { |q| q.shift }
-            AMQP::Channel.error "No pending Basic.GetOk requests" unless @consumer
-          else
-            @consumer = consumers[ method.consumer_tag ]
-            AMQP::Channel.error "Basic.Deliver for invalid consumer tag: #{method.consumer_tag}" unless @consumer
-          end
-
-        when Protocol::Basic::GetEmpty
-          if @consumer = get_queue { |q| q.shift }
-            @consumer.receive nil, nil
-          else
-            AMQP::Channel.error "Basic.GetEmpty for invalid consumer"
-          end
-
-        when Protocol::Channel::Close
-          @status = :closed
-          AMQP::Channel.error "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]} on #{@channel}"
-
-        when Protocol::Channel::CloseOk
-          @status = :closed
-          @on_close && @on_close.call(self)
-
-          @closing = false
-          conn.callback { |c|
-            c.channels.delete @channel
-            c.close if c.channels.empty?
-          }
-
-        when Protocol::Basic::ConsumeOk
-          if @consumer = consumers[ method.consumer_tag ]
-            @consumer.confirm_subscribe
-          else
-            AMQP::Channel.error "Basic.ConsumeOk for invalid consumer tag: #{method.consumer_tag}"
-          end
-        when Protocol::Basic::Return
-          @method = method
-        end
+        handle_method(frame)
       end
     end # process_frame
 
@@ -888,7 +800,7 @@ module AMQP
           args.each do |data|
             unless self.closed?
               data.ticket = @ticket if @ticket and data.respond_to? :ticket=
-              log :sending, data
+                log :sending, data
               c.send data, :channel => @channel
             else
               unless data.class == AMQP::Protocol::Channel::CloseOk
@@ -908,6 +820,101 @@ module AMQP
         @body = @header = @consumer = @method = nil
       end
     end # check_content_completion
+
+    protected
+
+    def handle_method(frame)
+      case method = frame.payload
+      when Protocol::Channel::OpenOk
+        send Protocol::Access::Request.new(:realm => '/data',
+                                           :read => true,
+                                           :write => true,
+                                           :active => true,
+                                           :passive => true)
+
+      when Protocol::Access::RequestOk
+        @ticket = method.ticket
+        callback {
+          send Protocol::Channel::Close.new(:reply_code => 200,
+                                            :reply_text => 'bye',
+                                            :method_id => 0,
+                                            :class_id => 0)
+        } if @closing
+        succeed
+
+      when Protocol::Basic::CancelOk
+        if @consumer = consumers[ method.consumer_tag ]
+          @consumer.cancelled
+        else
+          AMQP::Channel.error "Basic.CancelOk for invalid consumer tag: #{method.consumer_tag}"
+        end
+
+      when Protocol::Exchange::DeclareOk
+        # We can't use exchanges[method.exchange] because if the name would
+        # be an empty string, then AMQP broker generated a random one.
+        exchanges = self.exchanges.select { |exchange| exchange.opts[:nowait].eql?(false) }
+        exchange  = exchanges.reverse.find { |exchange| exchange.status.eql?(:unfinished) }
+        exchange.receive_response method
+
+      when Protocol::Queue::DeclareOk
+        # We can't use queues[method.queue] because if the name would
+        # be an empty string, then AMQP broker generated a random one.
+        queues = self.queues.select { |queue| queue.opts[:nowait].eql?(false) }
+        queue  = queues.reverse.find { |queue| queue.status.eql?(:unfinished) }
+        queue.receive_status method
+
+      when Protocol::Queue::BindOk
+        # We can't use queues[method.queue] because if the name would
+        # be an empty string, then AMQP broker generated a random one.
+        queues = self.queues.select { |queue| queue.sync_bind }
+        queue  = queues.reverse.find { |queue| queue.status.eql?(:unbound) }
+        queue.after_bind method
+
+      when Protocol::Basic::Deliver, Protocol::Basic::GetOk
+        @method = method
+        @header = nil
+        @body = ''
+
+        if method.is_a? Protocol::Basic::GetOk
+          @consumer = get_queue { |q| q.shift }
+          AMQP::Channel.error "No pending Basic.GetOk requests" unless @consumer
+        else
+          @consumer = consumers[ method.consumer_tag ]
+          AMQP::Channel.error "Basic.Deliver for invalid consumer tag: #{method.consumer_tag}" unless @consumer
+        end
+
+      when Protocol::Basic::GetEmpty
+        if @consumer = get_queue { |q| q.shift }
+          @consumer.receive nil, nil
+        else
+          AMQP::Channel.error "Basic.GetEmpty for invalid consumer"
+        end
+
+      when Protocol::Channel::Close
+        @status = :closed
+        AMQP::Channel.error "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]} on #{@channel}"
+
+      when Protocol::Channel::CloseOk
+        @status = :closed
+        @on_close && @on_close.call(self)
+
+        @closing = false
+        conn.callback { |c|
+          c.channels.delete @channel
+          c.close if c.channels.empty?
+        }
+
+      when Protocol::Basic::ConsumeOk
+        if @consumer = consumers[ method.consumer_tag ]
+          @consumer.confirm_subscribe
+        else
+          AMQP::Channel.error "Basic.ConsumeOk for invalid consumer tag: #{method.consumer_tag}"
+        end
+      when Protocol::Basic::Return
+        @method = method
+      end # case      
+    end # handle_method(frame)
+
 
 
     private
