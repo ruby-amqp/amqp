@@ -35,7 +35,12 @@ module AMQP
     end
 
     def connection_completed
-      start_tls if @settings[:ssl]
+      if @settings[:ssl].is_a? Hash
+        start_tls @settings[:ssl]
+      elsif @settings[:ssl]
+        start_tls
+      end
+
       log 'connected'
       # @on_disconnect = proc { raise Error, 'Disconnected from server' }
       unless @closing
