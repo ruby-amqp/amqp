@@ -27,7 +27,7 @@ module AMQP
         when Protocol::Connection::Tune
           send Protocol::Connection::TuneOk.new(:channel_max => 0,
                                                 :frame_max => 131072,
-                                                :heartbeat => 0)
+                                                :heartbeat => @settings[:heartbeat] || 0)
 
           send Protocol::Connection::Open.new(:virtual_host => @settings[:vhost],
                                               :capabilities => '',
@@ -48,6 +48,10 @@ module AMQP
           @connected = false
           @on_disconnect.call if @on_disconnect
         end # when
+
+      when Frame::Heartbeat
+        @last_server_heartbeat = Time.now
+
       end # case
     end # def process_frame
   end # BasicClient
