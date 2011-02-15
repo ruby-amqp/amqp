@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Server-specific, I have RVM setup at the profile file:
 source /etc/profile
