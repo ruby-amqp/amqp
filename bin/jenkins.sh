@@ -2,6 +2,7 @@
 
 echo -e "\n\n==== Setup ===="
 git fetch && git reset origin/master --hard
+./bin/set_test_suite_realms_up.sh
 
 echo -e "\n\n==== Ruby 1.9.2 Head ===="
 rvm 1.9.2-head exec bundle install --local; echo
