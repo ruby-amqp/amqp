@@ -78,6 +78,7 @@ Links
 * [AMQP gem mailing list](http://groups.google.com/group/ruby-amqp)
 * [AMQP gem at GitHub](http://github.com/amqp-dev/amqp)
 * [AMQP gem at Gemcutter](http://rubygems.org/gems/amqp)
+* [Jenkins CI Server](http://jenkins.101ideas.cz/job/AMQP)
 
 Contributions
 ============================
