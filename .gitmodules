@@ -4,3 +4,6 @@
 [submodule "vendor/amq-protocol"]
 	path = vendor/amq-protocol
 	url = git://github.com/ruby-amqp/amq-protocol.git
+[submodule "vendor/amq-client"]
+	path = vendor/amq-client
+	url = git://github.com/ruby-amqp/amq-client.git
