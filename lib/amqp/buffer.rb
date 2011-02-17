@@ -82,6 +82,14 @@ module AMQP
       end
     end
 
+    UC_C = 'C'.freeze
+    LC_N = 'n'.freeze
+    UC_N = 'N'.freeze
+    UC_NN = 'NN'.freeze
+    EMPTY_STRING = ''.freeze
+    CA_STAR = 'Ca*'.freeze
+    NA_STAR = 'Na*'.freeze
+
     def read(*types)
       if types.first == :properties
         return read_properties(*types)
@@ -90,13 +98,13 @@ module AMQP
       values = types.map do |type|
         case type
         when :octet
-          _read(1, 'C')
+          _read(1, UC_C)
         when :short
-          _read(2, 'n')
+          _read(2, LC_N)
         when :long
-          _read(4, 'N')
+          _read(4, UC_N)
         when :longlong
-          upper, lower = _read(8, 'NN')
+          upper, lower = _read(8, UC_NN)
           upper << 32 | lower
         when :shortstr
           _read read(:octet)
@@ -146,24 +154,24 @@ module AMQP
     def write(type, data)
       case type
       when :octet
-        _write(data, 'C')
+        _write(data, UC_C)
       when :short
-        _write(data, 'n')
+        _write(data, LC_N)
       when :long
-        _write(data, 'N')
+        _write(data, UC_N)
       when :longlong
         lower =  data & 0xffffffff
         upper = (data & ~0xffffffff) >> 32
-        _write([upper, lower], 'NN')
+        _write([upper, lower], UC_NN)
       when :shortstr
-        data = (data || '').to_s
-        _write([data.bytesize, data], 'Ca*')
+        data = (data || EMPTY_STRING).to_s
+        _write([data.bytesize, data], CA_STAR)
       when :longstr
         if data.is_a? Hash
           write(:table, data)
         else
-          data = (data || '').to_s
-          _write([data.bytesize, data], 'Na*')
+          data = (data || EMPTY_STRING).to_s
+          _write([data.bytesize, data], NA_STAR)
         end
       when :timestamp
         write(:longlong, data.to_i)
@@ -254,7 +262,7 @@ module AMQP
         raise Overflow
       else
         data = @data[@pos, size]
-        @data[@pos, size] = ''
+        @data[@pos, size] = EMPTY_STRING
         if pack
           data = data.unpack(pack)
           data = data.pop if data.size == 1
