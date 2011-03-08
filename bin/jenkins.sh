@@ -3,7 +3,7 @@
 echo -e "\n\n==== Setup ===="
 source /etc/profile
 git fetch && git reset origin/master --hard
-./bin/set_test_suite_realms_up.sh
+PATH=/usr/sbin:$PATH ./bin/set_test_suite_realms_up.sh
 
 echo -e "\n\n==== Ruby 1.9.2 Head ===="
 rvm use 1.9.2-head@ruby-amqp
