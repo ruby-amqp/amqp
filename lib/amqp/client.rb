@@ -6,15 +6,18 @@ module AMQP
     # TODO
   end
 
-  # @api public
-  def self.connect(arg = nil)
-    # TODO
-  end
-
   # def self.client=(value)
   # end
 
+
+
   module Client
+    # @api public
+    def self.connect(arg = nil)
+
+    end
+
+
     # @api public
     def initialize(options = {})
       # TODO

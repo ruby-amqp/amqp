@@ -88,7 +88,7 @@ module AMQP
 
   # @api public
   def self.connect(*args)
-    # TODO
+    Client.connect(*args)
   end
 
   # @api public
