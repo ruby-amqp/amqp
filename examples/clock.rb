@@ -33,7 +33,7 @@ AMQP.start(:host => 'localhost') do |connection|
     puts
 
     log :publishing, time = Time.now
-    # producer.publish(Marshal.dump(time))
+    producer.publish(Marshal.dump(time))
   }
 
   # channel2 = AMQP::Channel.new

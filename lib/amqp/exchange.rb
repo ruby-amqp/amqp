@@ -244,7 +244,18 @@ module AMQP
       @key     = opts[:key]
       @name    = name unless name.empty?
 
-      @status = :unknown
+      @status                  = :unknown
+      @default_publish_options = (opts.delete(:default_publish_options) || {
+        :routing_key  => AMQ::Protocol::EMPTY_STRING,
+        :mandatory    => false,
+        :immediate    => false
+      }).freeze
+
+      @default_headers = (opts.delete(:default_headers) || {
+        :content_type => DEFAULT_CONTENT_TYPE,
+        :persistent   => false,
+        :priority     => 0
+      }).freeze
 
       super(channel.connection, channel, name, type)
 
@@ -307,22 +318,26 @@ module AMQP
     # If this flag is zero, the server will queue the message, but with
     # no guarantee that it will ever be consumed.
     #
-    #  * :persistent
-    # True or False. When true, this message will remain in the queue until
+    #  * :persistent => true | false (default false)
+    # When true, this message will remain in the queue until
     # it is consumed (if the queue is durable). When false, the message is
     # lost if the server restarts and the queue is recreated.
     #
     # For high-performance and low-latency, set :persistent => false so the
     # message stays in memory and is never persisted to non-volatile (slow)
-    # storage.
+    # storage (like disk).
     #
     #  * :content_type
     # Content type you want to send the message with. It defaults to "application/octet-stream".
     #
     # @api public
-    def publish(data, opts = {})
-      # TODO
+    def publish(payload, options = {})
+      opts    = @default_publish_options.merge(options)
+
+      super(payload, opts[:routing_key], @default_headers.merge(options), opts[:mandatory], opts[:immediate])
     end
+
+    DEFAULT_CONTENT_TYPE = "application/octet-stream".freeze
 
 
     # This method deletes an exchange.  When an exchange is deleted all queue
