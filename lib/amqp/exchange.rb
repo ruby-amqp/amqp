@@ -41,7 +41,7 @@ module AMQP
     # AMQP::Channel::Exchange.default.publish("make clean", routing_key: "tasks")
     #
     # For more info see section 2.1.2.4 Automatic Mode of the AMQP 0.9.1 spec.
-    # @api public    
+    # @api public
     def self.default(channel = nil)
       # TODO
     end
