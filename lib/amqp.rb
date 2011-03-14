@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-require "amq-client/client"
+require "amq/client"
 
 require "amqp/version"
 require "amqp/exceptions"
