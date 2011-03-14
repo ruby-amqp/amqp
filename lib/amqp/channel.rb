@@ -125,11 +125,12 @@ module AMQP
     #  end
     #
     # @api public
-    def initialize(connection = nil, id = self.class.next_channel_id)
+    def initialize(connection = nil, id = self.class.next_channel_id, &block)
       raise 'AMQP can only be used from within EM.run {}' unless EM.reactor_running?
 
       @connection = connection || AMQP.start
       super(@connection, id)
+      self.open(&block)
     end
 
 
@@ -298,6 +299,7 @@ module AMQP
     # @api public
     def fanout(name = 'amq.fanout', opts = {}, &block)
       # TODO
+      Exchange.new(self, :fanout, name, opts, &block)
     end
 
 

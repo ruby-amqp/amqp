@@ -21,7 +21,7 @@ module AMQP
   # an exchange without a name. In these cases the library will use
   # the default exchange for publishing the messages.
   #
-  class Exchange
+  class Exchange < AMQ::Client::Exchange
   
     #
     # API
@@ -237,12 +237,43 @@ module AMQP
     # * :passive => true and the exchange does not exist (NOT_FOUND)
     #
     # @api public
-    def initialize(mq, type, name, opts = {}, &block)
+    def initialize(channel, type, name, opts = {}, &block)
+      @channel = channel
+      @type    = type
+      @opts    = self.class.add_default_options(type, name, opts, block)
+      @key     = opts[:key]
+      @name    = name unless name.empty?
+
+      @status = :unknown
+
+      super(channel.connection, channel, name, type)
+
+      # The AMQP 0.8 specification (as well as 0.9.1) in 1.1.4.2 mentiones
+      # that Exchange.Declare-Ok confirms the name of the exchange (because
+      # of automatically­named), which is logical to interpret that this
+      # functionality should be the same as for Queue (though it isn't
+      # explicitely told in the specification). In fact, RabbitMQ (and
+      # probably other implementations as well) doesn't support it and
+      # there is a default exchange with an empty name (so-called default
+      # or nameless exchange), so if we'd send Exchange.Declare(exchange=""),
+      # then RabbitMQ interpret it as if we'd try to redefine this default
+      # exchange so it'd produce an error.
+      unless name == "amq.#{type}" or name == AMQ::Protocol::EMPTY_STRING or opts[:no_declare]
+        @status = :unfinished
+        self.declare(passive = @opts[:passive], durable = @opts[:durable], exclusive = @opts[:exclusive], auto_delete = @opts[:auto_delete], nowait = @opts[:nowait], nil, &block) unless @opts[:no_declare]
+      else
+        # Call the callback immediately, as given exchange is already
+        # declared.
+        @status = :finished
+        block.call(self) if block
+      end
+
+      @on_declare = block
     end
 
     # @api public
     def channel
-      # TODO
+      @channel
     end
 
     # This method publishes a staged file message to a specific exchange.
