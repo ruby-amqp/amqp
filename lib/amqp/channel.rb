@@ -97,7 +97,7 @@ module AMQP
   #  [:publishing, Tue Jan 06 22:46:20 -0600 2009]
   #  ["every 2 seconds", :received, Tue Jan 06 22:46:20 -0600 2009]
   #
-  class Channel
+  class Channel < AMQ::Client::Channel
 
     #
     # API
@@ -125,17 +125,13 @@ module AMQP
     #  end
     #
     # @api public
-    def initialize(connection = nil)
-      # TODO
+    def initialize(connection = nil, id = self.class.next_channel_id)
+      raise 'AMQP can only be used from within EM.run {}' unless EM.reactor_running?
+
+      @connection = connection || AMQP.start
+      super(@connection, id)
     end
 
-    def closed?
-      # TODO
-    end
-
-    def open?
-      # TODO
-    end # open?
 
 
     # Defines, intializes and returns an Exchange to act as an ingress
@@ -698,6 +694,18 @@ module AMQP
       # TODO
     end
 
+    def self.channel_id_mutex
+      @channel_id_mutex ||= Mutex.new
+    end
+
+    def self.next_channel_id
+      channel_id_mutex.synchronize do
+        @last_channel_id ||= 0
+        @last_channel_id += 1
+
+        @last_channel_id
+      end
+    end
 
     protected
 

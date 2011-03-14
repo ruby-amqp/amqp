@@ -3,6 +3,8 @@
 require "amqp/ext/em"
 require "amqp/ext/blankslate"
 
+require "amqp/client"
+
 module AMQP
 
   # Must be called to startup the connection to the AMQP server.
@@ -42,7 +44,10 @@ module AMQP
   #
   # @api public
   def self.start(*args, &block)
-    # TODO
+    EM.run do
+      @conn ||= connect(*args, &block)
+      @conn
+    end
   end
 
   # @api public
@@ -87,8 +92,8 @@ module AMQP
   end
 
   # @api public
-  def self.connect(*args)
-    Client.connect(*args)
+  def self.connect(*args, &block)
+    Client.connect(*args, &block)
   end
 
   # @api public
