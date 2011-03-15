@@ -22,7 +22,7 @@ AMQP.start(:host => 'localhost') do |connection|
   # AMQP.logging = true
 
   amq      = AMQP::Channel.new(connection)
-  exchange = AMQP::Exchange.default(amq)
+  exchange = amq.default_exchange
   q1       = amq.queue('one')
   q2       = amq.queue('two')
 
@@ -30,16 +30,16 @@ AMQP.start(:host => 'localhost') do |connection|
     puts
 
     log :sending, 'ping'
-    exchange.publish('ping')
+    exchange.publish("ping", :routing_key => "one")
   }
 
-  100.times do
-    q1.publish('ping')
+  2.times do
+    q1.publish('ping', :routing_key => "one")
   end
 
   q1.subscribe do |msg|
     log 'one', :received, msg, :sending, 'pong'
-    exchange.publish('pong')
+    exchange.publish('pong', :routing_key => "two")
   end
   q2.subscribe { |msg| log('two', :received, msg) }
 end

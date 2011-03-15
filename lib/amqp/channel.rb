@@ -229,6 +229,15 @@ module AMQP
       end
     end
 
+    # Returns exchange object with the same name as default (aka unnamed) exchange.
+    # Default exchange is a direct exchange and automatically routes messages to
+    # queues when routing key matches queue name exactly.
+    #
+    # api public
+    def default_exchange
+      Exchange.default(self)
+    end
+
 
     # Defines, intializes and returns an Exchange to act as an ingress
     # point for all published messages.
