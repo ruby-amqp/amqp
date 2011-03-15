@@ -385,7 +385,7 @@ module AMQP
     #
     # @api public    
     def subscribed?
-      # TODO
+      !!@consumer_tag
     end
 
 
