@@ -376,8 +376,8 @@ module AMQP
     end
 
 
-    # Boolean check to see if the current queue has already been subscribed
-    # to an exchange.
+    # Boolean check to see if the current queue has already subscribed
+    # to messages delivery.
     #
     # Attempts to #subscribe multiple times to any exchange will raise an
     # Exception. Only a single block at a time can be associated with any
