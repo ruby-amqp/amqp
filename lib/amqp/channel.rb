@@ -1,5 +1,9 @@
 # encoding: utf-8
 
+require "amqp/collection"
+require "amqp/exchange"
+require "amqp/queue"
+
 module AMQP
   # The top-level class for building AMQP clients. This class contains several
   # convenience methods for working with queues and exchanges. Many calls
@@ -569,7 +573,15 @@ module AMQP
     #
     # @api public
     def queue(name, opts = {}, &block)
-      Queue.new(self, name, opts, &block)
+      if queue = self.queues.find { |queue| queue.name == name }
+        extended_opts = Queue.add_default_options(name, opts, block)
+
+        validate_parameters_match!(queue, extended_opts)
+
+        queue
+      else
+        self.queues << Queue.new(self, name, opts, &block)
+      end
     end
 
 
@@ -666,7 +678,7 @@ module AMQP
     # called by application code.
     # @api plugin
     def queues
-      # TODO      
+      @queues ||= AMQP::Collection.new
     end
 
     # Returns a hash of all rpc proxy objects.
@@ -675,7 +687,7 @@ module AMQP
     # called by application code.
     # @api plugin
     def rpcs
-      # TODO      
+      # TODO
     end
 
     # Queue objects keyed on their consumer tags.

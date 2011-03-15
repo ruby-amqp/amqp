@@ -17,9 +17,12 @@ if RUBY_VERSION == "1.8.7"
 end
 
 
+puts "=> Default exchange example"
+puts
+AMQP.start(:host => 'localhost') do |connection|
 
-EM.run do
-  connection = AMQP.connect
+  puts "Connected!"
+
   mq         = AMQP::Channel.new(connection)
 
   show_stopper = Proc.new do
@@ -42,7 +45,7 @@ EM.run do
   queues    = [queue1, queue2, queue3]
 
   # Rely on default direct exchange binding, see section 2.1.2.4 Automatic Mode in AMQP 0.9.1 spec.
-  exchange = AMQP::Channel::Exchange.default
+  exchange = AMQP::Exchange.default
 
   queue1.subscribe do |payload|
     puts "Got #{payload} for #{queue1.name}"

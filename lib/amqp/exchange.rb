@@ -45,7 +45,7 @@ module AMQP
     # For more info see section 2.1.2.4 Automatic Mode of the AMQP 0.9.1 spec.
     # @api public
     def self.default(channel = nil)
-      # TODO
+      self.new(channel || AMQP::Channel.new, :direct, AMQ::Protocol::EMPTY_STRING, :no_declare => true)
     end
 
 
