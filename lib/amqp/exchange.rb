@@ -1,5 +1,7 @@
 # encoding: utf-8
 
+require "amq/client/amqp/exchange"
+
 module AMQP
   # An Exchange acts as an ingress point for all published messages. An
   # exchange may also be described as a router or a matcher. Every
@@ -56,7 +58,7 @@ module AMQP
     # @api public
     # @deprecated
     def callback
-      # TODO
+      @on_declare
     end
 
     # Defines, intializes and returns an Exchange to act as an ingress

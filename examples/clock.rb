@@ -36,15 +36,20 @@ AMQP.start(:host => 'localhost') do |connection|
     producer.publish(Marshal.dump(time))
   }
 
-  # channel2 = AMQP::Channel.new
-  # channel2.queue('every second').bind(amq.fanout('clock')).subscribe { |time|
-  #   log 'every second', :received, Marshal.load(time)
-  # }
+  channel2 = AMQP::Channel.new(connection)
+  channel2.queue('every second').
+    bind(channel2.fanout('clock')).
+    subscribe { |time|
+      log 'every second', :received, Marshal.load(time)
+  }
 
   # channel3 = AMQP::Channel.new
-  # channel3.queue('every 5 seconds').bind(amq.fanout('clock')).subscribe { |time|
-  #   time = Marshal.load(time)
-  #   log 'every 5 seconds', :received, time if time.strftime('%S').to_i % 5 == 0
-  # }
+  channel3 = AMQP::Channel.new(connection)
+  channel3.queue('every 5 seconds').
+  bind(channel3.fanout('clock')).
+  subscribe { |time|
+    time = Marshal.load(time)
+    log 'every 5 seconds', :received, time if time.strftime('%S').to_i % 5 == 0
+  }
 
 end

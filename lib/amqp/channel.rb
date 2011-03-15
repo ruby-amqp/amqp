@@ -569,7 +569,7 @@ module AMQP
     #
     # @api public
     def queue(name, opts = {}, &block)
-      # TODO      
+      Queue.new(self, name, opts, &block)
     end
 
 

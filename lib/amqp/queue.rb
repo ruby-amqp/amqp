@@ -1,7 +1,9 @@
 # encoding: utf-8
 
+require "amq/client/amqp/queue"
+
 module AMQP
-  class Queue
+  class Queue < AMQ::Client::Queue
 
     #
     # API
@@ -72,8 +74,24 @@ module AMQP
     # method it will raise a channel or connection exception.
     #
     # @api public
-    def initialize(mq, name, opts = {}, &block)
-      # TODO
+    def initialize(channel, name, opts = {}, &block)
+      @channel  = channel
+      @opts     = self.class.add_default_options(name, opts, block)
+      @key      = opts[:key]
+      @name     = name unless name.empty?
+      @bindings = Hash.new
+
+      if @opts[:nowait]
+        @status = :finished
+        block.call(self) if block
+      else
+        @status = :unfinished
+      end
+
+      super(channel.connection, channel, name)
+      self.declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], @opts[:nowait], nil, &block)
+
+      @on_declare = block
     end
 
 
@@ -112,7 +130,17 @@ module AMQP
     #
     # @api public    
     def bind(exchange, opts = {}, &block)
-      # TODO
+      @status             = :unbound
+      @sync_bind          = !opts[:nowait]
+      # amq-client's Queue already does exchange.respond_to?(:name) ? exchange.name : exchange
+      # for us
+      exchange            = exchange
+      @bindings[exchange] = opts
+
+      # TODO: we should handle nil routing key in amq-protocol
+      super(exchange, (opts[:key] || opts[:routing_key] || ""), (opts[:nowait] || block.nil?), nil, &block)
+      @on_bind = block
+      self
     end
 
 
@@ -285,8 +313,35 @@ module AMQP
     # to send a confirmation.
     #
     # @api public    
-    def subscribe(opts = {}, &blk)
-      # TODO
+    def subscribe(opts = {}, &block)
+      raise Error, 'already subscribed to the queue' if @consumer_tag
+
+      opts[:nowait] = false if (@on_confirm_subscribe = opts[:confirm])
+
+      # We have to maintain this jazz
+      # because older versions this gem are used in examples in at least 3
+      # books published by O'Reilly :(. MK.
+      subscription_shim = if confirmation_block = opts[:confirm]
+                            Proc.new { |_, consumer_tag| confirmation_block.call }
+                          else
+                            nil
+                          end
+
+      delivery_shim = Proc.new { |_, headers, payload, consumer_tag, delivery_tag, redelivered, exchange, routing_key|
+        case block.arity
+        when 1 then
+          block.call(payload)
+        when 2 then
+          block.call(headers, payload)
+        else
+          block.call(headers, payload, consumer_tag, delivery_tag, redelivered, exchange, routing_key)
+        end
+      }
+
+      self.consume(!opts[:ack], opts[:exclusive], (opts[:nowait] || block.nil?), opts[:no_local], nil, &subscription_shim)
+      self.on_delivery(&delivery_shim)
+
+      self
     end
 
 
@@ -353,7 +408,7 @@ module AMQP
     # @api public
     # @deprecated
     def bind_callback
-      # TODO
+      @on_bind
     end
 
 
