@@ -39,7 +39,7 @@ AMQP.start(:host => 'localhost') do |connection|
   channel2 = AMQP::Channel.new(connection)
   channel2.queue('every second').
     bind(channel2.fanout('clock')).
-    subscribe { |time|
+    subscribe(:confirm => proc { puts "Subscribed!" }) { |time|
       log 'every second', :received, Marshal.load(time)
   }
 

@@ -318,16 +318,10 @@ module AMQP
 
       opts[:nowait] = false if (@on_confirm_subscribe = opts[:confirm])
 
-      # We have to maintain this jazz
+      # We have to maintain this multiple arities jazz
       # because older versions this gem are used in examples in at least 3
       # books published by O'Reilly :(. MK.
-      subscription_shim = if confirmation_block = opts[:confirm]
-                            Proc.new { |_, consumer_tag| confirmation_block.call }
-                          else
-                            nil
-                          end
-
-      delivery_shim = Proc.new { |_, headers, payload, consumer_tag, delivery_tag, redelivered, exchange, routing_key|
+      delivery_shim = Proc.new { |headers, payload, consumer_tag, delivery_tag, redelivered, exchange, routing_key|
         case block.arity
         when 1 then
           block.call(payload)
@@ -338,7 +332,7 @@ module AMQP
         end
       }
 
-      self.consume(!opts[:ack], opts[:exclusive], (opts[:nowait] || block.nil?), opts[:no_local], nil, &subscription_shim)
+      self.consume(!opts[:ack], opts[:exclusive], (opts[:nowait] || block.nil?), opts[:no_local], nil, &opts[:confirm])
       self.on_delivery(&delivery_shim)
 
       self
