@@ -14,14 +14,14 @@ module AMQP
     end
 
     # Acknowledges the receipt of this message with the server.
-    # @api public    
+    # @api public
     def ack
       # TODO
     end
 
     # Reject this message.
     # * :requeue => true | false (default false)
-    # @api public    
+    # @api public
     def reject(opts = {})
       # TODO
     end

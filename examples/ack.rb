@@ -8,18 +8,17 @@ require 'amqp'
 Signal.trap('INT')  { AMQP.stop { puts "About to stop EM reactor"; EM.stop } }
 Signal.trap('TERM') { AMQP.stop { puts "About to stop EM reactor"; EM.stop } }
 
-AMQP.start(:host => 'localhost') do |connection|
+AMQP.start do |connection|
   puts "Connected!"
   channel = AMQP::Channel.new(connection)
-
-  channel.queue('awesome').publish('Totally rad 1')
-  channel.queue('awesome').publish('Totally rad 2')
-  channel.queue('awesome').publish('Totally rad 3')
+  e       = channel.fanout("amqp-gem.examples.ack")
+  q       = channel.queue('amqp-gem.examples.q1').bind(e)
 
   i = 0
 
   # Stopping after the second item was acked will keep the 3rd item in the queue
-  channel.queue('awesome').subscribe(:ack => true) do |h, m|
+  q.subscribe(:ack => true) do |h, m|
+    puts "Got a message"
     if (i += 1) == 3
       puts 'Shutting down...'
       AMQP.stop { EM.stop }
@@ -31,5 +30,11 @@ AMQP.start(:host => 'localhost') do |connection|
       puts m
       h.ack
     end
+  end # channel.queue
+
+
+  10.times do |i|
+    puts "Publishing message ##{i}"
+    e.publish("Totally rad #{i}")
   end
-end
+end # AMQP.start

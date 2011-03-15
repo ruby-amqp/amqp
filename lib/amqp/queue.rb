@@ -326,8 +326,10 @@ module AMQP
         when 1 then
           block.call(payload)
         when 2 then
-          block.call(headers, payload)
+          h = Header.new(@channel, headers)
+          block.call(h, payload)
         else
+          h = Header.new(@channel, headers)
           block.call(headers, payload, consumer_tag, delivery_tag, redelivered, exchange, routing_key)
         end
       }

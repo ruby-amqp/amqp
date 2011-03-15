@@ -133,7 +133,11 @@ module AMQP
       raise 'AMQP can only be used from within EM.run {}' unless EM.reactor_running?
 
       @connection = connection || AMQP.start
+
       super(@connection, id)
+
+      @queues     = Hash.new
+
       self.open(&block)
     end
 
@@ -214,7 +218,15 @@ module AMQP
     #
     # @api public    
     def direct(name = 'amq.direct', opts = {}, &block)
-      # TODO
+      if exchange = @exchanges[name]
+        extended_opts = Exchange.add_default_options(:direct, name, opts, block)
+
+        validate_parameters_match!(exchange, extended_opts)
+
+        exchange
+      else
+        register_exchange(Exchange.new(self, :direct, name, opts, &block))
+      end
     end
 
 
@@ -302,8 +314,15 @@ module AMQP
     #
     # @api public
     def fanout(name = 'amq.fanout', opts = {}, &block)
-      # TODO
-      Exchange.new(self, :fanout, name, opts, &block)
+      if exchange = @exchanges[name]
+        extended_opts = Exchange.add_default_options(:fanout, name, opts, block)
+
+        validate_parameters_match!(exchange, extended_opts)
+
+        exchange
+      else
+        register_exchange(Exchange.new(self, :fanout, name, opts, &block))
+      end
     end
 
 
@@ -573,14 +592,14 @@ module AMQP
     #
     # @api public
     def queue(name, opts = {}, &block)
-      if queue = self.queues.find { |queue| queue.name == name }
+      if queue = @queues[name]
         extended_opts = Queue.add_default_options(name, opts, block)
 
         validate_parameters_match!(queue, extended_opts)
 
         queue
       else
-        self.queues << Queue.new(self, name, opts, &block)
+        @queues[name] = Queue.new(self, name, opts, &block)
       end
     end
 
@@ -666,7 +685,7 @@ module AMQP
     # called by application code.
     # @api plugin
     def exchanges
-      @exchanges ||= AMQP::Collection.new
+      @exchanges
     end
 
     # Returns a hash of all the queue proxy objects.
@@ -675,7 +694,7 @@ module AMQP
     # called by application code.
     # @api plugin
     def queues
-      @queues ||= AMQP::Collection.new
+      @queues
     end
 
     # Returns a hash of all rpc proxy objects.
