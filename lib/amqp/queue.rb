@@ -394,7 +394,7 @@ module AMQP
     # @api public
     # @deprecated
     def callback
-      # TODO
+      @on_declare
     end
 
     # Compatibility alias for #on_bind.
