@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-require "amq/client/amqp/exchange"
+require "amq/client/exchange"
 
 module AMQP
   # An Exchange acts as an ingress point for all published messages. An

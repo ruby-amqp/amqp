@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-require "amq/client/amqp/queue"
+require "amq/client/queue"
 
 module AMQP
   class Queue < AMQ::Client::Queue
