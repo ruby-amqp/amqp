@@ -13,11 +13,6 @@ module AMQP
     end
 
     # @api public
-    def channels
-      # TODO
-    end # channels
-
-    # @api public
     def reconnect(force = false)
       # TODO
     end # reconnect(force = false)
