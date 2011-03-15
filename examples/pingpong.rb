@@ -18,7 +18,7 @@ AMQP.start(:host => 'localhost') do |connection|
 
   # AMQP.logging = true
 
-  amq = AMQP::Channel.new
+  amq = AMQP::Channel.new(connection)
   EM.add_periodic_timer(1) {
     puts
 
@@ -26,29 +26,15 @@ AMQP.start(:host => 'localhost') do |connection|
     amq.queue('one').publish('ping')
   }
 
-  amq = AMQP::Channel.new
+  amq = AMQP::Channel.new(connection)
   amq.queue('one').subscribe { |msg|
     log 'one', :received, msg, :sending, 'pong'
     amq.queue('two').publish('pong')
   }
 
-  amq = AMQP::Channel.new
+  amq = AMQP::Channel.new(connection)
   amq.queue('two').subscribe { |msg|
     log 'two', :received, msg
   }
 
 end
-
-__END__
-
-[Sun Jul 20 03:52:24 -0700 2008, :sending, "ping"]
-[Sun Jul 20 03:52:24 -0700 2008, "one", :received, "ping", :sending, "pong"]
-[Sun Jul 20 03:52:24 -0700 2008, "two", :received, "pong"]
-
-[Sun Jul 20 03:52:25 -0700 2008, :sending, "ping"]
-[Sun Jul 20 03:52:25 -0700 2008, "one", :received, "ping", :sending, "pong"]
-[Sun Jul 20 03:52:25 -0700 2008, "two", :received, "pong"]
-
-[Sun Jul 20 03:52:26 -0700 2008, :sending, "ping"]
-[Sun Jul 20 03:52:26 -0700 2008, "one", :received, "ping", :sending, "pong"]
-[Sun Jul 20 03:52:26 -0700 2008, "two", :received, "pong"]

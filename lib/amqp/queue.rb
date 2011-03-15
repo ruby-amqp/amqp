@@ -432,12 +432,12 @@ module AMQP
 
     private
 
-    # Default exchange that we use to publish messages directly to this queue.
+    # Default direct exchange that we use to publish messages directly to this queue.
     # This is a leftover from very early days and will be removed before version 1.0.
     #
     # @deprecated
     def exchange
-      @exchange ||= Exchange.new(@mq, :direct, '', :key => name)
+      @exchange ||= Exchange.new(@channel, :direct, AMQ::Protocol::EMPTY_STRING, :key => name)
     end
   end # Queue
 end # AMQP
