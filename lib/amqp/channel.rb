@@ -669,7 +669,7 @@ module AMQP
     # called by application code.
     # @api plugin
     def exchanges
-      # TODO
+      @exchanges ||= AMQP::Collection.new
     end
 
     # Returns a hash of all the queue proxy objects.
