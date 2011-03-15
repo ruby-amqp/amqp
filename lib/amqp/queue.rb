@@ -415,7 +415,7 @@ module AMQP
     # @deprecated
     # @api public
     def publish(data, opts = {})
-      exchange.publish(data, opts)
+      EM.next_tick { exchange.publish(data, opts) }
     end
 
     # @api plugin

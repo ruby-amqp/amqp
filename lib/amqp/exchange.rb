@@ -334,9 +334,11 @@ module AMQP
     #
     # @api public
     def publish(payload, options = {})
-      opts    = @default_publish_options.merge(options)
+      EM.next_tick do
+        opts    = @default_publish_options.merge(options)
 
-      super(payload, opts[:routing_key], @default_headers.merge(options), opts[:mandatory], opts[:immediate])
+        super(payload, opts[:routing_key], @default_headers.merge(options), opts[:mandatory], opts[:immediate])        
+      end
     end
 
     DEFAULT_CONTENT_TYPE = "application/octet-stream".freeze
