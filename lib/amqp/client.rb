@@ -1,9 +1,32 @@
 # encoding: utf-8
 
 module AMQP
+  class BasicClient < AMQ::Client::EventMachineClient
+
+    #
+    # API
+    #
+
+    # @api public
+    def connected?
+      self.opened?
+    end
+
+    # @api public
+    def channels
+      # TODO
+    end # channels
+
+    # @api public
+    def reconnect(force = false)
+      # TODO
+    end # reconnect(force = false)
+  end
+
+
   # @api public
   def self.client
-    @client_implementation ||= AMQ::Client::EventMachineClient
+    @client_implementation ||= BasicClient
   end
 
   def self.client=(value)
@@ -36,38 +59,6 @@ module AMQP
 
     AMQP_PORTS = Hash["amqp" => 5672, "amqps" => 5671].freeze
     AMQPS      = "amqps".freeze
-
-
-    # @api public
-    def tcp_connection_established?
-      # TODO
-    end
-
-    # @api public
-    def connected?
-      # TODO
-    end
-
-    # @api public
-    def channels
-      # TODO
-    end # channels
-
-    # @api public
-    def send(data, options = {})
-      # TODO
-    end # send(data, options = {})
-
-    # @api public
-    def closing?
-      # TODO
-    end # closing?
-
-    # @api public
-    def reconnect(force = false)
-      # TODO
-    end # reconnect(force = false)
-
 
 
     private
