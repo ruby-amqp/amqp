@@ -76,6 +76,8 @@ module AMQP
       }
 
       self.callback = block
+
+      block.call(self) if @opts[:nowait] && block
     end
 
     attr_reader :name, :sync_bind
@@ -127,6 +129,9 @@ module AMQP
                                              :nowait => block.nil? }.merge(opts))
       }
       self.bind_callback = block
+
+      block.call(self) if opts[:nowait] && block
+
       self
     end
 
