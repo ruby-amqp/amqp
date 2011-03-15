@@ -631,9 +631,6 @@ module AMQP
     end
 
 
-    def close(&block)
-    end
-
 
     # Define a message and callback block to be executed on all
     # errors.
