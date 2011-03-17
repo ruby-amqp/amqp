@@ -128,7 +128,7 @@ module AMQP
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
-    # @api public    
+    # @api public
     def bind(exchange, opts = {}, &block)
       @status             = :unbound
       @sync_bind          = !opts[:nowait]
@@ -158,7 +158,7 @@ module AMQP
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
-    # @api public    
+    # @api public
     def unbind(exchange, opts = {})
       # TODO
     end
@@ -184,7 +184,7 @@ module AMQP
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
-    # @api public    
+    # @api public
     def delete(opts = {})
       # TODO
     end
@@ -192,7 +192,7 @@ module AMQP
 
     # Purge all messages from the queue.
     #
-    # @api public    
+    # @api public
     def purge(opts = {})
       # TODO
     end
@@ -252,7 +252,7 @@ module AMQP
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
-    # @api public    
+    # @api public
     def pop(opts = {}, &blk)
       # TODO
     end
@@ -312,7 +312,7 @@ module AMQP
     # automatically set :nowait => false. This is required for the server
     # to send a confirmation.
     #
-    # @api public    
+    # @api public
     def subscribe(opts = {}, &block)
       raise Error, 'already subscribed to the queue' if @consumer_tag
 
@@ -362,7 +362,7 @@ module AMQP
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
-    # @api public    
+    # @api public
     def unsubscribe(opts = {}, &blk)
       # TODO
     end
@@ -385,7 +385,7 @@ module AMQP
     # Exception. Only a single block at a time can be associated with any
     # one queue for processing incoming messages.
     #
-    # @api public    
+    # @api public
     def subscribed?
       !!@consumer_tag
     end
