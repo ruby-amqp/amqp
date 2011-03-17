@@ -1,5 +1,6 @@
-= Version 0.8
+= Version 0.7.1
 
+  * [BUG] AMQP gem no longer defines top-level BlankSlate class to avoid conflicts with Builder 2.x.
   * [API] AMQP::Exchange.default no longer caches exchange object between calls
           because it may lead to very obscure issues when channel that exchange was
 	  using is closed (due to connection loss, as part of test suite teardown
