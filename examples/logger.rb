@@ -4,7 +4,7 @@ $:.unshift(File.expand_path("../../lib", __FILE__))
 require 'amqp'
 require 'amqp/logger'
 
-Logger = AMQP::Channel::Logger
+Logger = MQ::Logger
 
 AMQP.start(:host => 'localhost') do
   if ARGV[0] == 'server'
