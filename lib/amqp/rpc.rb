@@ -1,6 +1,18 @@
 # encoding: utf-8
 
 module AMQP
+
+  # encoding: utf-8
+
+  if defined?(BasicObject)
+    BlankSlate = BasicObject
+  else
+    class BlankSlate #:nodoc:
+      instance_methods.each { |m| undef_method m unless m =~ /^__/ }
+    end
+  end
+
+
   # Basic RPC (remote procedure call) facility.
   #
   # Needs more detail and explanation.
@@ -22,7 +34,7 @@ module AMQP
   #    end
   #  end
   #
-  class RPC < BlankSlate
+  class RPC < ::AMQP::BlankSlate
     # Takes a channel, queue and optional object.
     #
     # The optional object may be a class name, module name or object
