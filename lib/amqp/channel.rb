@@ -141,8 +141,6 @@ module AMQP
       self.open(&block)
     end
 
-
-
     # Defines, intializes and returns an Exchange to act as an ingress
     # point for all published messages.
     #
@@ -601,14 +599,25 @@ module AMQP
     #
     # @api public
     def queue(name, opts = {}, &block)
-      if queue = @queues[name]
+      if queue = find_queue(name)
         extended_opts = Queue.add_default_options(name, opts, block)
 
         validate_parameters_match!(queue, extended_opts)
 
         queue
       else
-        @queues[name] = Queue.new(self, name, opts, &block)
+        shim = Proc.new { |queue_name, consumer_count, message_count|
+          queue = find_queue(queue_name)
+          if block.arity == 1
+            block.call(queue)
+          else
+            block.call(queue, consumer_count, message_count)
+          end
+        }
+
+        queue = Queue.new(self, name, opts, &shim)
+
+        register_queue(queue)
       end
     end
 
@@ -687,24 +696,6 @@ module AMQP
       # TODO
     end
 
-
-    # Returns a hash of all the exchange proxy objects.
-    #
-    # Most of the time, this method is not
-    # called by application code.
-    # @api plugin
-    def exchanges
-      @exchanges
-    end
-
-    # Returns a hash of all the queue proxy objects.
-    #
-    # Most of the time, this method is not
-    # called by application code.
-    # @api plugin
-    def queues
-      @queues
-    end
 
     # Returns a hash of all rpc proxy objects.
     #
