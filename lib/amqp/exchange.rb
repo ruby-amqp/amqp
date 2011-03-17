@@ -24,7 +24,7 @@ module AMQP
   # the default exchange for publishing the messages.
   #
   class Exchange < AMQ::Client::Exchange
-  
+
     #
     # API
     #
@@ -366,7 +366,7 @@ module AMQP
     # bindings. If the exchange has queue bindings the server does not
     # delete it but raises a channel exception instead (AMQP::Error).
     #
-    # @api public    
+    # @api public
     def delete(opts = {})
       # TODO
     end
