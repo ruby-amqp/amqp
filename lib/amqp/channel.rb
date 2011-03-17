@@ -214,7 +214,7 @@ module AMQP
     # * redeclare an already-declared exchange to a different type
     # * :passive => true and the exchange does not exist (NOT_FOUND)
     #
-    # @api public    
+    # @api public
     def direct(name = 'amq.direct', opts = {}, &block)
       if exchange = @exchanges[name]
         extended_opts = Exchange.add_default_options(:direct, name, opts, block)
