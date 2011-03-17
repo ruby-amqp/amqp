@@ -1,3 +1,8 @@
+= Version 0.8.0
+
+  * [FEATURE] AMQP gem is now AMQP 0.9.1 compatible: it runs atop of amq-client gem
+  * [API] AMQP::Queue#publish is deprecated.
+
 = Version 0.7.1
 
   * [BUG] AMQP gem no longer defines top-level BlankSlate class to avoid conflicts with Builder 2.x.
