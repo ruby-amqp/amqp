@@ -606,16 +606,19 @@ module AMQP
 
         queue
       else
-        shim = Proc.new { |queue_name, consumer_count, message_count|
-          queue = find_queue(queue_name)
-          if block.arity == 1
-            block.call(queue)
-          else
-            block.call(queue, consumer_count, message_count)
-          end
-        }
-
-        queue = Queue.new(self, name, opts, &shim)
+        queue = if block.nil?
+                  Queue.new(self, name, opts)
+                else
+                  shim = Proc.new { |queue_name, consumer_count, message_count|
+                    queue = find_queue(queue_name)
+                    if block.arity == 1
+                      block.call(queue)
+                    else
+                      block.call(queue, consumer_count, message_count)
+                    end
+                  }
+                  Queue.new(self, name, opts, &shim)
+                end
 
         register_queue(queue)
       end
