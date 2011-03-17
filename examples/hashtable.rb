@@ -3,43 +3,44 @@
 $:.unshift(File.expand_path("../../lib", __FILE__))
 require 'amqp'
 
-AMQP.start(:host => 'localhost') do |connection|
 
-  # Send Connection.Close on Ctrl+C
+def log(*args)
+  p args
+end
+
+# AMQP.logging = true
+
+class HashTable < Hash
+  def get(key)
+    log 'HashTable', :get, key
+    self[key]
+  end
+
+  def set(key, value)
+    log 'HashTable', :set, key => value
+    self[key] = value
+  end
+
+  def keys
+    log 'HashTable', :keys
+    super
+  end
+end
+
+AMQP.start(:host => 'localhost') do |connection|
   trap(:INT) do
     unless connection.closing?
       connection.close { exit! }
     end
   end
 
-  def log(*args)
-    p args
-  end
+  channel = AMQP::Channel.new(connection)
+  server  = channel.rpc('hash table node', HashTable.new)
+  client  = channel.rpc('hash table node')
 
-  # AMQP.logging = true
-
-  class HashTable < Hash
-    def get(key)
-      log 'HashTable', :get, key
-      self[key]
-    end
-
-    def set(key, value)
-      log 'HashTable', :set, key => value
-      self[key] = value
-    end
-
-    def keys
-      log 'HashTable', :keys
-      super
-    end
-  end
-
-  server = AMQP::Channel.new.rpc('hash table node', HashTable.new)
-
-  client = AMQP::Channel.new.rpc('hash table node')
   client.set(:now, time = Time.now)
   client.get(:now) do |res|
+    raise "get"
     log 'client', :now => res, :eql? => res == time
   end
 
@@ -48,14 +49,4 @@ AMQP.start(:host => 'localhost') do |connection|
     log 'client', :keys => res
     AMQP.stop { EM.stop }
   end
-
 end
-
-__END__
-
-["HashTable", :set, {:now => Thu Jul 17 21:04:53 -0700 2008}]
-["HashTable", :get, :now]
-["HashTable", :set, {:one => 1}]
-["HashTable", :keys]
-["client", {:eql? => true, :now => Thu Jul 17 21:04:53 -0700 2008}]
-["client", {:keys => [:one, :now]}]

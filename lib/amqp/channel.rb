@@ -136,7 +136,7 @@ module AMQP
 
       super(@connection, id)
 
-      @queues     = Hash.new
+      @rpcs       = Hash.new
 
       self.open(&block)
     end
@@ -668,8 +668,19 @@ module AMQP
     #
     # @api public
     def rpc(name, obj = nil)
+      RPC.new(self, name, obj)
     end
 
+
+    def register_rpc(rpc)
+      raise ArgumentError, "argument is nil!" unless rpc
+
+      @rpcs[rpc.name] = rpc
+    end # register_rpc(rpc)
+
+    def find_rpc(name)
+      @rpcs[name]
+    end
 
 
     # Define a message and callback block to be executed on all
@@ -706,7 +717,7 @@ module AMQP
     # called by application code.
     # @api plugin
     def rpcs
-      # TODO
+      @rpcs.values
     end
 
     # Queue objects keyed on their consumer tags.
