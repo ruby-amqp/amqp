@@ -1,5 +1,6 @@
 = Version 0.8.0
 
+  * [API] AMQP::Frame is gone.
   * [API] AMQP::Buffer is gone. Serialization & framing are now handled primarily by amq-protocol.
   * [FEATURE] AMQP gem is now AMQP 0.9.1 compatible: it runs atop of amq-client gem
   * [API] AMQP::Queue#publish is deprecated.
