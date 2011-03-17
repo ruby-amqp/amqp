@@ -1,7 +1,6 @@
 # encoding: utf-8
 
 require "amqp/ext/em"
-require "amqp/ext/blankslate"
 
 require "amqp/client"
 
