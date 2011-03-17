@@ -8,4 +8,5 @@ gem "amq-protocol", :git => "git://github.com/ruby-amqp/amq-protocol.git", :bran
 
 group(:test) do
   gem "rspec", ">=2.0.0"
+  gem "evented-spec", :git => "git://github.com/ruby-amqp/evented-spec.git", :branch => "master"
 end
