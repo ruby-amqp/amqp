@@ -9,3 +9,4 @@ Gemfile.lock
 
 spec/amqp.yml
 vendor/bundle
+vendor/cache
