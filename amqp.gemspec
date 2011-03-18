@@ -7,12 +7,12 @@ require File.expand_path("../lib/amqp/version", __FILE__)
 Gem::Specification.new do |s|
   s.name = "amqp"
   s.version = AMQP::VERSION
-  s.authors = ["Aman Gupta", "Jakub Stastny aka botanicus"]
+  s.authors = ["Aman Gupta", "Jakub Stastny aka botanicus", "Michael S. Klishin"]
   s.homepage = "http://github.com/ruby-amqp/amqp"
   s.summary = "AMQP client implementation in Ruby/EventMachine."
   s.description = "An implementation of the AMQP protocol in Ruby/EventMachine for writing clients to the RabbitMQ message broker."
   s.cert_chain = nil
-  s.email = Base64.decode64("c3Rhc3RueUAxMDFpZGVhcy5jeg==\n")
+  s.email = ["bWljaGFlbEBub3ZlbWJlcmFpbi5jb20=\n", "c3Rhc3RueUAxMDFpZGVhcy5jeg==\n"].map { |s| Base64.decode64(s) }
 
   # files
   s.files = `git ls-files`.split("\n")
