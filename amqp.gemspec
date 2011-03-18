@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.summary = "AMQP client implementation in Ruby/EventMachine."
   s.description = "An implementation of the AMQP protocol in Ruby/EventMachine for writing clients to the RabbitMQ message broker."
   s.cert_chain = nil
-  s.email = ["bWljaGFlbEBub3ZlbWJlcmFpbi5jb20=\n", "c3Rhc3RueUAxMDFpZGVhcy5jeg==\n"].map { |s| Base64.decode64(s) }
+  s.email = ["bWljaGFlbEBub3ZlbWJlcmFpbi5jb20=\n", "c3Rhc3RueUAxMDFpZGVhcy5jeg==\n"].map { |i| Base64.decode64(i) }
 
   # files
   s.files = `git ls-files`.split("\n")
