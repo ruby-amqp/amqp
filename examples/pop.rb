@@ -7,8 +7,9 @@ require 'pp'
 Signal.trap('INT') { AMQP.stop { EM.stop } }
 Signal.trap('TERM') { AMQP.stop { EM.stop } }
 
-AMQP.start do
-  queue = AMQP::Channel.queue('awesome')
+AMQP.start do |connection|
+  channel = AMQP::Channel.new(connection)
+  queue   = channel.queue('awesome')
 
   queue.publish('Totally rad 1')
   queue.publish('Totally rad 2')
@@ -30,16 +31,3 @@ AMQP.start do
     end
   }
 end
-
-__END__
-
-[Wed Oct 15 15:24:30 -0700 2008, "Totally rad 1"]
-[Wed Oct 15 15:24:30 -0700 2008, "Totally rad 2"]
-[Wed Oct 15 15:24:30 -0700 2008, :queue_empty!]
-[Wed Oct 15 15:24:31 -0700 2008, :queue_empty!]
-[Wed Oct 15 15:24:32 -0700 2008, :queue_empty!]
-[Wed Oct 15 15:24:33 -0700 2008, :queue_empty!]
-[Wed Oct 15 15:24:34 -0700 2008, :queue_empty!]
-[Wed Oct 15 15:24:35 -0700 2008, "Totally rad 3"]
-[Wed Oct 15 15:24:35 -0700 2008, :queue_empty!]
-[Wed Oct 15 15:24:36 -0700 2008, :queue_empty!]
