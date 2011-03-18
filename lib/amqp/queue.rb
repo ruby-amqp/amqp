@@ -138,7 +138,7 @@ module AMQP
       @bindings[exchange] = opts
 
       # TODO: we should handle nil routing key in amq-protocol
-      super(exchange, (opts[:key] || opts[:routing_key] || ""), (opts[:nowait] || block.nil?), nil, &block)
+      super(exchange, (opts[:key] || opts[:routing_key] || ""), (opts[:nowait] || block.nil?), opts[:arguments], &block)
       @on_bind = block
       self
     end

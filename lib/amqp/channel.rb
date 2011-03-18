@@ -527,7 +527,15 @@ module AMQP
     #
     # @api public
     def headers(name = 'amq.match', opts = {}, &block)
-      # TODO
+      if exchange = @exchanges[name]
+        extended_opts = Exchange.add_default_options(:headers, name, opts, block)
+
+        validate_parameters_match!(exchange, extended_opts)
+
+        exchange
+      else
+        register_exchange(Exchange.new(self, :headers, name, opts, &block))
+      end
     end
 
 
