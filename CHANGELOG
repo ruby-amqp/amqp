@@ -1,6 +1,9 @@
 = Version 0.7.1
 
-  * [BUG] AMQP gem no longer defines top-level BlankSlate class to avoid conflicts with Builder 2.x.
+  * [BUG] AMQP gem no longer conflicts with Builder 2.1.2 on Ruby 1.9.
+          All Ruby on Rails 3 users who run Ruby 1.9 are highly recommended
+	  to upgrade!
+
   * [API] AMQP::Exchange.default no longer caches exchange object between calls
           because it may lead to very obscure issues when channel that exchange was
 	  using is closed (due to connection loss, as part of test suite teardown
