@@ -97,22 +97,19 @@ describe AMQP, 'class object' do
       # Examples
       #
 
-      it 'unsets active AMQP broker connection. Mind the delay!' do
+      it 'properly closes AMQP broker connection and fires a callback. Mind the delay!' do
         AMQP.start(AMQP_OPTS)
         AMQP.connection.should be_connected
 
-        AMQP.stop
-        AMQP.connection.should_not be_nil
-        done(0.1) { AMQP.connection.should be_nil }
-      end # it
+        @block_has_fired = false
 
-      it 'yields to given block AFTER disconnect (BUT before AMQP.conn is cleared!)' do
         AMQP.stop do
-          @block_fired = true
-          AMQP.connection.should_not be_nil
-          AMQP.instance_variable_get(:@closing).should be_true
+          @block_has_fired = true
         end
-        done(0.1) { @block_fired.should be_true }
+        AMQP.connection.should_not be_nil
+        done(0.1) do
+          @block_has_fired.should be_true
+        end
       end # it
     end # context
   end # describe

@@ -1,3 +1,0 @@
-[submodule "vendor/amqp-spec"]
-	path = vendor/amqp-spec
-	url = git://github.com/ruby-amqp/amqp-spec.git
