@@ -49,7 +49,14 @@ AMQP.start(:host => 'localhost') do |connection|
   show_stopper = Proc.new {
     q1.unbind(exchange)
     q2.unbind(exchange) do
-      puts "Unbound #{q2.name}. About to close AMQP connection…"
+      puts "Unbound #{q2.name}."
+
+      q1.delete(:if_empty => true)
+      q2.delete do |message_count|
+        puts "Deleted #{q2.name}. There were #{message_count} messages"
+      end
+
+      puts " About to close AMQP connection…"
       connection.close { exit! } unless connection.closing?
     end
   }

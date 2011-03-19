@@ -185,8 +185,8 @@ module AMQP
     # method it will raise a channel or connection exception.
     #
     # @api public
-    def delete(opts = {})
-      # TODO
+    def delete(opts = {}, &block)
+      super(opts.fetch(:if_unused, false), opts.fetch(:if_empty, false), opts.fetch(:nowait, false), &block)
     end
 
 

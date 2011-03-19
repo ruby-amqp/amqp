@@ -1,5 +1,7 @@
 = Version 0.8.0
 
+  * [API] AMQP::Queue#delete now takes an optional block which is fired when queue.delete-ok response arrives.
+  * [API] AMQP::Queue#delete now accepts :nowait option.
   * [API] AMQP::Queue#unbind now takes an optional block which is fired when queue.unbind-ok response arrives.
   * [API] AMQP::Queue#unbind now accepts :routing_key as alias to :key. we believe it is a good idea to use AMQP terms.
   * [API] AMQP::Channel#prefetch now takes (an optional) 2nd parameter that specifies
