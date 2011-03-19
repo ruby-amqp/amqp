@@ -13,12 +13,13 @@ AMQP.start(:host => 'localhost') do |connection|
 
   puts "Connected!"
 
+  show_stopper = lambda {
+    puts "About to close AMQP connection…"
+    connection.close { exit! } unless connection.closing?
+  }
+
   # Send Connection.Close on Ctrl+C
-  trap(:INT) do
-    unless connection.closing?
-      connection.close { exit! }
-    end
-  end
+  trap(:INT, &show_stopper)
 
   def log(*args)
     p args
@@ -43,6 +44,8 @@ AMQP.start(:host => 'localhost') do |connection|
       log 'every second', :received, Marshal.load(time)
   }
 
+  puts "channel #{channel2.id} consumer tags: #{channel2.consumers.keys.join(', ')}"
+
   # channel3 = AMQP::Channel.new
   channel3 = AMQP::Channel.new(connection)
   channel3.queue('every 5 seconds').
@@ -52,4 +55,5 @@ AMQP.start(:host => 'localhost') do |connection|
     log 'every 5 seconds', :received, time if time.strftime('%S').to_i % 5 == 0
   }
 
+  EM.add_timer(7, show_stopper)
 end

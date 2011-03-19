@@ -724,14 +724,6 @@ module AMQP
       @rpcs.values
     end
 
-    # Queue objects keyed on their consumer tags.
-    #
-    # Most of the time, this method is not
-    # called by application code.
-    # @api plugin
-    def consumers
-      # TODO
-    end
 
     # Resets channel state (for example, list of registered queue objects and so on).
     #
