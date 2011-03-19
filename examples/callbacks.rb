@@ -19,6 +19,10 @@ AMQP.start(:host => "localhost") do |connection|
     puts "basic.qos callback has fired"
   end
 
+  amq.recover do
+    puts "basic.recover callback has fired"
+  end
+
   10.times do
     amq.queue("") do |queue|
       puts "Queue #{queue.name} is now declared."
