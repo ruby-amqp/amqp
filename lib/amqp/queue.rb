@@ -253,14 +253,10 @@ module AMQP
     # the cost of reliability.  Messages can get lost if a client dies
     # before it can deliver them to the application.
     #
-    # * :nowait => true | false (default true)
-    # If set, the server will not respond to the method. The client should
-    # not wait for a reply method.  If the server could not complete the
-    # method it will raise a channel or connection exception.
-    #
     # @api public
-    def pop(opts = {}, &blk)
-      # TODO
+    def pop(opts = {}, &block)
+      # see AMQ::Client::Queue#get in amq-client
+      self.get(!opts.fetch(:ack, false), &block)
     end
 
 
