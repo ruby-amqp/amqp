@@ -51,7 +51,12 @@ AMQP.start(:host => 'localhost') do |connection|
     q2.unbind(exchange) do
       puts "Unbound #{q2.name}."
 
-      q1.delete(:if_empty => true)
+      q1.purge do |message_count|
+        puts "Purged #{q1.name}, there were #{message_count} messages"
+        puts "Deleting #{q1.name}…"
+        q1.delete(:if_empty => true, :nowait => true)
+      end
+
       q2.delete do |message_count|
         puts "Deleted #{q2.name}. There were #{message_count} messages"
       end

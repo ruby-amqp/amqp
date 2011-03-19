@@ -1,5 +1,6 @@
 = Version 0.8.0
 
+  * [API] AMQP::Queue#purge  now takes an optional block which is fired when queue.purge-ok response arrives.
   * [API] AMQP::Queue#delete now takes an optional block which is fired when queue.delete-ok response arrives.
   * [API] AMQP::Queue#delete now accepts :nowait option.
   * [API] AMQP::Queue#unbind now takes an optional block which is fired when queue.unbind-ok response arrives.

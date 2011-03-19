@@ -187,14 +187,20 @@ module AMQP
     # @api public
     def delete(opts = {}, &block)
       super(opts.fetch(:if_unused, false), opts.fetch(:if_empty, false), opts.fetch(:nowait, false), &block)
+
+      # backwards compatibility
+      nil
     end
 
 
     # Purge all messages from the queue.
     #
     # @api public
-    def purge(opts = {})
-      # TODO
+    def purge(opts = {}, &block)
+      super(opts.fetch(:nowait, false), &block)
+
+      # backwards compatibility
+      nil
     end
 
 
