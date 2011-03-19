@@ -713,19 +713,6 @@ module AMQP
     end
 
 
-    # Asks the broker to redeliver all unacknowledged messages on this
-    # channel.
-    #
-    # * requeue (default false)
-    # If this parameter is false, the message will be redelivered to the original recipient.
-    # If this flag is true, the server will attempt to requeue the message, potentially then
-    # delivering it to an alternative subscriber.
-    #
-    # @api public
-    def recover(requeue = false)
-      # TODO
-    end
-
 
     # Returns a hash of all rpc proxy objects.
     #
