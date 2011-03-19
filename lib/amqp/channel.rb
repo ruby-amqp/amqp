@@ -19,7 +19,7 @@ module AMQP
   # One consumer prints messages every second while the second consumer prints
   # messages every 2 seconds. After 5 seconds has elapsed, the 1 second
   # consumer is deleted.
-  #
+  #find_exchange(name)
   # Of interest is the relationship of EventMachine to the process. All AMQP
   # operations must occur within the context of an EM.run block. We start
   # EventMachine in its own thread with an empty block; all subsequent calls
@@ -216,7 +216,7 @@ module AMQP
     #
     # @api public
     def direct(name = 'amq.direct', opts = {}, &block)
-      if exchange = @exchanges[name]
+      if exchange = find_exchange(name)
         extended_opts = Exchange.add_default_options(:direct, name, opts, block)
 
         validate_parameters_match!(exchange, extended_opts)
@@ -321,7 +321,7 @@ module AMQP
     #
     # @api public
     def fanout(name = 'amq.fanout', opts = {}, &block)
-      if exchange = @exchanges[name]
+      if exchange = find_exchange(name)
         extended_opts = Exchange.add_default_options(:fanout, name, opts, block)
 
         validate_parameters_match!(exchange, extended_opts)
@@ -443,7 +443,7 @@ module AMQP
     #
     # @api public
     def topic(name = 'amq.topic', opts = {}, &block)
-      if exchange = @exchanges[name]
+      if exchange = find_exchange(name)
         extended_opts = Exchange.add_default_options(:topic, name, opts, block)
 
         validate_parameters_match!(exchange, extended_opts)
@@ -535,7 +535,7 @@ module AMQP
     #
     # @api public
     def headers(name = 'amq.match', opts = {}, &block)
-      if exchange = @exchanges[name]
+      if exchange = find_exchange(name)
         extended_opts = Exchange.add_default_options(:headers, name, opts, block)
 
         validate_parameters_match!(exchange, extended_opts)
