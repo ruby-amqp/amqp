@@ -159,8 +159,8 @@ module AMQP
     # method it will raise a channel or connection exception.
     #
     # @api public
-    def unbind(exchange, opts = {})
-      # TODO
+    def unbind(exchange, opts = {}, &block)
+      super(exchange, (opts[:key] || opts[:routing_key] || AMQ::Protocol::EMPTY_STRING), opts[:arguments], &block)
     end
 
 

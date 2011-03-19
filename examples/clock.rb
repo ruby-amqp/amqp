@@ -10,16 +10,7 @@ require 'amqp'
 puts "=> Clock example"
 puts
 AMQP.start(:host => 'localhost') do |connection|
-
   puts "Connected!"
-
-  show_stopper = lambda {
-    puts "About to close AMQP connection…"
-    connection.close { exit! } unless connection.closing?
-  }
-
-  # Send Connection.Close on Ctrl+C
-  trap(:INT, &show_stopper)
 
   def log(*args)
     p args
@@ -38,9 +29,10 @@ AMQP.start(:host => 'localhost') do |connection|
   }
 
   channel2 = AMQP::Channel.new(connection)
-  channel2.queue('every second').
-    bind(channel2.fanout('clock')).
-    subscribe(:confirm => proc { puts "Subscribed!" }) { |time|
+  exchange = channel2.fanout('clock')
+
+  q1       = channel2.queue('every second')
+  q1.bind(exchange).subscribe(:confirm => proc { puts "Subscribed!" }) { |time|
       log 'every second', :received, Marshal.load(time)
   }
 
@@ -48,12 +40,22 @@ AMQP.start(:host => 'localhost') do |connection|
 
   # channel3 = AMQP::Channel.new
   channel3 = AMQP::Channel.new(connection)
-  channel3.queue('every 5 seconds').
-  bind(channel3.fanout('clock')).
-  subscribe { |time|
+  q2 = channel3.queue('every 5 seconds')
+  q2.bind(exchange).subscribe { |time|
     time = Marshal.load(time)
     log 'every 5 seconds', :received, time if time.strftime('%S').to_i % 5 == 0
   }
+
+  show_stopper = Proc.new {
+    q1.unbind(exchange)
+    q2.unbind(exchange) do
+      puts "Unbound #{q2.name}. About to close AMQP connection…"
+      connection.close { exit! } unless connection.closing?
+    end
+  }
+
+  Signal.trap "INT",  show_stopper
+  Signal.trap "TERM", show_stopper
 
   EM.add_timer(7, show_stopper)
 end
