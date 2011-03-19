@@ -443,7 +443,15 @@ module AMQP
     #
     # @api public
     def topic(name = 'amq.topic', opts = {}, &block)
-      # TODO
+      if exchange = @exchanges[name]
+        extended_opts = Exchange.add_default_options(:topic, name, opts, block)
+
+        validate_parameters_match!(exchange, extended_opts)
+
+        exchange
+      else
+        register_exchange(Exchange.new(self, :topic, name, opts, &block))
+      end
     end
 
 
