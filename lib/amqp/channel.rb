@@ -708,8 +708,9 @@ module AMQP
     end
 
     # @api public
-    def prefetch(size)
-      # TODO
+    def prefetch(size, global = false, &block)
+      # RabbitMQ as of 2.3.1 does not support prefetch_size.
+      self.qos(0, size, global, &block)
     end
 
 

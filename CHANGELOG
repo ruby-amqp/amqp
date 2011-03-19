@@ -1,5 +1,7 @@
 = Version 0.8.0
 
+  * [API] AMQP::Channel#prefetch now takes (an optional) 2nd parameter that specifies
+          that QoS settings should be applied to underlying connection, as well as optional callback.
   * [API] AMQP::Channel#recover now takes (an optional) callback that is fired when
           basic.recover-ok is received.
   * [API] AMQP::Frame is gone.

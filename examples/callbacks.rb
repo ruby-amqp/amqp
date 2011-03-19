@@ -15,6 +15,10 @@ AMQP.start(:host => "localhost") do |connection|
   @counter = 0
   amq = AMQP::Channel.new
 
+  amq.prefetch(64, false) do
+    puts "basic.qos callback has fired"
+  end
+
   10.times do
     amq.queue("") do |queue|
       puts "Queue #{queue.name} is now declared."
