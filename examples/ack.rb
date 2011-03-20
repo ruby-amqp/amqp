@@ -10,6 +10,10 @@ AMQP.start do |connection|
   e       = channel.fanout("amqp-gem.examples.ack")
   q       = channel.queue('amqp-gem.examples.q1').bind(e)
 
+  q.status do |message_count, consumer_count|
+    puts "Queue #{q.name} has #{message_count} messages and #{consumer_count}"
+  end
+
   i = 0
 
   # Stopping after the second item was acked will keep the 3rd item in the queue
@@ -32,12 +36,19 @@ AMQP.start do |connection|
 
 
   show_stopper = Proc.new {
+    q.status do |message_count, consumer_count|
+      puts "Queue #{q.name} has #{message_count} messages and #{consumer_count} consumers"
+    end
+
     q.unbind(e) do
       puts "Unbound #{q.name} from #{e.name}"
 
-      AMQP.stop do
-        puts "About to stop EM reactor"
-        EM.stop
+      q.delete do
+        puts "Just deleted #{q.name}"
+        AMQP.stop do
+          puts "About to stop EM reactor"
+          EM.stop
+        end
       end
     end
   }
