@@ -386,6 +386,8 @@ module AMQP
     #
     # @api public
     def unsubscribe(opts = {}, &block)
+      # @consumer_tag is nillified for us by AMQ::Client::Queue, that is,
+      # our superclass. MK.
       self.cancel(opts.fetch(:nowait, true), &block)
     end
 
