@@ -1,6 +1,8 @@
 # encoding: utf-8
 
 require "amqp/collection"
+require "amqp/exchange"
+require "amqp/queue"
 
 module AMQP
   # The top-level class for building AMQP clients. This class contains several
@@ -17,7 +19,7 @@ module AMQP
   # One consumer prints messages every second while the second consumer prints
   # messages every 2 seconds. After 5 seconds has elapsed, the 1 second
   # consumer is deleted.
-  #
+  #find_exchange(name)
   # Of interest is the relationship of EventMachine to the process. All AMQP
   # operations must occur within the context of an EM.run block. We start
   # EventMachine in its own thread with an empty block; all subsequent calls
@@ -99,19 +101,15 @@ module AMQP
   #  [:publishing, Tue Jan 06 22:46:20 -0600 2009]
   #  ["every 2 seconds", :received, Tue Jan 06 22:46:20 -0600 2009]
   #
-  class Channel
-
-    #
-    # Behaviors
-    #
-
-    include EM::Deferrable
-
-
+  class Channel < AMQ::Client::Channel
 
     #
     # API
     #
+
+    attr_reader :channel, :connection, :status
+    alias :conn :connection
+
 
     # Returns a new channel. A channel is a bidirectional virtual
     # connection between the client and the AMQP server. Elsewhere in the
@@ -130,30 +128,18 @@ module AMQP
     #    channel = AMQP::Channel.new AMQP::connect
     #  end
     #
-    def initialize(connection = nil)
+    # @api public
+    def initialize(connection = nil, id = self.class.next_channel_id, &block)
       raise 'AMQP can only be used from within EM.run {}' unless EM.reactor_running?
-
-      @_send_mutex = Mutex.new
-      @get_queue_mutex = Mutex.new
 
       @connection = connection || AMQP.start
 
-      conn.callback { |c|
-        @channel = c.add_channel(self)
-        send Protocol::Channel::Open.new
-      }
+      super(@connection, id)
+
+      @rpcs       = Hash.new
+
+      self.open(&block)
     end
-
-    attr_reader :channel, :connection, :status
-    alias :conn :connection
-
-    def closed?
-      @status.eql?(:closed)
-    end
-
-    def open?
-      !self.closed?
-    end # open?
 
     # Defines, intializes and returns an Exchange to act as an ingress
     # point for all published messages.
@@ -228,17 +214,28 @@ module AMQP
     # * redeclare an already-declared exchange to a different type
     # * :passive => true and the exchange does not exist (NOT_FOUND)
     #
+    # @api public
     def direct(name = 'amq.direct', opts = {}, &block)
-      if exchange = self.exchanges.find { |exchange| exchange.name == name }
+      if exchange = find_exchange(name)
         extended_opts = Exchange.add_default_options(:direct, name, opts, block)
 
         validate_parameters_match!(exchange, extended_opts)
 
         exchange
       else
-        self.exchanges << Exchange.new(self, :direct, name, opts, &block)
+        register_exchange(Exchange.new(self, :direct, name, opts, &block))
       end
     end
+
+    # Returns exchange object with the same name as default (aka unnamed) exchange.
+    # Default exchange is a direct exchange and automatically routes messages to
+    # queues when routing key matches queue name exactly.
+    #
+    # api public
+    def default_exchange
+      Exchange.default(self)
+    end
+
 
     # Defines, intializes and returns an Exchange to act as an ingress
     # point for all published messages.
@@ -322,17 +319,19 @@ module AMQP
     # * redeclare an already-declared exchange to a different type
     # * :passive => true and the exchange does not exist (NOT_FOUND)
     #
+    # @api public
     def fanout(name = 'amq.fanout', opts = {}, &block)
-      if exchange = self.exchanges.find { |exchange| exchange.name == name }
+      if exchange = find_exchange(name)
         extended_opts = Exchange.add_default_options(:fanout, name, opts, block)
 
         validate_parameters_match!(exchange, extended_opts)
 
         exchange
       else
-        self.exchanges << Exchange.new(self, :fanout, name, opts, &block)
+        register_exchange(Exchange.new(self, :fanout, name, opts, &block))
       end
     end
+
 
     # Defines, intializes and returns an Exchange to act as an ingress
     # point for all published messages.
@@ -442,17 +441,20 @@ module AMQP
     # * redeclare an already-declared exchange to a different type
     # * :passive => true and the exchange does not exist (NOT_FOUND)
     #
+    # @api public
     def topic(name = 'amq.topic', opts = {}, &block)
-      if exchange = self.exchanges.find { |exchange| exchange.name == name }
+      if exchange = find_exchange(name)
         extended_opts = Exchange.add_default_options(:topic, name, opts, block)
 
         validate_parameters_match!(exchange, extended_opts)
 
         exchange
       else
-        self.exchanges << Exchange.new(self, :topic, name, opts, &block)
+        register_exchange(Exchange.new(self, :topic, name, opts, &block))
       end
     end
+
+
 
     # Defines, intializes and returns an Exchange to act as an ingress
     # point for all published messages.
@@ -530,17 +532,20 @@ module AMQP
     # * redeclare an already-declared exchange to a different type
     # * :passive => true and the exchange does not exist (NOT_FOUND)
     # * using a value other than "any" or "all" for "x-match"
+    #
+    # @api public
     def headers(name = 'amq.match', opts = {}, &block)
-      if exchange = self.exchanges.find { |exchange| exchange.name == name }
+      if exchange = find_exchange(name)
         extended_opts = Exchange.add_default_options(:headers, name, opts, block)
 
         validate_parameters_match!(exchange, extended_opts)
 
         exchange
       else
-        self.exchanges << Exchange.new(self, :headers, name, opts, &block)
+        register_exchange(Exchange.new(self, :headers, name, opts, &block))
       end
     end
+
 
     # Queues store and forward messages.  Queues can be configured in the server
     # or created at runtime.  Queues must be attached to at least one exchange
@@ -608,21 +613,38 @@ module AMQP
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
+    # @api public
     def queue(name, opts = {}, &block)
-      if queue = self.queues.find { |queue| queue.name == name }
+      if queue = find_queue(name)
         extended_opts = Queue.add_default_options(name, opts, block)
 
         validate_parameters_match!(queue, extended_opts)
 
         queue
       else
-        self.queues << Queue.new(self, name, opts, &block)
+        queue = if block.nil?
+                  Queue.new(self, name, opts)
+                else
+                  shim = Proc.new { |queue_name, consumer_count, message_count|
+                    queue = find_queue(queue_name)
+                    if block.arity == 1
+                      block.call(queue)
+                    else
+                      block.call(queue, consumer_count, message_count)
+                    end
+                  }
+                  Queue.new(self, name, opts, &shim)
+                end
+
+        register_queue(queue)
       end
     end
 
+
     def queue!(name, opts = {}, &block)
-      self.queues.add! Queue.new(self, name, opts, &block)
+      # TODO
     end
+
 
     # Takes a channel, queue and optional object.
     #
@@ -660,270 +682,72 @@ module AMQP
     #    end
     #  end
     #
+    # @api public
     def rpc(name, obj = nil)
-      rpcs[name] ||= RPC.new(self, name, obj)
+      RPC.new(self, name, obj)
     end
 
-    def close(&block)
-      @on_close = block
-      if @deferred_status == :succeeded
-        send Protocol::Channel::Close.new(:reply_code => 200,
-                                          :reply_text => 'bye',
-                                          :method_id => 0,
-                                          :class_id => 0)
-      else
-        @closing = true
-      end
+
+    def register_rpc(rpc)
+      raise ArgumentError, "argument is nil!" unless rpc
+
+      @rpcs[rpc.name] = rpc
+    end # register_rpc(rpc)
+
+    def find_rpc(name)
+      @rpcs[name]
     end
+
 
     # Define a message and callback block to be executed on all
     # errors.
-    def self.error msg = nil, &blk
-      if blk
-        @error_callback = blk
-      else
-        @error_callback.call(msg) if @error_callback and msg
-      end
-    end
-
-    def prefetch(size)
-      @prefetch_size = size
-
-      send Protocol::Basic::Qos.new(:prefetch_size => 0, :prefetch_count => size, :global => false)
-
-      self
-    end
-
-    # Asks the broker to redeliver all unacknowledged messages on this
-    # channel.
     #
-    # * requeue (default false)
-    # If this parameter is false, the message will be redelivered to the original recipient.
-    # If this flag is true, the server will attempt to requeue the message, potentially then
-    # delivering it to an alternative subscriber.
-    #
-    def recover(requeue = false)
-      send Protocol::Basic::Recover.new(:requeue => requeue)
-      self
+    # @api public
+    def self.error(msg = nil, &block)
+      # TODO
     end
 
-    # Returns a hash of all the exchange proxy objects.
-    #
-    # Not typically called by client code.
-    def exchanges
-      @exchanges ||= AMQP::Collection.new
+    # @api public
+    def prefetch(size, global = false, &block)
+      # RabbitMQ as of 2.3.1 does not support prefetch_size.
+      self.qos(0, size, global, &block)
     end
 
-    # Returns a hash of all the queue proxy objects.
-    #
-    # Not typically called by client code.
-    def queues
-      @queues ||= AMQP::Collection.new
-    end
 
-    def get_queue
-      if block_given?
-        @get_queue_mutex.synchronize {
-          yield( @get_queue ||= [] )
-        }
-      end
-    end
 
     # Returns a hash of all rpc proxy objects.
     #
-    # Not typically called by client code.
+    # Most of the time, this method is not
+    # called by application code.
+    # @api plugin
     def rpcs
-      @rcps ||= {}
+      @rpcs.values
     end
 
-    # Queue objects keyed on their consumer tags.
+
+    # Resets channel state (for example, list of registered queue objects and so on).
     #
-    # Not typically called by client code.
-    def consumers
-      @consumers ||= {}
-    end
-
+    # Most of the time, this method is not
+    # called by application code.
+    # @api plugin
     def reset
-      @deferred_status = nil
-      @channel = nil
-      initialize @connection
-
-      @consumers = {}
-
-      exs = @exchanges
-      @exchanges = AMQP::Collection.new
-      exs.each { |e| e.reset } if exs
-
-      qus = @queues
-      @queues = AMQP::Collection.new
-      qus.each { |q| q.reset } if qus
-
-      prefetch(@prefetch_size) if @prefetch_size
+      # TODO
     end
 
+    def self.channel_id_mutex
+      @channel_id_mutex ||= Mutex.new
+    end
 
-    #
-    # Implementation
-    #
+    def self.next_channel_id
+      channel_id_mutex.synchronize do
+        @last_channel_id ||= 0
+        @last_channel_id += 1
 
-    # May raise a AMQP::Channel::Error exception when the frame payload contains a
-    # Protocol::Channel::Close object.
-    #
-    # This usually occurs when a client attempts to perform an illegal
-    # operation. A short, and incomplete, list of potential illegal operations
-    # follows:
-    # * publish a message to a deleted exchange (NOT_FOUND)
-    # * declare an exchange using the reserved 'amq.' naming structure (ACCESS_REFUSED)
-    #
-    def process_frame(frame)
-      log :received, frame
-
-      case frame
-      when Frame::Header
-        @header = frame.payload
-        @body = ''
-        check_content_completion
-
-      when Frame::Body
-        @body << frame.payload
-        check_content_completion
-
-      when Frame::Method
-        handle_method(frame)
+        @last_channel_id
       end
-    end # process_frame
-
-
-    def send(*args)
-      conn.callback { |c|
-        @_send_mutex.synchronize do
-          args.each do |data|
-            unless self.closed?
-              data.ticket = @ticket if @ticket and data.respond_to? :ticket=
-                log :sending, data
-              c.send data, :channel => @channel
-            else
-              unless data.class == AMQP::Protocol::Channel::CloseOk
-                raise ChannelClosedError.new(self)
-              end
-            end
-          end
-        end
-      }
-    end # send
-
-
-    def check_content_completion
-      if @body.length >= @header.size
-        @header.properties.update(@method.arguments)
-        @consumer.receive @header, @body if @consumer
-        @body = @header = @consumer = @method = nil
-      end
-    end # check_content_completion
+    end
 
     protected
-
-    def handle_method(frame)
-      case method = frame.payload
-      when Protocol::Channel::OpenOk
-        send Protocol::Access::Request.new(:realm => '/data',
-                                           :read => true,
-                                           :write => true,
-                                           :active => true,
-                                           :passive => true)
-
-      when Protocol::Access::RequestOk
-        @ticket = method.ticket
-        callback {
-          send Protocol::Channel::Close.new(:reply_code => 200,
-                                            :reply_text => 'bye',
-                                            :method_id => 0,
-                                            :class_id => 0)
-        } if @closing
-        succeed
-
-      when Protocol::Basic::CancelOk
-        if @consumer = consumers[ method.consumer_tag ]
-          @consumer.cancelled
-        else
-          AMQP::Channel.error "Basic.CancelOk for invalid consumer tag: #{method.consumer_tag}"
-        end
-
-      when Protocol::Exchange::DeclareOk
-        # We can't use exchanges[method.exchange] because if the name would
-        # be an empty string, then AMQP broker generated a random one.
-        exchanges = self.exchanges.select { |exchange| exchange.opts[:nowait].eql?(false) }
-        exchange  = exchanges.reverse.find { |exchange| exchange.status.eql?(:unfinished) }
-        exchange.receive_response method
-
-      when Protocol::Queue::DeclareOk
-        # We can't use queues[method.queue] because if the name would
-        # be an empty string, then AMQP broker generated a random one.
-        queues = self.queues.select { |queue| queue.opts[:nowait].eql?(false) }
-        queue  = queues.reverse.find { |queue| queue.status.eql?(:unfinished) }
-        queue.receive_status method
-
-      when Protocol::Queue::BindOk
-        # We can't use queues[method.queue] because if the name would
-        # be an empty string, then AMQP broker generated a random one.
-        queues = self.queues.select { |queue| queue.sync_bind }
-        queue  = queues.reverse.find { |queue| queue.status.eql?(:unbound) }
-        queue.after_bind method
-
-      when Protocol::Basic::Deliver, Protocol::Basic::GetOk
-        @method = method
-        @header = nil
-        @body = ''
-
-        if method.is_a? Protocol::Basic::GetOk
-          @consumer = get_queue { |q| q.shift }
-          AMQP::Channel.error "No pending Basic.GetOk requests" unless @consumer
-        else
-          @consumer = consumers[ method.consumer_tag ]
-          AMQP::Channel.error "Basic.Deliver for invalid consumer tag: #{method.consumer_tag}" unless @consumer
-        end
-
-      when Protocol::Basic::GetEmpty
-        if @consumer = get_queue { |q| q.shift }
-          @consumer.receive nil, nil
-        else
-          AMQP::Channel.error "Basic.GetEmpty for invalid consumer"
-        end
-
-      when Protocol::Channel::Close
-        @status = :closed
-        AMQP::Channel.error "#{method.reply_text} in #{Protocol.classes[method.class_id].methods[method.method_id]} on #{@channel}"
-
-      when Protocol::Channel::CloseOk
-        @status = :closed
-        @on_close && @on_close.call(self)
-
-        @closing = false
-        conn.callback { |c|
-          c.channels.delete @channel
-          c.close if c.channels.empty?
-        }
-
-      when Protocol::Basic::ConsumeOk
-        if @consumer = consumers[ method.consumer_tag ]
-          @consumer.confirm_subscribe
-        else
-          AMQP::Channel.error "Basic.ConsumeOk for invalid consumer tag: #{method.consumer_tag}"
-        end
-      when Protocol::Basic::Return
-        @method = method
-      end # case      
-    end # handle_method(frame)
-
-
-
-    private
-
-    def log(*args)
-      return unless AMQP::logging
-      pp args
-      puts
-    end # log
 
     def validate_parameters_match!(entity, parameters)
       unless entity.opts == parameters || parameters[:passive]
@@ -933,5 +757,9 @@ module AMQP
   end # Channel
 end # AMQP
 
-
+# Backwards compatibility
 MQ = AMQP::Channel
+class MQ
+  Exchange = ::AMQP::Exchange
+  Queue    = ::AMQP::Queue
+end

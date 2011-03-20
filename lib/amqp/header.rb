@@ -2,32 +2,37 @@
 
 module AMQP
   class Header
-    def initialize(mq, header_obj)
-      @mq = mq
-      @header = header_obj
+
+    #
+    # API
+    #
+
+    # @api public
+    def initialize(channel, header, delivery_tag = nil)
+      @channel      = channel
+      @header       = header
+      @delivery_tag = delivery_tag
     end
 
     # Acknowledges the receipt of this message with the server.
-    def ack
-      @mq.callback {
-        @mq.send Protocol::Basic::Ack.new(:delivery_tag => properties[:delivery_tag])
-      }
+    # @api public
+    def ack(multiple = false)
+      @channel.acknowledge(@delivery_tag, multiple)
     end
 
     # Reject this message.
     # * :requeue => true | false (default false)
+    # @api public
     def reject(opts = {})
-      @mq.callback {
-        @mq.send Protocol::Basic::Reject.new(opts.merge(:delivery_tag => properties[:delivery_tag]))
-      }
+      @channel.reject(@delivery_tag, opts.fetch(:requeue, false))
     end
+
+    def to_hash
+      @header
+    end # to_hash
 
     def method_missing(meth, *args, &blk)
-      @header.send meth, *args, &blk
+      @header.__send__(meth, *args, &blk)
     end
-
-    def inspect
-      @header.inspect
-    end
-  end
-end
+  end # Header
+end # AMQP

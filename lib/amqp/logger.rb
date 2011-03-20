@@ -89,3 +89,9 @@ module AMQP
     end
   end
 end
+
+
+MQ = AMQP::Channel
+class MQ
+  Logger = ::AMQP::Logger
+end

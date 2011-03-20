@@ -51,17 +51,3 @@ AMQP.start(:host => 'localhost') do |connection|
   watch_us_stocks
 
 end
-
-__END__
-
-[Fri Aug 15 01:39:00 -0700 2008, :publishing, "usd.appl", 173.45]
-[Fri Aug 15 01:39:00 -0700 2008, :publishing, "usd.msft", 26.98]
-[Fri Aug 15 01:39:00 -0700 2008, "apple stock", "173.45"]
-[Fri Aug 15 01:39:00 -0700 2008, "us stock", "usd.appl", "173.45"]
-[Fri Aug 15 01:39:00 -0700 2008, "us stock", "usd.msft", "26.98"]
-
-[Fri Aug 15 01:39:01 -0700 2008, :publishing, "usd.appl", 179.72]
-[Fri Aug 15 01:39:01 -0700 2008, :publishing, "usd.msft", 26.56]
-[Fri Aug 15 01:39:01 -0700 2008, "apple stock", "179.72"]
-[Fri Aug 15 01:39:01 -0700 2008, "us stock", "usd.appl", "179.72"]
-[Fri Aug 15 01:39:01 -0700 2008, "us stock", "usd.msft", "26.56"]

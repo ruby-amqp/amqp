@@ -1,10 +1,18 @@
 # encoding: utf-8
 
+require "amq/client/queue"
+
 module AMQP
-  class Queue
-    def self.add_default_options(name, opts, block)
-      { :queue => name, :nowait => block.nil? }.merge(opts)
-    end
+  class Queue < AMQ::Client::Queue
+
+    #
+    # API
+    #
+
+    attr_reader :name, :sync_bind
+    attr_accessor :opts, :on_declare, :on_bind
+
+
 
     # Queues store and forward messages.  Queues can be configured in the server
     # or created at runtime.  Queues must be attached to at least one exchange
@@ -65,23 +73,25 @@ module AMQP
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
-    def initialize(mq, name, opts = {}, &block)
-      @mq = mq
-      @opts = self.class.add_default_options(name, opts, block)
-      @bindings ||= {}
-      @name = name unless name.empty?
-      @status = @opts[:nowait] ? :unknown : :unfinished
-      @mq.callback {
-        @mq.send Protocol::Queue::Declare.new(@opts)
-      }
+    # @api public
+    def initialize(channel, name, opts = {}, &block)
+      @channel  = channel
+      @opts     = self.class.add_default_options(name, opts, block)
+      @key      = opts[:key]
+      @name     = name unless name.empty?
+      @bindings = Hash.new
 
-      self.callback = block
+      if @opts[:nowait]
+        @status = :finished
+        block.call(self) if block
+      else
+        @status = :unfinished
+      end
 
-      block.call(self) if @opts[:nowait] && block
+      super(channel.connection, channel, name)
+      self.declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], @opts[:nowait], nil, &block)
     end
 
-    attr_reader :name, :sync_bind
-    attr_accessor :opts, :callback, :bind_callback
 
     # This method binds a queue to an exchange.  Until a queue is
     # bound it will not receive any messages.  In a classic messaging
@@ -116,24 +126,21 @@ module AMQP
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
+    # @api public
     def bind(exchange, opts = {}, &block)
-      @status = :unbound
-      @sync_bind = ! opts[:nowait]
-      exchange = exchange.respond_to?(:name) ? exchange.name : exchange
+      @status             = :unbound
+      @sync_bind          = !opts[:nowait]
+      # amq-client's Queue already does exchange.respond_to?(:name) ? exchange.name : exchange
+      # for us
+      exchange            = exchange
       @bindings[exchange] = opts
 
-      @mq.callback {
-        @mq.send Protocol::Queue::Bind.new({ :queue => name,
-                                             :exchange => exchange,
-                                             :routing_key => opts[:key],
-                                             :nowait => block.nil? }.merge(opts))
-      }
-      self.bind_callback = block
-
-      block.call(self) if opts[:nowait] && block
+      # TODO: we should handle nil routing key in amq-protocol
+      super(exchange, (opts[:key] || opts[:routing_key] || ""), (opts[:nowait] || block.nil?), opts[:arguments], &block)
 
       self
     end
+
 
     # Remove the binding between the queue and exchange. The queue will
     # not receive any more messages until it is bound to another
@@ -149,18 +156,11 @@ module AMQP
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
-    def unbind(exchange, opts = {})
-      exchange = exchange.respond_to?(:name) ? exchange.name : exchange
-      @bindings.delete exchange
-
-      @mq.callback {
-        @mq.send Protocol::Queue::Unbind.new({ :queue => name,
-                                               :exchange => exchange,
-                                               :routing_key => opts[:key],
-                                               :nowait => true }.merge(opts))
-      }
-      self
+    # @api public
+    def unbind(exchange, opts = {}, &block)
+      super(exchange, (opts[:key] || opts[:routing_key] || AMQ::Protocol::EMPTY_STRING), opts[:arguments], &block)
     end
+
 
     # This method deletes a queue.  When a queue is deleted any pending
     # messages are sent to a dead-letter queue if this is defined in the
@@ -182,24 +182,25 @@ module AMQP
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
-    def delete(opts = {})
-      @mq.callback {
-        @mq.send Protocol::Queue::Delete.new({ :queue => name,
-                                               :nowait => true }.merge(opts))
-      }
-      @mq.queues.delete @name
+    # @api public
+    def delete(opts = {}, &block)
+      super(opts.fetch(:if_unused, false), opts.fetch(:if_empty, false), opts.fetch(:nowait, false), &block)
+
+      # backwards compatibility
       nil
     end
 
+
     # Purge all messages from the queue.
     #
-    def purge(opts = {})
-      @mq.callback {
-        @mq.send Protocol::Queue::Purge.new({ :queue => name,
-                                              :nowait => true }.merge(opts))
-      }
+    # @api public
+    def purge(opts = {}, &block)
+      super(opts.fetch(:nowait, false), &block)
+
+      # backwards compatibility
       nil
     end
+
 
     # This method provides a direct access to the messages in a queue
     # using a synchronous dialogue that is designed for specific types of
@@ -250,29 +251,32 @@ module AMQP
     # the cost of reliability.  Messages can get lost if a client dies
     # before it can deliver them to the application.
     #
-    # * :nowait => true | false (default true)
-    # If set, the server will not respond to the method. The client should
-    # not wait for a reply method.  If the server could not complete the
-    # method it will raise a channel or connection exception.
-    #
-    def pop(opts = {}, &blk)
-      if blk
-        @on_pop = blk
-        @on_pop_opts = opts
-      end
-
-      @mq.callback {
-        @mq.get_queue { |q|
-          q.push(self)
-          @mq.send Protocol::Basic::Get.new({ :queue => name,
-                                              :consumer_tag => name,
-                                              :no_ack => !opts[:ack],
-                                              :nowait => true }.merge(opts))
+    # @api public
+    def pop(opts = {}, &block)
+      if block
+        # We have to maintain this multiple arities jazz
+        # because older versions this gem are used in examples in at least 3
+        # books published by O'Reilly :(. MK.
+        shim = Proc.new { |headers, payload, delivery_tag, redelivered, exchange, routing_key|
+          case block.arity
+          when 1 then
+            block.call(payload)
+          when 2 then
+            h = Header.new(@channel, headers.decode_payload, delivery_tag)
+            block.call(h, payload)
+          else
+            h = Header.new(@channel, headers ? headers.decode_payload : nil, delivery_tag)
+            block.call(h, payload, delivery_tag, redelivered, exchange, routing_key)
+          end
         }
-      }
 
-      self
+        # see AMQ::Client::Queue#get in amq-client
+        self.get(!opts.fetch(:ack, false), &shim)
+      else
+        self.get(!opts.fetch(:ack, false))
+      end
     end
+
 
     # Subscribes to asynchronous message delivery.
     #
@@ -328,24 +332,34 @@ module AMQP
     # automatically set :nowait => false. This is required for the server
     # to send a confirmation.
     #
-    def subscribe(opts = {}, &blk)
-      @consumer_tag = "#{name}-#{Kernel.rand(999_999_999_999)}"
-      @mq.consumers[@consumer_tag] = self
+    # @api public
+    def subscribe(opts = {}, &block)
+      raise Error, 'already subscribed to the queue' if @consumer_tag
 
-      raise Error, 'already subscribed to the queue' if subscribed?
-
-      @on_msg = blk
-      @on_msg_opts = opts
       opts[:nowait] = false if (@on_confirm_subscribe = opts[:confirm])
 
-      @mq.callback {
-        @mq.send Protocol::Basic::Consume.new({ :queue => name,
-                                                :consumer_tag => @consumer_tag,
-                                                :no_ack => !opts[:ack],
-                                                :nowait => true }.merge(opts))
+      # We have to maintain this multiple arities jazz
+      # because older versions this gem are used in examples in at least 3
+      # books published by O'Reilly :(. MK.
+      delivery_shim = Proc.new { |headers, payload, consumer_tag, delivery_tag, redelivered, exchange, routing_key|
+        case block.arity
+        when 1 then
+          block.call(payload)
+        when 2 then
+          h = Header.new(@channel, headers.decode_payload, delivery_tag)
+          block.call(h, payload)
+        else
+          h = Header.new(@channel, headers.decode_payload, delivery_tag)
+          block.call(h, payload, consumer_tag, delivery_tag, redelivered, exchange, routing_key)
+        end
       }
+
+      self.consume(!opts[:ack], opts[:exclusive], (opts[:nowait] || block.nil?), opts[:no_local], nil, &opts[:confirm])
+      self.on_delivery(&delivery_shim)
+
       self
     end
+
 
     # Removes the subscription from the queue and cancels the consumer.
     # New messages will not be received by the queue. This call is similar
@@ -368,44 +382,11 @@ module AMQP
     # not wait for a reply method.  If the server could not complete the
     # method it will raise a channel or connection exception.
     #
-    def unsubscribe(opts = {}, &blk)
-      @on_cancel = blk
-      @mq.callback {
-        @mq.send Protocol::Basic::Cancel.new({ :consumer_tag => @consumer_tag }.merge(opts))
-      }
-      self
-    end
-
-    def publish(data, opts = {})
-      exchange.publish(data, opts)
-    end
-
-    # Boolean check to see if the current queue has already been subscribed
-    # to an exchange.
-    #
-    # Attempts to #subscribe multiple times to any exchange will raise an
-    # Exception. Only a single block at a time can be associated with any
-    # one queue for processing incoming messages.
-    #
-    def subscribed?
-      !!@on_msg
-    end
-
-    # Passes the message to the block passed to pop or subscribe.
-    #
-    # Performs an arity check on the block's parameters. If arity == 1,
-    # pass only the message body. If arity != 1, pass the headers and
-    # the body to the block.
-    #
-    # See AMQP::Protocol::Header for the hash properties available from
-    # the headers parameter. See #pop or #subscribe for a code example.
-    #
-    def receive(headers, body)
-      headers = AMQP::Header.new(@mq, headers) unless headers.nil?
-
-      if cb = (@on_msg || @on_pop)
-        cb.call *(cb.arity == 1 ? [body] : [headers, body])
-      end
+    # @api public
+    def unsubscribe(opts = {}, &block)
+      # @consumer_tag is nillified for us by AMQ::Client::Queue, that is,
+      # our superclass. MK.
+      self.cancel(opts.fetch(:nowait, true), &block)
     end
 
     # Get the number of messages and consumers on a queue.
@@ -414,79 +395,78 @@ module AMQP
     #   puts num_messages
     #  }
     #
-    def status(opts = {}, &blk)
-      return @status if opts.empty? && blk.nil?
+    # @api public
+    def status(opts = {}, &block)
+      raise ArgumentError, "AMQP::Queue#status does not make any sense without a block" unless block
 
-      @on_status = blk
-      @mq.callback {
-        @mq.send Protocol::Queue::Declare.new({ :queue => name,
-                                                :passive => true }.merge(opts))
-      }
-      self
+      shim = Proc.new { |queue_name, consumer_count, message_count| block.call(message_count, consumer_count) }
+
+      self.declare(true, @durable, @exclusive, @auto_delete, false, nil, &shim)
     end
 
-    def receive_status(declare_ok)
-      @name = declare_ok.queue
-      @status = :finished
 
-      if self.callback
-        # compatibility for a common case when callback only takes one argument
-        if self.callback.arity == 1
-          self.callback.call(self)
-        else
-          self.callback.call(self, declare_ok.message_count, declare_ok.consumer_count)
-        end
-      end
-
-      if @on_status
-        m, c = declare_ok.message_count, declare_ok.consumer_count
-        @on_status.call *(@on_status.arity == 1 ? [m] : [m, c])
-        @on_status = nil
-      end
+    # Boolean check to see if the current queue has already subscribed
+    # to messages delivery.
+    #
+    # Attempts to #subscribe multiple times to any exchange will raise an
+    # Exception. Only a single block at a time can be associated with any
+    # one queue for processing incoming messages.
+    #
+    # @api public
+    def subscribed?
+      !!@consumer_tag
     end
 
-    def after_bind(bind_ok)
-      @status = :bound
-      if self.bind_callback
-        self.bind_callback.call(self)
-      end
+
+    # Compatibility alias for #on_declare.
+    #
+    # @api public
+    # @deprecated
+    def callback
+      @on_declare
     end
 
-    def confirm_subscribe
-      @on_confirm_subscribe.call if @on_confirm_subscribe
-      @on_confirm_subscribe = nil
+    # Compatibility alias for #on_bind.
+    #
+    # @api public
+    # @deprecated
+    def bind_callback
+      @on_bind
     end
 
-    def cancelled
-      @on_cancel.call if @on_cancel
-      @on_cancel = @on_msg = nil
-      @mq.consumers.delete @consumer_tag
-      @mq.queues.delete(@name) if @opts[:auto_delete]
-      @consumer_tag = nil
+
+
+
+    # Don't use this method. Just don't. It is a leftover from very early days and
+    # it ruins the whole point of exchanges/queue separation.
+    #
+    # @note This method will be removed before 1.0 release
+    # @deprecated
+    # @api public
+    def publish(data, opts = {})
+      exchange.publish(data, opts)
     end
 
+    # @api plugin
     def reset
-      @deferred_status = nil
-      initialize @mq, @name, @opts
+      # TODO
+    end
 
-      binds = @bindings
-      @bindings = {}
-      binds.each { |ex, opts| bind(ex, opts) }
 
-      if blk = @on_msg
-        @on_msg = nil
-        subscribe @on_msg_opts, &blk
-      end
+    protected
 
-      if @on_pop
-        pop @on_pop_opts, &@on_pop
-      end
+    def self.add_default_options(name, opts, block)
+      { :queue => name, :nowait => block.nil? }.merge(opts)
     end
 
     private
 
+    # Default direct exchange that we use to publish messages directly to this queue.
+    # This is a leftover from very early days and will be removed before version 1.0.
+    #
+    # @deprecated
     def exchange
-      @exchange ||= Exchange.new(@mq, :direct, '', :key => name)
+      @exchange ||= Exchange.new(@channel, :direct, AMQ::Protocol::EMPTY_STRING, :key => name)
     end
-  end
-end
+  end # Queue
+end # AMQP

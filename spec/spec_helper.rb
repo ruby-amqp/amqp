@@ -6,8 +6,17 @@ require 'bundler'
 Bundler.setup
 Bundler.require :default, :test
 
-require "amqp-spec"
 require "amqp"
+
+require "evented-spec"
+def em_amqp_connect(&block)
+  em do
+    AMQ::Client::EventMachineClient.connect(:port => 5672, :vhost => "/amq_client_testbed", :frame_max => 65536, :heartbeat_interval => 1) do |client|
+      yield client
+    end
+  end
+end
+
 
 amqp_config = File.dirname(__FILE__) + '/amqp.yml'
 
@@ -27,54 +36,19 @@ else
   AMQP_OPTS = {:host => 'localhost', :port => 5672}
 end
 
+
 #
 # Ruby version-specific
 #
 
 case RUBY_VERSION
 when "1.8.7" then
-  module ArrayExtensions
-    def sample
-      self.choice
-    end # sample
-  end
-
   class Array
-    include ArrayExtensions
+    alias sample choice
   end
 when "1.8.6" then
   raise "Ruby 1.8.6 is not supported. Sorry, pal. Time to move on beyond One True Ruby. Yes, time flies by."
 when /^1.9/ then
-  puts "Encoding.default_internal was #{Encoding.default_internal || 'not set'}, switching to #{Encoding::UTF_8}"
   Encoding.default_internal = Encoding::UTF_8
-
-  puts "Encoding.default_external was #{Encoding.default_internal || 'not set'}, switching to #{Encoding::UTF_8}"
   Encoding.default_external = Encoding::UTF_8
-end
-
-
-# Returns Header that should be correctly parsed
-def basic_header(opts = {})
-  AMQP::Frame::Header.new(
-      AMQP::Protocol::Header.new(
-          AMQP::Protocol::Basic, :priority => 1), opts[:channel] || 0)
-end
-
-# Returns AMQP Frame::Header frame that contains Protocol::Header header
-# with (pre-)defined accessors set.
-def test_header opts = {}
-  AMQP::Frame::Header.new(
-      AMQP::Protocol::Header.new(
-          opts[:klass] || AMQP::Protocol::Test,
-          opts[:size] || 4,
-          opts[:weight] || 2,
-          opts[:properties] || {:delivery_mode => 1}))
-end
-
-# Returns AMQP Frame::Method frame that contains Protocol::Basic::Deliver
-# with (pre-)defined accessors set.
-def test_method_deliver opts = {}
-  AMQP::Frame::Method.new(
-      AMQP::Protocol::Basic::Deliver.new(
-          :consumer_tag => opts[:consumer_tag] || 'test_consumer'))
 end

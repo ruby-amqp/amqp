@@ -1,5 +1,7 @@
 # encoding: utf-8
 
+require "amq/client/exchange"
+
 module AMQP
   # An Exchange acts as an ingress point for all published messages. An
   # exchange may also be described as a router or a matcher. Every
@@ -21,7 +23,7 @@ module AMQP
   # an exchange without a name. In these cases the library will use
   # the default exchange for publishing the messages.
   #
-  class Exchange
+  class Exchange < AMQ::Client::Exchange
 
     #
     # API
@@ -31,22 +33,32 @@ module AMQP
     # The default exchange.
     # Every queue is bind to this (direct) exchange by default.
     # You can't remove it or bind there queue explicitly.
-
+    #
     # Do NOT confuse with amq.direct: it's only a normal direct
     # exchange and the only special thing about it is that it's
     # predefined in the system, so you can use it straightaway.
-
+    #
     # Example:
     # AMQP::Channel.new.queue("tasks")
     # AMQP::Channel::Exchange.default.publish("make clean", routing_key: "tasks")
-
+    #
     # For more info see section 2.1.2.4 Automatic Mode of the AMQP 0.9.1 spec.
+    # @api public
     def self.default(channel = nil)
-      self.new(channel || AMQP::Channel.new, :direct, "", :no_declare => true)
+      self.new(channel || AMQP::Channel.new, :direct, AMQ::Protocol::EMPTY_STRING, :no_declare => true)
     end
 
-    def self.add_default_options(type, name, opts, block)
-      { :exchange => name, :type => type, :nowait => block.nil? }.merge(opts)
+
+
+    attr_reader :name, :type, :key, :status
+    attr_accessor :opts, :on_declare
+
+    # Compatibility alias for #on_declare.
+    #
+    # @api public
+    # @deprecated
+    def callback
+      @on_declare
     end
 
     # Defines, intializes and returns an Exchange to act as an ingress
@@ -226,13 +238,28 @@ module AMQP
     # * redeclare an already-declared exchange to a different type (raises AMQP::Channel::IncompatibleOptionsError)
     # * :passive => true and the exchange does not exist (NOT_FOUND)
     #
-    def initialize(mq, type, name, opts = {}, &block)
-      @mq = mq
-      @type, @opts = type, opts
-      @opts = self.class.add_default_options(type, name, opts, block)
-      @key = opts[:key]
-      @name = name unless name.empty?
-      @status = :unknown
+    # @api public
+    def initialize(channel, type, name, opts = {}, &block)
+      @channel = channel
+      @type    = type
+      @opts    = self.class.add_default_options(type, name, opts, block)
+      @key     = opts[:key]
+      @name    = name unless name.empty?
+
+      @status                  = :unknown
+      @default_publish_options = (opts.delete(:default_publish_options) || {
+        :routing_key  => AMQ::Protocol::EMPTY_STRING,
+        :mandatory    => false,
+        :immediate    => false
+      }).freeze
+
+      @default_headers = (opts.delete(:default_headers) || {
+        :content_type => DEFAULT_CONTENT_TYPE,
+        :persistent   => false,
+        :priority     => 0
+      }).freeze
+
+      super(channel.connection, channel, name, type)
 
       # The AMQP 0.8 specification (as well as 0.9.1) in 1.1.4.2 mentiones
       # that Exchange.Declare-Ok confirms the name of the exchange (because
@@ -244,11 +271,9 @@ module AMQP
       # or nameless exchange), so if we'd send Exchange.Declare(exchange=""),
       # then RabbitMQ interpret it as if we'd try to redefine this default
       # exchange so it'd produce an error.
-      unless name == "amq.#{type}" or name == '' or opts[:no_declare]
+      unless name == "amq.#{type}" or name == AMQ::Protocol::EMPTY_STRING or opts[:no_declare]
         @status = :unfinished
-        @mq.callback {
-          @mq.send Protocol::Exchange::Declare.new(@opts)
-        }
+        self.declare(passive = @opts[:passive], durable = @opts[:durable], exclusive = @opts[:exclusive], auto_delete = @opts[:auto_delete], nowait = @opts[:nowait], nil, &block) unless @opts[:no_declare]
       else
         # Call the callback immediately, as given exchange is already
         # declared.
@@ -256,15 +281,13 @@ module AMQP
         block.call(self) if block
       end
 
-      self.callback = block
+      @on_declare = block
     end
 
-    attr_reader :name, :type, :key, :status
-    attr_accessor :opts, :callback
-
+    # @api public
     def channel
-      @mq
-    end # channel
+      @channel
+    end
 
     # This method publishes a staged file message to a specific exchange.
     # The file message will be routed to queues as defined by the exchange
@@ -297,37 +320,29 @@ module AMQP
     # If this flag is zero, the server will queue the message, but with
     # no guarantee that it will ever be consumed.
     #
-    #  * :persistent
-    # True or False. When true, this message will remain in the queue until
+    #  * :persistent => true | false (default false)
+    # When true, this message will remain in the queue until
     # it is consumed (if the queue is durable). When false, the message is
     # lost if the server restarts and the queue is recreated.
     #
     # For high-performance and low-latency, set :persistent => false so the
     # message stays in memory and is never persisted to non-volatile (slow)
-    # storage.
+    # storage (like disk).
     #
     #  * :content_type
     # Content type you want to send the message with. It defaults to "application/octet-stream".
-    def publish(data, opts = {})
-      @mq.callback {
-        out = []
+    #
+    # @api public
+    def publish(payload, options = {})
+      EM.next_tick do
+        opts    = @default_publish_options.merge(options)
 
-        out << Protocol::Basic::Publish.new({ :exchange => name,
-                                              :routing_key => opts[:key] || @key }.merge(opts))
-
-        data = data.to_s
-
-        out << Protocol::Header.new(Protocol::Basic,
-                                    data.bytesize, { opts[:content_type] || :content_type => "application/octet-stream",
-                                                   :delivery_mode => (opts[:persistent] ? 2 : 1),
-                                                   :priority => 0 }.merge(opts))
-
-        out << Frame::Body.new(data)
-
-        @mq.send *out
-      }
-      self
+        super(payload, opts[:key] || opts[:routing_key], @default_headers.merge(options), opts[:mandatory], opts[:immediate])
+      end
     end
+
+    DEFAULT_CONTENT_TYPE = "application/octet-stream".freeze
+
 
     # This method deletes an exchange.  When an exchange is deleted all queue
     # bindings on the exchange are cancelled.
@@ -351,43 +366,42 @@ module AMQP
     # bindings. If the exchange has queue bindings the server does not
     # delete it but raises a channel exception instead (AMQP::Error).
     #
-    def delete(opts = {})
-      @mq.callback {
-        @mq.send Protocol::Exchange::Delete.new({ :exchange => name,
-                                                  :nowait => true }.merge(opts))
-        @mq.exchanges.delete name
-      }
+    # @api public
+    def delete(opts = {}, &block)
+      super(opts.fetch(:if_unused, false), opts.fetch(:nowait, false), &block)
+
+      # backwards compatibility
       nil
     end
 
-
+    # @api public
     def durable?
       !!@opts[:durable]
     end # durable?
 
+    # @api public
     def transient?
       !self.durable?
     end # transient?
 
+    # @api public
     def auto_deleted?
       !!@opts[:auto_delete]
     end # auto_deleted?
     alias auto_deletable? auto_deleted?
 
 
+    # @api plugin
     def reset
       @deferred_status = nil
       initialize @mq, @type, @name, @opts
     end
 
 
+    protected
 
-    #
-    # Implementation
-    #
-
-    def receive_response(response)
-      self.callback && self.callback.call(self)
-    end # receive_response
+    def self.add_default_options(type, name, opts, block)
+      { :exchange => name, :type => type, :nowait => block.nil? }.merge(opts)
+    end
   end # Exchange
 end # AMQP

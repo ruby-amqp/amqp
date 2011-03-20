@@ -1,9 +1,6 @@
 # encoding: utf-8
 
 module AMQP
-
-  # encoding: utf-8
-
   if defined?(BasicObject)
     BlankSlate = BasicObject
   else
@@ -35,6 +32,14 @@ module AMQP
   #  end
   #
   class RPC < ::AMQP::BlankSlate
+
+    #
+    # API
+    #
+
+
+    attr_reader :name
+
     # Takes a channel, queue and optional object.
     #
     # The optional object may be a class name, module name or object
@@ -54,41 +59,49 @@ module AMQP
     # there is a valid destination. Failure to do so will just enqueue
     # marshalled messages that are never consumed.
     #
-    def initialize(mq, queue, obj = nil)
-      @mq = mq
-      @mq.rpcs[queue] ||= self
+    def initialize(channel, queue, obj = nil)
+      @name    = queue
+      @channel = channel
+      @channel.register_rpc(self)
 
-      if obj
-        @obj = case obj
-               when ::Class
-                 obj.new
-               when ::Module
-                 (::Class.new do include(obj) end).new
-               else
-                 obj
-               end
-
-        @mq.queue(queue).subscribe(:ack => true) { |info, request|
+      if @obj = normalize(obj)
+        # server
+        @channel.queue(queue).subscribe(:ack => true) do |info, request|
+          puts "Got a message on the server-side"
           method, *args = ::Marshal.load(request)
-          ret = @obj.__send__(method, *args)
-
-          info.ack
+          ret           = @obj.__send__(method, *args)
 
           if info.reply_to
-            @mq.queue(info.reply_to, :auto_delete => true).publish(::Marshal.dump(ret), :key => info.reply_to, :message_id => info.message_id)
+            info.ack
+            @channel.queue(info.reply_to, :auto_delete => true).
+              publish(::Marshal.dump(ret), :key => info.reply_to, :message_id => info.message_id)
           end
-        }
+        end
       else
-        @callbacks ||= {}
+        # client
+        @callbacks = Hash.new
         # XXX implement and use queue(nil)
-        @queue = @mq.queue(@name = "random identifier #{::Kernel.rand(999_999_999_999)}", :auto_delete => true).subscribe { |info, msg|
+        @reply_to = "random identifier #{::Kernel.rand(999_999_999_999)}"
+
+        @queue = @channel.queue(@reply_to, :auto_delete => true).subscribe do |info, msg|
+          puts "Got a message on the server-side"
           if blk = @callbacks.delete(info.message_id)
             blk.call ::Marshal.load(msg)
           end
-        }
-        @remote = @mq.queue(queue)
+        end
+        @remote = @channel.queue(queue)
       end
     end
+
+
+    def client?
+      @obj.nil?
+    end
+
+    def server?
+      !client?
+    end
+
 
     # Calling AMQP::Channel.rpc(*args) returns a proxy object without any methods beyond
     # those in Object. All calls to the proxy are handled by #method_missing which
@@ -107,8 +120,29 @@ module AMQP
     def method_missing(meth, *args, &blk)
       # XXX use uuids instead
       message_id = "random message id #{::Kernel.rand(999_999_999_999)}"
-      @callbacks[message_id] = blk if blk
-      @remote.publish(::Marshal.dump([meth, *args]), :reply_to => blk ? @name : nil, :message_id => message_id)
+
+      if blk # an invocation
+        @callbacks[message_id] = blk
+      end
+
+      if blk
+        @remote.publish(::Marshal.dump([meth, *args]), :reply_to => @reply_to, :message_id => message_id)
+      else
+        @remote.publish(::Marshal.dump([meth, *args]), :message_id => message_id)
+      end
     end
-  end
-end
+
+    protected
+
+    def normalize(input)
+      case input
+      when ::Class
+        input.new
+      when ::Module
+        (::Class.new do include(obj) end).new
+      else
+        input
+      end
+    end
+  end # RPC
+end # AMQP

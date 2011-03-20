@@ -3,24 +3,22 @@
 $:.unshift(File.expand_path("../../lib", __FILE__))
 require 'amqp'
 
-# For ack to work appropriately you must shutdown AMQP gracefully,
-# otherwise all items in your queue will be returned
-Signal.trap('INT') { AMQP.stop { EM.stop } }
-Signal.trap('TERM') { AMQP.stop { EM.stop } }
 
-AMQP.start(:host => 'localhost') do
-  AMQP::Channel.queue('awesome').publish('Totally rad 1')
-  AMQP::Channel.queue('awesome').publish('Totally rad 2')
-  AMQP::Channel.queue('awesome').publish('Totally rad 3')
+AMQP.start do |connection|
+  puts "Connected!"
+  channel = AMQP::Channel.new(connection)
+  e       = channel.fanout("amqp-gem.examples.ack")
+  q       = channel.queue('amqp-gem.examples.q1').bind(e)
+
+  q.status do |message_count, consumer_count|
+    puts "Queue #{q.name} has #{message_count} messages and #{consumer_count} consumers"
+  end
 
   i = 0
 
   # Stopping after the second item was acked will keep the 3rd item in the queue
-  AMQP::Channel.queue('awesome').subscribe(:ack => true) do |h, m|
-    if (i += 1) == 3
-      puts 'Shutting down...'
-      AMQP.stop { EM.stop }
-    end
+  q.subscribe(:ack => true) do |h, m|
+    puts "Got a message"
 
     if AMQP.closing?
       puts "#{m} (ignored, redelivered later)"
@@ -28,20 +26,41 @@ AMQP.start(:host => 'localhost') do
       puts m
       h.ack
     end
+  end # channel.queue
+
+
+  10.times do |i|
+    puts "Publishing message ##{i}"
+    e.publish("Totally rad #{i}")
   end
-end
 
-__END__
 
-Totally rad 1
-Totally rad 2
-Shutting down...
-Totally rad 3 (ignored, redelivered later)
+  show_stopper = Proc.new {
+    q.status do |message_count, consumer_count|
+      puts "Queue #{q.name} has #{message_count} messages and #{consumer_count} consumers"
+    end
 
-When restarted:
+    q.unbind(e) do
+      puts "Unbound #{q.name} from #{e.name}"
 
-Totally rad 3
-Totally rad 1
-Shutting down...
-Totally rad 2 (ignored, redelivered later)
-Totally rad 3 (ignored, redelivered later)
+      e.delete do
+        puts "Just deleted #{e.name}"
+      end
+
+      q.delete do
+        puts "Just deleted #{q.name}"
+        AMQP.stop do
+          puts "About to stop EM reactor"
+          EM.stop
+        end
+      end
+    end
+  }
+
+  EM.add_timer(3, show_stopper)
+
+  # For ack to work appropriately you must shutdown AMQP gracefully,
+  # otherwise all items in your queue will be returned
+  Signal.trap('INT',  show_stopper)
+  Signal.trap('TERM', show_stopper)
+end # AMQP.start

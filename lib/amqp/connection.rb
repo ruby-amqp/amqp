@@ -2,46 +2,9 @@
 
 require "amqp/ext/em"
 
-require "amqp/buffer"
-require "amqp/spec"
-require "amqp/protocol"
-require "amqp/frame"
 require "amqp/client"
 
 module AMQP
-  class << self
-    @logging = false
-    attr_accessor :logging
-    attr_reader :conn, :closing
-    alias :closing? :closing
-    alias :connection :conn
-  end
-
-  def self.connect *args
-    Client.connect *args
-  end
-
-  def self.settings
-    @settings ||= {
-      # server address
-      :host => '127.0.0.1',
-      :port => PORT,
-
-      # login details
-      :user => 'guest',
-      :pass => 'guest',
-      :vhost => '/',
-
-      # connection timeout
-      :timeout => nil,
-
-      # logging
-      :logging => false,
-
-      # ssl
-      :ssl => false
-    }
-  end
 
   # Must be called to startup the connection to the AMQP server.
   #
@@ -78,38 +41,76 @@ module AMQP
   # it is sufficient to put your code inside of an EventMachine.run
   # block. See the code examples in AMQP for details.
   #
-  def self.start *args, &blk
-    EM.run {
-      @conn ||= connect *args
-      @conn.callback(&blk) if blk
+  # @api public
+  def self.start(*args, &block)
+    EM.run do
+      @conn ||= connect(*args, &block)
       @conn
-    }
-  end
-
-  class << self
-    alias :run :start
-  end
-
-  def self.stop
-    if @conn and not @closing
-      @closing = true
-      EM.next_tick do
-        @conn.close {
-          yield if block_given?
-          @conn = nil
-          @closing = false
-        }
-      end
     end
   end
 
-  def self.fork workers
-    EM.fork(workers) do
-      # clean up globals in the fork
-      Thread.current[:mq] = nil
-      AMQP.instance_variable_set('@conn', nil)
+  # @api public
+  def self.run(*args, &block)
+    start(*args, &block)
+  end
 
-      yield
+  # @api public
+  def self.stop(reply_code = 200, reply_text = "Goodbye", &block)
+    return if closing?
+
+    EM.next_tick do
+      @conn.disconnect(reply_code, reply_text, &block)
     end
   end
-end
+
+  def self.closing?
+    @conn.closing?
+  end
+
+
+  # @api public
+  def self.logging
+    # TODO
+  end
+
+  # @api public
+  def self.logging=(value)
+    # TODO
+  end
+
+
+  # @api public
+  def self.connection
+    # TODO
+  end
+
+  # @api public
+  def self.connection=(value)
+    # TODO
+  end
+
+  # @api public
+  def self.conn
+    # TODO
+  end
+
+  # @api public
+  def self.conn=(value)
+    # TODO
+  end
+
+  # @api public
+  def self.connect(*args, &block)
+    Client.connect(*args, &block)
+  end
+
+  # @api public
+  def self.settings
+    # TODO
+  end
+
+  # @api public
+  def self.fork(workers)
+    # TODO
+  end
+end # AMQP
