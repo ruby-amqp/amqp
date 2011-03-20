@@ -5,14 +5,8 @@ $:.unshift(File.expand_path("../../lib", __FILE__))
 require 'amqp'
 
 if RUBY_VERSION == "1.8.7"
-  module ArrayExtensions
-    def sample
-      self.choice
-    end # sample
-  end
-
   class Array
-    include ArrayExtensions
+    alias sample choice
   end
 end
 

@@ -255,24 +255,28 @@ module AMQP
     #
     # @api public
     def pop(opts = {}, &block)
-      # We have to maintain this multiple arities jazz
-      # because older versions this gem are used in examples in at least 3
-      # books published by O'Reilly :(. MK.
-      shim = Proc.new { |headers, payload, delivery_tag, redelivered, exchange, routing_key|
-        case block.arity
-        when 1 then
-          block.call(payload)
-        when 2 then
-          h = Header.new(@channel, headers.decode_payload)
-          block.call(h, payload)
-        else
-          h = Header.new(@channel, headers.decode_payload)
-          block.call(h, payload, delivery_tag, redelivered, exchange, routing_key)
-        end
-      }
+      if block
+        # We have to maintain this multiple arities jazz
+        # because older versions this gem are used in examples in at least 3
+        # books published by O'Reilly :(. MK.
+        shim = Proc.new { |headers, payload, delivery_tag, redelivered, exchange, routing_key|
+          case block.arity
+          when 1 then
+            block.call(payload)
+          when 2 then
+            h = Header.new(@channel, headers.decode_payload)
+            block.call(h, payload)
+          else
+            h = Header.new(@channel, headers ? headers.decode_payload : nil)
+            block.call(h, payload, delivery_tag, redelivered, exchange, routing_key)
+          end
+        }
 
-      # see AMQ::Client::Queue#get in amq-client
-      self.get(!opts.fetch(:ack, false), &shim)
+        # see AMQ::Client::Queue#get in amq-client
+        self.get(!opts.fetch(:ack, false), &shim)
+      else
+        self.get(!opts.fetch(:ack, false))
+      end
     end
 
 

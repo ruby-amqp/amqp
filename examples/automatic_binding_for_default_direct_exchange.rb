@@ -65,4 +65,6 @@ AMQP.start(:host => 'localhost') do |connection|
     $stdout.puts "Publishing to default exchange with routing key = #{q.name}..."
     exchange.publish "Some payload", :routing_key => q.name
   end
+
+  EM.add_timer(3, show_stopper)
 end

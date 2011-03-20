@@ -4,30 +4,51 @@ $:.unshift(File.expand_path("../../lib", __FILE__))
 require 'amqp'
 require 'pp'
 
-Signal.trap('INT') { AMQP.stop { EM.stop } }
-Signal.trap('TERM') { AMQP.stop { EM.stop } }
-
 AMQP.start do |connection|
-  channel = AMQP::Channel.new(connection)
-  queue   = channel.queue('awesome')
+  channel  = AMQP::Channel.new(connection)
+  exchange = AMQP::Exchange.default
 
-  queue.publish('Totally rad 1')
-  queue.publish('Totally rad 2')
-  EM.add_timer(5) { queue.publish('Totally rad 3') }
+  queue_name = 'awesome'
+  queue      = channel.queue(queue_name)
 
-  queue.pop { |msg|
+  exchange.publish('Totally rad 1', :routing_key => queue_name)
+  exchange.publish('Totally rad 2', :routing_key => queue_name)
+
+  EM.add_periodic_timer(1.5) { exchange.publish("Published at #{Time.now.to_i * 1000}", :routing_key => queue_name) }
+
+
+  pop_handler = Proc.new { |headers, msg, delivery_tag, redelivered, exchange, routing_key|
     unless msg
       # queue was empty
-      p [Time.now, :queue_empty!]
+      p [Time.now, "queue is empty"]
 
       # try again in 1 second
       EM.add_timer(1) { queue.pop }
     else
       # process this message
-      p [Time.now, msg]
+      p [Time.now, msg, delivery_tag, redelivered, exchange, routing_key]
 
       # get the next message in the queue
       queue.pop
     end
   }
+
+  10.times { queue.pop(&pop_handler) }
+
+  EM.add_periodic_timer(1) do
+    queue.pop(&pop_handler)
+  end
+
+
+  show_stopper = Proc.new do
+    $stdout.puts "Stopping..."
+    # now change this to just EM.stop and it
+    # unbinds instantly
+    connection.close {
+      EM.stop { exit }
+    }
+  end
+
+  Signal.trap "INT", show_stopper
+  EM.add_timer(6, show_stopper)
 end
