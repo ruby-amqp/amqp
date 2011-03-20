@@ -3,10 +3,6 @@
 $:.unshift(File.expand_path("../../lib", __FILE__))
 require 'amqp'
 
-# For ack to work appropriately you must shutdown AMQP gracefully,
-# otherwise all items in your queue will be returned
-Signal.trap('INT')  { AMQP.stop { puts "About to stop EM reactor"; EM.stop } }
-Signal.trap('TERM') { AMQP.stop { puts "About to stop EM reactor"; EM.stop } }
 
 AMQP.start do |connection|
   puts "Connected!"
@@ -19,10 +15,6 @@ AMQP.start do |connection|
   # Stopping after the second item was acked will keep the 3rd item in the queue
   q.subscribe(:ack => true) do |h, m|
     puts "Got a message"
-    if (i += 1) == 3
-      puts 'Shutting down...'
-      AMQP.stop { EM.stop }
-    end
 
     if AMQP.closing?
       puts "#{m} (ignored, redelivered later)"
@@ -37,4 +29,23 @@ AMQP.start do |connection|
     puts "Publishing message ##{i}"
     e.publish("Totally rad #{i}")
   end
+
+
+  show_stopper = Proc.new {
+    q.unbind(e) do
+      puts "Unbound #{q.name} from #{e.name}"
+
+      AMQP.stop do
+        puts "About to stop EM reactor"
+        EM.stop
+      end
+    end
+  }
+
+  EM.add_timer(3, show_stopper)
+
+  # For ack to work appropriately you must shutdown AMQP gracefully,
+  # otherwise all items in your queue will be returned
+  Signal.trap('INT',  show_stopper)
+  Signal.trap('TERM', show_stopper)
 end # AMQP.start

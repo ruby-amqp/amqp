@@ -385,8 +385,8 @@ module AMQP
     # method it will raise a channel or connection exception.
     #
     # @api public
-    def unsubscribe(opts = {}, &blk)
-      # TODO
+    def unsubscribe(opts = {}, &block)
+      self.cancel(opts.fetch(:nowait, true), &block)
     end
 
     # Get the number of messages and consumers on a queue.
