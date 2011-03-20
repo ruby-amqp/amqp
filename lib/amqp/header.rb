@@ -26,12 +26,12 @@ module AMQP
       # TODO
     end
 
-    def method_missing(meth, *args, &blk)
-      @header.send(meth, *args, &blk)
-    end
+    def to_hash
+      @header
+    end # to_hash
 
-    def inspect
-      @header.inspect
+    def method_missing(meth, *args, &blk)
+      @header.__send__(meth, *args, &blk)
     end
   end # Header
 end # AMQP
