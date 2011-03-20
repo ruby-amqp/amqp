@@ -8,22 +8,23 @@ module AMQP
     #
 
     # @api public
-    def initialize(channel, header)
-      @channel = channel
-      @header  = header
+    def initialize(channel, header, delivery_tag = nil)
+      @channel      = channel
+      @header       = header
+      @delivery_tag = delivery_tag
     end
 
     # Acknowledges the receipt of this message with the server.
     # @api public
-    def ack
-      # TODO
+    def ack(multiple = false)
+      @channel.acknowledge(@delivery_tag, multiple)
     end
 
     # Reject this message.
     # * :requeue => true | false (default false)
     # @api public
     def reject(opts = {})
-      # TODO
+      @channel.reject(@delivery_tag, opts.fetch(:requeue, false))
     end
 
     def to_hash
