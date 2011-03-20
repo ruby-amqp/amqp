@@ -79,7 +79,7 @@ module AMQP
         end
       else
         # client
-        @callbacks = Hash.new
+        @callbacks = ::Hash.new
         # XXX implement and use queue(nil)
         @reply_to = "random identifier #{::Kernel.rand(999_999_999_999)}"
 
