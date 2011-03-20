@@ -1,19 +1,19 @@
 = Version 0.8.0
 
-  * [API] AMQP::Exchange#delete now takes (an optional) block that is fired when exchange.delete-ok response arrives.
+  * [API] AMQP::Exchange#delete now takes (an optional) block that is called when exchange.delete-ok response arrives.
   * [API] AMQP::Header now implements #to_hash
   * [API] AMQP::Queue#pop block now can take 1, 2 or 7 (that's right) arguments.
           1 argument means handler is only interested in content payload
 	  2 arguments means handler is interested in headers and the content
 	  7 arguments means handlers wants all the properties get-ok (or get-empty) carries
-  * [API] AMQP::Queue#purge  now takes an optional block which is fired when queue.purge-ok response arrives.
-  * [API] AMQP::Queue#delete now takes an optional block which is fired when queue.delete-ok response arrives.
+  * [API] AMQP::Queue#purge  now takes an optional block which is called when queue.purge-ok response arrives.
+  * [API] AMQP::Queue#delete now takes an optional block which is called when queue.delete-ok response arrives.
   * [API] AMQP::Queue#delete now accepts :nowait option.
-  * [API] AMQP::Queue#unbind now takes an optional block which is fired when queue.unbind-ok response arrives.
+  * [API] AMQP::Queue#unbind now takes an optional block which is called when queue.unbind-ok response arrives.
   * [API] AMQP::Queue#unbind now accepts :routing_key as alias to :key. we believe it is a good idea to use AMQP terms.
   * [API] AMQP::Channel#prefetch now takes (an optional) 2nd parameter that specifies
           that QoS settings should be applied to underlying connection, as well as optional callback.
-  * [API] AMQP::Channel#recover now takes (an optional) callback that is fired when
+  * [API] AMQP::Channel#recover now takes (an optional) callback that is called when
           basic.recover-ok is received.
   * [API] AMQP::Frame is gone.
   * [API] AMQP::Buffer is gone. Serialization & framing are now handled primarily by amq-protocol.
