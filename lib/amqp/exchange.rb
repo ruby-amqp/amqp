@@ -367,8 +367,11 @@ module AMQP
     # delete it but raises a channel exception instead (AMQP::Error).
     #
     # @api public
-    def delete(opts = {})
-      # TODO
+    def delete(opts = {}, &block)
+      super(opts.fetch(:if_unused, false), opts.fetch(:nowait, false), &block)
+
+      # backwards compatibility
+      nil
     end
 
     # @api public

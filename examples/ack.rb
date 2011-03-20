@@ -11,7 +11,7 @@ AMQP.start do |connection|
   q       = channel.queue('amqp-gem.examples.q1').bind(e)
 
   q.status do |message_count, consumer_count|
-    puts "Queue #{q.name} has #{message_count} messages and #{consumer_count}"
+    puts "Queue #{q.name} has #{message_count} messages and #{consumer_count} consumers"
   end
 
   i = 0
@@ -42,6 +42,10 @@ AMQP.start do |connection|
 
     q.unbind(e) do
       puts "Unbound #{q.name} from #{e.name}"
+
+      e.delete do
+        puts "Just deleted #{e.name}"
+      end
 
       q.delete do
         puts "Just deleted #{q.name}"

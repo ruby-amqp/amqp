@@ -1,5 +1,6 @@
 = Version 0.8.0
 
+  * [API] AMQP::Exchange#delete now takes (an optional) block that is fired when exchange.delete-ok response arrives.
   * [API] AMQP::Header now implements #to_hash
   * [API] AMQP::Queue#pop block now can take 1, 2 or 7 (that's right) arguments.
           1 argument means handler is only interested in content payload
