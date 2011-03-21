@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.email = ["bWljaGFlbEBub3ZlbWJlcmFpbi5jb20=\n", "c3Rhc3RueUAxMDFpZGVhcy5jeg==\n"].map { |i| Base64.decode64(i) }
 
   # files
-  s.files = `git ls-files`.split("\n")
+  s.files = `git ls-files`.split("\n").reject { |file| file =~ /^vendor\// }
   s.require_paths = ["lib"]
 
   # RDoc
