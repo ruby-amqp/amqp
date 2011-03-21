@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 require "spec_helper"
-
 describe "Topic-based subscription" do
 
   #
   # Environment
   #
 
-  include AMQP::Spec
-  include AMQP::SpecHelper
+  include EventedSpec::AMQPSpec
+  include EventedSpec::SpecHelper
 
   em_before { AMQP.cleanup_state }
   em_after  { AMQP.cleanup_state }

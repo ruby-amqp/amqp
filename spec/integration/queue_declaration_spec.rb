@@ -8,7 +8,7 @@ describe AMQP do
   # Environment
   #
 
-  include AMQP::Spec
+  include EventedSpec::AMQPSpec
 
   default_timeout 5
 

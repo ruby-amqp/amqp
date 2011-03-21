@@ -8,7 +8,7 @@ describe "Queue that was bound to default direct exchange thanks to Automatic Mo
   # Environment
   #
 
-  include AMQP::Spec
+  include EventedSpec::AMQPSpec
 
   default_timeout 2
 
@@ -48,7 +48,7 @@ describe "Queue that was bound to default direct exchange thanks to Automatic Mo
     end
 
     expected_number_of_messages.times do
-      @exchange.publish(dispatched_data,    :routing_key => @queue1.name)    
+      @exchange.publish(dispatched_data,    :routing_key => @queue1.name)
     end
 
     4.times do

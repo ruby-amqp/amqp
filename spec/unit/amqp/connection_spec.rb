@@ -50,7 +50,7 @@ describe AMQP, 'class object' do
     # Environment
     #
 
-    include AMQP::SpecHelper
+    include EventedSpec::SpecHelper
 
     em_before { AMQP.cleanup_state }
     em_after  { AMQP.cleanup_state }
@@ -89,7 +89,7 @@ describe AMQP, 'class object' do
       #
       #
 
-      include AMQP::Spec
+      include EventedSpec::AMQPSpec
       after           { AMQP.cleanup_state; done }
       default_options AMQP_OPTS
 

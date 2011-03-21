@@ -7,8 +7,8 @@ describe "Workload distribution" do
   # Environment
   #
 
-  include AMQP::Spec
-  include AMQP::SpecHelper
+  include EventedSpec::AMQPSpec
+  include EventedSpec::SpecHelper
 
   em_before { AMQP.cleanup_state }
   em_after  { AMQP.cleanup_state }
