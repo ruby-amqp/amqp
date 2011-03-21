@@ -23,7 +23,7 @@
 
 = Version 0.7.1
 
-* [BUG] AMQP gem no longer conflicts with Builder 2.1.2 on Ruby 1.9.
+  * [BUG] AMQP gem no longer conflicts with Builder 2.1.2 on Ruby 1.9.
         All Ruby on Rails 3 users who run Ruby 1.9 are highly recommended
   			to upgrade!
   * [API] AMQP::Exchange.default no longer caches exchange object between calls
