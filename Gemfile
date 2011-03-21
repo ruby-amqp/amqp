@@ -6,8 +6,8 @@ gem "amq-client",   :git => "git://github.com/ruby-amqp/amq-client.git",   :bran
 gem "amq-protocol", :git => "git://github.com/ruby-amqp/amq-protocol.git", :branch => "master"
 
 group(:development) do
-  gem "nake"
-  gem "contributors"
+  gem "nake",         :platform => :ruby_19
+  gem "contributors", :platform => :ruby_19
 end
 
 group(:test) do
