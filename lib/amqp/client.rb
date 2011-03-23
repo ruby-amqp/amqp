@@ -27,6 +27,7 @@ module AMQP
 
       timeout @settings[:timeout] if @settings[:timeout]
       errback { @on_disconnect.call } unless @reconnecting
+      @connection_status = @settings[:connection_status]
 
       # TCP connection "openness"
       @tcp_connection_established = false
