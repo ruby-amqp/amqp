@@ -2,17 +2,27 @@
 
 source "http://gemcutter.org"
 
+# Use local clones if possible.
+def custom_gem(name, options = Hash.new)
+  local_path = File.expand_path("../../#{name}", __FILE__)
+  if File.directory?(local_path)
+    gem name, options.merge(:path => local_path).select { |key, _| not [:git, :branch].include?(key) }
+  else
+    gem name, options
+  end
+end
+
 gem "eventmachine"
 gem "json", :platform => :ruby_18
-gem "amq-client",   :git => "git://github.com/ruby-amqp/amq-client.git",   :branch => "master"
-gem "amq-protocol", :git => "git://github.com/ruby-amqp/amq-protocol.git", :branch => "master"
+custom_gem "amq-client",   :git => "git://github.com/ruby-amqp/amq-client.git",   :branch => "master"
+custom_gem "amq-protocol", :git => "git://github.com/ruby-amqp/amq-protocol.git", :branch => "master"
 
 group(:development) do
-  gem "nake",         :platform => :ruby_19
-  gem "contributors", :platform => :ruby_19
+  custom_gem "nake",         :platform => :ruby_19
+  custom_gem "contributors", :platform => :ruby_19
 end
 
 group(:test) do
   gem "rspec", ">=2.0.0"
-  gem "evented-spec", :git => "git://github.com/ruby-amqp/evented-spec.git", :branch => "master"
+  custom_gem "evented-spec", :git => "git://github.com/ruby-amqp/evented-spec.git", :branch => "master"
 end
