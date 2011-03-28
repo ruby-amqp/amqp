@@ -1,4 +1,8 @@
+#!/usr/bin/env ruby
 # encoding: utf-8
+
+require "bundler"
+Bundler.setup
 
 MAX = 1000
 

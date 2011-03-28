@@ -1,6 +1,7 @@
+#!/usr/bin/env ruby
 # encoding: utf-8
 
-require 'bundler'
+require "bundler"
 Bundler.setup
 Bundler.require :default
 
