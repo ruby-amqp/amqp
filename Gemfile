@@ -1,5 +1,7 @@
 # encoding: utf-8
 
+source "http://gemcutter.org"
+
 gem "eventmachine"
 gem "json", :platform => :ruby_18
 gem "amq-client",   :git => "git://github.com/ruby-amqp/amq-client.git",   :branch => "master"
