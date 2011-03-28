@@ -31,7 +31,7 @@ AMQP.start(:host => 'localhost') do |connection|
   sleep 0.2
   (2 * n).times do
     queue.pop do |headers, payload|
-      puts "Got #{payload} for #{queue.name}. Headers are #{headers.to_hash.inspect}"
+      puts "Got '#{payload}' for '#{queue.name}'. Headers are #{headers.to_hash.inspect}"
     end
   end
 

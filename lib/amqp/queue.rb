@@ -262,7 +262,7 @@ module AMQP
           when 1 then
             block.call(payload)
           when 2 then
-            h = Header.new(@channel, headers.decode_payload, delivery_tag)
+            h = Header.new(@channel, headers ? headers.decode_payload : {}, delivery_tag)
             block.call(h, payload)
           else
             h = Header.new(@channel, headers ? headers.decode_payload : nil, delivery_tag)
