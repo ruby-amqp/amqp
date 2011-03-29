@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 class MQ
   # An Exchange acts as an ingress point for all published messages. An
   # exchange may also be described as a router or a matcher. Every
@@ -225,7 +226,7 @@ class MQ
         # Call the callback immediately, as given exchange is already
         # declared.
         @status = :finished
-        block.call(self)
+        block && block.call(self)
       end
 
       self.callback = block
