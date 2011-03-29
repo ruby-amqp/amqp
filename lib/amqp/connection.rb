@@ -71,32 +71,38 @@ module AMQP
   # @api public
   def self.logging
     # TODO
+    raise NotImplementedError.new
   end
 
   # @api public
   def self.logging=(value)
     # TODO
+    raise NotImplementedError.new
   end
 
 
   # @api public
   def self.connection
     # TODO
+    raise NotImplementedError.new
   end
 
   # @api public
   def self.connection=(value)
     # TODO
+    raise NotImplementedError.new
   end
 
   # @api public
   def self.conn
     # TODO
+    raise NotImplementedError.new
   end
 
   # @api public
   def self.conn=(value)
     # TODO
+    raise NotImplementedError.new
   end
 
   # @api public
@@ -107,10 +113,12 @@ module AMQP
   # @api public
   def self.settings
     # TODO
+    raise NotImplementedError.new
   end
 
   # @api public
   def self.fork(workers)
     # TODO
+    raise NotImplementedError.new
   end
 end # AMQP
