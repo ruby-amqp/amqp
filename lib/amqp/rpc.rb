@@ -67,7 +67,7 @@ module AMQP
       if @obj = normalize(obj)
         # server
         @channel.queue(queue).subscribe(:ack => true) do |info, request|
-          puts "Got a message on the server-side"
+          ::STDOUT.puts "Got a message on the server-side"
           method, *args = ::Marshal.load(request)
           ret           = @obj.__send__(method, *args)
 
@@ -84,12 +84,14 @@ module AMQP
         @reply_to = "random identifier #{::Kernel.rand(999_999_999_999)}"
 
         @queue = @channel.queue(@reply_to, :auto_delete => true).subscribe do |info, msg|
-          puts "Got a message on the server-side"
+          ::STDOUT.puts "Got a message on the server-side"
           if blk = @callbacks.delete(info.message_id)
             blk.call ::Marshal.load(msg)
           end
         end
-        @remote = @channel.queue(queue)
+
+        @channel.queue(queue)
+        @remote = Exchange.default(@channel)
       end
     end
 
@@ -126,9 +128,9 @@ module AMQP
       end
 
       if blk
-        @remote.publish(::Marshal.dump([meth, *args]), :reply_to => @reply_to, :message_id => message_id)
+        @remote.publish(::Marshal.dump([meth, *args]), :reply_to => @reply_to, :message_id => message_id, :key => @name)
       else
-        @remote.publish(::Marshal.dump([meth, *args]), :message_id => message_id)
+        @remote.publish(::Marshal.dump([meth, *args]), :message_id => message_id, :key => @name)
       end
     end
 
