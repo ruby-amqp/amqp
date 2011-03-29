@@ -9,6 +9,26 @@ Bundler.require :default, :test
 require "amqp"
 require "evented-spec"
 
+# See https://gist.github.com/892414
+RSpec::Core::Example.send(:include, Module.new {
+  def self.included(base)
+    base.class_eval do
+      alias_method :__finish__, :finish
+      remove_method :finish
+    end
+  end
+
+  def finish(reporter)
+    if @exception.is_a?(NotImplementedError)
+      self.metadata[:pending] = true
+      @pending_declared_in_example = @exception.message
+      @exception = nil
+    end
+
+    __finish__(reporter)
+  end
+})
+
 def em_amqp_connect(&block)
   em do
     AMQ::Client::EventMachineClient.connect(:port => 5672, :vhost => "/amq_client_testbed", :frame_max => 65536, :heartbeat_interval => 1) do |client|
