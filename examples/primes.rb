@@ -17,8 +17,7 @@ end
 
 # spawn workers
 workers = ARGV[0] ? (Integer(ARGV[0]) rescue 1) : 1
-AMQP.fork(workers) do
-
+AMQP.fork(workers) do # TODO: AMQP.fork isn't implemented and I'm not sure if it should be implemented, it looks pretty damn ugly.
   log AMQP::Channel.id, :started
 
   class Fixnum
@@ -34,21 +33,25 @@ AMQP.fork(workers) do
     end
   end
 
-  AMQP::Channel.rpc('prime checker', PrimeChecker.new)
+  # This is the server part of RPC.
+  # Everything we'll call on the client part will be actually
+  # marshalled and published to a queue which the server part
+  # consumes and executes.
+  AMQP::Channel.new.rpc('prime checker', PrimeChecker.new)
 
 end
 
 # use workers to check which numbers are prime
 AMQP.start(:host => 'localhost') do
 
-  prime_checker = AMQP::Channel.rpc('prime checker')
+  prime_checker = AMQP::Channel.new.rpc('prime checker')
 
-  (10_000...(10_000+MAX)).each do |num|
+  (10_000...(10_000 + MAX)).each do |num|
     log :checking, num
 
     prime_checker.is_prime?(num) { |is_prime|
       log :prime?, num, is_prime
-      (@primes||=[]) << num if is_prime
+      (@primes ||= []) << num if is_prime
 
       if (@responses = (@responses || 0) + 1) == MAX
         log :primes=, @primes
