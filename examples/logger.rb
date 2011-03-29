@@ -8,12 +8,10 @@ $:.unshift(File.expand_path("../../lib", __FILE__))
 require 'amqp'
 require 'amqp/logger'
 
-Logger = MQ::Logger
-
 AMQP.start(:host => 'localhost') do
   if ARGV[0] == 'server'
 
-    AMQP::Channel.queue('logger').bind(AMQP::Channel.fanout('logging', :durable => true)).subscribe { |msg|
+    AMQP::Channel.new.queue('logger').bind(AMQP::Channel.new.fanout('logging', :durable => true)).subscribe { |msg|
       msg = Marshal.load(msg)
       require 'pp'
       pp(msg)
@@ -22,10 +20,10 @@ AMQP.start(:host => 'localhost') do
 
   elsif ARGV[0] == 'client'
 
-    log = Logger.new
+    log = AMQP::Logger.new
     log.debug 'its working!'
 
-    log = Logger.new do |msg|
+    log = AMQP::Logger.new do |msg|
       require 'pp'
       pp msg
       puts
@@ -40,7 +38,7 @@ AMQP.start(:host => 'localhost') do
     log.info '123', :process
     log.debug 'login', :session => 'abc', :user => 123
 
-    log = Logger.new(:webserver, :timestamp, :hostname, &log.printer)
+    log = AMQP::Logger.new(:webserver, :timestamp, :hostname, &log.printer)
     log.info 'Request for /', :GET, :session => 'abc'
 
     AMQP.stop { EM.stop }

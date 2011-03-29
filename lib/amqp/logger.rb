@@ -51,7 +51,7 @@ module AMQP
 
       print(opts)
       unless Logger.disabled?
-        AMQP::Channel.fanout('logging', :durable => true).publish Marshal.dump(opts)
+        AMQP::Channel.new.fanout('logging', :durable => true).publish Marshal.dump(opts)
       end
 
       opts
@@ -91,7 +91,5 @@ module AMQP
 end
 
 
-MQ = AMQP::Channel
-class MQ
-  Logger = ::AMQP::Logger
-end
+MQ = AMQP::Channel unless defined?(MQ)
+MQ::Logger = AMQP::Logger
