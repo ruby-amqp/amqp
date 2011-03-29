@@ -450,6 +450,7 @@ module AMQP
     # @api plugin
     def reset
       # TODO
+      raise NotImplementedError.new
     end
 
 

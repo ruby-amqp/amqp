@@ -643,6 +643,7 @@ module AMQP
 
     def queue!(name, opts = {}, &block)
       # TODO
+      raise NotImplementedError.new
     end
 
 
@@ -705,6 +706,7 @@ module AMQP
     # @api public
     def self.error(msg = nil, &block)
       # TODO
+      raise NotImplementedError.new
     end
 
     # @api public
@@ -732,6 +734,7 @@ module AMQP
     # @api plugin
     def reset
       # TODO
+      raise NotImplementedError.new
     end
 
     def self.channel_id_mutex

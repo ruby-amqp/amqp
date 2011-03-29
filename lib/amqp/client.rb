@@ -15,6 +15,7 @@ module AMQP
     # @api public
     def reconnect(force = false)
       # TODO
+      raise NotImplementedError.new
     end # reconnect(force = false)
   end
 
