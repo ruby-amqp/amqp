@@ -29,7 +29,7 @@ module AMQP
       @header
     end # to_hash
 
-    def respond_to_missing?(meth)
+    def respond_to_missing?(meth, _)
       (@header && args.empty? && blk.nil? && @header.has_key?(meth)) || @method.respond_to?(meth)
     end
 
