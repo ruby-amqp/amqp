@@ -14,15 +14,19 @@ describe AMQP, 'class object' do
   #
 
   its(:settings) do
+    # TODO: rewrite using key should eql value,
+    # it's not very wise to check frame_max etc.
     should == {
-      :host    => "127.0.0.1",
-      :port    => 5672,
-      :user    => "guest",
-      :pass    => "guest",
-      :vhost   => "/",
-      :timeout => nil,
-      :logging => false,
-      :ssl     => false
+      :host      => "127.0.0.1",
+      :port      => 5672,
+      :user      => "guest",
+      :pass      => "guest",
+      :vhost     => "/",
+      :timeout   => nil,
+      :logging   => false,
+      :ssl       => false,
+      :broker    => nil,
+      :frame_max => 131072
     }
   end
 
