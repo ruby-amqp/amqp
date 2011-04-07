@@ -262,10 +262,10 @@ module AMQP
           when 1 then
             block.call(payload)
           when 2 then
-            h = Header.new(@channel, headers ? headers.decode_payload : {}, method.delivery_tag)
+            h = Header.new(@channel, method, headers ? headers.decode_payload : nil)
             block.call(h, payload)
           else
-            h = Header.new(@channel, headers ? headers.decode_payload : nil, method.delivery_tag)
+            h = Header.new(@channel, method, headers ? headers.decode_payload : nil)
             block.call(h, payload, method.delivery_tag, method.redelivered, method.exchange, method.routing_key)
           end
         }
@@ -346,10 +346,10 @@ module AMQP
         when 1 then
           block.call(payload)
         when 2 then
-          h = Header.new(@channel, headers.decode_payload, method.delivery_tag)
+          h = Header.new(@channel, method, headers.decode_payload)
           block.call(h, payload)
         else
-          h = Header.new(@channel, headers.decode_payload, method.delivery_tag)
+          h = Header.new(@channel, method, headers.decode_payload)
           block.call(h, payload, method.consumer_tag, method.delivery_tag, method.redelivered, method.exchange, method.routing_key)
         end
       }

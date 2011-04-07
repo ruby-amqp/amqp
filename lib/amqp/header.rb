@@ -8,34 +8,36 @@ module AMQP
     #
 
     # @api public
-    def initialize(channel, header, delivery_tag = nil)
-      @channel      = channel
-      @header       = header
-      @delivery_tag = delivery_tag
+    def initialize(channel, method, header)
+      @channel, @method, @header = channel, method, header
     end
 
     # Acknowledges the receipt of this message with the server.
     # @api public
     def ack(multiple = false)
-      @channel.acknowledge(@delivery_tag, multiple)
+      @channel.acknowledge(@method.delivery_tag, multiple)
     end
 
     # Reject this message.
     # * :requeue => true | false (default false)
     # @api public
     def reject(opts = {})
-      @channel.reject(@delivery_tag, opts.fetch(:requeue, false))
+      @channel.reject(@method.delivery_tag, opts.fetch(:requeue, false))
     end
 
     def to_hash
       @header
     end # to_hash
 
+    def respond_to_missing?(meth)
+      (@header && args.empty? && blk.nil? && @header.has_key?(meth)) || @method.respond_to?(meth)
+    end
+
     def method_missing(meth, *args, &blk)
-      if args.empty? && blk.nil?
+      if @header && args.empty? && blk.nil? && @header.has_key?(meth)
         @header[meth]
       else
-        @header.__send__(meth, *args, &blk) # TODO: Do we still need it?
+        @method.__send__(meth, *args, &blk)
       end
     end
   end # Header
