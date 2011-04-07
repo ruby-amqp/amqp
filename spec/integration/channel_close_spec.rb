@@ -2,14 +2,14 @@
 
 require "spec_helper"
 
-describe AMQP, "#close(&callback)" do
-  include EventedSpec::EMSpec
-
-  default_timeout 5
+describe AMQP::Channel, "#close(&callback)" do
+  include EventedSpec::AMQPSpec
 
   it "takes a callback which will run when we get back Channel.Close-Ok" do
-    AMQP::Channel.new.close do |amq|
-      done
+    AMQP::Channel.new do |channel, method|
+      channel.close do |channel, method|
+        done
+      end
     end
   end
 end
