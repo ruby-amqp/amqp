@@ -337,7 +337,7 @@ module AMQP
       EM.next_tick do
         opts    = @default_publish_options.merge(options)
 
-        super(payload, opts[:key] || opts[:routing_key], @default_headers.merge(options), opts[:mandatory], opts[:immediate])
+        super(payload.to_s, opts[:key] || opts[:routing_key], @default_headers.merge(options), opts[:mandatory], opts[:immediate])
       end
     end
 
