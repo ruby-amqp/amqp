@@ -6,7 +6,7 @@ source "http://gemcutter.org"
 def custom_gem(name, options = Hash.new)
   local_path = File.expand_path("../../#{name}", __FILE__)
   if File.directory?(local_path)
-    gem name, options.merge(:path => local_path).select { |key, _| not [:git, :branch].include?(key) }
+    gem name, options.merge(:path => local_path).delete_if { |key, _| [:git, :branch].include?(key) }
   else
     gem name, options
   end
