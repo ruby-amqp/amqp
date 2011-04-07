@@ -99,6 +99,7 @@ describe "Store-and-forward routing" do
 
         dispatched_data             = "fetch me synchronously"
 
+        @queue.purge :nowait => true
         expected_number_of_messages.times do
           @exchange.publish(dispatched_data)
         end
