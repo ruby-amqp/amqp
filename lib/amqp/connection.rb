@@ -44,65 +44,61 @@ module AMQP
   # @api public
   def self.start(*args, &block)
     EM.run do
-      @conn ||= connect(*args, &block)
-      @conn
+      @connection ||= connect(*args, &block)
+      @connection
     end
   end
 
   # @api public
   def self.run(*args, &block)
-    start(*args, &block)
+    self.start(*args, &block)
   end
 
   # @api public
   def self.stop(reply_code = 200, reply_text = "Goodbye", &block)
-    return if closing?
+    return if self.closing?
 
     EM.next_tick do
-      @conn.disconnect(reply_code, reply_text, &block)
+      @connection.disconnect(reply_code, reply_text, &block)
     end
   end
 
   def self.closing?
-    @conn.closing?
+    @connection.closing?
   end
 
 
   # @api public
   def self.logging
-    # TODO
-    raise NotImplementedError.new
+    @logging ||= false
   end
 
   # @api public
   def self.logging=(value)
-    # TODO
-    raise NotImplementedError.new
+    @logging = !! value
   end
 
 
   # @api public
   def self.connection
-    # TODO
-    raise NotImplementedError.new
+    @connection
   end
 
   # @api public
   def self.connection=(value)
-    # TODO
-    raise NotImplementedError.new
+    @connection = value
   end
 
   # @api public
   def self.conn
-    # TODO
-    raise NotImplementedError.new
+    warn "This method will be removed in 1.0. Please use AMQP.connection."
+    @connection
   end
 
   # @api public
   def self.conn=(value)
-    # TODO
-    raise NotImplementedError.new
+    warn "This method will be removed in 1.0. Please use AMQP.connection=(connection)."
+    self.connection = value
   end
 
   # @api public
@@ -112,8 +108,16 @@ module AMQP
 
   # @api public
   def self.settings
-    # TODO
-    raise NotImplementedError.new
+    @settings ||= {
+      :host    => "127.0.0.1",
+      :port    => 5672,
+      :user    => "guest",
+      :pass    => "guest",
+      :vhost   => "/",
+      :timeout => nil,
+      :logging => false,
+      :ssl     => false
+    }
   end
 
   # @api public
