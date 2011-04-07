@@ -50,6 +50,7 @@ describe "Store-and-forward routing" do
         # various test suites. MK.
         dispatched_data             = "libertà è participazione (inviato a #{Time.now.to_i})"
 
+        @queue.purge :nowait => true
         @queue.subscribe(:ack => false) do |payload|
           number_of_received_messages += 1
           if RUBY_VERSION =~ /^1.9/
@@ -102,18 +103,22 @@ describe "Store-and-forward routing" do
           @exchange.publish(dispatched_data)
         end
 
-        expected_number_of_messages.times do
-          @queue.pop do |payload|
-            payload.should_not be_nil
-            number_of_received_messages += 1
+        @queue.status do |number_of_messages, number_of_consumers|
+          number_of_messages.should == expected_number_of_messages
 
-            if RUBY_VERSION =~ /^1.9/
-              payload.force_encoding("UTF-8").should == dispatched_data
-            else
-              payload.should == dispatched_data
-            end
-          end # pop
-        end # do
+          expected_number_of_messages.times do
+            @queue.pop do |payload|
+              payload.should_not be_nil
+              number_of_received_messages += 1
+
+              if RUBY_VERSION =~ /^1.9/
+                payload.force_encoding("UTF-8").should == dispatched_data
+              else
+                payload.should == dispatched_data
+              end
+            end # pop
+          end # do
+        end
 
         done(0.5) {
           number_of_received_messages.should == expected_number_of_messages

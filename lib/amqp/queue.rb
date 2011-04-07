@@ -399,7 +399,7 @@ module AMQP
     def status(opts = {}, &block)
       raise ArgumentError, "AMQP::Queue#status does not make any sense without a block" unless block
 
-      shim = Proc.new { |queue_name, consumer_count, message_count| block.call(message_count, consumer_count) }
+      shim = Proc.new { |declare_ok| block.call(declare_ok.message_count, declare_ok.consumer_count) }
 
       self.declare(true, @durable, @exclusive, @auto_delete, false, nil, &shim)
     end
