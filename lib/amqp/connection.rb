@@ -108,21 +108,16 @@ module AMQP
 
   # @api public
   def self.settings
-    @settings ||= {
-      :host    => "127.0.0.1",
-      :port    => 5672,
-      :user    => "guest",
-      :pass    => "guest",
-      :vhost   => "/",
-      :timeout => nil,
-      :logging => false,
-      :ssl     => false
-    }
+    if @connection
+      @connection.settings
+    else
+      AMQ::Client::Settings.default
+    end
   end
 
   # @api public
   def self.fork(workers)
     # TODO
-    raise NotImplementedError.new
+    raise NotImplementedError.new("EventMachine magic. Michael, can you please take a look at it?")
   end
 end # AMQP
