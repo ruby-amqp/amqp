@@ -35,7 +35,7 @@ describe "Store-and-forward routing" do
     context "with a single bound queue" do
       amqp_before do
         @exchange = @channel.fanout("amqpgem.integration.snf.fanout", :auto_delete => true)
-        @queue    = @channel.queue("amqpgem.integration.snf.queue1",  :auto_delete => true)
+        @queue    = @channel.queue("",                                :auto_delete => true, :nowait => false)
 
         @queue.bind(@exchange) do
           puts "Bound #{@exchange.name} => #{@queue.name}"
