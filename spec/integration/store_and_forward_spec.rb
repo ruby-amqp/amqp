@@ -34,12 +34,10 @@ describe "Store-and-forward routing" do
   context "that uses fanout exchange" do
     context "with a single bound queue" do
       amqp_before do
-        @exchange = @channel.fanout("amqpgem.integration.snf.fanout", :auto_delete => true)
-        @queue    = @channel.queue("",                                :auto_delete => true, :nowait => false)
+        @queue_name = "amqpgem.integration.snf.queue1"
 
-        @queue.bind(@exchange) do
-          puts "Bound #{@exchange.name} => #{@queue.name}"
-        end
+        @exchange = @channel.direct("")
+        @queue    = @channel.queue(@queue_name, :auto_delete => true, :nowait => false)
       end
 
       it "allows asynchronous subscription to messages WITHOUT acknowledgements" do
@@ -52,6 +50,7 @@ describe "Store-and-forward routing" do
 
         @queue.purge :nowait => true
         @queue.subscribe(:ack => false) do |payload|
+          payload.should_not be_nil
           number_of_received_messages += 1
           if RUBY_VERSION =~ /^1.9/
             payload.force_encoding("UTF-8").should == dispatched_data
@@ -61,7 +60,7 @@ describe "Store-and-forward routing" do
         end # subscribe
 
         expected_number_of_messages.times do
-          @exchange.publish(dispatched_data)
+          @exchange.publish(dispatched_data, :routing_key => @queue_name)
         end
 
         # 6 seconds are for Rubinius, it is surprisingly slow on this workload
@@ -81,7 +80,12 @@ describe "Store-and-forward routing" do
         end # subscribe
 
         expected_number_of_messages.times do
-          @exchange.publish(rand)
+          @exchange.publish(rand, :key => @queue_name)
+        end
+
+        @queue.pop do |payload|
+          payload.should_not be_nil
+          number_of_received_messages += 1
         end
 
         # 6 seconds are for Rubinius, it is surprisingly slow on this workload
@@ -101,7 +105,7 @@ describe "Store-and-forward routing" do
 
         @queue.purge :nowait => true
         expected_number_of_messages.times do
-          @exchange.publish(dispatched_data)
+          @exchange.publish(dispatched_data, :key => @queue_name)
         end
 
         @queue.status do |number_of_messages, number_of_consumers|
@@ -121,7 +125,7 @@ describe "Store-and-forward routing" do
           end # do
         end
 
-        done(0.5) {
+        done(1.5) {
           number_of_received_messages.should == expected_number_of_messages
         }
       end # it

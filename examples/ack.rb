@@ -12,7 +12,7 @@ AMQP.start do |connection|
   puts "Connected!"
   channel = AMQP::Channel.new(connection)
   e       = channel.fanout("amqp-gem.examples.ack")
-  q       = channel.queue('amqp-gem.examples.q1').bind(e)
+  q       = channel.queue('amqp-gem.examples.q1').bind(e) { puts "Bound #{e.name} to the queue" }
 
   q.status do |message_count, consumer_count|
     puts "Queue #{q.name} has #{message_count} messages and #{consumer_count} consumers"
