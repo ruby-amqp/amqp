@@ -70,12 +70,12 @@ module AMQP
 
   # @api public
   def self.logging
-    @logging ||= false
+    self.settings[:logging]
   end
 
   # @api public
   def self.logging=(value)
-    @logging = !! value
+    self.settings[:logging] = !! value
   end
 
 
