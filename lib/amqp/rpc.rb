@@ -120,6 +120,7 @@ module AMQP
     #  end
     #
     def method_missing(meth, *args, &blk)
+      ::Kernel.warn [:method_missing, meth, *args, "with#{"out" if blk.nil?} block"]
       # XXX use uuids instead
       message_id = "random message id #{::Kernel.rand(999_999_999_999)}"
 

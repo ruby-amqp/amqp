@@ -257,16 +257,16 @@ module AMQP
         # We have to maintain this multiple arities jazz
         # because older versions this gem are used in examples in at least 3
         # books published by O'Reilly :(. MK.
-        shim = Proc.new { |headers, payload, delivery_tag, redelivered, exchange, routing_key|
+        shim = Proc.new { |method, headers, payload|
           case block.arity
           when 1 then
             block.call(payload)
           when 2 then
-            h = Header.new(@channel, headers ? headers.decode_payload : {}, delivery_tag)
+            h = Header.new(@channel, headers ? headers.decode_payload : {}, method.delivery_tag)
             block.call(h, payload)
           else
-            h = Header.new(@channel, headers ? headers.decode_payload : nil, delivery_tag)
-            block.call(h, payload, delivery_tag, redelivered, exchange, routing_key)
+            h = Header.new(@channel, headers ? headers.decode_payload : nil, method.delivery_tag)
+            block.call(h, payload, method.delivery_tag, method.redelivered, method.exchange, method.routing_key)
           end
         }
 
@@ -341,16 +341,16 @@ module AMQP
       # We have to maintain this multiple arities jazz
       # because older versions this gem are used in examples in at least 3
       # books published by O'Reilly :(. MK.
-      delivery_shim = Proc.new { |headers, payload, consumer_tag, delivery_tag, redelivered, exchange, routing_key|
+      delivery_shim = Proc.new { |method, headers, payload|
         case block.arity
         when 1 then
           block.call(payload)
         when 2 then
-          h = Header.new(@channel, headers.decode_payload, delivery_tag)
+          h = Header.new(@channel, headers.decode_payload, method.delivery_tag)
           block.call(h, payload)
         else
-          h = Header.new(@channel, headers.decode_payload, delivery_tag)
-          block.call(h, payload, consumer_tag, delivery_tag, redelivered, exchange, routing_key)
+          h = Header.new(@channel, headers.decode_payload, method.delivery_tag)
+          block.call(h, payload, method.consumer_tag, method.delivery_tag, method.redelivered, method.exchange, method.routing_key)
         end
       }
 

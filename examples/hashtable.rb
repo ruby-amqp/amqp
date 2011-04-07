@@ -44,7 +44,6 @@ AMQP.start(:host => 'localhost') do |connection|
 
   client.set(:now, time = Time.now)
   client.get(:now) do |res|
-    raise "get"
     log 'client', :now => res, :eql? => res == time
   end
 

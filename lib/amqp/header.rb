@@ -32,7 +32,11 @@ module AMQP
     end # to_hash
 
     def method_missing(meth, *args, &blk)
-      @header.__send__(meth, *args, &blk)
+      if args.empty? && blk.nil?
+        @header[meth]
+      else
+        @header.__send__(meth, *args, &blk) # TODO: Do we still need it?
+      end
     end
   end # Header
 end # AMQP

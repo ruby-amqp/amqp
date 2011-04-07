@@ -25,9 +25,10 @@ AMQP.start(:host => 'localhost') do |connection|
     EM.add_periodic_timer(1) {
       puts
 
-      { :appl => 170+rand(1000)/100.0,
-        :msft => 22+rand(500)/100.0
+      { :appl => 170 + rand(1000) / 100.0,
+        :msft => 22 + rand(500) / 100.0
       }.each do |stock, price|
+        price = price.to_s
         stock = "usd.#{stock}"
 
         log :publishing, stock, price

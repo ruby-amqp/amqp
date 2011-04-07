@@ -1,0 +1,3 @@
+h1. Task Queue
+
+In task queue we have only one queue with many consumers (for example servers which will run given task)
