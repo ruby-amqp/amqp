@@ -37,7 +37,9 @@ describe "Store-and-forward routing" do
         @exchange = @channel.fanout("amqpgem.integration.snf.fanout", :auto_delete => true)
         @queue    = @channel.queue("amqpgem.integration.snf.queue1",  :auto_delete => true)
 
-        @queue.bind(@exchange)
+        @queue.bind(@exchange) do
+          puts "Bound #{@exchange.name} => #{@queue.name}"
+        end
       end
 
       it "allows asynchronous subscription to messages WITHOUT acknowledgements" do
@@ -102,6 +104,7 @@ describe "Store-and-forward routing" do
 
         expected_number_of_messages.times do
           @queue.pop do |payload|
+            payload.should_not be_nil
             number_of_received_messages += 1
 
             if RUBY_VERSION =~ /^1.9/
