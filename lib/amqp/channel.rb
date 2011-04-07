@@ -640,6 +640,10 @@ module AMQP
       end
     end
 
+    def open?
+      self.status == :opened || self.status == :opening
+    end # open?
+
 
     def queue!(name, opts = {}, &block)
       # TODO
