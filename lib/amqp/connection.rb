@@ -56,7 +56,7 @@ module AMQP
 
   # @api public
   def self.stop(reply_code = 200, reply_text = "Goodbye", &block)
-    return if self.closing?
+    return if @connection.nil? || self.closing?
 
     EM.next_tick do
       @connection.disconnect(reply_code, reply_text, &block)
