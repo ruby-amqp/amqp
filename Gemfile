@@ -18,6 +18,10 @@ custom_gem "amq-client",   :git => "git://github.com/ruby-amqp/amq-client.git", 
 custom_gem "amq-protocol", :git => "git://github.com/ruby-amqp/amq-protocol.git", :branch => "master"
 
 group(:development) do
+  gem "yard"
+  # yard tags this buddy along
+  gem "RedCloth"
+
   custom_gem "nake",         :platform => :ruby_19
   custom_gem "contributors", :platform => :ruby_19
 end
