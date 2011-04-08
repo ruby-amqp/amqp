@@ -4,6 +4,11 @@ require "amqp/basic_client"
 
 module AMQP
   module Client
+
+    AMQP_PORTS = Hash["amqp" => 5672, "amqps" => 5671].freeze
+    AMQPS      = "amqps".freeze
+
+
     # @api public
     def self.connect(arg = nil, options = {}, &block)
       opts = case arg
