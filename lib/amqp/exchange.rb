@@ -23,6 +23,8 @@ module AMQP
   # an exchange without a name. In these cases the library will use
   # the default exchange for publishing the messages.
   #
+  # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.1.1)
+  # @see AMQP::Queue
   class Exchange < AMQ::Client::Exchange
 
     #
@@ -43,6 +45,8 @@ module AMQP
     # AMQP::Channel::Exchange.default.publish("make clean", routing_key: "tasks")
     #
     # For more info see section 2.1.2.4 Automatic Mode of the AMQP 0.9.1 spec.
+    #
+    # @return [Exchange] An instance that corresponds to the default exchange (of type direct).
     # @api public
     def self.default(channel = nil)
       self.new(channel || AMQP::Channel.new, :direct, AMQ::Protocol::EMPTY_STRING, :no_declare => true)

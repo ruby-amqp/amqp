@@ -3,75 +3,61 @@
 require "amq/client/queue"
 
 module AMQP
+  # Queues store and forward messages.  Queues can be configured in the server
+  # or created at runtime.  Queues must be attached to at least one exchange
+  # in order to receive messages from publishers.
+  #
+  # Like an Exchange, queue names starting with 'amq.' are reserved for
+  # internal use. Attempts to create queue names in violation of this
+  # reservation will raise AMQP::Error (ACCESS_REFUSED).
+  #
+  # When a queue is created without a name, the server will generate a
+  # unique name internally (not currently supported in this library).
+  #
+  # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.1.1)
+  # @see AMQP::Exchange
   class Queue < AMQ::Client::Queue
 
     #
     # API
     #
 
-    attr_reader :name, :sync_bind
-    attr_accessor :opts, :on_declare, :on_bind
+    # Name of this queue
+    attr_reader :name
+    attr_reader :sync_bind
+    # Options this queue object was instantiated with
+    attr_accessor :opts
+    attr_accessor :on_declare
+    attr_accessor :on_bind
 
 
 
-    # Queues store and forward messages.  Queues can be configured in the server
-    # or created at runtime.  Queues must be attached to at least one exchange
-    # in order to receive messages from publishers.
+    # @option opts [Boolean] :passive (false)  If set, the server will not create the queue if it does not
+    #                                           already exist. The client can use this to check whether the queue
+    #                                           exists without modifying  the server state.
     #
-    # Like an Exchange, queue names starting with 'amq.' are reserved for
-    # internal use. Attempts to create queue names in violation of this
-    # reservation will raise AMQP::Error (ACCESS_REFUSED).
+    # @option opts [Boolean] :durable (false)  If set when creating a new queue, the queue will be marked as
+    #                                           durable.  Durable queues remain active when a server restarts.
+    #                                           Non-durable queues (transient queues) are purged if/when a
+    #                                           server restarts.  Note that durable queues do not necessarily
+    #                                           hold persistent messages, although it does not make sense to
+    #                                           send persistent messages to a transient queue (though it is
+    #                                           allowed).
     #
-    # When a queue is created without a name, the server will generate a
-    # unique name internally (not currently supported in this library).
+    # @option opts [Boolean] :exclusive (false)  Exclusive queues may only be consumed from by the current connection.
+    #                                             Setting the 'exclusive' flag always implies 'auto-delete'. Only a
+    #                                             single consumer is allowed to remove messages from this queue.
+    #                                             The default is a shared queue. Multiple clients may consume messages
+    #                                             from this queue.
     #
-    # == Options
-    # * :passive => true | false (default false)
-    # If set, the server will not create the queue if it does not
-    # already exist. The client can use this to check whether the queue
-    # exists without modifying  the server state.
+    # @option opts [Boolean] :auto_delete (false)   If set, the queue is deleted when all consumers have finished
+    #                                               using it. Last consumer can be cancelled either explicitly or because
+    #                                               its channel is closed. If there was no consumer ever on the queue, it
+    #                                               won't be deleted.
     #
-    # * :durable => true | false (default false)
-    # If set when creating a new queue, the queue will be marked as
-    # durable.  Durable queues remain active when a server restarts.
-    # Non-durable queues (transient queues) are purged if/when a
-    # server restarts.  Note that durable queues do not necessarily
-    # hold persistent messages, although it does not make sense to
-    # send persistent messages to a transient queue (though it is
-    # allowed).
-    #
-    # If the queue has already been declared, any redeclaration will
-    # ignore this setting. A queue may only be declared durable the
-    # first time when it is created.
-    #
-    # * :exclusive => true | false (default false)
-    # Exclusive queues may only be consumed from by the current connection.
-    # Setting the 'exclusive' flag always implies 'auto-delete'. Only a
-    # single consumer is allowed to remove messages from this queue.
-    #
-    # The default is a shared queue. Multiple clients may consume messages
-    # from this queue.
-    #
-    # Attempting to redeclare an already-declared queue as :exclusive => true
-    # will raise AMQP::Error.
-    #
-    # * :auto_delete = true | false (default false)
-    # If set, the queue is deleted when all consumers have finished
-    # using it. Last consumer can be cancelled either explicitly or because
-    # its channel is closed. If there was no consumer ever on the queue, it
-    # won't be deleted.
-    #
-    # The server waits for a short period of time before
-    # determining the queue is unused to give time to the client code
-    # to bind a queue to it.
-    #
-    # If the queue has been previously declared, this option is ignored
-    # on subsequent declarations.
-    #
-    # * :nowait => true | false (default true)
-    # If set, the server will not respond to the method. The client should
-    # not wait for a reply method.  If the server could not complete the
-    # method it will raise a channel or connection exception.
+    # @option opts [Boolean] :nowait (true)  If set, the server will not respond to the method. The client should
+    #                                        not wait for a reply method.  If the server could not complete the
+    #                                        method it will raise a channel or connection exception.
     #
     # @api public
     def initialize(channel, name, opts = {}, &block)
@@ -99,7 +85,8 @@ module AMQP
     # and subscription queues are bound to a dest_wild exchange.
     #
     # A valid exchange name (or reference) must be passed as the first
-    # parameter. Both of these are valid:
+    # parameter.
+    # @example Both of these are valid
     #  exch = AMQP::Channel.direct('foo exchange')
     #  queue = AMQP::Channel.queue('bar queue')
     #  queue.bind('foo.exchange') # OR
@@ -108,24 +95,23 @@ module AMQP
     # It is not valid to call #bind without the +exchange+ parameter.
     #
     # It is unnecessary to call #bind when the exchange name and queue
-    # name match exactly (for +direct+ and +fanout+ exchanges only).
+    # name match exactly (for :direct and :fanout exchanges only).
     # There is an implicit bind which will deliver the messages from
     # the exchange to the queue.
     #
-    # == Options
-    # * :key => 'some string'
-    # Specifies the routing key for the binding.  The routing key is
-    # used for routing messages depending on the exchange configuration.
-    # Not all exchanges use a routing key - refer to the specific
-    # exchange documentation.  If the routing key is empty and the queue
-    # name is empty, the routing key will be the current queue for the
-    # channel, which is the last declared queue.
+    # @param [Exchange] Exchange to bind to.
     #
-    # * :nowait => true | false (default true)
-    # If set, the server will not respond to the method. The client should
-    # not wait for a reply method.  If the server could not complete the
-    # method it will raise a channel or connection exception.
+    # @option opts [String] :routing_key   Specifies the routing key for the binding. The routing key is
+    #                                      used for routing messages depending on the exchange configuration.
+    #                                      Not all exchanges use a routing key! Refer to the specific
+    #                                      exchange documentation.  If the routing key is empty and the queue
+    #                                      name is empty, the routing key will be the current queue for the
+    #                                      channel, which is the last declared queue.
     #
+    # @option opts [Boolean] :nowait (true)  If set, the server will not respond to the method. The client should
+    #                                       not wait for a reply method.  If the server could not complete the
+    #                                       method it will raise a channel or connection exception.
+    # @return [Queue] Self
     # @api public
     def bind(exchange, opts = {}, &block)
       @status             = :unbound
@@ -149,12 +135,13 @@ module AMQP
     # Due to the asynchronous nature of the protocol, it is possible for
     # "in flight" messages to be received after this call completes.
     # Those messages will be serviced by the last block used in a
-    # #subscribe or #pop call.
+    # {Queue#subscribe} or {Queue#pop} call.
     #
-    # * :nowait => true | false (default true)
-    # If set, the server will not respond to the method. The client should
-    # not wait for a reply method.  If the server could not complete the
-    # method it will raise a channel or connection exception.
+    # @param [Exchange] Exchange to unbind from.
+    #
+    # @option opts [Boolean] :nowait (true)  If set, the server will not respond to the method. The client should
+    #                                       not wait for a reply method.  If the server could not complete the
+    #                                       method it will raise a channel or connection exception.
     #
     # @api public
     def unbind(exchange, opts = {}, &block)
@@ -166,21 +153,22 @@ module AMQP
     # messages are sent to a dead-letter queue if this is defined in the
     # server configuration, and all consumers on the queue are cancelled.
     #
-    # == Options
-    # * :if_unused => true | false (default false)
-    # If set, the server will only delete the queue if it has no
-    # consumers. If the queue has consumers the server does does not
-    # delete it but raises a channel exception instead.
+    # @return [NilClass] nil (for v0.7 compatibility)
     #
-    # * :if_empty => true | false (default false)
-    # If set, the server will only delete the queue if it has no
-    # messages. If the queue is not empty the server raises a channel
-    # exception.
+    # @option opts [Boolean] :if_unused (false)   If set, the server will only delete the queue if it has no
+    #                                             consumers. If the queue has consumers the server does does not
+    #                                             delete it but raises a channel exception instead.
     #
-    # * :nowait => true | false (default true)
-    # If set, the server will not respond to the method. The client should
-    # not wait for a reply method.  If the server could not complete the
-    # method it will raise a channel or connection exception.
+    # @option opts [Boolean] :if_empty (false)    If set, the server will only delete the queue if it has no
+    #                                             messages. If the queue is not empty the server raises a channel
+    #                                             exception.
+    #
+    # @option opts [Boolean] :nowait (false)  If set, the server will not respond to the method. The client should
+    #                                       not wait for a reply method.  If the server could not complete the
+    #                                       method it will raise a channel or connection exception.
+    #
+    #
+    # @return [NilClass] nil (for v0.7 compatibility)    
     #
     # @api public
     def delete(opts = {}, &block)
@@ -192,6 +180,12 @@ module AMQP
 
 
     # Purge all messages from the queue.
+    #
+    # @option opts [Boolean] :nowait (false)  If set, the server will not respond to the method. The client should
+    #                                        not wait for a reply method.  If the server could not complete the
+    #                                        method it will raise a channel or connection exception.
+    #
+    # @return [NilClass] nil (for v0.7 compatibility)    
     #
     # @api public
     def purge(opts = {}, &block)
@@ -207,7 +201,9 @@ module AMQP
     # application where synchronous functionality is more important than
     # performance.
     #
-    # The provided block is passed a single message each time pop is called.
+    # If provided block takes one argument, it is passed message payload every time {Queue#pop} is called.
+    #
+    # @example Use of callback with a single argument
     #
     #  EM.run do
     #    exchange = AMQP::Channel.direct("foo queue")
@@ -223,9 +219,11 @@ module AMQP
     #    EM.add_periodic_timer(1) { queue.pop }
     #  end
     #
-    # If the block takes 2 parameters, both the +header+ and the +body+ will
+    # If the block takes 2 parameters, both the header and the body will
     # be passed in for processing. The header object is defined by
     # AMQP::Protocol::Header.
+    #
+    # @example Use of callback with two arguments
     #
     #  EM.run do
     #    exchange = AMQP::Channel.direct("foo queue")
@@ -242,14 +240,15 @@ module AMQP
     #    EM.add_periodic_timer(1) { queue.pop }
     #  end
     #
-    # == Options
-    # * :ack => true | false (default false)
-    # If this field is set to false the server does not expect acknowledgments
-    # for messages.  That is, when a message is delivered to the client
-    # the server automatically and silently acknowledges it on behalf
-    # of the client.  This functionality increases performance but at
-    # the cost of reliability.  Messages can get lost if a client dies
-    # before it can deliver them to the application.
+    # @option opts [Boolean] :ack (false)  If this field is set to false the server does not expect acknowledgments
+    #                                      for messages.  That is, when a message is delivered to the client
+    #                                      the server automatically and silently acknowledges it on behalf
+    #                                      of the client.  This functionality increases performance but at
+    #                                      the cost of reliability.  Messages can get lost if a client dies
+    #                                      before it can deliver them to the application.
+    #
+    #
+    # @return [Qeueue] Self
     #
     # @api public
     def pop(opts = {}, &block)
@@ -283,6 +282,9 @@ module AMQP
     # The provided block is passed a single message each time the
     # exchange matches a message to this queue.
     #
+    #
+    # @example Use of callback with a single argument    
+    #
     #  EM.run do
     #    exchange = AMQP::Channel.direct("foo queue")
     #    EM.add_periodic_timer(1) do
@@ -293,9 +295,11 @@ module AMQP
     #    queue.subscribe { |body| puts "received payload [#{body}]" }
     #  end
     #
-    # If the block takes 2 parameters, both the +header+ and the +body+ will
+    # If the block takes 2 parameters, both the header and the body will
     # be passed in for processing. The header object is defined by
     # AMQP::Protocol::Header.
+    #
+    # @example Use of callback with two arguments    
     #
     #  EM.run do
     #    exchange = AMQP::Channel.direct("foo queue")
@@ -312,26 +316,24 @@ module AMQP
     #    end
     #  end
     #
-    # == Options
-    # * :ack => true | false (default false)
-    # If this field is set to false the server does not expect acknowledgments
-    # for messages.  That is, when a message is delivered to the client
-    # the server automatically and silently acknowledges it on behalf
-    # of the client.  This functionality increases performance but at
-    # the cost of reliability.  Messages can get lost if a client dies
-    # before it can deliver them to the application.
     #
-    # * :nowait => true | false (default true)
-    # If set, the server will not respond to the method. The client should
-    # not wait for a reply method.  If the server could not complete the
-    # method it will raise a channel or connection exception.
+    # @option opts [Boolean ]:ack (false)   If this field is set to false the server does not expect acknowledgments
+    #                                       for messages.  That is, when a message is delivered to the client
+    #                                       the server automatically and silently acknowledges it on behalf
+    #                                       of the client.  This functionality increases performance but at
+    #                                       the cost of reliability.  Messages can get lost if a client dies
+    #                                       before it can deliver them to the application.
     #
-    # * :confirm => proc (default nil)
-    # If set, this proc will be called when the server confirms subscription
-    # to the queue with a ConsumeOk message. Setting this option will
-    # automatically set :nowait => false. This is required for the server
-    # to send a confirmation.
+    # @option opts [Boolean] :nowait (false)  If set, the server will not respond to the method. The client should
+    #                                        not wait for a reply method.  If the server could not complete the
+    #                                        method it will raise a channel or connection exception.
     #
+    # @option opts [#call] :confirm (nil)   If set, this proc will be called when the server confirms subscription
+    #                                       to the queue with a ConsumeOk message. Setting this option will
+    #                                       automatically set :nowait => false. This is required for the server
+    #                                       to send a confirmation.
+    #
+    # @return [Queue] Self
     # @api public
     def subscribe(opts = {}, &block)
       raise Error, 'already subscribed to the queue' if @consumer_tag
@@ -362,13 +364,12 @@ module AMQP
 
 
     # Removes the subscription from the queue and cancels the consumer.
-    # New messages will not be received by the queue. This call is similar
-    # in result to calling #unbind.
+    # New messages will not be received by this queue instance.
     #
     # Due to the asynchronous nature of the protocol, it is possible for
     # "in flight" messages to be received after this call completes.
     # Those messages will be serviced by the last block used in a
-    # #subscribe or #pop call.
+    # {Queue#subscribe} or {Queue#pop} call.
     #
     # Additionally, if the queue was created with _autodelete_ set to
     # true, the server will delete the queue after its wait period
@@ -377,10 +378,9 @@ module AMQP
     # The method accepts a block which will be executed when the
     # unsubscription request is acknowledged as complete by the server.
     #
-    # * :nowait => true | false (default true)
-    # If set, the server will not respond to the method. The client should
-    # not wait for a reply method.  If the server could not complete the
-    # method it will raise a channel or connection exception.
+    # @option opts [Boolean] :nowait (false)  If set, the server will not respond to the method. The client should
+    #                                        not wait for a reply method.  If the server could not complete the
+    #                                        method it will raise a channel or connection exception.
     #
     # @api public
     def unsubscribe(opts = {}, &block)
@@ -390,6 +390,8 @@ module AMQP
     end
 
     # Get the number of messages and consumers on a queue.
+    #
+    # @example Getting number of messages and consumers for a queue
     #
     #  AMQP::Channel.queue('name').status { |num_messages, num_consumers|
     #   puts num_messages
@@ -408,10 +410,11 @@ module AMQP
     # Boolean check to see if the current queue has already subscribed
     # to messages delivery.
     #
-    # Attempts to #subscribe multiple times to any exchange will raise an
+    # Attempts to {Queue#subscribe} multiple times to the same exchange will raise an
     # Exception. Only a single block at a time can be associated with any
-    # one queue for processing incoming messages.
+    # queue instance for processing incoming messages.
     #
+    # @return [Boolean] true if there is a consumer tag associated with this Queue instance
     # @api public
     def subscribed?
       !!@consumer_tag
@@ -456,6 +459,7 @@ module AMQP
 
     protected
 
+    # @private
     def self.add_default_options(name, opts, block)
       { :queue => name, :nowait => block.nil? }.merge(opts)
     end
