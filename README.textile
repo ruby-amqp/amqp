@@ -1,0 +1,181 @@
+h1. About amqp gem
+
+amqp gem is a simple asynchronous Ruby AMQP client built on top of "EventMachine":http://rubyeventmachine.com.
+This library works with Ruby 1.8, Ruby 1.9, JRuby and Rubinius, and is licensed under the "Ruby License":http://www.ruby-lang.org/en/LICENSE.txt.
+Modern versions of amqp gem implement "AMQP 0.9.1":http://bit.ly/hw2ELX.
+
+
+h2. What is AMQP?
+
+AMQP is an "open standard for messaging middleware":http://www.amqp.org/confluence/display/AMQP/About+AMQP that
+emphasizes interoperability between different technologies (for example, Java, .NET,
+Ruby, Python, C and so on).
+
+Key features of AMQP are very flexible yet simple routing and binary protocol
+efficiency.
+
+
+h2. What is amqp gem good for?
+
+One can use amqp gem to make Ruby applications interoperate with other
+applications (both Ruby and not). Complexity and size may vary from
+simple work queues to complex multi-stage data processing workflows that involve
+dozens or hundreds of applications built with all kinds of technologies.
+
+Specific examples:
+
+ * A Web application may route messages to a Java app that works
+   with SMS delivery gateways.
+
+ * Periodically run (Cron-driven) application may notify other systems that
+   there are some new results.
+
+ * Content aggregators may update full-text search and geospatial search indexes
+	 by delegating actual indexing work to other applications over AMQP.
+
+ * Companies may provide "Firehose-like" push APIs to their customers, partners
+   or just general public.
+
+ * A new shiny Ruby-based system may be integrated with an existing C++-based component
+   using AMQP.
+
+ * An application that watches updates from a real-time stream (be it markets data
+   or Twitter stream) can propagate updates to interested parties, including
+	 Web applications that display that information in the real time.
+
+
+
+h2. Getting started with amqp gem
+
+h3. Install RabbitMQ
+
+Please refer to "RabbitMQ installation guide":http://www.rabbitmq.com/install.html
+
+
+h3. Install the gem
+
+<pre>gem install amqp</pre>
+
+
+h3. "Hello, World" example
+
+<script src="https://gist.github.com/910211.js?file=amqp_hello_world_example.rb"></script>
+
+
+h2. How to use AMQP gem with Ruby on Rails, Merb, Sinatra and other web frameworks
+
+To use AMQP gem from web applications, you would need to have EventMachine reactor running.
+If you use [Thin](http://code.macournoyer.com/thin/), you are all set: Thin uses EventMachine under
+the hood.
+
+With other web servers, you need to start EventMachine reactor in it's own thread like this:
+
+<pre>Thread.new { EM.run }</pre>
+
+because otherwise EventMachine will block current thread. Then connect to AMQP broker:
+
+<pre>amqp_connection = AMQP.connect(:host => "localhost", :user => "guest", :pass => "guest", :vhost => "/")</pre>
+
+In a Ruby on Rails app, probably the best place for this code is initializer
+(like config/initializers/amqp.rb). For Merb apps, it is config/init.rb. For
+Sinatra and pure Rack applications, place it next to other configuration
+code.
+
+If you want to integrate AMQP with "Thin":http://code.macournoyer.com/thin/, "Goliath":http://www.igvita.com/2011/03/08/goliath-non-blocking-ruby-19-web-server/ or another EventMachine-based software
+which already runs an event loop, you might want to use following code:
+
+<pre>EM.next_tick { AMQP.connect(...) }</pre>
+
+So in case the reactor isn't running yet (which seems to be the case with Ruby on Rails 3.x and Thin combination),
+it won't fail, but wait when the reactor is started.
+
+Same separate thread technique can be used to make EventMachine play nicely with other
+libraries that would block current thread (like "File::Tail":http://rubygems.org/gems/file-tail).
+
+
+h2. Using amqp gem in your app/library using Bundler
+
+With Bundler, add this line to your Gemfile:
+
+<pre>gem "amqp"</pre>
+
+If you want to use edge version (usually there is no need to):
+
+<pre>
+gem "amqp", :git => "git://github.com/ruby-amqp/amqp.git", :branch => "master"
+</pre>
+
+
+
+h2. Examples
+
+You can find many examples (both real-world cases and simple demonstrations)
+"under examples directory":https://github.com/ruby-amqp/amqp/tree/master/examples in the repository.
+
+
+h2. How does amqp gem relate to amq-client gem, amq-protocol and libraries like bunny?
+
+See "this page about AMQP gems family":https://github.com/ruby-amqp/amq-client/blob/master/README.textile
+
+
+h2. How can I learn more?
+
+h3. AMQP resources
+
+ * "RabbitMQ tutorials":http://www.rabbitmq.com/getstarted.html that demonstrate interoperability
+ * "Wikipedia page on AMQP":http://en.wikipedia.org/wiki/Advanced_Message_Queuing_Protocol
+ * "AMQP quick reference":http://www.rabbitmq.com/amqp-0-9-1-quickref.html
+ * John O'Hara on the "history of AMQP":http://www.acmqueue.org/modules.php?name=Content&pa=showpage&pid=485
+
+h3. Messaging and distributed systems resources
+
+ * "Enterprise Integration Patterns":http://www.eaipatterns.com/, a book about messaging and use of messaging in systems integration.
+
+ * "A Critique of the Remote Procedure Call Paradigm":http://www.cs.vu.nl/~ast/publications/euteco-1988.pdf
+ * "A Note on Distributed Computing":http://research.sun.com/techrep/1994/smli_tr-94-29.pdf
+ * "Convenience Over Correctness":http://steve.vinoski.net/pdf/IEEE-Convenience_Over_Correctness.pdf
+ * Joe Armstrong on "Erlang messaging vs RPC":http://armstrongonsoftware.blogspot.com/2008/05/road-we-didnt-go-down.html
+
+
+h2. Community
+
+ * "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp
+ * "RabbitMQ mailing list":https://lists.rabbitmq.com/cgi-bin/mailman/listinfo/rabbitmq-discuss (AMQP community epicenter).
+ * "Jabber room for contributors":xmpp://amqp-dev@conf.netlab.cz
+
+
+h2. License
+
+AMQP gem is licensed under the "Ruby License:"http://www.ruby-lang.org/en/LICENSE.txt.
+
+
+h2. Credits and copyright information
+
+* The Original Code is tmm1/amqp.
+* The Initial Developer of the Original Code is Aman Gupta.
+* Copyright (c) 2008 - 2010 [Aman Gupta](http://github.com/tmm1) (tmm1).
+* Contributions from Jakub Stastny are Copyright (c) 2011 VMware, Inc.
+* Copyright (c) 2010 — 2011 "ruby-amqp":https://github.com/ruby-amqp group members.
+
+Currently maintained by "ruby-amqp":https://github.com/ruby-amqp group members
+
+This project was inspired by [py-amqplib](http://barryp.org/software/py-amqplib/), [rabbitmq](http://rabbitmq.com), [qpid](http://qpid.apache.org/) and [rubbyt](http://github.com/rubbyt/rubbyt).
+Special thanks to Dmitriy Samovskiy, Ben Hood and Tony Garnock-Jones.
+
+
+
+h2. FAQ
+
+h3. So, does amqp gem only work with RabbitMQ?
+
+This library was tested primarily with "RabbitMQ":http://rabbitmq.com, although it should be compatible with any
+server implementing the "AMQP 0.9.1 spec":http://bit.ly/hw2ELX. For AMQP 0.8.0 brokers,
+use version 0.7.
+
+
+h2. Links
+
+* "API Documentation":http://rdoc.info/github/ruby-amqp/amq-protocol/master/frames
+* "Examples":https://github.com/ruby-amqp/amq-protocol/tree/master/examples/
+* "Issue tracker":http://github.com/ruby-amqp/amq-protocol/issues
+* "Continous integration server":http://jenkins.101ideas.cz/job/AMQ%20Protocol

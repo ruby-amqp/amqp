@@ -1,1 +1,1 @@
---no-private --protected --markup="markdown" lib/**/*.rb - README.md
+--no-private --protected --markup="textile" lib/**/*.rb - README.textile
