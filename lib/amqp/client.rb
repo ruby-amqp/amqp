@@ -33,10 +33,10 @@ module AMQP
 
   module Client
     # @api public
-    def self.connect(arg = nil, &block)
+    def self.connect(arg = nil, options = {}, &block)
       opts = case arg
              when String then
-               opts = parse_connection_uri(arg)
+               parse_connection_uri(arg)
              when Hash then
                arg
              else
@@ -47,9 +47,9 @@ module AMQP
       #       (but only if this backwards-compatibility move is actually worth it)
 
       if block
-        AMQP.client.connect(opts, &block)
+        AMQP.client.connect(opts.merge(options), &block)
       else
-        AMQP.client.connect(opts)
+        AMQP.client.connect(opts.merge(options))
       end
     end
 
