@@ -1,1 +1,1 @@
---no-private --protected lib/amq/**/*.rb - README.textile 
+--no-private --protected lib/**/*.rb - README.md
