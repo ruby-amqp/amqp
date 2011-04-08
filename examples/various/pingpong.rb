@@ -8,17 +8,6 @@ $:.unshift(File.expand_path("../../../lib", __FILE__))
 require 'amqp'
 
 AMQP.start(:host => 'localhost') do |connection|
-  show_stopper = Proc.new do
-    $stdout.puts "Stopping..."
-    # now change this to just EM.stop and it
-    # unbinds instantly
-    connection.close {
-      EM.stop { exit }
-    }
-  end
-  Signal.trap "INT", &show_stopper
-
-
   def log(*args)
     p [ Time.now, *args ]
   end
@@ -47,9 +36,14 @@ AMQP.start(:host => 'localhost') do |connection|
   end
   q2.subscribe { |msg| log('two', :received, msg) }
 
-  show_stopper = Proc.new {
-    connection.close
-  }
+  show_stopper = Proc.new do
+    $stdout.puts "Stopping..."
+    # now change this to just EM.stop and it
+    # unbinds instantly
+    connection.close {
+      EM.stop { exit }
+    }
+  end
 
   Signal.trap "INT",  show_stopper
   Signal.trap "TERM", show_stopper
