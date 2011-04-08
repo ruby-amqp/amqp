@@ -89,12 +89,14 @@ module AMQP
     @connection = value
   end
 
+  # @deprecated
   # @api public
   def self.conn
     warn "AMQP.conn will be removed in 1.0. Please use AMQP.connection."
     @connection
   end
 
+  # @deprecated
   # @api public
   def self.conn=(value)
     warn "AMQP.conn= will be removed in 1.0. Please use AMQP.connection=(connection)."
