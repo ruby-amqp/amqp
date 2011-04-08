@@ -615,7 +615,7 @@ module AMQP
     #
     # @api public
     def queue(name, opts = {}, &block)
-      if queue = find_queue(name)
+      if name && !name.empty? && (queue = find_queue(name))
         extended_opts = Queue.add_default_options(name, opts, block)
 
         validate_parameters_match!(queue, extended_opts)

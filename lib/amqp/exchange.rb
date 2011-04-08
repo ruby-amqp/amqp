@@ -275,7 +275,7 @@ module AMQP
       # or nameless exchange), so if we'd send Exchange.Declare(exchange=""),
       # then RabbitMQ interpret it as if we'd try to redefine this default
       # exchange so it'd produce an error.
-      unless name == "amq.#{type}" or name == AMQ::Protocol::EMPTY_STRING or opts[:no_declare]
+      unless name == "amq.#{type}" or name.empty? or opts[:no_declare]
         @status = :unfinished
         self.declare(passive = @opts[:passive], durable = @opts[:durable], exclusive = @opts[:exclusive], auto_delete = @opts[:auto_delete], nowait = @opts[:nowait], nil, &block) unless @opts[:no_declare]
       else

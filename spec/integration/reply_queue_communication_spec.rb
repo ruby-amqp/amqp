@@ -9,7 +9,7 @@ describe "Exclusive server-named queue" do
 
   include EventedSpec::AMQPSpec
 
-  default_timeout 1
+  default_timeout 2
 
   amqp_before do
     @channel   = AMQP::Channel.new
@@ -24,7 +24,9 @@ describe "Exclusive server-named queue" do
     @exchange.channel.should == @channel
 
     @channel.queue("", :exclusive => true) do |queue1|
+      puts "First callback has fired"
       @channel.queue("", :exclusive => true) do |queue2|
+        puts "Second callback has fired"
         request_timestamp = Time.now
         reply_timestamp   = nil
 
@@ -33,7 +35,7 @@ describe "Exclusive server-named queue" do
           header.app_id.should == "Client"
           header.reply_to.should == queue2.name
 
-          reply_timestamp = Time.now
+          reply_timestamp = Time.now.to_i
           @exchange.publish(rand(1000), :routing_key => header.reply_to, :reply_to => queue1.name, :app_id => "Server", :timestamp => reply_timestamp)
         end
 
@@ -53,7 +55,7 @@ describe "Exclusive server-named queue" do
                           :mandatory   => true,
                           :immediate   => true)
 
-        done(0.1) {
+        done(0.2) {
           queue1.unsubscribe
           queue2.unsubscribe
         }
