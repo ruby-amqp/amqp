@@ -1,7 +1,5 @@
 # encoding: utf-8
 
-require "amqp/ext/em"
-
 require "amqp/client"
 
 module AMQP
@@ -115,11 +113,5 @@ module AMQP
     else
       AMQ::Client::Settings.default
     end
-  end
-
-  # @api public
-  def self.fork(workers)
-    # TODO
-    raise NotImplementedError.new("EventMachine magic. Michael, can you please take a look at it?")
   end
 end # AMQP

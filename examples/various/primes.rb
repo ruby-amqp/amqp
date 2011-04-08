@@ -42,7 +42,16 @@ AMQP.fork(workers) do # TODO: AMQP.fork isn't implemented and I'm not sure if it
 end
 
 # use workers to check which numbers are prime
-AMQP.start(:host => 'localhost') do
+AMQP.start(:host => 'localhost') do |connection|
+
+  show_stopper = Proc.new do
+    $stdout.puts "Stopping..."
+    # now change this to just EM.stop and it
+    # unbinds instantly
+    connection.close {
+      EM.stop { exit }
+    }
+  end
 
   prime_checker = AMQP::Channel.new.rpc('prime checker')
 
@@ -55,54 +64,13 @@ AMQP.start(:host => 'localhost') do
 
       if (@responses = (@responses || 0) + 1) == MAX
         log :primes=, @primes
-        EM.stop_event_loop
+        show_stopper.call
       end
     }
-
   end
 
+  Signal.trap "INT",  show_stopper
+  Signal.trap "TERM", show_stopper
+
+  EM.add_timer(5, show_stopper)
 end
-
-__END__
-
-$ uname -a
-Linux gc 2.6.24-ARCH #1 SMP PREEMPT Sun Mar 30 10:50:22 CEST 2008 x86_64 Intel(R) Xeon(R) CPU X3220 @ 2.40GHz GenuineIntel GNU/Linux
-
-$ cat /proc/cpuinfo | grep processor | wc -l
-4
-
-$ time ruby primes-simple.rb
-
-real  0m16.055s
-user  0m16.052s
-sys 0m0.000s
-
-$ time ruby primes.rb 1 >/dev/null
-
-real  0m18.278s
-user  0m0.993s
-sys 0m0.027s
-
-$ time ruby primes.rb 2 >/dev/null
-
-real  0m17.316s
-user  0m0.967s
-sys 0m0.053s
-
-$ time ruby primes.rb 4 >/dev/null
-
-real  0m8.229s
-user  0m1.010s
-sys 0m0.030s
-
-$ time ruby primes.rb 8 >/dev/null
-
-real  0m5.893s
-user  0m1.023s
-sys 0m0.050s
-
-$ time ruby primes.rb 16 >/dev/null
-
-real  0m5.601s
-user  0m0.990s
-sys 0m0.043s
