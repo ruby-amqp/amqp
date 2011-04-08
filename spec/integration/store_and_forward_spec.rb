@@ -83,52 +83,12 @@ describe "Store-and-forward routing" do
           @exchange.publish(rand, :key => @queue_name)
         end
 
-        @queue.pop do |payload|
-          payload.should_not be_nil
-          number_of_received_messages += 1
-        end
-
         # 6 seconds are for Rubinius, it is surprisingly slow on this workload
         done(3.0) {
           number_of_received_messages.should == expected_number_of_messages
           @queue.unsubscribe
         }
       end # it
-
-
-
-      it "allows synchronous fetching of messages" do
-        number_of_received_messages = 0
-        expected_number_of_messages = 300
-
-        dispatched_data             = "fetch me synchronously"
-
-        @queue.purge :nowait => true
-        expected_number_of_messages.times do
-          @exchange.publish(dispatched_data, :key => @queue_name)
-        end
-
-        @queue.status do |number_of_messages, number_of_consumers|
-          number_of_messages.should == expected_number_of_messages
-
-          expected_number_of_messages.times do
-            @queue.pop do |payload|
-              payload.should_not be_nil
-              number_of_received_messages += 1
-
-              if RUBY_VERSION =~ /^1.9/
-                payload.force_encoding("UTF-8").should == dispatched_data
-              else
-                payload.should == dispatched_data
-              end
-            end # pop
-          end # do
-        end
-
-        done(1.5) {
-          number_of_received_messages.should == expected_number_of_messages
-        }
-      end # it
-    end # context
+    end
   end # context
 end # describe

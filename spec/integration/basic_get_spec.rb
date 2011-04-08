@@ -10,8 +10,6 @@ describe AMQP::Queue, "#pop" do
   include EventedSpec::AMQPSpec
   include EventedSpec::SpecHelper
 
-  em_before { AMQP.cleanup_state }
-  em_after  { AMQP.cleanup_state }
 
   default_options AMQP_OPTS
   default_timeout 10
@@ -22,65 +20,64 @@ describe AMQP::Queue, "#pop" do
 
     @queue_name = "amqpgem.integration.basic.get.queue"
 
-    @exchange = @channel.direct("")
-    @queue    = @channel.queue(@queue_name, :auto_delete => true, :nowait => false)
+    @exchange = @channel.fanout("amqpgem.integration.basic.get.queue", :auto_delete => true)
+    @queue    = @channel.queue(@queue_name, :auto_delete => true)
+
+    @queue.bind(@exchange) do
+      puts "Bound #{@exchange.name} => #{@queue.name}"
+    end
+
+    @dispatched_data = "fetch me synchronously"
   end
 
-  after(:all) do
-    AMQP.cleanup_state
-    done
-  end
 
 
   #
   # Examples
   #
 
-  context "when there are messages in the queue" do
-    amqp_before { @queue.purge :nowait => true }
+  context "when THERE ARE NO messages in the queue" do
     it "yields nil (instead of message payload) to the callback" do
-      callback_has_fired = false
+      @queue.purge do
+        callback_has_fired = false
 
-      @queue.status do |number_of_messages, number_of_consumers|
-        number_of_messages.should == 0
+        @queue.status do |number_of_messages, number_of_consumers|
+          number_of_messages.should == 0
+        end
+
+        @queue.pop do |payload|
+          callback_has_fired = true
+
+          payload.should be_nil
+        end
+
+        done(0.2) {
+          callback_has_fired.should be_true
+        }
       end
-
-      @queue.pop do |payload|
-        callback_has_fired = true
-
-        payload.should be_nil
-      end
-
-      done(0.2) {
-        callback_has_fired.should be_true
-      }
     end
   end
 
-  context "when there are messages in the queue" do  
+  context "when THERE ARE messages in the queue" do  
     it "yields message payload to the callback" do
       number_of_received_messages = 0
       expected_number_of_messages = 300
 
-      dispatched_data             = "fetch me synchronously"
-
-      @queue.purge :nowait => true
       expected_number_of_messages.times do |i|
-        @exchange.publish(dispatched_data + "_#{i}", :key => @queue_name)
+        @exchange.publish(@dispatched_data + "_#{i}", :key => @queue_name)
       end
 
       @queue.status do |number_of_messages, number_of_consumers|
-        number_of_messages.should == expected_number_of_messages
-
         expected_number_of_messages.times do
-          @queue.pop do |payload|
+          @queue.pop do |headers, payload|
             payload.should_not be_nil
-            number_of_received_messages += 1
+            number_of_received_messages += 1            
+            headers.message_count.should == (expected_number_of_messages - number_of_received_messages)
 
             if RUBY_VERSION =~ /^1.9/
-              payload.force_encoding("UTF-8").should == dispatched_data
+              payload.force_encoding("UTF-8").should == @dispatched_data
             else
-              payload.should == dispatched_data
+              payload.should =~ /#{@dispatched_data}/
             end
           end # pop
         end # do
