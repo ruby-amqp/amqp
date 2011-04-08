@@ -1,36 +1,8 @@
 # encoding: utf-8
 
+require "amqp/basic_client"
+
 module AMQP
-  class BasicClient < AMQ::Client::EventMachineClient
-
-    #
-    # API
-    #
-
-    # @api public
-    def connected?
-      self.opened?
-    end
-
-    # @api public
-    def reconnect(force = false)
-      # TODO
-      raise NotImplementedError.new
-    end # reconnect(force = false)
-  end
-
-
-  # @api public
-  def self.client
-    @client_implementation ||= BasicClient
-  end
-
-  def self.client=(value)
-    @client_implementation = value
-  end
-
-
-
   module Client
     # @api public
     def self.connect(arg = nil, options = {}, &block)
@@ -53,12 +25,8 @@ module AMQP
       end
     end
 
-    AMQP_PORTS = Hash["amqp" => 5672, "amqps" => 5671].freeze
-    AMQPS      = "amqps".freeze
-
-
-    private
-
+    # @return [Hash] Connection parameters (:user, :pass, :vhost, :host, :port, :ssl)
+    # @api public
     def self.parse_connection_uri(connection_string)
       uri = URI.parse(connection_string)
       raise("amqp:// uri required!") unless %w{amqp amqps}.include?(uri.scheme)
@@ -74,6 +42,18 @@ module AMQP
 
       opts
     end
-
   end # Client
+
+
+
+  # @api public
+  def self.client
+    @client_implementation ||= BasicClient
+  end
+
+  # @api public
+  def self.client=(value)
+    @client_implementation = value
+  end
+
 end # AMQP

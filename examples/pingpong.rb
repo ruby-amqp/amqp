@@ -46,4 +46,14 @@ AMQP.start(:host => 'localhost') do |connection|
     exchange.publish('pong', :routing_key => "two")
   end
   q2.subscribe { |msg| log('two', :received, msg) }
+
+  show_stopper = Proc.new {
+    connection.close
+  }
+
+  Signal.trap "INT",  show_stopper
+  Signal.trap "TERM", show_stopper
+
+  EM.add_timer(3, show_stopper)
+
 end

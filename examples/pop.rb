@@ -21,7 +21,7 @@ AMQP.start do |connection|
   EM.add_periodic_timer(1.5) { exchange.publish("Published at #{Time.now.to_i * 1000}", :routing_key => queue_name) }
 
 
-  pop_handler = Proc.new { |headers, msg, delivery_tag, redelivered, exchange, routing_key|
+  pop_handler = Proc.new { |headers, payload|
     unless msg
       # queue was empty
       p [Time.now, "queue is empty"]
@@ -30,7 +30,7 @@ AMQP.start do |connection|
       EM.add_timer(1) { queue.pop }
     else
       # process this message
-      p [Time.now, msg, delivery_tag, redelivered, exchange, routing_key]
+      p [Time.now, payload, headers.delivery_tag, headers.redelivered, headers.exchange, headers.routing_key]
 
       # get the next message in the queue
       queue.pop

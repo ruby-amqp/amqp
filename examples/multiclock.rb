@@ -41,4 +41,14 @@ AMQP.start(:host => 'localhost') do |connection|
       log "received #{format}", time
     }
   end
+
+  show_stopper = Proc.new {
+    connection.close
+  }
+
+  Signal.trap "INT",  show_stopper
+  Signal.trap "TERM", show_stopper
+
+  EM.add_timer(3, show_stopper)
+
 end
