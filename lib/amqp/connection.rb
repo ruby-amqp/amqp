@@ -91,13 +91,13 @@ module AMQP
 
   # @api public
   def self.conn
-    warn "This method will be removed in 1.0. Please use AMQP.connection."
+    warn "AMQP.conn will be removed in 1.0. Please use AMQP.connection."
     @connection
   end
 
   # @api public
   def self.conn=(value)
-    warn "This method will be removed in 1.0. Please use AMQP.connection=(connection)."
+    warn "AMQP.conn= will be removed in 1.0. Please use AMQP.connection=(connection)."
     self.connection = value
   end
 
