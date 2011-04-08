@@ -59,7 +59,38 @@ h3. Install the gem
 
 h3. "Hello, World" example
 
-<script src="https://gist.github.com/910211.js?file=amqp_hello_world_example.rb"></script>
+<pre>
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+require "rubygems"
+require 'amqp'
+
+EventMachine.run do
+  AMQP.connect(:host => 'localhost') do |connection|
+    puts "Connected to AMQP broker"
+
+    channel  = AMQP::Channel.new(connection)
+    queue    = channel.queue("amqpgem.examples.hello_world")
+    exchange = channel.default_exchange
+
+    queue.subscribe do |payload|
+      puts "Received a message: #{payload}. Disconnecting..."
+
+      connection.close {
+        EM.stop { exit }
+      }
+    end
+
+    exchange.publish "Hello, world!", :routing_key => queue.name
+  end  
+end
+</pre>
+
+(see "as a Gist":https://gist.github.com/910211)
 
 
 h2. How to use AMQP gem with Ruby on Rails, Merb, Sinatra and other web frameworks
@@ -158,8 +189,6 @@ h2. Credits and copyright information
 * Copyright (c) 2010 — 2011 "ruby-amqp":https://github.com/ruby-amqp group members.
 
 Currently maintained by "ruby-amqp":https://github.com/ruby-amqp group members
-
-This project was inspired by [py-amqplib](http://barryp.org/software/py-amqplib/), [rabbitmq](http://rabbitmq.com), [qpid](http://qpid.apache.org/) and [rubbyt](http://github.com/rubbyt/rubbyt).
 Special thanks to Dmitriy Samovskiy, Ben Hood and Tony Garnock-Jones.
 
 
