@@ -27,7 +27,7 @@ describe "Exclusive server-named queue" do
       puts "First callback has fired"
       @channel.queue("", :exclusive => true) do |queue2|
         puts "Second callback has fired"
-        request_timestamp = Time.now
+        request_timestamp = Time.now.to_i
         reply_timestamp   = nil
 
         queue1.subscribe do |header, body|
