@@ -15,21 +15,20 @@ if RUBY_VERSION == "1.8.7"
 end
 
 
-puts "=> basic.get example"
+puts "=> Queue#status example"
 puts
 AMQP.start(:host => 'localhost') do |connection|
   channel   = AMQP::Channel.new
   
-  queue_name = "amqpgem.integration.basic.get.queue"
-  expected_number_of_messages = 50
+  queue_name = "amqpgem.integration.queue.status.queue"
   
-  exchange = channel.fanout("amqpgem.integration.basic.get.fanout", :auto_delete => true)
+  exchange = channel.fanout("amqpgem.integration.queue.status.fanout", :auto_delete => true)
   queue    = channel.queue(queue_name, :auto_delete => true)
   
   queue.bind(exchange) do
     puts "Bound #{exchange.name} => #{queue.name}"
   end
-  expected_number_of_messages.times do |i|
+  100.times do |i|
     print "."
     exchange.publish(Time.now.to_i.to_s + "_#{i}", :key => queue_name)
   end
@@ -41,18 +40,12 @@ AMQP.start(:host => 'localhost') do |connection|
     puts "# of messages on status = #{number_of_messages}"
   end
 
-  queue.status do |number_of_messages, number_of_consumers|
-    puts "# of messages on status = #{number_of_messages}"
-    expected_number_of_messages.times do
-      queue.pop do |headers, payload|
-        puts "=> With payload #{payload.inspect}, routing key: #{headers.routing_key}, #{headers.message_count} message(s) left in the queue"
-      end # pop
-    end
-  end
-
 
   show_stopper = Proc.new do
     $stdout.puts "Stopping..."
+
+    # queue.purge :nowait => true
+
     # now change this to just EM.stop and it
     # unbinds instantly
     connection.close {

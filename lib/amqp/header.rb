@@ -7,6 +7,8 @@ module AMQP
     # API
     #
 
+    attr_reader :channel, :method, :header
+
     # @api public
     def initialize(channel, method, header)
       @channel, @method, @header = channel, method, header
