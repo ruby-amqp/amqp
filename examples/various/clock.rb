@@ -5,7 +5,7 @@ require "bundler"
 Bundler.setup
 Bundler.require :default
 
-$:.unshift(File.expand_path("../../lib", __FILE__))
+$:.unshift(File.expand_path("../../../lib", __FILE__))
 require 'amqp'
 
 puts "=> Clock example"
