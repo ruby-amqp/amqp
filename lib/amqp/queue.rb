@@ -3,9 +3,21 @@
 require "amq/client/queue"
 
 module AMQP
-  # Queues store and forward messages.  Queues can be configured in the server
-  # or created at runtime.  Queues must be attached to at least one exchange
-  # in order to receive messages from publishers.
+  # h2. What are AMQP queues?
+  #
+  # Queues store and forward messages to consumers. They similar to mailboxes in SMTP.
+  # Messages flow from producing applications to {Exchange exchanges} that route them
+  # to queues and finally queues deliver them to consumer applications (or consumer
+  # applications fetch messages as needed).
+  #
+  #
+  # h2. Concept of bindings
+  #
+  # Queues must be bound to at least one exchange in order to receive messages from publishers.
+  # Learn more about bindings in {Exchange Exchange class documentation}.
+  #
+  #
+  # h2. Queue names. Server-named queues. Predefined queues.
   #
   # Like an Exchange, queue names starting with 'amq.' are reserved for
   # internal use. Attempts to create queue names in violation of this
@@ -13,6 +25,18 @@ module AMQP
   #
   # When a queue is created without a name, the server will generate a
   # unique name internally (not currently supported in this library).
+  #
+  #
+  # h2. Key methods
+  #
+  # Key methods of Queue class are
+  #
+  # * {Queue#bind}
+  # * {Queue#subscribe}
+  # * {Queue#pop}
+  # * {Queue#delete}
+  # * {Queue#purge}
+  # * {Queue#unbind}
   #
   # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.1.1)
   # @see AMQP::Exchange
@@ -168,7 +192,7 @@ module AMQP
     #                                       method it will raise a channel or connection exception.
     #
     #
-    # @return [NilClass] nil (for v0.7 compatibility)    
+    # @return [NilClass] nil (for v0.7 compatibility)
     #
     # @api public
     def delete(opts = {}, &block)
@@ -185,7 +209,7 @@ module AMQP
     #                                        not wait for a reply method.  If the server could not complete the
     #                                        method it will raise a channel or connection exception.
     #
-    # @return [NilClass] nil (for v0.7 compatibility)    
+    # @return [NilClass] nil (for v0.7 compatibility)
     #
     # @api public
     def purge(opts = {}, &block)
@@ -283,7 +307,7 @@ module AMQP
     # exchange matches a message to this queue.
     #
     #
-    # @example Use of callback with a single argument    
+    # @example Use of callback with a single argument
     #
     #  EM.run do
     #    exchange = AMQP::Channel.direct("foo queue")
@@ -299,7 +323,7 @@ module AMQP
     # be passed in for processing. The header object is defined by
     # AMQP::Protocol::Header.
     #
-    # @example Use of callback with two arguments    
+    # @example Use of callback with two arguments
     #
     #  EM.run do
     #    exchange = AMQP::Channel.direct("foo queue")

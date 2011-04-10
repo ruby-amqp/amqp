@@ -14,6 +14,30 @@ module AMQP
   # Channels are independent of each other and can perform different functions simultaneously
   # with other channels, the available bandwidth being shared between the concurrent activities.
   #
+  #
+  # h2. Key methods
+  #
+  # Key methods of Channel class are
+  #
+  # * {Channel#queue}
+  # * {Channel#default_exchange}
+  # * {Channel#direct}
+  # * {Channel#fanout}
+  # * {Channel#topic}
+  # * {Channel#close}
+  #
+  # Channel provides a number of convenience methods that instantiate queues and exchanges
+  # of various types associated with this channel:
+  #
+  # * {Channel#queue}
+  # * {Channel#default_exchange}
+  # * {Channel#direct}
+  # * {Channel#fanout}
+  # * {Channel#topic}
+  #
+  # Channels are opened when objects is instantiated and closed using {#close} method when application no longer
+  # needs it.
+  #
   # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.2.5)
   class Channel < AMQ::Client::Channel
 
@@ -21,8 +45,14 @@ module AMQP
     # API
     #
 
-    attr_reader :channel, :connection, :status
+    # AMQP connection this channel is part of
+    # @return [Connection]
+    attr_reader :connection
     alias :conn :connection
+
+    # Status of this channel (one of: :opening, :closing, :open, :closed)
+    # @return [Symbol]
+    attr_reader :status
 
 
     # Returns a new channel. A channel is a bidirectional virtual
@@ -55,79 +85,69 @@ module AMQP
       self.open(&block)
     end
 
-    # Defines, intializes and returns an Exchange to act as an ingress
-    # point for all published messages.
+    # Defines, intializes and returns a direct Exchange instance.
     #
-    # == Direct
-    # A direct exchange is useful for 1:1 communication between a publisher and
-    # subscriber. Messages are routed to the queue with a binding that shares
-    # the same name as the exchange. Alternately, the messages are routed to
-    # the bound queue that shares the same name as the routing key used for
-    # defining the exchange. This exchange type does not honor the +:key+ option
-    # when defining a new instance with a name. It _will_ honor the +:key+ option
-    # if the exchange name is the empty string.
-    # Allocating this exchange without a name _or_ with the empty string
-    # will use the internal 'amq.direct' exchange.
+    # Learn more about direct exchanges in {Exchange Exchange class documentation}.
     #
-    # Any published message, regardless of its persistence setting, is thrown
-    # away by the exchange when there are no queues bound to it.
     #
-    #  # exchange is named 'foo'
-    #  exchange = AMQP::Channel.direct('foo')
+    # @param [String] name (amq.direct) Exchange name.
     #
-    #  # or, the exchange can use the default name (amq.direct) and perform
-    #  # routing comparisons using the :key
-    #  exchange = AMQP::Channel.direct("", :key => 'foo')
-    #  exchange.publish('some data') # will be delivered to queue bound to 'foo'
+    # @option opts [Boolean] :passive (false)  If set, the server will not create the exchange if it does not
+    #                                          already exist. The client can use this to check whether an exchange
+    #                                          exists without modifying the server state.
     #
-    #  queue = AMQP::Channel.queue('foo')
-    #  # can receive data since the queue name and the exchange key match exactly
-    #  queue.pop { |data| puts "received data [#{data}]" }
+    # @option opts [Boolean] :durable (false)  If set when creating a new exchange, the exchange will be marked as
+    #                                          durable. Durable exchanges and their bindings are recreated upon a server
+    #                                          restart (information about them is persisted). Non-durable (transient) exchanges
+    #                                          do not survive if/when a server restarts (information about them is stored exclusively
+    #                                          in RAM).
     #
-    # == Options
-    # * :passive => true | false (default false)
-    # If set, the server will not create the exchange if it does not
-    # already exist. The client can use this to check whether an exchange
-    # exists without modifying  the server state.
     #
-    # * :durable => true | false (default false)
-    # If set when creating a new exchange, the exchange will be marked as
-    # durable.  Durable exchanges remain active when a server restarts.
-    # Non-durable exchanges (transient exchanges) are purged if/when a
-    # server restarts.
+    # @option opts [Boolean] :auto_delete  (false)  If set, the exchange is deleted when all queues have finished
+    #                                               using it. The server waits for a short period of time before
+    #                                               determining the exchange is unused to give time to the client code
+    #                                               to bind a queue to it.
     #
-    # A transient exchange (the default) is stored in memory-only. The
-    # exchange and all bindings will be lost on a server restart.
-    # It makes no sense to publish a persistent message to a transient
-    # exchange.
+    # @option opts [Boolean] :internal (default false)   If set, the exchange may not be used directly by publishers, but
+    #                                                    only when bound to other exchanges. Internal exchanges are used to
+    #                                                    construct wiring that is not visible to applications. This is a RabbitMQ-specific
+    #                                                    extension.
     #
-    # Durable exchanges and their bindings are recreated upon a server
-    # restart. Any published messages not routed to a bound queue are lost.
+    # @option opts [Boolean] :nowait (true)              If set, the server will not respond to the method. The client should
+    #                                                    not wait for a reply method.  If the server could not complete the
+    #                                                    method it will raise a channel or connection exception.
     #
-    # * :auto_delete => true | false (default false)
-    # If set, the exchange is deleted when all queues have finished
-    # using it. The server waits for a short period of time before
-    # determining the exchange is unused to give time to the client code
-    # to bind a queue to it.
     #
-    # If the exchange has been previously declared, this option is ignored
-    # on subsequent declarations.
+    # @raise [AMQP::Error] Raised when exchange is redeclared with parameters different from original declaration.
+    # @raise [AMQP::Error] Raised when exchange is declared with  :passive => true and the exchange does not exist.
     #
-    # * :internal => true | false (default false)
-    # If set, the exchange may not be used directly by publishers, but
-    # only when bound to other exchanges. Internal exchanges are used to
-    # construct wiring that is not visible to applications.
     #
-    # * :nowait => true | false (default true)
-    # If set, the server will not respond to the method. The client should
-    # not wait for a reply method.  If the server could not complete the
-    # method it will raise a channel or connection exception.
+    # @example Using default pre-declared direct exchange
     #
-    # == Exceptions
-    # Doing any of these activities are illegal and will raise AMQP::Error.
-    # * redeclare an already-declared exchange to a different type
-    # * :passive => true and the exchange does not exist (NOT_FOUND)
+    #    # an exchange application A will be using to publish updates
+    #    # to some search index
+    #    exchange = channel.direct("index.updates")
     #
+    #    # In the same (or different) process declare a queue that broker will
+    #    # generate name for, bind it to aforementioned exchange using method chaining
+    #    queue    = channel.queue("").
+    #                       # queue will be receiving messages that were published with
+    #                       # :routing_key attribute value of "search.index.updates"
+    #                       bind(exchange, :routing_key => "search.index.updates").
+    #                       # register a callback that will be run when messages arrive
+    #                       subscribe { |header, message| puts("Received #{message}") }
+    #
+    #    # now publish a new document contents for indexing,
+    #    # message will be delivered to the queue we declared and bound on the line above
+    #    exchange.publish(document.content, :routing_key => "search.index.updates")
+    #
+    #
+    # @see Channel#default_exchange
+    # @see Exchange
+    # @see Exchange#initialize
+    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 3.1.3.1)
+    #
+    # @return [Exchange]
     # @api public
     def direct(name = 'amq.direct', opts = {}, &block)
       if exchange = find_exchange(name)
@@ -145,94 +165,65 @@ module AMQP
     # Default exchange is a direct exchange and automatically routes messages to
     # queues when routing key matches queue name exactly.
     #
+    # @see Exchange
+    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.1.2.4)
+    #
+    # @return [Exchange]
     # @api public
     def default_exchange
       Exchange.default(self)
     end
 
-
-    # Defines, intializes and returns an Exchange to act as an ingress
-    # point for all published messages.
+    # Defines, intializes and returns a fanout Exchange instance.
     #
-    # == Fanout
-    # A fanout exchange is useful for 1:N communication where one publisher
-    # feeds multiple subscribers. Like direct exchanges, messages published
-    # to a fanout exchange are delivered to queues whose name matches the
-    # exchange name (or are bound to that exchange name). Each queue gets
-    # its own copy of the message.
+    # Learn more about fanout exchanges in {Exchange Exchange class documentation}.
     #
-    # Any published message, regardless of its persistence setting, is thrown
-    # away by the exchange when there are no queues bound to it.
     #
-    # Like the direct exchange type, this exchange type does not honor the
-    # +:key+ option when defining a new instance with a name. It _will_ honor
-    # the +:key+ option if the exchange name is the empty string.
-    # Allocating this exchange without a name _or_ with the empty string
-    # will use the internal 'amq.fanout' exchange.
+    # @param [String] name (amq.fanout) Exchange name.
     #
-    #  EM.run do
-    #    clock = AMQP::Channel.fanout('clock')
-    #    EM.add_periodic_timer(1) do
-    #      puts "\npublishing #{time = Time.now}"
-    #      clock.publish(Marshal.dump(time))
-    #    end
+    # @option opts [Boolean] :passive (false)  If set, the server will not create the exchange if it does not
+    #                                          already exist. The client can use this to check whether an exchange
+    #                                          exists without modifying the server state.
     #
-    #    amq = AMQP::Channel.queue('every second')
-    #    amq.bind(AMQP::Channel.fanout('clock')).subscribe do |time|
-    #      puts "every second received #{Marshal.load(time)}"
-    #    end
+    # @option opts [Boolean] :durable (false)  If set when creating a new exchange, the exchange will be marked as
+    #                                          durable. Durable exchanges and their bindings are recreated upon a server
+    #                                          restart (information about them is persisted). Non-durable (transient) exchanges
+    #                                          do not survive if/when a server restarts (information about them is stored exclusively
+    #                                          in RAM).
     #
-    #    # note the string passed to #bind
-    #    AMQP::Channel.queue('every 5 seconds').bind('clock').subscribe do |time|
-    #      time = Marshal.load(time)
-    #      puts "every 5 seconds received #{time}" if time.strftime('%S').to_i%5 == 0
-    #    end
-    #  end
     #
-    # == Options
-    # * :passive => true | false (default false)
-    # If set, the server will not create the exchange if it does not
-    # already exist. The client can use this to check whether an exchange
-    # exists without modifying  the server state.
+    # @option opts [Boolean] :auto_delete  (false)  If set, the exchange is deleted when all queues have finished
+    #                                               using it. The server waits for a short period of time before
+    #                                               determining the exchange is unused to give time to the client code
+    #                                               to bind a queue to it.
     #
-    # * :durable => true | false (default false)
-    # If set when creating a new exchange, the exchange will be marked as
-    # durable.  Durable exchanges remain active when a server restarts.
-    # Non-durable exchanges (transient exchanges) are purged if/when a
-    # server restarts.
+    # @option opts [Boolean] :internal (default false)   If set, the exchange may not be used directly by publishers, but
+    #                                                    only when bound to other exchanges. Internal exchanges are used to
+    #                                                    construct wiring that is not visible to applications. This is a RabbitMQ-specific
+    #                                                    extension.
     #
-    # A transient exchange (the default) is stored in memory-only. The
-    # exchange and all bindings will be lost on a server restart.
-    # It makes no sense to publish a persistent message to a transient
-    # exchange.
+    # @option opts [Boolean] :nowait (true)              If set, the server will not respond to the method. The client should
+    #                                                    not wait for a reply method.  If the server could not complete the
+    #                                                    method it will raise a channel or connection exception.
     #
-    # Durable exchanges and their bindings are recreated upon a server
-    # restart. Any published messages not routed to a bound queue are lost.
     #
-    # * :auto_delete => true | false (default false)
-    # If set, the exchange is deleted when all queues have finished
-    # using it. The server waits for a short period of time before
-    # determining the exchange is unused to give time to the client code
-    # to bind a queue to it.
+    # @raise [AMQP::Error] Raised when exchange is redeclared with parameters different from original declaration.
+    # @raise [AMQP::Error] Raised when exchange is declared with  :passive => true and the exchange does not exist.
     #
-    # If the exchange has been previously declared, this option is ignored
-    # on subsequent declarations.
     #
-    # * :internal => true | false (default false)
-    # If set, the exchange may not be used directly by publishers, but
-    # only when bound to other exchanges. Internal exchanges are used to
-    # construct wiring that is not visible to applications.
+    # @example Using fanout exchange to deliver messages to multiple consumers
     #
-    # * :nowait => true | false (default true)
-    # If set, the server will not respond to the method. The client should
-    # not wait for a reply method.  If the server could not complete the
-    # method it will raise a channel or connection exception.
+    #   # open up a channel
+    #   # declare a fanout exchange
+    #   # declare 3 queues, binds them
+    #   # publish a message
     #
-    # == Exceptions
-    # Doing any of these activities are illegal and will raise AMQP::Error.
-    # * redeclare an already-declared exchange to a different type
-    # * :passive => true and the exchange does not exist (NOT_FOUND)
+    # @see Exchange
+    # @see Exchange#initialize
+    # @see Channel#default_exchange
+    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 3.1.3.2)
     #
+    # @return [Exchange]
     # @api public
     def fanout(name = 'amq.fanout', opts = {}, &block)
       if exchange = find_exchange(name)
@@ -247,114 +238,57 @@ module AMQP
     end
 
 
-    # Defines, intializes and returns an Exchange to act as an ingress
-    # point for all published messages.
+    # Defines, intializes and returns a topic Exchange instance.
     #
-    # == Topic
-    # A topic exchange allows for messages to be published to an exchange
-    # tagged with a specific routing key. The Exchange uses the routing key
-    # to determine which queues to deliver the message. Wildcard matching
-    # is allowed. The topic must be declared using dot notation to separate
-    # each subtopic.
+    # Learn more about topic exchanges in {Exchange Exchange class documentation}.
     #
-    # This is the only exchange type to honor the +key+ hash key for all
-    # cases.
+    # @param [String] name (amq.topic) Exchange name.
     #
-    # Any published message, regardless of its persistence setting, is thrown
-    # away by the exchange when there are no queues bound to it.
     #
-    # As part of the AMQP standard, each server _should_ predeclare a topic
-    # exchange called 'amq.topic' (this is not required by the standard).
-    # Allocating this exchange without a name _or_ with the empty string
-    # will use the internal 'amq.topic' exchange.
+    # @option opts [Boolean] :passive (false)  If set, the server will not create the exchange if it does not
+    #                                          already exist. The client can use this to check whether an exchange
+    #                                          exists without modifying the server state.
     #
-    # The classic example is delivering market data. When publishing market
-    # data for stocks, we may subdivide the stream based on 2
-    # characteristics: nation code and trading symbol. The topic tree for
-    # Apple Computer would look like:
-    #  'stock.us.aapl'
-    # For a foreign stock, it may look like:
-    #  'stock.de.dax'
+    # @option opts [Boolean] :durable (false)  If set when creating a new exchange, the exchange will be marked as
+    #                                          durable. Durable exchanges and their bindings are recreated upon a server
+    #                                          restart (information about them is persisted). Non-durable (transient) exchanges
+    #                                          do not survive if/when a server restarts (information about them is stored exclusively
+    #                                          in RAM).
     #
-    # When publishing data to the exchange, bound queues subscribing to the
-    # exchange indicate which data interests them by passing a routing key
-    # for matching against the published routing key.
     #
-    #  EM.run do
-    #    exch = AMQP::Channel.topic("stocks")
-    #    keys = ['stock.us.aapl', 'stock.de.dax']
+    # @option opts [Boolean] :auto_delete  (false)  If set, the exchange is deleted when all queues have finished
+    #                                               using it. The server waits for a short period of time before
+    #                                               determining the exchange is unused to give time to the client code
+    #                                               to bind a queue to it.
     #
-    #    EM.add_periodic_timer(1) do # every second
-    #      puts
-    #      exch.publish(10+rand(10), :routing_key => keys[rand(2)])
-    #    end
+    # @option opts [Boolean] :internal (default false)   If set, the exchange may not be used directly by publishers, but
+    #                                                    only when bound to other exchanges. Internal exchanges are used to
+    #                                                    construct wiring that is not visible to applications. This is a RabbitMQ-specific
+    #                                                    extension.
     #
-    #    # match against one dot-separated item
-    #    AMQP::Channel.queue('us stocks').bind(exch, :key => 'stock.us.*').subscribe do |price|
-    #      puts "us stock price [#{price}]"
-    #    end
+    # @option opts [Boolean] :nowait (true)              If set, the server will not respond to the method. The client should
+    #                                                    not wait for a reply method.  If the server could not complete the
+    #                                                    method it will raise a channel or connection exception.
     #
-    #    # match against multiple dot-separated items
-    #    AMQP::Channel.queue('all stocks').bind(exch, :key => 'stock.#').subscribe do |price|
-    #      puts "all stocks: price [#{price}]"
-    #    end
     #
-    #    # require exact match
-    #    AMQP::Channel.queue('only dax').bind(exch, :key => 'stock.de.dax').subscribe do |price|
-    #      puts "dax price [#{price}]"
-    #    end
-    #  end
+    # @raise [AMQP::Error] Raised when exchange is redeclared with parameters different from original declaration.
+    # @raise [AMQP::Error] Raised when exchange is declared with  :passive => true and the exchange does not exist.
     #
-    # For matching, the '*' (asterisk) wildcard matches against one
-    # dot-separated item only. The '#' wildcard (hash or pound symbol)
-    # matches against 0 or more dot-separated items. If none of these
-    # symbols are used, the exchange performs a comparison looking for an
-    # exact match.
     #
-    # == Options
-    # * :passive => true | false (default false)
-    # If set, the server will not create the exchange if it does not
-    # already exist. The client can use this to check whether an exchange
-    # exists without modifying  the server state.
+    # @example Using fanout exchange to deliver messages to multiple consumers
     #
-    # * :durable => true | false (default false)
-    # If set when creating a new exchange, the exchange will be marked as
-    # durable.  Durable exchanges remain active when a server restarts.
-    # Non-durable exchanges (transient exchanges) are purged if/when a
-    # server restarts.
+    #   # open up a channel
+    #   # declare a topic exchange
+    #   # declare 3 queues, binds them
+    #   # publish a message
     #
-    # A transient exchange (the default) is stored in memory-only. The
-    # exchange and all bindings will be lost on a server restart.
-    # It makes no sense to publish a persistent message to a transient
-    # exchange.
     #
-    # Durable exchanges and their bindings are recreated upon a server
-    # restart. Any published messages not routed to a bound queue are lost.
+    # @see Exchange
+    # @see Exchange#initialize
+    # @see Channel#default_exchange
+    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 3.1.3.3)
     #
-    # * :auto_delete => true | false (default false)
-    # If set, the exchange is deleted when all queues have finished
-    # using it. The server waits for a short period of time before
-    # determining the exchange is unused to give time to the client code
-    # to bind a queue to it.
-    #
-    # If the exchange has been previously declared, this option is ignored
-    # on subsequent declarations.
-    #
-    # * :internal => true | false (default false)
-    # If set, the exchange may not be used directly by publishers, but
-    # only when bound to other exchanges. Internal exchanges are used to
-    # construct wiring that is not visible to applications.
-    #
-    # * :nowait => true | false (default true)
-    # If set, the server will not respond to the method. The client should
-    # not wait for a reply method.  If the server could not complete the
-    # method it will raise a channel or connection exception.
-    #
-    # == Exceptions
-    # Doing any of these activities are illegal and will raise AMQP::Error.
-    # * redeclare an already-declared exchange to a different type
-    # * :passive => true and the exchange does not exist (NOT_FOUND)
-    #
+    # @return [Exchange]
     # @api public
     def topic(name = 'amq.topic', opts = {}, &block)
       if exchange = find_exchange(name)
@@ -369,84 +303,53 @@ module AMQP
     end
 
 
-
-    # Defines, intializes and returns an Exchange to act as an ingress
-    # point for all published messages.
+    # Defines, intializes and returns a headers Exchange instance.
     #
-    # == Headers
-    # A headers exchange allows for messages to be published to an exchange
+    # Learn more about headers exchanges in {Exchange Exchange class documentation}.
     #
-    # Any published message, regardless of its persistence setting, is thrown
-    # away by the exchange when there are no queues bound to it.
+    # @param [String] name (amq.match) Exchange name.
     #
-    # As part of the AMQP standard, each server _should_ predeclare a headers
-    # exchange called 'amq.match' (this is not required by the standard).
-    # Allocating this exchange without a name _or_ with the empty string
-    # will use the internal 'amq.match' exchange.
+    # @option opts [Boolean] :passive (false)  If set, the server will not create the exchange if it does not
+    #                                          already exist. The client can use this to check whether an exchange
+    #                                          exists without modifying the server state.
     #
-    # TODO: The classic example is ...
+    # @option opts [Boolean] :durable (false)  If set when creating a new exchange, the exchange will be marked as
+    #                                          durable. Durable exchanges and their bindings are recreated upon a server
+    #                                          restart (information about them is persisted). Non-durable (transient) exchanges
+    #                                          do not survive if/when a server restarts (information about them is stored exclusively
+    #                                          in RAM).
     #
-    # When publishing data to the exchange, bound queues subscribing to the
-    # exchange indicate which data interests them by passing arguments
-    # for matching against the headers in published messages. The
-    # form of the matching can be controlled by the 'x-match' argument, which
-    # may be 'any' or 'all'. If unspecified (in RabbitMQ at least), it defaults
-    # to "all".
     #
-    # A value of 'all' for 'x-match' implies that all values must match (i.e.
-    # it does an AND of the headers ), while a value of 'any' implies that
-    # at least one should match (ie. it does an OR).
+    # @option opts [Boolean] :auto_delete  (false)  If set, the exchange is deleted when all queues have finished
+    #                                               using it. The server waits for a short period of time before
+    #                                               determining the exchange is unused to give time to the client code
+    #                                               to bind a queue to it.
     #
-    # TODO: document behavior when either the binding or the message is missing
-    #       a header present in the other
+    # @option opts [Boolean] :internal (default false)   If set, the exchange may not be used directly by publishers, but
+    #                                                    only when bound to other exchanges. Internal exchanges are used to
+    #                                                    construct wiring that is not visible to applications. This is a RabbitMQ-specific
+    #                                                    extension.
     #
-    # TODO: insert example
+    # @option opts [Boolean] :nowait (true)              If set, the server will not respond to the method. The client should
+    #                                                    not wait for a reply method.  If the server could not complete the
+    #                                                    method it will raise a channel or connection exception.
     #
-    # == Options
-    # * :passive => true | false (default false)
-    # If set, the server will not create the exchange if it does not
-    # already exist. The client can use this to check whether an exchange
-    # exists without modifying  the server state.
     #
-    # * :durable => true | false (default false)
-    # If set when creating a new exchange, the exchange will be marked as
-    # durable.  Durable exchanges remain active when a server restarts.
-    # Non-durable exchanges (transient exchanges) are purged if/when a
-    # server restarts.
+    # @raise [AMQP::Error] Raised when exchange is redeclared with parameters different from original declaration.
+    # @raise [AMQP::Error] Raised when exchange is declared with  :passive => true and the exchange does not exist.
     #
-    # A transient exchange (the default) is stored in memory-only. The
-    # exchange and all bindings will be lost on a server restart.
-    # It makes no sense to publish a persistent message to a transient
-    # exchange.
     #
-    # Durable exchanges and their bindings are recreated upon a server
-    # restart. Any published messages not routed to a bound queue are lost.
+    # @example Using fanout exchange to deliver messages to multiple consumers
     #
-    # * :auto_delete => true | false (default false)
-    # If set, the exchange is deleted when all queues have finished
-    # using it. The server waits for a short period of time before
-    # determining the exchange is unused to give time to the client code
-    # to bind a queue to it.
+    #   # TODO
     #
-    # If the exchange has been previously declared, this option is ignored
-    # on subsequent declarations.
     #
-    # * :internal => true | false (default false)
-    # If set, the exchange may not be used directly by publishers, but
-    # only when bound to other exchanges. Internal exchanges are used to
-    # construct wiring that is not visible to applications.
+    # @see Exchange
+    # @see Exchange#initialize
+    # @see Channel#default_exchange
+    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 3.1.3.3)
     #
-    # * :nowait => true | false (default true)
-    # If set, the server will not respond to the method. The client should
-    # not wait for a reply method.  If the server could not complete the
-    # method it will raise a channel or connection exception.
-    #
-    # == Exceptions
-    # Doing any of these activities are illegal and will raise AMQP::Error.
-    # * redeclare an already-declared exchange to a different type
-    # * :passive => true and the exchange does not exist (NOT_FOUND)
-    # * using a value other than "any" or "all" for "x-match"
-    #
+    # @return [Exchange]
     # @api public
     def headers(name = 'amq.match', opts = {}, &block)
       if exchange = find_exchange(name)
@@ -461,72 +364,52 @@ module AMQP
     end
 
 
-    # Queues store and forward messages.  Queues can be configured in the server
-    # or created at runtime.  Queues must be attached to at least one exchange
-    # in order to receive messages from publishers.
+    # Declares and retursn a Queue instance.
     #
     # Like an Exchange, queue names starting with 'amq.' are reserved for
-    # internal use. Attempts to create queue names in violation of this
-    # reservation will raise AMQP::Error (ACCESS_REFUSED).
+    # internal use. Attempts to declare queue with names that violate this
+    # requirement will raise AMQP::Error.
     #
-    # It is not supported to create a queue without a name; some string
-    # (even the empty string) must be passed in the +name+ parameter.
+    # To make broker generate queue name for you (a classic example is exclusive
+    # queues that are only used for a short period of time), pass empty string
+    # as name value. Then queue will get it's name as soon as broker's response
+    # (queue.declare-ok) arrives.
     #
-    # == Options
-    # * :passive => true | false (default false)
-    # If set, the server will not create the queue if it does not
-    # already exist. The client can use this to check whether the queue
-    # exists without modifying  the server state.
+    # @option opts [Boolean] :passive (false)  If set, the server will not create the exchange if it does not
+    #                                          already exist. The client can use this to check whether an exchange
+    #                                          exists without modifying the server state.
     #
-    # * :durable => true | false (default false)
-    # If set when creating a new queue, the queue will be marked as
-    # durable.  Durable queues remain active when a server restarts.
-    # Non-durable queues (transient queues) are purged if/when a
-    # server restarts.  Note that durable queues do not necessarily
-    # hold persistent messages, although it does not make sense to
-    # send persistent messages to a transient queue (though it is
-    # allowed).
+    # @option opts [Boolean] :durable (false)  If set when creating a new exchange, the exchange will be marked as
+    #                                          durable. Durable exchanges and their bindings are recreated upon a server
+    #                                          restart (information about them is persisted). Non-durable (transient) exchanges
+    #                                          do not survive if/when a server restarts (information about them is stored exclusively
+    #                                          in RAM). Any remaining messages in the queue will be purged when the queue
+    #                                          is deleted regardless of the message's persistence setting.
     #
-    # Again, note the durability property on a queue has no influence on
-    # the persistence of published messages. A durable queue containing
-    # transient messages will flush those messages on a restart.
     #
-    # If the queue has already been declared, any redeclaration will
-    # ignore this setting. A queue may only be declared durable the
-    # first time when it is created.
+    # @option opts [Boolean] :auto_delete  (false)  If set, the exchange is deleted when all queues have finished
+    #                                               using it. The server waits for a short period of time before
+    #                                               determining the exchange is unused to give time to the client code
+    #                                               to bind a queue to it.
     #
-    # * :exclusive => true | false (default false)
-    # Exclusive queues may only be consumed from by the current connection.
-    # Setting the 'exclusive' flag always implies 'auto-delete'. Only a
-    # single consumer is allowed to remove messages from this queue.
+    # @option opts [Boolean] :exclusive (false)  Exclusive queues may only be used by a single connection.
+    #                                                    Exclusivity also implies that queue is automatically deleted when connection
+    #                                                    is closed. Only one consumer is allowed to remove messages from exclusive queue.
     #
-    # The default is a shared queue. Multiple clients may consume messages
-    # from this queue.
+    # @option opts [Boolean] :nowait (true)              If set, the server will not respond to the method. The client should
+    #                                                    not wait for a reply method.  If the server could not complete the
+    #                                                    method it will raise a channel or connection exception.
     #
-    # Attempting to redeclare an already-declared queue as :exclusive => true
-    # will raise AMQP::Error.
     #
-    # * :auto_delete = true | false (default false)
-    # If set, the queue is deleted when all consumers have finished
-    # using it. Last consumer can be cancelled either explicitly or because
-    # its channel is closed. If there was no consumer ever on the queue, it
-    # won't be deleted.
+    # @raise [AMQP::Error] Raised when queue is redeclared with parameters different from original declaration.
+    # @raise [AMQP::Error] Raised when queue is declared with :passive => true and the queue does not exist.
+    # @raise [AMQP::Error] Raised when queue is declared with :exclusive => true and queue with that name already exist.
     #
-    # The server waits for a short period of time before
-    # determining the queue is unused to give time to the client code
-    # to bind a queue to it.
+    # @see Queue
+    # @see Queue#initialize
+    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.1.4)
     #
-    # If the queue has been previously declared, this option is ignored
-    # on subsequent declarations.
-    #
-    # Any remaining messages in the queue will be purged when the queue
-    # is deleted regardless of the message's persistence setting.
-    #
-    # * :nowait => true | false (default true)
-    # If set, the server will not respond to the method. The client should
-    # not wait for a reply method.  If the server could not complete the
-    # method it will raise a channel or connection exception.
-    #
+    # @return [Queue]
     # @api public
     def queue(name, opts = {}, &block)
       if name && !name.empty? && (queue = find_queue(name))
@@ -540,13 +423,13 @@ module AMQP
                   Queue.new(self, name, opts)
                 else
                   shim = Proc.new { |method|
-                    queue = find_queue(method.queue)
-                    if block.arity == 1
-                      block.call(queue)
-                    else
-                      block.call(queue, method.consumer_count, method.message_count)
-                    end
-                  }
+            queue = find_queue(method.queue)
+            if block.arity == 1
+              block.call(queue)
+            else
+              block.call(queue, method.consumer_count, method.message_count)
+            end
+          }
                   Queue.new(self, name, opts, &shim)
                 end
 
@@ -554,6 +437,9 @@ module AMQP
       end
     end
 
+    # Returns true if channel is not closed.
+    # @return [Boolean]
+    # @api public
     def open?
       self.status == :opened || self.status == :opening
     end # open?
@@ -565,7 +451,7 @@ module AMQP
     end
 
 
-    # Takes a channel, queue and optional object.
+    # Instantiates and returns an RPC instance associated with this channel.
     #
     # The optional object may be a class name, module name or object
     # instance. When given a class or module name, the object is instantiated
@@ -584,42 +470,22 @@ module AMQP
     # there is a valid destination. Failure to do so will just enqueue
     # marshalled messages that are never consumed.
     #
-    #  EM.run do
-    #    server = AMQP::Channel.new.rpc('hash table node', Hash)
+    # @example Use of RPC
     #
-    #    client = AMQP::Channel.new.rpc('hash table node')
-    #    client[:now] = Time.now
-    #    client[:one] = 1
+    #   # TODO
     #
-    #    client.values do |res|
-    #      p 'client', :values => res
-    #    end
     #
-    #    client.keys do |res|
-    #      p 'client', :keys => res
-    #      EM.stop_event_loop
-    #    end
-    #  end
-    #
+    # @param [String, Queue] Queue to be used by RPC server.
+    # @return [RPC]
     # @api public
     def rpc(name, obj = nil)
       RPC.new(self, name, obj)
     end
 
 
-    def register_rpc(rpc)
-      raise ArgumentError, "argument is nil!" unless rpc
-
-      @rpcs[rpc.name] = rpc
-    end # register_rpc(rpc)
-
-    def find_rpc(name)
-      @rpcs[name]
-    end
-
-
-    # Define a message and callback block to be executed on all
-    # errors.
+    # Define a callback to be run on channel-level exception.
+    #
+    # @param [String] msg Error message
     #
     # @api public
     def self.error(msg = nil, &block)
@@ -627,10 +493,17 @@ module AMQP
       raise NotImplementedError.new
     end
 
+    # @param [Fixnum] size
+    # @param [Boolean] global (false)
+    #
+    # @return [Channel] self
+    #
     # @api public
     def prefetch(size, global = false, &block)
       # RabbitMQ as of 2.3.1 does not support prefetch_size.
       self.qos(0, size, global, &block)
+
+      self
     end
 
 
@@ -645,20 +518,33 @@ module AMQP
     end
 
 
+
+    #
+    # Implementation
+    #
+
+
     # Resets channel state (for example, list of registered queue objects and so on).
     #
     # Most of the time, this method is not
     # called by application code.
+    #
+    # @private
     # @api plugin
     def reset
       # TODO
       raise NotImplementedError.new
     end
 
+    # @private
+    # @api private
     def self.channel_id_mutex
       @channel_id_mutex ||= Mutex.new
     end
 
+    # @return [Fixnum]
+    # @private
+    # @api private
     def self.next_channel_id
       channel_id_mutex.synchronize do
         @last_channel_id ||= 0
@@ -667,6 +553,21 @@ module AMQP
         @last_channel_id
       end
     end
+
+    # @private
+    # @api plugin
+    def register_rpc(rpc)
+      raise ArgumentError, "argument is nil!" unless rpc
+
+      @rpcs[rpc.name] = rpc
+    end # register_rpc(rpc)
+
+    # @private
+    # @api plugin
+    def find_rpc(name)
+      @rpcs[name]
+    end
+
 
     protected
 

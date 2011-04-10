@@ -3,13 +3,41 @@
 require "amq/client/exchange"
 
 module AMQP
-  # An Exchange acts as an ingress point for all published messages. An
+
+  # h2. What are AMQP exchanges?
+  #
+  # AMQP exchange is where AMQP clients send messages. AMQP
   # exchange may also be described as a router or a matcher. Every
   # published message is received by an exchange which, depending on its
-  # type (described below), determines how to deliver the message.
+  # type and message attributes, determines how to deliver the message.
   #
-  # It determines the next delivery hop by examining the bindings associated
-  # with the exchange.
+  #
+  # h2. Exchange types
+  #
+  # There are 4 supported exchange types: direct, fanout, topic and headers.
+  #
+  # As part of the standard, the server _must_ predeclare the direct exchange
+  # 'amq.direct' and the fanout exchange 'amq.fanout'. All exchange names
+  # starting with 'amq.' are reserved: attempts to declare an exchange using
+  # 'amq.' as the name will raise an AMQP::Error and fail.
+  #
+  # Note that durability of exchanges and durability of messages published to exchanges
+  # are different concepts. Sending messages to durable exchanges does not make
+  # messages themselves persistent.
+  #
+  #
+  # h2. AMQP bindings
+  #
+  # Closely related to exchange is a concept of bindings. A binding is
+  # the relationship between an exchange and a message queue that tells
+  # the exchange how to route messages. Bindings are set up by
+  # AMQP applications (usually the app owning and using the message queue
+  # sets up bindings for it). Exchange may be bound to none, 1 or more than 1
+  # queue.
+  #
+  #
+  # Defines, intializes and returns an Exchange to act as an ingress
+  # point for all published messages.
   #
   # There are three (3) supported Exchange types: direct, fanout and topic.
   #
@@ -19,32 +47,113 @@ module AMQP
   # 'amq.' as the name will raise an AMQP::Error and fail. In practice these
   # default exchanges are never used directly by client code.
   #
-  # These predececlared exchanges are used when the client code declares
-  # an exchange without a name. In these cases the library will use
-  # the default exchange for publishing the messages.
   #
+  # h2. Direct exchanges
+  #
+  # Direct exchanges are useful for 1:1 communication scenarios.
+  # Queues are bound to direct exchanges with a parameter called "routing key". When messages
+  # arrive to a direct exchange, broker takes that message's routing key (if any), finds a queue bound
+  # to the exchange with the same routing key and routes message there.
+  #
+  # Because very often queues are bound with the same routing key as queue's name, AMQP 0.9.1 has
+  # a pre-declared direct exchange known as default exchange. Default exchange is a bit special: broker
+  # automatically binds all the queues (in the same virtual host) to it with routing key equal to
+  # queue names. In other words, messages delivered to default exchange are routed to queues when
+  # message routing key equals queue name. Default exchange name is an empty string.
+  #
+  #
+  #
+  # h2. Fanout exchanges
+  #
+  # Fanout exchanges are useful for 1:n and n:m communication where one or more producer
+  # feeds multiple consumers. messages published
+  # to a fanout exchange are delivered to queues that are bound to that exchange name (unconditionally).
+  # Each queue gets it's own copy of the message.
+  #
+  #
+  #
+  # h2. Topic exchanges
+  #
+  # Topic exchanges are used for 1:n and n:m communication scenarios.
+  # Exchange of this type uses the routing key
+  # to determine which queues to deliver the message. Wildcard matching
+  # is allowed. The topic must be declared using dot notation to separate
+  # each subtopic.
+  #
+  # As part of the AMQP standard, each server _should_ predeclare a topic
+  # exchange called 'amq.topic'.
+  #
+  # The classic example is delivering market data. When publishing market
+  # data for stocks, we may subdivide the stream based on 2
+  # characteristics: nation code and trading symbol. The topic tree for
+  # Apple may look like stock.us.aapl. NASDAQ updates may use topic stocks.us.nasdaq,
+  # while DAX may use stock.de.dax.
+  #
+  # When publishing data to the exchange, bound queues subscribing to the
+  # exchange indicate which data interests them by passing a routing key
+  # for matching against the published routing key.
+  #
+  #
+  # h2. Headers exchanges
+  #
+  # As part of the AMQP standard, each server _should_ predeclare a headers
+  # exchange named 'amq.match'.
+  #
+  # When publishing data to the exchange, bound queues subscribing to the
+  # exchange indicate which data interests them by passing arguments
+  # for matching against the headers in published messages. The
+  # form of the matching can be controlled by the 'x-match' argument, which
+  # may be 'any' or 'all'. If unspecified, it defaults to "all".
+  #
+  # A value of 'all' for 'x-match' implies that all values must match (i.e.
+  # it does an AND of the headers ), while a value of 'any' implies that
+  # at least one should match (ie. it does an OR).
+  #
+  #
+  # h2. Key methods
+  #
+  # Key methods of Exchange class are
+  #
+  # * {Exchange#publish}
+  # * {Exchange#delete}
+  # * {Exchange.default}
+  #
+  #
+  # @note Please make sure you read a section on exchanges durability vs. messages
+  #       persistence.
+  #
+  # @see Channel#default_exchange
+  # @see Channel#direct
+  # @see Channel#fanout
+  # @see Channel#topic
+  # @see Channel#headers
+  # @see Queue
   # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.1.1)
-  # @see AMQP::Queue
+  # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.1.5)
+  # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 3.1.3)
   class Exchange < AMQ::Client::Exchange
 
     #
     # API
     #
 
+    DEFAULT_CONTENT_TYPE = "application/octet-stream".freeze
+
 
     # The default exchange.
     # Every queue is bind to this (direct) exchange by default.
     # You can't remove it or bind there queue explicitly.
     #
-    # Do NOT confuse with amq.direct: it's only a normal direct
-    # exchange and the only special thing about it is that it's
-    # predefined in the system, so you can use it straightaway.
+    # Do NOT confuse default exchange with amq.direct: amq.direct is a pre-defined direct
+    # exchange that doesn't have any special routing semantics.
     #
-    # Example:
-    # AMQP::Channel.new.queue("tasks")
-    # AMQP::Channel::Exchange.default.publish("make clean", routing_key: "tasks")
+    # @example Publishing a messages to the tasks queue
+    #   channel     = AMQP::Channel.new(connection)
+    #   tasks_queue = channel.queue("tasks")
+    #   AMQP::Exchange.default(channel).publish("make clean", routing_key => "tasks")
     #
-    # For more info see section 2.1.2.4 Automatic Mode of the AMQP 0.9.1 spec.
+    #
+    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.1.2.4)
     #
     # @return [Exchange] An instance that corresponds to the default exchange (of type direct).
     # @api public
@@ -53,195 +162,82 @@ module AMQP
     end
 
 
+    # @return [String]
+    attr_reader :name
 
-    attr_reader :name, :type, :key, :status
-    attr_accessor :opts, :on_declare
+    # Type of this exchange (one of: :direct, :fanout, :topic, :headers).
+    # @return [Symbol]
+    attr_reader :type
+
+    # @return [Symbol]
+    # @api plugin
+    attr_reader :status
+
+    # Options hash this exchange instance was instantiated with
+    # @return [Hash]
+    attr_accessor :opts
+
+    # @return [#call] A callback that is executed once declaration notification (exchange.declare-ok)
+    #                 from the broker arrives.
+    attr_accessor :on_declare
 
     # Compatibility alias for #on_declare.
     #
     # @api public
     # @deprecated
+    # @return [#call]
     def callback
       @on_declare
     end
 
-    # Defines, intializes and returns an Exchange to act as an ingress
-    # point for all published messages.
+
+
+    # See {Exchange Exchange class documentation} for introduction, information about exchange types,
+    # what uses cases they are good for and so on..
     #
-    # There are three (3) supported Exchange types: direct, fanout and topic.
+    # @param [Channel] channel AMQP channel this exchange is associated with
+    # @param [Symbol]  type    Exchange type
+    # @param [String]  name    Exchange name
     #
-    # As part of the standard, the server _must_ predeclare the direct exchange
-    # 'amq.direct' and the fanout exchange 'amq.fanout' (all exchange names
-    # starting with 'amq.' are reserved). Attempts to declare an exchange using
-    # 'amq.' as the name will raise an AMQP::Error and fail. In practice these
-    # default exchanges are never used directly by client code.
     #
-    # == Direct
-    # A direct exchange is useful for 1:1 communication between a publisher and
-    # subscriber. Messages are routed to the queue with a binding that shares
-    # the same name as the exchange. Alternately, the messages are routed to
-    # the bound queue that shares the same name as the routing key used for
-    # defining the exchange. This exchange type does not honor the :key option
-    # when defining a new instance with a name. It _will_ honor the :key option
-    # if the exchange name is the empty string. This is because an exchange
-    # defined with the empty string uses the default pre-declared exchange
-    # called 'amq.direct'. In this case it needs to use :key to do its matching.
+    # @option opts [Boolean] :passive (false)  If set, the server will not create the exchange if it does not
+    #                                          already exist. The client can use this to check whether an exchange
+    #                                          exists without modifying the server state.
     #
-    #  # exchange is named 'foo'
-    #  exchange = AMQP::Channel::Exchange.new(AMQP::Channel.new, :direct, 'foo')
+    # @option opts [Boolean] :durable (false)  If set when creating a new exchange, the exchange will be marked as
+    #                                          durable. Durable exchanges and their bindings are recreated upon a server
+    #                                          restart (information about them is persisted). Non-durable (transient) exchanges
+    #                                          do not survive if/when a server restarts (information about them is stored exclusively
+    #                                          in RAM).
     #
-    #  # or, the exchange can use the default name (amq.direct) and perform
-    #  # routing comparisons using the :key
-    #  exchange = AMQP::Channel::Exchange.new(AMQP::Channel.new, :direct, "", :key => 'foo')
-    #  exchange.publish('some data') # will be delivered to queue bound to 'foo'
     #
-    #  queue = AMQP::Channel::Queue.new(AMQP::Channel.new, 'foo')
-    #  # can receive data since the queue name and the exchange key match exactly
-    #  queue.pop { |data| puts "received data [#{data}]" }
+    # @option opts [Boolean] :auto_delete  (false)  If set, the exchange is deleted when all queues have finished
+    #                                               using it. The server waits for a short period of time before
+    #                                               determining the exchange is unused to give time to the client code
+    #                                               to bind a queue to it.
     #
-    # == Fanout
-    # A fanout exchange is useful for 1:N communication where one publisher
-    # feeds multiple subscribers. Like direct exchanges, messages published
-    # to a fanout exchange are delivered to queues whose name matches the
-    # exchange name (or are bound to that exchange name). Each queue gets
-    # its own copy of the message.
+    # @option opts [Boolean] :internal (default false)   If set, the exchange may not be used directly by publishers, but
+    #                                                    only when bound to other exchanges. Internal exchanges are used to
+    #                                                    construct wiring that is not visible to applications. This is a RabbitMQ-specific
+    #                                                    extension.
     #
-    # Like the direct exchange type, this exchange type does not honor the
-    # :key option when defining a new instance with a name. It _will_ honor
-    # the :key option if the exchange name is the empty string. Fanout exchanges
-    # defined with the empty string as the name use the default 'amq.fanout'.
-    # In this case it needs to use :key to do its matching.
+    # @option opts [Boolean] :nowait (true)              If set, the server will not respond to the method. The client should
+    #                                                    not wait for a reply method.  If the server could not complete the
+    #                                                    method it will raise a channel or connection exception.
     #
-    #  EM.run do
-    #    clock = AMQP::Channel::Exchange.new(AMQP::Channel.new, :fanout, 'clock')
-    #    EM.add_periodic_timer(1) do
-    #      puts "\npublishing #{time = Time.now}"
-    #      clock.publish(Marshal.dump(time))
-    #    end
     #
-    #    # one way of defining a queue
-    #    amq = AMQP::Channel::Queue.new(AMQP::Channel.new, 'every second')
-    #    amq.bind(AMQP::Channel.fanout('clock')).subscribe do |time|
-    #      puts "every second received #{Marshal.load(time)}"
-    #    end
+    # @raise [AMQP::Error] Raised when exchange is redeclared with parameters different from original declaration.
+    # @raise [AMQP::Error] Raised when exchange is declared with  :passive => true and the exchange does not exist.
     #
-    #    # defining a queue using the convenience method
-    #    # note the string passed to #bind
-    #    AMQP::Channel.queue('every 5 seconds').bind('clock').subscribe do |time|
-    #      time = Marshal.load(time)
-    #      puts "every 5 seconds received #{time}" if time.strftime('%S').to_i%5 == 0
-    #    end
-    #  end
+    # @see Channel#default_exchange
+    # @see Channel#direct
+    # @see Channel#fanout
+    # @see Channel#topic
+    # @see Channel#headers
+    # @see Queue
+    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 3.1.3)
     #
-    # == Topic
-    # A topic exchange allows for messages to be published to an exchange
-    # tagged with a specific routing key. The Exchange uses the routing key
-    # to determine which queues to deliver the message. Wildcard matching
-    # is allowed. The topic must be declared using dot notation to separate
-    # each subtopic.
-    #
-    # This is the only exchange type to honor the :key parameter.
-    #
-    # As part of the AMQP standard, each server _should_ predeclare a topic
-    # exchange called 'amq.topic' (this is not required by the standard).
-    #
-    # The classic example is delivering market data. When publishing market
-    # data for stocks, we may subdivide the stream based on 2
-    # characteristics: nation code and trading symbol. The topic tree for
-    # Apple Computer would look like:
-    #  'stock.us.aapl'
-    # For a foreign stock, it may look like:
-    #  'stock.de.dax'
-    #
-    # When publishing data to the exchange, bound queues subscribing to the
-    # exchange indicate which data interests them by passing a routing key
-    # for matching against the published routing key.
-    #
-    #  EM.run do
-    #    exch = AMQP::Channel::Exchange.new(AMQP::Channel.new, :topic, "stocks")
-    #    keys = ['stock.us.aapl', 'stock.de.dax']
-    #
-    #    EM.add_periodic_timer(1) do # every second
-    #      puts
-    #      exch.publish(10+rand(10), :routing_key => keys[rand(2)])
-    #    end
-    #
-    #    # match against one dot-separated item
-    #    AMQP::Channel.queue('us stocks').bind(exch, :key => 'stock.us.*').subscribe do |price|
-    #      puts "us stock price [#{price}]"
-    #    end
-    #
-    #    # match against multiple dot-separated items
-    #    AMQP::Channel.queue('all stocks').bind(exch, :key => 'stock.#').subscribe do |price|
-    #      puts "all stocks: price [#{price}]"
-    #    end
-    #
-    #    # require exact match
-    #    AMQP::Channel.queue('only dax').bind(exch, :key => 'stock.de.dax').subscribe do |price|
-    #      puts "dax price [#{price}]"
-    #    end
-    #  end
-    #
-    # For matching, the '*' (asterisk) wildcard matches against one
-    # dot-separated item only. The '#' wildcard (hash or pound symbol)
-    # matches against 0 or more dot-separated items. If none of these
-    # symbols are used, the exchange performs a comparison looking for an
-    # exact match.
-    #
-    # == Options
-    # * :passive => true | false (default false)
-    # If set, the server will not create the exchange if it does not
-    # already exist. The client can use this to check whether an exchange
-    # exists without modifying  the server state.
-    #
-    # * :durable => true | false (default false)
-    # If set when creating a new exchange, the exchange will be marked as
-    # durable.  Durable exchanges remain active when a server restarts.
-    # Non-durable exchanges (transient exchanges) are purged if/when a
-    # server restarts.
-    #
-    # A transient exchange (the default) is stored in memory-only
-    # therefore it is a good choice for high-performance and low-latency
-    # message publishing.
-    #
-    # Durable exchanges cause all messages to be written to non-volatile
-    # backing store (i.e. disk) prior to routing to any bound queues.
-    #
-    # * :auto_delete => true | false (default false)
-    # If set, the exchange is deleted when all queues have finished
-    # using it. The server waits for a short period of time before
-    # determining the exchange is unused to give time to the client code
-    # to bind a queue to it.
-    #
-    # If the exchange has been previously declared, this option is ignored
-    # on subsequent declarations.
-    #
-    # * :internal => true | false (default false)
-    # If set, the exchange may not be used directly by publishers, but
-    # only when bound to other exchanges. Internal exchanges are used to
-    # construct wiring that is not visible to applications.
-    #
-    # * :nowait => true | false (default true)
-    # If set, the server will not respond to the method. The client should
-    # not wait for a reply method.  If the server could not complete the
-    # method it will raise a channel or connection exception.
-    #
-    # * :no_declare => true | false (default false)
-    # If set, the exchange will not be declared to the
-    # AMQP broker at instantiation-time. This allows the AMQP
-    # client to send messages to exchanges that were
-    # already declared by someone else, e.g. if the client
-    # does not have sufficient privilege to declare (create)
-    # an exchange. Use with caution, as binding to an exchange
-    # with the no-declare option causes your system to become
-    # sensitive to the ordering of clients' actions!
-    #
-    # == Exceptions
-    # Doing any of these activities are illegal and will raise exceptions:
-    #
-    # * redeclare an already-declared exchange to a different type (raises AMQP::Channel::IncompatibleOptionsError)
-    # * :passive => true and the exchange does not exist (NOT_FOUND)
-    #
+    # @return [Exchange]
     # @api public
     def initialize(channel, type, name, opts = {}, &block)
       @channel = channel
@@ -252,16 +248,16 @@ module AMQP
 
       @status                  = :unknown
       @default_publish_options = (opts.delete(:default_publish_options) || {
-        :routing_key  => AMQ::Protocol::EMPTY_STRING,
-        :mandatory    => false,
-        :immediate    => false
-      }).freeze
+                                    :routing_key  => AMQ::Protocol::EMPTY_STRING,
+                                    :mandatory    => false,
+                                    :immediate    => false
+                                  }).freeze
 
       @default_headers = (opts.delete(:default_headers) || {
-        :content_type => DEFAULT_CONTENT_TYPE,
-        :persistent   => false,
-        :priority     => 0
-      }).freeze
+                            :content_type => DEFAULT_CONTENT_TYPE,
+                            :persistent   => false,
+                            :priority     => 0
+                          }).freeze
 
       super(channel.connection, channel, name, type)
 
@@ -288,54 +284,71 @@ module AMQP
       @on_declare = block
     end
 
+    # @return [Channel]
     # @api public
     def channel
       @channel
     end
 
-    # This method publishes a staged file message to a specific exchange.
-    # The file message will be routed to queues as defined by the exchange
-    # configuration and distributed to any active consumers when the
-    # transaction, if any, is committed.
+    # Publishes message to the exchange. The message will be routed to queues by the exchange
+    # and distributed to any active consumers. Routing logic is determined by exchange type and
+    # configuration as well as  message attributes (like :routing_key).
     #
-    #  exchange = AMQP::Channel.direct('name', :key => 'foo.bar')
+    # h2. Data serialization
+    #
+    # Note that this method calls #to_s on payload argument value. You are encouraged to take care of
+    # data serialization before publishing (using JSON, Thrift, Protocol Buffers or other serialization library).
+    # Note that because AMQP is a binary protocol, text formats like JSON lose lose their strong point of being easy
+    # to inspect data as it travels across network.
+    #
+    #
+    #
+    # h2. Event loop blocking
+    #
+    # To minimize blocking of EventMachine event loop, this method performs network I/O on the next event loop tick.
+    #
+    # @param  [#to_s] payload  Message payload (content). Note that this method calls #to_s on payload argument value.
+    #                          You are encouraged to take care of data serialization before publishing (using JSON, Thrift,
+    #                          Protocol Buffers or other serialization library).
+    #
+    # @option [String] :routing_key (nil)  Specifies message routing key. Routing key determines
+    #                                      what queues messages are delivered to (exact routing algorithms vary
+    #                                      between exchange types).
+    #
+    # @option [Boolean] :mandatory (false) This flag tells the server how to react if the message cannot be
+    #                                      routed to a queue. If message is mandatory, the server will return
+    #                                      unroutable message back to the client with basic.return AMQPmethod.
+    #                                      If message is not mandatory, the server silently drops the message.
+    #
+    # @option [Boolean] :immediate (false) This flag tells the server how to react if the message cannot be
+    #                                      routed to a queue consumer immediately.  If this flag is set, the
+    #                                      server will return an undeliverable message with a Return method.
+    #                                      If this flag is zero, the server will queue the message, but with
+    #                                      no guarantee that it will ever be consumed.
+    #
+    # @option [Boolean] :persistent (false) When true, this message will be persisted and remain in the queue until
+    #                                       it is consumed. When false, the message is only kept in a transient store
+    #                                       and will lost in case of server restart.
+    #                                       When performance and latency are more important than durability, set :persistent => false.
+    #                                       If durability is more important, set :persistent => true.
+    #
+    # @option [String] :content_type (application/octet-stream) Content-type of message payload.
+    #
+    #
+    # @example Publishing without routing key
+    #  exchange = channel.fanout('search.indexer')
+    #  # fanout exchanges deliver messages to bound queues unconditionally,
+    #  # so routing key is unnecessary here
     #  exchange.publish("some data")
     #
-    # The method takes several hash key options which modify the behavior or
-    # lifecycle of the message.
+    # @example Publishing with a routing key
+    #  exchange = channel.direct('search.indexer')
+    #  exchange.publish("some data", :routing_key => "search.index.updates")
     #
-    # * :routing_key => 'string'
+    # @return [Exchange] self
     #
-    # Specifies the routing key for the message.  The routing key is
-    # used for routing messages depending on the exchange configuration.
-    #
-    # * :mandatory => true | false (default false)
-    #
-    # This flag tells the server how to react if the message cannot be
-    # routed to a queue.  If this flag is set, the server will return an
-    # unroutable message with a Return method.  If this flag is zero, the
-    # server silently drops the message.
-    #
-    # * :immediate => true | false (default false)
-    #
-    # This flag tells the server how to react if the message cannot be
-    # routed to a queue consumer immediately.  If this flag is set, the
-    # server will return an undeliverable message with a Return method.
-    # If this flag is zero, the server will queue the message, but with
-    # no guarantee that it will ever be consumed.
-    #
-    #  * :persistent => true | false (default false)
-    # When true, this message will remain in the queue until
-    # it is consumed (if the queue is durable). When false, the message is
-    # lost if the server restarts and the queue is recreated.
-    #
-    # For high-performance and low-latency, set :persistent => false so the
-    # message stays in memory and is never persisted to non-volatile (slow)
-    # storage (like disk).
-    #
-    #  * :content_type
-    # Content type you want to send the message with. It defaults to "application/octet-stream".
-    #
+    # @note Please make sure you read {Exchange Exchange class} documentation section on exchanges durability vs. messages
+    #       persistence.
     # @api public
     def publish(payload, options = {})
       EM.next_tick do
@@ -343,9 +356,9 @@ module AMQP
 
         super(payload.to_s, opts[:key] || opts[:routing_key], @default_headers.merge(options), opts[:mandatory], opts[:immediate])
       end
-    end
 
-    DEFAULT_CONTENT_TYPE = "application/octet-stream".freeze
+      self
+    end
 
 
     # This method deletes an exchange.  When an exchange is deleted all queue
@@ -354,7 +367,7 @@ module AMQP
     # Further attempts to publish messages to a deleted exchange will raise
     # an AMQP::Channel::Error due to a channel close exception.
     #
-    #  exchange = AMQP::Channel.direct('name', :key => 'foo.bar')
+    #  exchange = AMQP::Channel.direct('name', :routing_key => 'foo.bar')
     #  exchange.delete
     #
     # == Options
@@ -378,16 +391,24 @@ module AMQP
       nil
     end
 
+    # @return [Boolean] true if this exchange is durable
+    # @note Please make sure you read {Exchange Exchange class} documentation section on exchanges durability vs. messages
+    #       persistence.
     # @api public
     def durable?
       !!@opts[:durable]
     end # durable?
 
+    # @return [Boolean] true if this exchange is transient (non-durable)
+    # @note Please make sure you read {Exchange Exchange class} documentation section on exchanges durability vs. messages
+    #       persistence.
     # @api public
     def transient?
       !self.durable?
     end # transient?
+    alias temporary? transient?
 
+    # @return [Boolean] true if this exchange is automatically deleted when it is no longer used
     # @api public
     def auto_deleted?
       !!@opts[:auto_delete]
@@ -397,8 +418,7 @@ module AMQP
 
     # @api plugin
     def reset
-      @deferred_status = nil
-      initialize @mq, @type, @name, @opts
+      initialize(@channel, @type, @name, @opts)
     end
 
 
