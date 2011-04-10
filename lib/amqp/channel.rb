@@ -5,102 +5,16 @@ require "amqp/exchange"
 require "amqp/queue"
 
 module AMQP
-  # The top-level class for building AMQP clients. This class contains several
-  # convenience methods for working with queues and exchanges. Many calls
-  # delegate/forward to subclasses, but this is the preferred API. The subclass
-  # API is subject to change while this high-level API will likely remain
-  # unchanged as the library evolves. All code examples will be written using
-  # the AMQP API.
+  # To quote {AMQP 0.9.1 specification http://bit.ly/hw2ELX}:
   #
-  # Below is a somewhat complex example that demonstrates several capabilities
-  # of the library. The example starts a clock using a +fanout+ exchange which
-  # is used for 1 to many communications. Each consumer generates a queue to
-  # receive messages and do some operation (in this case, print the time).
-  # One consumer prints messages every second while the second consumer prints
-  # messages every 2 seconds. After 5 seconds has elapsed, the 1 second
-  # consumer is deleted.
-  #find_exchange(name)
-  # Of interest is the relationship of EventMachine to the process. All AMQP
-  # operations must occur within the context of an EM.run block. We start
-  # EventMachine in its own thread with an empty block; all subsequent calls
-  # to the AMQP API add their blocks to the EM.run block. This demonstrates how
-  # the library could be used to build up and tear down communications outside
-  # the context of an EventMachine block and/or integrate the library with
-  # other synchronous operations. See the EventMachine documentation for
-  # more information.
+  # AMQP is a multi-channelled protocol. Channels provide a way to multiplex
+  # a heavyweight TCP/IP connection into several light weight connections.
+  # This makes the protocol more “firewall friendly” since port usage is predictable.
+  # It also means that traffic shaping and other network QoS features can be easily employed.
+  # Channels are independent of each other and can perform different functions simultaneously
+  # with other channels, the available bandwidth being shared between the concurrent activities.
   #
-  #   require 'rubygems'
-  #   require 'mq'
-  #
-  #   thr = Thread.new { EM.run }
-  #
-  #   # turns on extreme logging
-  #   #AMQP.logging = true
-  #
-  #   def log *args
-  #     p args
-  #   end
-  #
-  #   def publisher
-  #     clock = AMQP::Channel.fanout('clock')
-  #     EM.add_periodic_timer(1) do
-  #       puts
-  #
-  #       log :publishing, time = Time.now
-  #       clock.publish(Marshal.dump(time))
-  #     end
-  #   end
-  #
-  #   def one_second_consumer
-  #     AMQP::Channel.queue('every second').bind(AMQP::Channel.fanout('clock')).subscribe do |time|
-  #       log 'every second', :received, Marshal.load(time)
-  #     end
-  #   end
-  #
-  #   def two_second_consumer
-  #     AMQP::Channel.queue('every 2 seconds').bind('clock').subscribe do |time|
-  #       time = Marshal.load(time)
-  #       log 'every 2 seconds', :received, time if time.sec % 2 == 0
-  #     end
-  #   end
-  #
-  #   def delete_one_second
-  #     EM.add_timer(5) do
-  #       # delete the 'every second' queue
-  #       log 'Deleting [every second] queue'
-  #       AMQP::Channel.queue('every second').delete
-  #     end
-  #   end
-  #
-  #   publisher
-  #   one_second_consumer
-  #   two_second_consumer
-  #   delete_one_second
-  #   thr.join
-  #
-  #  __END__
-  #
-  #  [:publishing, Tue Jan 06 22:46:14 -0600 2009]
-  #  ["every second", :received, Tue Jan 06 22:46:14 -0600 2009]
-  #  ["every 2 seconds", :received, Tue Jan 06 22:46:14 -0600 2009]
-  #
-  #  [:publishing, Tue Jan 06 22:46:16 -0600 2009]
-  #  ["every second", :received, Tue Jan 06 22:46:16 -0600 2009]
-  #  ["every 2 seconds", :received, Tue Jan 06 22:46:16 -0600 2009]
-  #
-  #  [:publishing, Tue Jan 06 22:46:17 -0600 2009]
-  #  ["every second", :received, Tue Jan 06 22:46:17 -0600 2009]
-  #
-  #  [:publishing, Tue Jan 06 22:46:18 -0600 2009]
-  #  ["every second", :received, Tue Jan 06 22:46:18 -0600 2009]
-  #  ["every 2 seconds", :received, Tue Jan 06 22:46:18 -0600 2009]
-  #  ["Deleting [every second] queue"]
-  #
-  #  [:publishing, Tue Jan 06 22:46:19 -0600 2009]
-  #
-  #  [:publishing, Tue Jan 06 22:46:20 -0600 2009]
-  #  ["every 2 seconds", :received, Tue Jan 06 22:46:20 -0600 2009]
-  #
+  # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.2.5)
   class Channel < AMQ::Client::Channel
 
     #
@@ -231,7 +145,7 @@ module AMQP
     # Default exchange is a direct exchange and automatically routes messages to
     # queues when routing key matches queue name exactly.
     #
-    # api public
+    # @api public
     def default_exchange
       Exchange.default(self)
     end
