@@ -31,6 +31,9 @@ module AMQP
   #    end
   #  end
   #
+  #
+  # @note This class will be removed before 1.0 release.
+  # @deprecated
   class RPC < ::AMQP::BlankSlate
 
     #
