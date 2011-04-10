@@ -578,10 +578,3 @@ module AMQP
     end # validate_parameters_match!(entity, parameters)
   end # Channel
 end # AMQP
-
-# Backwards compatibility
-MQ = AMQP::Channel
-class MQ
-  Exchange = ::AMQP::Exchange
-  Queue    = ::AMQP::Queue
-end
