@@ -1,8 +1,9 @@
 h1. About amqp gem
 
 amqp gem is a simple asynchronous Ruby AMQP client built on top of "EventMachine":http://rubyeventmachine.com.
-This library works with Ruby 1.8, Ruby 1.9, JRuby and Rubinius, and is licensed under the "Ruby License":http://www.ruby-lang.org/en/LICENSE.txt.
-Modern versions of amqp gem implement "AMQP 0.9.1":http://bit.ly/hw2ELX.
+This library works with Ruby 1.8.7, Ruby 1.9.2, JRuby and Rubinius, and is
+licensed under the "Ruby License":http://www.ruby-lang.org/en/LICENSE.txt.
+Version 0.8.0 and later of amqp gem implement "AMQP 0.9.1":http://bit.ly/hw2ELX.
 
 
 h2. What is AMQP?
