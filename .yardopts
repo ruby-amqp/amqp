@@ -1,1 +1,5 @@
---no-private --protected --markup="textile" lib/**/*.rb - README.textile
+--no-private
+--protected
+--markup="textile" lib/**/*.rb
+-
+LICENSE
