@@ -14,3 +14,4 @@ please use
 Both amqp/rpc.rb and AMQP::RPC implementation will be REMOVED before 1.0 release.
 MESSAGE
 
+require "amqp/deprecated/rpc"
