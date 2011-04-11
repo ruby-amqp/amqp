@@ -20,8 +20,8 @@ Gem::Specification.new do |s|
 
   # RDoc
   s.has_rdoc = true
-  s.rdoc_options = '--include=examples --main README.md'
-  s.extra_rdoc_files = ["README.md"] + Dir.glob("doc/*")
+  s.rdoc_options = '--include=examples --main README.textile'
+  s.extra_rdoc_files = ["README.textile"] + Dir.glob("doc/*")
 
   # Dependencies
   s.add_dependency "eventmachine", ">= 0.12.4"
