@@ -83,7 +83,7 @@ describe "Exclusive queue" do
         AMQP::Queue.new(channel2, "amqpgem.integration.queues.exclusive", :exclusive => true)
 
 
-        done(0.2) {
+        done(0.6) {
           channel1.should_not be_closed
           # because it is a channel-level exception
           channel2.should be_closed
