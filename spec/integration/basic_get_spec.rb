@@ -75,7 +75,7 @@ describe AMQP::Queue, "#pop" do
             headers.message_count.should == (expected_number_of_messages - number_of_received_messages)
 
             if RUBY_VERSION =~ /^1.9/
-              payload.force_encoding("UTF-8").should == @dispatched_data
+              payload.force_encoding("UTF-8").should =~ /#{@dispatched_data}/
             else
               payload.should =~ /#{@dispatched_data}/
             end
