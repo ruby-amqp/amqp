@@ -96,26 +96,25 @@ describe AMQP, 'class object' do
       #
       #
 
-      include EventedSpec::AMQPSpec
-      after           { AMQP.cleanup_state; done }
+      include EventedSpec::EMSpec
       default_options AMQP_OPTS
-
       #
       # Examples
       #
 
       it 'properly closes AMQP broker connection and fires a callback. Mind the delay!' do
-        AMQP.start(AMQP_OPTS)
-        AMQP.connection.should be_connected
+        AMQP.start(AMQP_OPTS) do
+          AMQP.connection.should be_connected
 
-        @block_has_fired = false
+          @block_has_fired = false
 
-        AMQP.stop do
-          @block_has_fired = true
-        end
-        AMQP.connection.should_not be_nil
-        done(0.1) do
-          @block_has_fired.should be_true
+          AMQP.stop do
+            @block_has_fired = true
+          end
+          AMQP.connection.should_not be_nil
+          done(0.1) do
+            @block_has_fired.should be_true
+          end
         end
       end # it
     end # context
