@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.authors = ["Aman Gupta", "Jakub Stastny aka botanicus", "Michael S. Klishin"]
   s.homepage = "http://github.com/ruby-amqp/amqp"
   s.summary = "AMQP client implementation in Ruby/EventMachine."
-  s.description = "An implementation of the AMQP protocol in Ruby/EventMachine for writing clients to the RabbitMQ message broker."
+  s.description = "Asynchronous AMQP 0.9.1 client for Ruby. Built on top of Eventmachine."
   s.cert_chain = nil
   s.email = ["bWljaGFlbEBub3ZlbWJlcmFpbi5jb20=\n", "c3Rhc3RueUAxMDFpZGVhcy5jeg==\n"].map { |i| Base64.decode64(i) }
 
