@@ -148,7 +148,7 @@ module AMQP
       @bindings[exchange] = opts
 
       @channel.once_open do
-        super(exchange, (opts[:key] || opts[:routing_key] || ""), (opts[:nowait] || block.nil?), opts[:arguments], &block)
+        super(exchange, (opts[:key] || opts[:routing_key] || AMQ::Protocol::EMPTY_STRING), (opts[:nowait] || block.nil?), opts[:arguments], &block)
       end
 
       self
