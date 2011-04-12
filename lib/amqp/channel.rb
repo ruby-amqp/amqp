@@ -80,12 +80,36 @@ module AMQP
 
       super(@connection, id)
 
-      @rpcs       = Hash.new
+      @rpcs                       = Hash.new
+      # we need this deferrable to mimic what AMQP gem 0.7 does to enable
+      # the following (HIGHLY discouraged) style of programming some people use in their
+      # existing codebases:
+      #
+      # connection = AMQP.connect
+      # channel    = AMQP::Channel.new(connection)
+      # queue      = AMQP::Queue.new(channel)
+      #
+      # ...
+      #
+      # Read more about EM::Deferrable#callback behavior in EventMachine documentation. MK.
+      @channel_is_open_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
 
       # only send channel.open when connection is actually open. Makes it possible to
       # do c = AMQP.connect; AMQP::Channel.new(c) that is what some people do. MK.
-      @connection.on_open { self.open(&block) }
+      @connection.on_open do
+        self.open do
+          @channel_is_open_deferrable.succeed
+
+          block.call if block
+        end
+      end
     end
+
+
+    def once_open(&block)
+      @channel_is_open_deferrable.callback(&block)
+    end # once_open(&block)
+
 
     # Defines, intializes and returns a direct Exchange instance.
     #

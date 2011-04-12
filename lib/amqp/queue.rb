@@ -99,7 +99,9 @@ module AMQP
       end
 
       super(channel.connection, channel, name)
-      self.declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], @opts[:nowait], nil, &block)
+      @channel.once_open do
+        self.declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], @opts[:nowait], nil, &block)
+      end
     end
 
 
@@ -145,8 +147,10 @@ module AMQP
       exchange            = exchange
       @bindings[exchange] = opts
 
-      # TODO: we should handle nil routing key in amq-protocol
-      super(exchange, (opts[:key] || opts[:routing_key] || ""), (opts[:nowait] || block.nil?), opts[:arguments], &block)
+      @channel.once_open do
+        # TODO: we should handle nil routing key in amq-protocol
+        super(exchange, (opts[:key] || opts[:routing_key] || ""), (opts[:nowait] || block.nil?), opts[:arguments], &block)
+      end
 
       self
     end
@@ -169,7 +173,9 @@ module AMQP
     #
     # @api public
     def unbind(exchange, opts = {}, &block)
-      super(exchange, (opts[:key] || opts[:routing_key] || AMQ::Protocol::EMPTY_STRING), opts[:arguments], &block)
+      @channel.once_open do
+        super(exchange, (opts[:key] || opts[:routing_key] || AMQ::Protocol::EMPTY_STRING), opts[:arguments], &block)
+      end
     end
 
 
@@ -196,7 +202,9 @@ module AMQP
     #
     # @api public
     def delete(opts = {}, &block)
-      super(opts.fetch(:if_unused, false), opts.fetch(:if_empty, false), opts.fetch(:nowait, false), &block)
+      @channel.once_open do
+        super(opts.fetch(:if_unused, false), opts.fetch(:if_empty, false), opts.fetch(:nowait, false), &block)
+      end
 
       # backwards compatibility
       nil
@@ -213,7 +221,9 @@ module AMQP
     #
     # @api public
     def purge(opts = {}, &block)
-      super(opts.fetch(:nowait, false), &block)
+      @channel.once_open do
+        super(opts.fetch(:nowait, false), &block)
+      end
 
       # backwards compatibility
       nil
@@ -293,10 +303,12 @@ module AMQP
           end
         }
 
-        # see AMQ::Client::Queue#get in amq-client
-        self.get(!opts.fetch(:ack, false), &shim)
+        @channel.once_open do
+          # see AMQ::Client::Queue#get in amq-client
+          self.get(!opts.fetch(:ack, false), &shim)
+        end
       else
-        self.get(!opts.fetch(:ack, false))
+        @channel.once_open { self.get(!opts.fetch(:ack, false)) }
       end
     end
 
@@ -380,7 +392,7 @@ module AMQP
         end
       }
 
-      self.consume(!opts[:ack], opts[:exclusive], (opts[:nowait] || block.nil?), opts[:no_local], nil, &opts[:confirm])
+      @channel.once_open { self.consume(!opts[:ack], opts[:exclusive], (opts[:nowait] || block.nil?), opts[:no_local], nil, &opts[:confirm]) }
       self.on_delivery(&delivery_shim)
 
       self
@@ -410,7 +422,7 @@ module AMQP
     def unsubscribe(opts = {}, &block)
       # @consumer_tag is nillified for us by AMQ::Client::Queue, that is,
       # our superclass. MK.
-      self.cancel(opts.fetch(:nowait, true), &block)
+      @channel.once_open { self.cancel(opts.fetch(:nowait, true), &block) }
     end
 
     # Get the number of messages and consumers on a queue.
@@ -427,7 +439,7 @@ module AMQP
 
       shim = Proc.new { |declare_ok| block.call(declare_ok.message_count, declare_ok.consumer_count) }
 
-      self.declare(true, @durable, @exclusive, @auto_delete, false, nil, &shim)
+      @channel.once_open { self.declare(true, @durable, @exclusive, @auto_delete, false, nil, &shim) }
     end
 
 

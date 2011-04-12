@@ -273,7 +273,9 @@ module AMQP
       # exchange so it'd produce an error.
       unless name == "amq.#{type}" or name.empty? or opts[:no_declare]
         @status = :unfinished
-        self.declare(passive = @opts[:passive], durable = @opts[:durable], exclusive = @opts[:exclusive], auto_delete = @opts[:auto_delete], nowait = @opts[:nowait], nil, &block) unless @opts[:no_declare]
+        @channel.once_open do
+          self.declare(passive = @opts[:passive], durable = @opts[:durable], exclusive = @opts[:exclusive], auto_delete = @opts[:auto_delete], nowait = @opts[:nowait], nil, &block) unless @opts[:no_declare]
+        end
       else
         # Call the callback immediately, as given exchange is already
         # declared.
@@ -354,7 +356,9 @@ module AMQP
       EM.next_tick do
         opts    = @default_publish_options.merge(options)
 
-        super(payload.to_s, opts[:key] || opts[:routing_key], @default_headers.merge(options), opts[:mandatory], opts[:immediate])
+        @channel.once_open do
+          super(payload.to_s, opts[:key] || opts[:routing_key], @default_headers.merge(options), opts[:mandatory], opts[:immediate])
+        end
       end
 
       self
@@ -385,7 +389,9 @@ module AMQP
     #
     # @api public
     def delete(opts = {}, &block)
-      super(opts.fetch(:if_unused, false), opts.fetch(:nowait, false), &block)
+      @channel.once_open do
+        super(opts.fetch(:if_unused, false), opts.fetch(:nowait, false), &block)
+      end
 
       # backwards compatibility
       nil
