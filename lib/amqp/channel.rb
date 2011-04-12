@@ -82,7 +82,9 @@ module AMQP
 
       @rpcs       = Hash.new
 
-      self.open(&block)
+      # only send channel.open when connection is actually open. Makes it possible to
+      # do c = AMQP.connect; AMQP::Channel.new(c) that is what some people do. MK.
+      @connection.on_open { self.open(&block) }
     end
 
     # Defines, intializes and returns a direct Exchange instance.
