@@ -61,6 +61,29 @@ module AMQP
   #
   # In general, use of explicitly named or server-named queues depends on messaging pattern your application needs.
   # {http://www.eaipatterns.com/ Enterprise Integration Patters} discusses many messaging patterns in depth.
+  # RabbitMQ FAQ also has a section on {http://www.rabbitmq.com/faq.html#scenarios use cases}.
+  #
+  #
+  # h2. Queue durability and persistence of messages.
+  #
+  # AMQP separates concept of durability of entities (queues, exchanges) from messages persistence.
+  # Queues can be durable or transient. Durable queues survive broker restart, transient queues don't (they
+  # have to be redeclared when broker comes back online). Long-living queues (see Queue life-cycle section above)
+  # are usually durable, short-lived queues don't have to be.
+  #
+  # The concept of messages persistence is separate: messages may be published as persistent. That makes
+  # AMQP broker persist them to disk. If the server is restarted, the system ensures that received persistent messages
+  # are not lost. Simply publishing message to a durable exchange or the fact that queue(s) they are routed to
+  # is durable doesn't make messages persistent: it all depends on persistence mode of the messages itself.
+  # Publishing messages as persistent affects performance (just like with data stores, durability comes at a certain cost
+  # in performance and vise versa). Pass :persistent => true to {Exchange#publish} to publish your message as persistent.
+  #
+  # Note that *only durable queues can be bound to durable exchanges*.
+  #
+  #
+  # h2. Message ordering
+  #
+  # RabbitMQ FAQ explains {http://www.rabbitmq.com/faq.html#message-ordering ordering of messages in AMQP queues}
   #
   #
   # h2. Key methods
@@ -73,6 +96,11 @@ module AMQP
   # * {Queue#delete}
   # * {Queue#purge}
   # * {Queue#unbind}
+  #
+  #
+  # @note Please make sure you read a section on queue durability vs. messages
+  #       persistence.
+  #
   #
   # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.1.1)
   # @see AMQP::Exchange
@@ -118,6 +146,11 @@ module AMQP
     # @option opts [Boolean] :nowait (true)  If set, the server will not respond to the method. The client should
     #                                        not wait for a reply method.  If the server could not complete the
     #                                        method it will raise a channel or connection exception.
+    #
+    #
+    # @yield [queue, declare_ok] Yields successfully declared queue instance and AMQP method (queue.declare-ok) instance. The latter is optional.
+    # @yieldparam [Queue] queue Queue that is successfully declared and is ready to be used.
+    # @yieldparam [AMQP::Protocol::Queue::DeclareOk] declare_ok AMQP queue.declare-ok) instance.
     #
     # @api public
     def initialize(channel, name, opts = {}, &block)
@@ -186,6 +219,10 @@ module AMQP
     #                                       not wait for a reply method.  If the server could not complete the
     #                                       method it will raise a channel or connection exception.
     # @return [Queue] Self
+    #
+    #
+    # @yield [] Since queue.bind-ok carries no attributes, no parameters are yielded to the block.
+    #
     # @api public
     # @see Queue#unbind
     def bind(exchange, opts = {}, &block)
@@ -218,6 +255,9 @@ module AMQP
     # @option opts [Boolean] :nowait (true)  If set, the server will not respond to the method. The client should
     #                                       not wait for a reply method.  If the server could not complete the
     #                                       method it will raise a channel or connection exception.
+    #
+    #
+    # @yield [] Since queue.unbind-ok carries no attributes, no parameters are yielded to the block.
     #
     # @api public
     # @see Queue#bind
@@ -434,6 +474,11 @@ module AMQP
     #                                       automatically set :nowait => false. This is required for the server
     #                                       to send a confirmation.
     #
+    #
+    # @yield [headers, payload] When block only takes one argument, yields payload to it. In case of two arguments, yields headers and payload.
+    # @yieldparam [AMQP::Header] headers Headers (metadata) associated with this message (for example, routing key).
+    # @yieldparam [String] payload Message body (content). On Ruby 1.9, you may want to check or enforce content encoding.
+    #
     # @return [Queue] Self
     # @api public
     def subscribe(opts = {}, &block)
@@ -482,6 +527,10 @@ module AMQP
     # @option opts [Boolean] :nowait (false)  If set, the server will not respond to the method. The client should
     #                                        not wait for a reply method.  If the server could not complete the
     #                                        method it will raise a channel or connection exception.
+    #
+    # @yield [cancel_ok]
+    # @yieldparam [AMQP::Protocol::Basic::CancelOk] cancel_ok AMQP method basic.cancel-ok. You can obtain consumer tag from it.
+    #
     #
     # @api public
     def unsubscribe(opts = {}, &block)
@@ -555,6 +604,7 @@ module AMQP
       exchange.publish(data, opts)
     end
 
+    # Resets queue state. Useful for error handling.
     # @api plugin
     def reset
       initialize(@channel, @name, @opts)

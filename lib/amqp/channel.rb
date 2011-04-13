@@ -419,7 +419,7 @@ module AMQP
     #
     # @see Exchange
     # @see Exchange#initialize
-    # @see Channel#default_exchange
+    # @see http://www.rabbitmq.com/faq.html#Binding-and-Routing RabbitMQ FAQ on routing & wildcards
     # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 3.1.3.3)
     #
     # @return [Exchange]

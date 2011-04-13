@@ -110,6 +110,23 @@ module AMQP
   # at least one should match (ie. it does an OR).
   #
   #
+  # h2. Exchange durability and persistence of messages.
+  #
+  # AMQP separates concept of durability of entities (queues, exchanges) from messages persistence.
+  # Exchanges can be durable or transient. Durable exchanges survive broker restart, transient exchanges don't (they
+  # have to be redeclared when broker comes back online). Not all scenarios and use cases mandate exchanges to be
+  # durable.
+  #
+  # The concept of messages persistence is separate: messages may be published as persistent. That makes
+  # AMQP broker persist them to disk. If the server is restarted, the system ensures that received persistent messages
+  # are not lost. Simply publishing message to a durable exchange or the fact that queue(s) they are routed to
+  # is durable doesn't make messages persistent: it all depends on persistence mode of the messages itself.
+  # Publishing messages as persistent affects performance (just like with data stores, durability comes at a certain cost
+  # in performance and vise versa). Pass :persistent => true to {Exchange#publish} to publish your message as persistent.
+  #
+  # Note that *only durable queues can be bound to durable exchanges*.
+  #
+  #
   # h2. Key methods
   #
   # Key methods of Exchange class are
@@ -122,6 +139,8 @@ module AMQP
   # @note Please make sure you read a section on exchanges durability vs. messages
   #       persistence.
   #
+  # @see http://www.rabbitmq.com/faq.html#managing-concepts-exchanges Exchanges explained in the RabbitMQ FAQ
+  # @see http://www.rabbitmq.com/faq.html#Binding-and-Routing Bindings and routing explained in the RabbitMQ FAQ
   # @see Channel#default_exchange
   # @see Channel#direct
   # @see Channel#fanout
@@ -383,7 +402,7 @@ module AMQP
     #                                      If this flag is zero, the server will queue the message, but with
     #                                      no guarantee that it will ever be consumed.
     #
-    # @option [Boolean] :persistent (false) When true, this message will be persisted and remain in the queue until
+    # @option [Boolean] :persistent (false) When true, this message will be persisted to disk and remain in the queue until
     #                                       it is consumed. When false, the message is only kept in a transient store
     #                                       and will lost in case of server restart.
     #                                       When performance and latency are more important than durability, set :persistent => false.
