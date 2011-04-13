@@ -1,5 +1,7 @@
 = Version 0.8.0
 
+  * [API] AMQP::Channel.new now accepts (an optional) block and yields newly opened channel to it as soon as
+          channel.open-ok arrives from the broker.
   * [API] AMQP::Header#ack now can acknowledge multiple deliveries
   * [API] AMQP::Exchange#delete now takes (an optional) block that is called when exchange.delete-ok response arrives.
   * [API] AMQP::Header now implements #to_hash
