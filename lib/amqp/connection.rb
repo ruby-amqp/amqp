@@ -59,7 +59,11 @@ module AMQP
     return if @connection.nil? || self.closing?
 
     EM.next_tick do
-      @connection.disconnect(reply_code, reply_text, &block)
+      shim = Proc.new {
+        block.call
+        AMQP.connection = nil
+      }
+      @connection.disconnect(reply_code, reply_text, &shim)
     end
   end
 
