@@ -159,21 +159,25 @@ module AMQP
     DEFAULT_CONTENT_TYPE = "application/octet-stream".freeze
 
 
-    # The default exchange.
-    # Every queue is bind to this (direct) exchange by default.
-    # You can't remove it or bind there queue explicitly.
+    # The default exchange. Default exchange is a direct exchange that is predefined.
+    # It cannot be removed. Every queue is bind to this (direct) exchange by default with
+    # the following routing semantics: messages will be routed to the queue withe same
+    # same name as message's routing key. In other words, if a message is published with
+    # a routing key of "weather.usa.ca.sandiego" and there is a queue Q with this name,
+    # that message will be routed to Q.
     #
-    # Do NOT confuse default exchange with amq.direct: amq.direct is a pre-defined direct
-    # exchange that doesn't have any special routing semantics.
+    # @param [AMQP::Channel] channel Channel to use. If not given, new AMQP channel
+    #                                will be opened on the default AMQP connection (accessible as AMQP.connection).
     #
     # @example Publishing a messages to the tasks queue
     #   channel     = AMQP::Channel.new(connection)
     #   tasks_queue = channel.queue("tasks")
     #   AMQP::Exchange.default(channel).publish("make clean", routing_key => "tasks")
     #
-    #
+    # @see Exchange
     # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.1.2.4)
-    #
+    # @note Do not confuse default exchange with amq.direct: amq.direct is a pre-defined direct
+    #       exchange that doesn't have any special routing semantics.
     # @return [Exchange] An instance that corresponds to the default exchange (of type direct).
     # @api public
     def self.default(channel = nil)
@@ -495,7 +499,7 @@ module AMQP
     end # auto_deleted?
     alias auto_deletable? auto_deleted?
 
-
+    # Resets queue state. Useful for error handling.
     # @api plugin
     def reset
       initialize(@channel, @type, @name, @opts)
