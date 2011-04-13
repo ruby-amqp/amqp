@@ -109,7 +109,11 @@ module AMQP
       end
 
       @channel.once_open do
-        self.declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], @opts[:nowait], nil, &shim)
+        if block
+          self.declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], @opts[:nowait], nil, &shim)
+        else
+          self.declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], @opts[:nowait], nil)
+        end
       end
     end
 
