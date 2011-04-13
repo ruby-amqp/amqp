@@ -448,14 +448,14 @@ module AMQP
         queue = if block.nil?
                   Queue.new(self, name, opts)
                 else
-                  shim = Proc.new { |method|
-            queue = find_queue(method.queue)
-            if block.arity == 1
-              block.call(queue)
-            else
-              block.call(queue, method.consumer_count, method.message_count)
-            end
-          }
+                  shim = Proc.new { |q, method|
+                    queue = find_queue(method.queue)
+                    if block.arity == 1
+                      block.call(queue)
+                    else
+                      block.call(queue, method.consumer_count, method.message_count)
+                    end
+                  }
                   Queue.new(self, name, opts, &shim)
                 end
 

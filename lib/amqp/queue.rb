@@ -99,8 +99,17 @@ module AMQP
       end
 
       super(channel.connection, channel, name)
+
+      shim = Proc.new do |q, declare_ok|
+        case block.arity
+        when 1 then block.call(q)
+        else
+          block.call(q, declare_ok)
+        end
+      end
+
       @channel.once_open do
-        self.declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], @opts[:nowait], nil, &block)
+        self.declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], @opts[:nowait], nil, &shim)
       end
     end
 
@@ -436,7 +445,7 @@ module AMQP
     def status(opts = {}, &block)
       raise ArgumentError, "AMQP::Queue#status does not make any sense without a block" unless block
 
-      shim = Proc.new { |declare_ok| block.call(declare_ok.message_count, declare_ok.consumer_count) }
+      shim = Proc.new { |q, declare_ok| block.call(declare_ok.message_count, declare_ok.consumer_count) }
 
       @channel.once_open { self.declare(true, @durable, @exclusive, @auto_delete, false, nil, &shim) }
     end

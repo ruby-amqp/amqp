@@ -273,8 +273,19 @@ module AMQP
       # exchange so it'd produce an error.
       unless name == "amq.#{type}" or name.empty? or opts[:no_declare]
         @status = :unfinished
-        @channel.once_open do
-          self.declare(passive = @opts[:passive], durable = @opts[:durable], exclusive = @opts[:exclusive], auto_delete = @opts[:auto_delete], nowait = @opts[:nowait], nil, &block) unless @opts[:no_declare]
+
+        shim = Proc.new do |exchange, declare_ok|
+          case block.arity
+          when 1 then block.call(exchange)
+          else
+            block.call(exchange, declare_ok)
+          end
+        end
+
+        unless @opts[:no_declare]
+          @channel.once_open do
+            self.declare(passive = @opts[:passive], durable = @opts[:durable], exclusive = @opts[:exclusive], auto_delete = @opts[:auto_delete], nowait = @opts[:nowait], nil, &shim)
+          end
         end
       else
         # Call the callback immediately, as given exchange is already

@@ -9,11 +9,23 @@ $:.unshift(File.expand_path("../../../lib", __FILE__))
 require 'amqp'
 
 
-puts "=> Channel#initialize example that uses a block"
+puts "=> Queue#initialize example that uses a block"
 puts
 AMQP.start(:host => 'localhost') do |connection|
   AMQP::Channel.new do |channel, open_ok|
     puts "Channel ##{channel.id} is now open!"
+
+    AMQP::Queue.new(channel, "", :auto_delete => true) do |queue|
+      puts "#{queue.name} is ready to go"
+    end
+
+    AMQP::Queue.new(channel, "", :auto_delete => true) do |queue, declare_ok|
+      puts "#{queue.name} is ready to go. AMQP method: #{declare_ok.inspect}"
+    end
+
+    channel.queue("", :auto_delete => true) do |queue, declare_ok|
+      puts "#{queue.name} is ready to go. AMQP method: #{declare_ok.inspect}"
+    end
   end
 
 
