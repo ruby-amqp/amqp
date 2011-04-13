@@ -181,6 +181,10 @@ module AMQP
     #                 from the broker arrives.
     attr_accessor :on_declare
 
+    # @return [String]
+    attr_reader :default_routing_key
+    alias key default_routing_key
+
     # Compatibility alias for #on_declare.
     #
     # @api public
@@ -258,6 +262,9 @@ module AMQP
     # @option opts [Boolean] :no_declare (true)     If set, exchange declaration command won't be sent to the broker. Allows to forcefully
     #                                               avoid declaration. We recommend that only experienced developers consider this option.
     #
+    # @option opts [String] :default_routing_key (nil)  Default routing key that will be used by {Exchange#publish} when no routing key is not passed explicitly.
+    #                                                   It is perfectly fine for applications to always specify routing key to {Exchange#publish}.
+    #
     #
     # @raise [AMQP::Error] Raised when exchange is redeclared with parameters different from original declaration.
     # @raise [AMQP::Error] Raised when exchange is declared with :passive => true and the exchange does not exist.
@@ -277,11 +284,11 @@ module AMQP
     # @return [Exchange]
     # @api public
     def initialize(channel, type, name, opts = {}, &block)
-      @channel = channel
-      @type    = type
-      @opts    = self.class.add_default_options(type, name, opts, block)
-      @key     = opts[:key]
-      @name    = name unless name.empty?
+      @channel             = channel
+      @type                = type
+      @opts                = self.class.add_default_options(type, name, opts, block)
+      @default_routing_key = opts[:routing_key] || opts[:key]
+      @name                = name unless name.empty?
 
       @status                  = :unknown
       @default_publish_options = (opts.delete(:default_publish_options) || {
@@ -405,7 +412,7 @@ module AMQP
         opts    = @default_publish_options.merge(options)
 
         @channel.once_open do
-          super(payload.to_s, opts[:key] || opts[:routing_key], @default_headers.merge(options), opts[:mandatory], opts[:immediate])
+          super(payload.to_s, opts[:key] || opts[:routing_key] || @default_routing_key, @default_headers.merge(options), opts[:mandatory], opts[:immediate])
         end
       end
 

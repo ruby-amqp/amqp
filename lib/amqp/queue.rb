@@ -123,7 +123,6 @@ module AMQP
     def initialize(channel, name, opts = {}, &block)
       @channel  = channel
       @opts     = self.class.add_default_options(name, opts, block)
-      @key      = opts[:key]
       @name     = name unless name.empty?
       @bindings = Hash.new
 
@@ -558,8 +557,7 @@ module AMQP
 
     # @api plugin
     def reset
-      # TODO
-      raise NotImplementedError.new
+      initialize(@channel, @name, @opts)
     end
 
 
