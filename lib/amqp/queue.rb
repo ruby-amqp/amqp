@@ -188,6 +188,7 @@ module AMQP
     #                                       method it will raise a channel or connection exception.
     # @return [Queue] Self
     # @api public
+    # @see Queue#unbind
     def bind(exchange, opts = {}, &block)
       @status             = :unbound
       @sync_bind          = !opts[:nowait]
@@ -220,6 +221,7 @@ module AMQP
     #                                       method it will raise a channel or connection exception.
     #
     # @api public
+    # @see Queue#bind
     def unbind(exchange, opts = {}, &block)
       @channel.once_open do
         super(exchange, (opts[:key] || opts[:routing_key] || AMQ::Protocol::EMPTY_STRING), opts[:arguments], &block)
@@ -248,7 +250,12 @@ module AMQP
     #
     # @return [NilClass] nil (for v0.7 compatibility)
     #
+    # @yield [delete_ok] Yields AMQP method (queue.delete-ok) instance.
+    # @yieldparam [AMQP::Protocol::Queue::DeleteOk] delete_ok AMQP queue.delete-ok) instance. Carries number of messages that were in the queue.
+    #
     # @api public
+    # @see Queue#purge
+    # @see Queue#unbind
     def delete(opts = {}, &block)
       @channel.once_open do
         super(opts.fetch(:if_unused, false), opts.fetch(:if_empty, false), opts.fetch(:nowait, false), &block)
@@ -259,7 +266,7 @@ module AMQP
     end
 
 
-    # Purge all messages from the queue.
+    # This method removes all messages from a queue which are not awaiting acknowledgment.
     #
     # @option opts [Boolean] :nowait (false)  If set, the server will not respond to the method. The client should
     #                                        not wait for a reply method.  If the server could not complete the
@@ -267,7 +274,13 @@ module AMQP
     #
     # @return [NilClass] nil (for v0.7 compatibility)
     #
+    #
+    # @yield [purge_ok] Yields AMQP method (queue.purge-ok) instance.
+    # @yieldparam [AMQP::Protocol::Queue::PurgeOk] purge_ok AMQP queue.purge-ok) instance. Carries number of messages that were purged.
+    #
     # @api public
+    # @see Queue#delete
+    # @see Queue#unbind
     def purge(opts = {}, &block)
       @channel.once_open do
         super(opts.fetch(:nowait, false), &block)
@@ -331,6 +344,11 @@ module AMQP
     #
     #
     # @return [Qeueue] Self
+    #
+    #
+    # @yield [headers, payload] When block only takes one argument, yields payload to it. In case of two arguments, yields headers and payload.
+    # @yieldparam [AMQP::Header] headers Headers (metadata) associated with this message (for example, routing key).
+    # @yieldparam [String] payload Message body (content). On Ruby 1.9, you may want to check or enforce content encoding.
     #
     # @api public
     def pop(opts = {}, &block)
@@ -473,13 +491,17 @@ module AMQP
       @channel.once_open { self.cancel(opts.fetch(:nowait, true), &block) }
     end
 
-    # Get the number of messages and consumers on a queue.
+    # Get the number of messages and active consumers (with active channel flow) on a queue.
     #
-    # @example Getting number of messages and consumers for a queue
+    # @example Getting number of messages and active consumers for a queue
     #
-    #  AMQP::Channel.queue('name').status { |num_messages, num_consumers|
-    #   puts num_messages
+    #  AMQP::Channel.queue('name').status { |number_of_messages, number_of_active_consumers|
+    #    puts number_of_messages
     #  }
+    #
+    # @yield [number_of_messages, number_of_active_consumers]
+    # @yieldparam [Fixnum] number_of_messages Number of messages in the queue
+    # @yieldparam [Fixnum] number_of_active_consumers Number of active consumers for the queue. Note that consumers can suspend activity (Channel.Flow) in which case they do not appear in this count.
     #
     # @api public
     def status(opts = {}, &block)
@@ -524,7 +546,7 @@ module AMQP
 
 
 
-    # Don't use this method. Just don't. It is a leftover from very early days and
+    # Don't use this method. It is a leftover from very early days and
     # it ruins the whole point of exchanges/queue separation.
     #
     # @note This method will be removed before 1.0 release
