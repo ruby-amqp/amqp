@@ -92,10 +92,10 @@ module AMQP
       @bindings = Hash.new
 
       if @opts[:nowait]
-        @status = :finished
+        @status = :opened
         block.call(self) if block
       else
-        @status = :unfinished
+        @status = :opening
       end
 
       super(channel.connection, channel, name)

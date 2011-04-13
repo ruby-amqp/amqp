@@ -193,7 +193,37 @@ module AMQP
 
 
     # See {Exchange Exchange class documentation} for introduction, information about exchange types,
-    # what uses cases they are good for and so on..
+    # what uses cases they are good for and so on.
+    #
+    # h2. Predeclared exchanges
+    #
+    # If exchange name corresponds to one of those predeclared by AMQP 0.9.1 specification (empty string, amq.direct, amq.fanout, amq.topic, amq.match),
+    # declaration command won't be sent to the broker (because the only possible reply from the broker is to reject it, predefined entities cannot be changed).
+    # Callback, if any, will be executed immediately.
+    #
+    #
+    #
+    # @example Instantiating a fanout exchange using constructor
+    #
+    #   AMQP.connect do |connection|
+    #     AMQP::Channel.new(connection) do |channel|
+    #       AMQP::Exchange.new(channel, :fanout, "search.index.updates") do |exchange, declare_ok|
+    #         # by now exchange is ready and waiting
+    #       end
+    #     end
+    #   end
+    #
+    #
+    # @example Instantiating a direct exchange using {Channel#direct}
+    #
+    #   AMQP.connect do |connection|
+    #     AMQP::Channel.new(connection) do |channel|
+    #       channel.direct("email.replies_listener") do |exchange, declare_ok|
+    #         # by now exchange is ready and waiting
+    #       end
+    #     end
+    #   end
+    #
     #
     # @param [Channel] channel AMQP channel this exchange is associated with
     # @param [Symbol]  type    Exchange type
@@ -216,18 +246,25 @@ module AMQP
     #                                               determining the exchange is unused to give time to the client code
     #                                               to bind a queue to it.
     #
-    # @option opts [Boolean] :internal (default false)   If set, the exchange may not be used directly by publishers, but
-    #                                                    only when bound to other exchanges. Internal exchanges are used to
-    #                                                    construct wiring that is not visible to applications. This is a RabbitMQ-specific
-    #                                                    extension.
+    # @option opts [Boolean] :internal (false)      If set, the exchange may not be used directly by publishers, but
+    #                                               only when bound to other exchanges. Internal exchanges are used to
+    #                                               construct wiring that is not visible to applications. *This is a RabbitMQ-specific
+    #                                               extension.*
     #
-    # @option opts [Boolean] :nowait (true)              If set, the server will not respond to the method. The client should
-    #                                                    not wait for a reply method.  If the server could not complete the
-    #                                                    method it will raise a channel or connection exception.
+    # @option opts [Boolean] :nowait (true)         If set, the server will not respond to the method. The client should
+    #                                               not wait for a reply method.  If the server could not complete the
+    #                                               method it will raise a channel or connection exception.
+    #
+    # @option opts [Boolean] :no_declare (true)     If set, exchange declaration command won't be sent to the broker. Allows to forcefully
+    #                                               avoid declaration. We recommend that only experienced developers consider this option.
     #
     #
     # @raise [AMQP::Error] Raised when exchange is redeclared with parameters different from original declaration.
-    # @raise [AMQP::Error] Raised when exchange is declared with  :passive => true and the exchange does not exist.
+    # @raise [AMQP::Error] Raised when exchange is declared with :passive => true and the exchange does not exist.
+    #
+    # @yield [exchange, declare_ok] Yields successfully declared exchange instance and AMQP method (exchange.declare-ok) instance. The latter is optional.
+    # @yieldparam [Exchange] exchange Exchange that is successfully declared and is ready to be used.
+    # @yieldparam [AMQP::Protocol::Exchange::DeclareOk] declare_ok AMQP exchange.declare-ok) instance.
     #
     # @see Channel#default_exchange
     # @see Channel#direct
@@ -272,7 +309,7 @@ module AMQP
       # then RabbitMQ interpret it as if we'd try to redefine this default
       # exchange so it'd produce an error.
       unless name == "amq.#{type}" or name.empty? or opts[:no_declare]
-        @status = :unfinished
+        @status = :opening
 
         shim = Proc.new do |exchange, declare_ok|
           case block.arity
@@ -290,7 +327,7 @@ module AMQP
       else
         # Call the callback immediately, as given exchange is already
         # declared.
-        @status = :finished
+        @status = :opened
         block.call(self) if block
       end
 

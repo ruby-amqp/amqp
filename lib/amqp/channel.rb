@@ -55,22 +55,38 @@ module AMQP
     attr_reader :status
 
 
-    # Returns a new channel. A channel is a bidirectional virtual
-    # connection between the client and the AMQP server. Elsewhere in the
-    # library the channel is referred to in parameter lists as +mq+.
+    # @note We encourage you to not rely on default AMQP connection and pass connection parameter
+    #       explicitly.
     #
-    # Optionally takes the result from calling AMQP::connect.
+    # @param [AMQ::Client::EventMachineAdapter] Connection to open this channel on. If not given, default AMQP
+    #                                           connection (accessible via {AMQP.connection}) will be used.
+    # @param [Integer]                          Channel id. Must not be greater than max channel id client and broker
+    #                                           negotiated on during connection setup. Almost always the right thing to do
+    #                                           is to let AMQP gem pick channel identifier for you.
     #
-    # Rarely called directly by client code. This is implicitly called
-    # by most instance methods. See #method_missing.
+    # @example Instantiating a channel for default connection (accessible as AMQP.connection)
     #
-    #  EM.run do
-    #    channel = AMQP::Channel.new
-    #  end
+    #   AMQP.connect do |connection|
+    #     AMQP::Channel.new(connection) do |channel|
+    #       # channel is ready: set up your messaging flow by creating exchanges,
+    #       # queues, binding them together and so on.
+    #     end
+    #   end
     #
-    #  EM.run do
-    #    channel = AMQP::Channel.new AMQP::connect
-    #  end
+    # @example Instantiating a channel for explicitly given connection
+    #
+    #   AMQP.connect do |connection|
+    #     AMQP::Channel.new(connection) do |channel|
+    #       # channel is ready: set up your messaging flow by creating exchanges,
+    #       # queues, binding them together and so on.
+    #     end
+    #   end
+    #
+    #
+    # @yield [channel, open_ok] Yields open channel instance and AMQP method (channel.open-ok) instance. The latter is optional.
+    # @yieldparam [Channel] channel Channel that is successfully open
+    # @yieldparam [AMQP::Protocol::Channel::OpenOk] open_ok AMQP channel.open-ok) instance    
+    #
     #
     # @api public
     def initialize(connection = nil, id = self.class.next_channel_id, &block)
@@ -148,7 +164,7 @@ module AMQP
     # @raise [AMQP::Error] Raised when exchange is declared with  :passive => true and the exchange does not exist.
     #
     #
-    # @example Using default pre-declared direct exchange
+    # @example Using default pre-declared direct exchange and no callbacks (pseudo-synchronous style)
     #
     #    # an exchange application A will be using to publish updates
     #    # to some search index
@@ -166,6 +182,17 @@ module AMQP
     #    # now publish a new document contents for indexing,
     #    # message will be delivered to the queue we declared and bound on the line above
     #    exchange.publish(document.content, :routing_key => "search.index.updates")
+    #
+    #
+    # @example Instantiating a direct exchange using {Channel#direct} with a callback
+    #
+    #   AMQP.connect do |connection|
+    #     AMQP::Channel.new(connection) do |channel|
+    #       channel.direct("email.replies_listener") do |exchange, declare_ok|
+    #         # by now exchange is ready and waiting
+    #       end
+    #     end
+    #   end
     #
     #
     # @see Channel#default_exchange
