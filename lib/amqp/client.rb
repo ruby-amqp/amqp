@@ -10,18 +10,15 @@ module AMQP
 
 
     # @api public
-    def self.connect(arg = nil, options = {}, &block)
-      opts = case arg
+    def self.connect(connection_string_or_options = {}, options = {}, &block)
+      opts = case connection_string_or_options
              when String then
-               parse_connection_uri(arg)
+               parse_connection_uri(connection_string_or_options)
              when Hash then
-               arg
+               connection_string_or_options
              else
                Hash.new
              end
-
-      # TODO: maybe wrap client into a bridge-like object
-      #       (but only if this backwards-compatibility move is actually worth it)
 
       if block
         AMQP.client.connect(opts.merge(options), &block)
@@ -34,7 +31,7 @@ module AMQP
     # @api public
     def self.parse_connection_uri(connection_string)
       uri = URI.parse(connection_string)
-      raise("amqp:// uri required!") unless %w{amqp amqps}.include?(uri.scheme)
+      raise("Connection URI must use amqp or amqps schema (example: amqp://bus.megacorp.internal:5766/testbed)") unless %w{amqp amqps}.include?(uri.scheme)
 
       opts = {}
 

@@ -2,9 +2,11 @@
 
 module AMQP
   if defined?(BasicObject)
-    BlankSlate = BasicObject
+    # @private
+    class BlankSlate < BasicObject; end
   else
-    class BlankSlate #:nodoc:
+    # @private
+    class BlankSlate
       instance_methods.each { |m| undef_method m unless m =~ /^__/ }
     end
   end
