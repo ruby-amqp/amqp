@@ -85,7 +85,7 @@ module AMQP
     #
     # @yield [channel, open_ok] Yields open channel instance and AMQP method (channel.open-ok) instance. The latter is optional.
     # @yieldparam [Channel] channel Channel that is successfully open
-    # @yieldparam [AMQP::Protocol::Channel::OpenOk] open_ok AMQP channel.open-ok) instance    
+    # @yieldparam [AMQP::Protocol::Channel::OpenOk] open_ok AMQP channel.open-ok) instance
     #
     #
     # @api public
@@ -216,7 +216,38 @@ module AMQP
 
     # Returns exchange object with the same name as default (aka unnamed) exchange.
     # Default exchange is a direct exchange and automatically routes messages to
-    # queues when routing key matches queue name exactly.
+    # queues when routing key matches queue name exactly. This feature is known as
+    # "automatic binding" (of queues to default exchange).
+    #
+    # *Use default exchange when you want to route messages directly to specific queues*
+    # (queue names are known, you don't mind this kind of coupling between applications).
+    #
+    #
+    # @example Using default exchange to publish messages to queues with known names
+    #   AMQP.start(:host => 'localhost') do |connection|
+    #     ch        = AMQP::Channel.new(connection)
+    #
+    #     queue1    = ch.queue("queue1").subscribe do |payload|
+    #       puts "[#{queue1.name}] => #{payload}"
+    #     end
+    #     queue2    = ch.queue("queue2").subscribe do |payload|
+    #       puts "[#{queue2.name}] => #{payload}"
+    #     end
+    #     queue3    = ch.queue("queue3").subscribe do |payload|
+    #       puts "[#{queue3.name}] => #{payload}"
+    #     end
+    #     queues    = [queue1, queue2, queue3]
+    #
+    #     # Rely on default direct exchange binding, see section 2.1.2.4 Automatic Mode in AMQP 0.9.1 spec.
+    #     exchange = AMQP::Exchange.default
+    #     EM.add_periodic_timer(1) do
+    #       q = queues.sample
+    #
+    #       exchange.publish "Some payload from #{Time.now.to_i}", :routing_key => q.name
+    #     end
+    #   end
+    #
+    #
     #
     # @see Exchange
     # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.1.2.4)
@@ -328,13 +359,63 @@ module AMQP
     # @raise [AMQP::Error] Raised when exchange is declared with  :passive => true and the exchange does not exist.
     #
     #
-    # @example Using fanout exchange to deliver messages to multiple consumers
+    # @example Using topic exchange to deliver relevant news updates
+    #   AMQP.connect do |connection|
+    #     channel  = AMQP::Channel.new(connection)
+    #     exchange = channel.topic("pub/sub")
     #
-    #   # open up a channel
-    #   # declare a topic exchange
-    #   # declare 3 queues, binds them
-    #   # publish a message
+    #     # Subscribers.
+    #     channel.queue("development").bind(exchange, :key => "technology.dev.#").subscribe do |payload|
+    #       puts "A new dev post: '#{payload}'"
+    #     end
+    #     channel.queue("ruby").bind(exchange, :key => "technology.#.ruby").subscribe do |payload|
+    #       puts "A new post about Ruby: '#{payload}'"
+    #     end
     #
+    #     # Let's publish some data.
+    #     exchange.publish "Ruby post",     :routing_key => "technology.dev.ruby"
+    #     exchange.publish "Erlang post",   :routing_key => "technology.dev.erlang"
+    #     exchange.publish "Sinatra post",  :routing_key => "technology.web.ruby"
+    #     exchange.publish "Jewelery post", :routing_key => "jewelery.ruby"
+    #   end
+    #
+    #
+    # @example Using topic exchange to deliver geographically-relevant data
+    #   AMQP.connect do |connection|
+    #     channel  = AMQP::Channel.new(connection)
+    #     exchange = channel.topic("pub/sub")
+    #
+    #     # Subscribers.
+    #     channel.queue("americas.north").bind(exchange, :routing_key => "americas.north.#").subscribe do |headers, payload|
+    #       puts "An update for North America: #{payload}, routing key is #{headers.routing_key}"
+    #     end
+    #     channel.queue("americas.south").bind(exchange, :routing_key => "americas.south.#").subscribe do |headers, payload|
+    #       puts "An update for South America: #{payload}, routing key is #{headers.routing_key}"
+    #     end
+    #     channel.queue("us.california").bind(exchange, :routing_key => "americas.north.us.ca.*").subscribe do |headers, payload|
+    #       puts "An update for US/California: #{payload}, routing key is #{headers.routing_key}"
+    #     end
+    #     channel.queue("us.tx.austin").bind(exchange, :routing_key => "#.tx.austin").subscribe do |headers, payload|
+    #       puts "An update for Austin, TX: #{payload}, routing key is #{headers.routing_key}"
+    #     end
+    #     channel.queue("it.rome").bind(exchange, :routing_key => "europe.italy.rome").subscribe do |headers, payload|
+    #       puts "An update for Rome, Italy: #{payload}, routing key is #{headers.routing_key}"
+    #     end
+    #     channel.queue("asia.hk").bind(exchange, :routing_key => "asia.southeast.hk.#").subscribe do |headers, payload|
+    #       puts "An update for Hong Kong: #{payload}, routing key is #{headers.routing_key}"
+    #     end
+    #
+    #     exchange.publish("San Diego update", :routing_key => "americas.north.us.ca.sandiego").
+    #       publish("Berkeley update",         :routing_key => "americas.north.us.ca.berkeley").
+    #       publish("San Francisco update",    :routing_key => "americas.north.us.ca.sanfrancisco").
+    #       publish("New York update",         :routing_key => "americas.north.us.ny.newyork").
+    #       publish("São Paolo update",        :routing_key => "americas.south.brazil.saopaolo").
+    #       publish("Hong Kong update",        :routing_key => "asia.southeast.hk.hongkong").
+    #       publish("Kyoto update",            :routing_key => "asia.southeast.japan.kyoto").
+    #       publish("Shanghai update",         :routing_key => "asia.southeast.prc.shanghai").
+    #       publish("Rome update",             :routing_key => "europe.italy.roma").
+    #       publish("Paris update",            :routing_key => "europe.france.paris")
+    #   end
     #
     # @see Exchange
     # @see Exchange#initialize
@@ -476,13 +557,13 @@ module AMQP
                   Queue.new(self, name, opts)
                 else
                   shim = Proc.new { |q, method|
-                    queue = find_queue(method.queue)
-                    if block.arity == 1
-                      block.call(queue)
-                    else
-                      block.call(queue, method.consumer_count, method.message_count)
-                    end
-                  }
+            queue = find_queue(method.queue)
+            if block.arity == 1
+              block.call(queue)
+            else
+              block.call(queue, method.consumer_count, method.message_count)
+            end
+          }
                   Queue.new(self, name, opts, &shim)
                 end
 
