@@ -31,7 +31,7 @@ AMQP.start(:host => 'localhost') do |connection|
     ["iso8601", "rfc2822"].each do |format|
       formatted_time = time.send(format)
       log :publish, format, formatted_time
-      clock.publish "#{formatted_time}", :headers => {"format" => format}
+      clock.publish "#{formatted_time}", :headers => {"format" => format} if connection.open?
     end
   }
 
@@ -43,7 +43,9 @@ AMQP.start(:host => 'localhost') do |connection|
   end
 
   show_stopper = Proc.new {
-    connection.close
+    connection.close do
+      EM.stop
+    end
   }
 
   Signal.trap "INT",  show_stopper
