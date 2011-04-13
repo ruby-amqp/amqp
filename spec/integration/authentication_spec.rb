@@ -10,8 +10,6 @@ describe "Authentication attempt" do
   include EventedSpec::AMQPSpec
   include EventedSpec::SpecHelper
 
-  em_before { AMQP.cleanup_state }
-  em_after  { AMQP.cleanup_state }
 
   describe "with default connection parameters" do
 
@@ -29,7 +27,7 @@ describe "Authentication attempt" do
       it "succeeds" do
         connection = AMQP.connect
 
-        done(0.3) {
+        done(0.5) {
           connection.should be_connected
           connection.close
         }
@@ -51,7 +49,7 @@ describe "Authentication attempt" do
         it "succeeds" do
           connection = AMQP.connect :username => "amqp_gem", :password => "amqp_gem_password", :vhost => "/amqp_gem_testbed"
 
-          done(0.3) {
+          done(0.5) {
             connection.should be_connected
             connection.close
           }
@@ -59,16 +57,20 @@ describe "Authentication attempt" do
       end # context
 
       context "and provided credentials ARE INCORRECT" do
+        default_timeout 4
+
+        after(:all) { done }
+
         it "fails" do
-          @callback_has_fired = false
+          callback_has_fired = false
           AMQP.connect :user => "amqp_gem", :pass => Time.now.to_i.to_s, :vhost => "/amqp_gem_testbed", :on_possible_authentication_failure => Proc.new { |settings|
             puts "Callback has fired"
-            @callback_has_fired = true
+            callback_has_fired = true
           }
 
           done(3.0) {
             puts "Timeout!"
-            @callback_has_fired.should be_true
+            callback_has_fired.should be_true
           }
         end # it
       end
@@ -97,6 +99,10 @@ describe "Authentication attempt" do
       end # context
 
       context "and provided credentials ARE INCORRECT" do
+        default_timeout 4
+
+        after(:all) { done }
+
         it "fails" do
           callback_has_fired = false
           connection = AMQP.connect "amqp://amqp_gem:#{Time.now.to_i}@localhost/amqp_gem_testbed", :on_possible_authentication_failure => Proc.new { |settings|
