@@ -60,7 +60,7 @@ describe "Exclusive queue" do
 
   include EventedSpec::EMSpec
 
-  default_timeout 1
+  default_timeout 2
 
   em_after { @connection1.close; @connection2.close }
 
@@ -78,12 +78,10 @@ describe "Exclusive queue" do
         channel2 = AMQP::Channel.new(@connection2)
 
         AMQP::Queue.new(channel1, "amqpgem.integration.queues.exclusive", :exclusive => true)
-        sleep 0.1
-
         AMQP::Queue.new(channel2, "amqpgem.integration.queues.exclusive", :exclusive => true)
 
 
-        done(0.6) {
+        done(1.0) {
           channel1.should_not be_closed
           # because it is a channel-level exception
           channel2.should be_closed
