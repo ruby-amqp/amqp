@@ -14,8 +14,8 @@ EventMachine.run do
     exchange = channel.topic("pub/sub")
 
     # Subscribers.
-    dev  = channel.queue("Everything about Development").bind(exchange, key: "it.dev.#")
-    ruby = channel.queue("Everything about Ruby").bind(exchange, key: "it.#.ruby")
+    dev  = channel.queue("Everything about Development").bind(exchange, :key => "it.dev.#")
+    ruby = channel.queue("Everything about Ruby").bind(exchange, :key => "it.#.ruby")
 
     # Let's publish some test data.
     exchange.publish "Ruby post", :routing_key => "it.dev.ruby"
@@ -32,6 +32,17 @@ EventMachine.run do
     ruby.subscribe do |payload|
       puts "A new post about Ruby: '#{payload}'"
     end
+
+    show_stopper = Proc.new {
+      connection.close do
+        EM.stop
+      end
+    }
+
+    Signal.trap "INT",  show_stopper
+    Signal.trap "TERM", show_stopper
+
+    EM.add_timer(1, show_stopper)
   end
 end
 
