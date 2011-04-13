@@ -14,8 +14,10 @@ EventMachine.run do
     exchange = channel.topic("pub/sub")
 
     # Subscribers.
-    channel.queue("americas.north").bind(exchange, :routing_key => "americas.north.#").subscribe do |headers, payload|
-      puts "An update for North America: #{payload}, routing key is #{headers.routing_key}"
+    channel.queue("", :exclusive => true) do |queue|
+      queue.bind(exchange, :routing_key => "americas.north.#").subscribe do |headers, payload|
+        puts "An update for North America: #{payload}, routing key is #{headers.routing_key}"
+      end
     end
     channel.queue("americas.south").bind(exchange, :routing_key => "americas.south.#").subscribe do |headers, payload|
       puts "An update for South America: #{payload}, routing key is #{headers.routing_key}"
@@ -33,16 +35,18 @@ EventMachine.run do
       puts "An update for Hong Kong: #{payload}, routing key is #{headers.routing_key}"
     end
 
-    exchange.publish("San Diego update", :routing_key => "americas.north.us.ca.sandiego").
-      publish("Berkeley update",        :routing_key => "americas.north.us.ca.berkeley").
-      publish("San Francisco update",    :routing_key => "americas.north.us.ca.sanfrancisco").
-      publish("New York update",         :routing_key => "americas.north.us.ny.newyork").
-      publish("São Paolo update",        :routing_key => "americas.south.brazil.saopaolo").
-      publish("Hong Kong update",        :routing_key => "asia.southeast.hk.hongkong").
-      publish("Kyoto update",            :routing_key => "asia.southeast.japan.kyoto").
-      publish("Shanghai update",         :routing_key => "asia.southeast.prc.shanghai").
-      publish("Rome update",             :routing_key => "europe.italy.roma").
-      publish("Paris update",            :routing_key => "europe.france.paris")
+    EM.add_timer(1) do
+      exchange.publish("San Diego update", :routing_key => "americas.north.us.ca.sandiego").
+        publish("Berkeley update",        :routing_key => "americas.north.us.ca.berkeley").
+        publish("San Francisco update",    :routing_key => "americas.north.us.ca.sanfrancisco").
+        publish("New York update",         :routing_key => "americas.north.us.ny.newyork").
+        publish("São Paolo update",        :routing_key => "americas.south.brazil.saopaolo").
+        publish("Hong Kong update",        :routing_key => "asia.southeast.hk.hongkong").
+        publish("Kyoto update",            :routing_key => "asia.southeast.japan.kyoto").
+        publish("Shanghai update",         :routing_key => "asia.southeast.prc.shanghai").
+        publish("Rome update",             :routing_key => "europe.italy.roma").
+        publish("Paris update",            :routing_key => "europe.france.paris")
+    end
 
 
     show_stopper = Proc.new {
@@ -54,6 +58,6 @@ EventMachine.run do
     Signal.trap "INT",  show_stopper
     Signal.trap "TERM", show_stopper
 
-    EM.add_timer(1, show_stopper)
+    EM.add_timer(3, show_stopper)
   end
 end

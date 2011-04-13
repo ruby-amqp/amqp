@@ -498,16 +498,46 @@ module AMQP
     end
 
 
-    # Declares and retursn a Queue instance.
-    #
-    # Like an Exchange, queue names starting with 'amq.' are reserved for
-    # internal use. Attempts to declare queue with names that violate this
-    # requirement will raise AMQP::Error.
+    # Declares and returns a Queue instance associated with this channel. See {Queue Queue class documentation} for
+    # more information about queues.
     #
     # To make broker generate queue name for you (a classic example is exclusive
     # queues that are only used for a short period of time), pass empty string
     # as name value. Then queue will get it's name as soon as broker's response
-    # (queue.declare-ok) arrives.
+    # (queue.declare-ok) arrives. Note that in this case, block is required.
+    #
+    #
+    # Like for exchanges, queue names starting with 'amq.' cannot be modified and
+    # should not be used by applications.
+    #
+    # @example Declaring a queue in a mail delivery app using Channel#queue without a block
+    #   AMQP.connect do |connection|
+    #     AMQP::Channel.new(connection) do |ch|
+    #       # message producers will be able to send messages to this queue
+    #       # using direct exchange and routing key = "mail.delivery"
+    #       queue = ch.queue("mail.delivery", :durable => true)
+    #       queue.subscribe do |headers, payload|
+    #         # ...
+    #       end
+    #     end
+    #   end
+    #
+    # @example Declaring a server-named exclusive queue that receives all messages related to events, using a block.
+    #   AMQP.connect do |connection|
+    #     AMQP::Channel.new(connection) do |ch|
+    #       # message producers will be able to send messages to this queue
+    #       # using amq.topic exchange with routing keys that begin with "events"
+    #       ch.queue("", :exclusive => true) do |queue|
+    #         queue.bind(ch.exchange("amq.topic"), :routing_key => "events.#").subscribe do |headers, payload|
+    #           # ...
+    #         end
+    #       end
+    #     end
+    #   end
+    #
+    # @param [String] name Queue name. If you want a server-named queue, pass in an empty string (note that in this case, using block is mandatory).
+    #                                  See {Queue Queue class documentation} for discussion of queue lifecycles and when use of server-named queues
+    #                                  is optimal.
     #
     # @option opts [Boolean] :passive (false)  If set, the server will not create the exchange if it does not
     #                                          already exist. The client can use this to check whether an exchange
@@ -538,6 +568,11 @@ module AMQP
     # @raise [AMQP::Error] Raised when queue is redeclared with parameters different from original declaration.
     # @raise [AMQP::Error] Raised when queue is declared with :passive => true and the queue does not exist.
     # @raise [AMQP::Error] Raised when queue is declared with :exclusive => true and queue with that name already exist.
+    #
+    #
+    # @yield [queue, declare_ok] Yields successfully declared queue instance and AMQP method (queue.declare-ok) instance. The latter is optional.
+    # @yieldparam [Queue] queue Queue that is successfully declared and is ready to be used.
+    # @yieldparam [AMQP::Protocol::Queue::DeclareOk] declare_ok AMQP queue.declare-ok) instance.
     #
     # @see Queue
     # @see Queue#initialize
