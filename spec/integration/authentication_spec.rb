@@ -25,12 +25,13 @@ describe "Authentication attempt" do
       end
 
       it "succeeds" do
-        connection = AMQP.connect
+        AMQP.connect do |connection|
+          connection.should be_open
 
-        done(0.5) {
-          connection.should be_connected
-          connection.close
-        }
+          connection.close { done }
+        end
+
+        done(0.5)
       end # it
     end # context
   end # describe
@@ -63,11 +64,13 @@ describe "Authentication attempt" do
 
         it "fails" do
           callback_has_fired = false
-          AMQP.connect :user => "amqp_gem", :pass => Time.now.to_i.to_s, :vhost => "/amqp_gem_testbed", :on_possible_authentication_failure => Proc.new { |settings|
+          handler = Proc.new { |settings|
             puts "Callback has fired"
             callback_has_fired = true
           }
 
+
+          AMQP.connect(:username => "amqp_gem", :password => Time.now.to_i.to_s, :vhost => "/amqp_gem_testbed", :on_possible_authentication_failure => handler)
           done(3.0) {
             puts "Timeout!"
             callback_has_fired.should be_true
