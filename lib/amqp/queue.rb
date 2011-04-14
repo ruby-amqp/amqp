@@ -483,7 +483,7 @@ module AMQP
     # @api public
     def subscribe(opts = {}, &block)
       raise Error, 'already subscribed to the queue' if @consumer_tag
-      @consumer_tag = consumer_tag = generate_consumer_tag(self.name)
+      @consumer_tag = "for now"
 
       opts[:nowait] = false if (@on_confirm_subscribe = opts[:confirm])
 
@@ -503,7 +503,7 @@ module AMQP
         end
       }
 
-      @channel.once_open { @consumer_tag = nil; self.consume(!opts[:ack], opts[:exclusive], (opts[:nowait] || block.nil?), opts[:no_local], nil, &opts[:confirm]); @consumer_tag = consumer_tag } # It sets consumer_tag in this callback which is too late.
+      @channel.once_open { @consumer_tag = nil; self.consume(!opts[:ack], opts[:exclusive], (opts[:nowait] || block.nil?), opts[:no_local], nil, &opts[:confirm]) } # It sets consumer_tag in this callback which is too late.
       self.on_delivery(&delivery_shim)
 
       self
