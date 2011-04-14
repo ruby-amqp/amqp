@@ -430,12 +430,12 @@ module AMQP
     # @note Please make sure you read {Exchange Exchange class} documentation section on exchanges durability vs. messages
     #       persistence.
     # @api public
-    def publish(payload, options = {})
+    def publish(payload, options = {}, &block)
       EM.next_tick do
         opts    = @default_publish_options.merge(options)
 
         @channel.once_open do
-          super(payload.to_s, opts[:key] || opts[:routing_key] || @default_routing_key, @default_headers.merge(options), opts[:mandatory], opts[:immediate])
+          super(payload.to_s, opts[:key] || opts[:routing_key] || @default_routing_key, @default_headers.merge(options), opts[:mandatory], opts[:immediate], &block)
         end
       end
 

@@ -16,17 +16,14 @@ end
 
 class HashTable < Hash
   def get(key)
-    log 'HashTable', :get, key
     self[key]
   end
 
   def set(key, value)
-    log 'HashTable', :set, key => value
     self[key] = value
   end
 
   def keys
-    log 'HashTable', :keys
     super
   end
 end
@@ -42,6 +39,11 @@ AMQP.start(:host => 'localhost') do |connection|
   server  = channel.rpc('hash table node', HashTable.new)
   client  = channel.rpc('hash table node')
 
+  client.set(:protocol, "amqp")
+  client.get(:protocol) do |res|
+    log 'client', :protocol_get_res => res
+  end
+
   client.set(:now, time = Time.now)
   client.get(:now) do |res|
     log 'client', :now => res, :eql? => res == time
@@ -50,6 +52,9 @@ AMQP.start(:host => 'localhost') do |connection|
   client.set(:one, 1)
   client.keys do |res|
     log 'client', :keys => res
-    AMQP.stop { EM.stop }
   end
+
+  EM.add_timer(3, Proc.new {
+    AMQP.stop { EM.stop }
+  })
 end

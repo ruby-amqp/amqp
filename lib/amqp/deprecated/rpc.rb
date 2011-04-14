@@ -70,33 +70,9 @@ module AMQP
       @channel.register_rpc(self)
 
       if @obj = normalize(obj)
-        # server
-        @channel.queue(queue).subscribe(:ack => true) do |info, request|
-          ::STDOUT.puts "Got a message on the server-side"
-          method, *args = ::Marshal.load(request)
-          ret           = @obj.__send__(method, *args)
-
-          if info.reply_to
-            info.ack
-            @channel.queue(info.reply_to, :auto_delete => true).
-              publish(::Marshal.dump(ret), :key => info.reply_to, :message_id => info.message_id)
-          end
-        end
+        @delegate = Server.new(channel, queue, @obj)
       else
-        # client
-        @callbacks = ::Hash.new
-        # XXX implement and use queue(nil)
-        @reply_to = "random identifier #{::Kernel.rand(999_999_999_999)}"
-
-        @queue = @channel.queue(@reply_to, :auto_delete => true).subscribe do |info, msg|
-          ::STDOUT.puts "Got a message on the server-side"
-          if blk = @callbacks.delete(info.message_id)
-            blk.call ::Marshal.load(msg)
-          end
-        end
-
-        @channel.queue(queue)
-        @remote = Exchange.default(@channel)
+        @delegate = Client.new(channel, queue)
       end
     end
 
@@ -110,35 +86,70 @@ module AMQP
     end
 
 
-    # Calling AMQP::Channel.rpc(*args) returns a proxy object without any methods beyond
-    # those in Object. All calls to the proxy are handled by #method_missing which
-    # works to marshal and unmarshal all method calls and their arguments.
-    #
-    #  EM.run do
-    #    server = AMQP::Channel.new.rpc('hash table node', Hash)
-    #    client = AMQP::Channel.new.rpc('hash table node')
-    #
-    #    # calls #method_missing on #[] which marshals the method name and
-    #    # arguments to publish them to the remote
-    #    client[:now] = Time.now
-    #    ....
-    #  end
-    #
-    def method_missing(meth, *args, &blk)
-      ::Kernel.warn [:method_missing, meth] + args + ["with#{"out" if blk.nil?} block"]
-      # XXX use uuids instead
-      message_id = "random message id #{::Kernel.rand(999_999_999_999)}"
-
-      if blk # an invocation
-        @callbacks[message_id] = blk
-      end
-
-      if blk
-        @remote.publish(::Marshal.dump([meth, *args]), :reply_to => @reply_to, :message_id => message_id, :key => @name)
-      else
-        @remote.publish(::Marshal.dump([meth, *args]), :message_id => message_id, :key => @name)
-      end
+    def method_missing(selector, *args, &block)
+      @delegate.__send__(selector, *args, &block)
     end
+
+
+
+    class Client
+      attr_accessor :identifier
+
+      def initialize(channel, server_queue_name)
+        @channel           = channel
+        @exchange          = AMQP::Exchange.default(@channel)
+        @server_queue_name = server_queue_name
+
+        @handlers          = Hash.new
+        @queue             = channel.queue("__amqp_gem_rpc_client_#{rand(1_000_000)}", :auto_delete => true)
+
+        @queue.subscribe do |header, payload|
+          *response_args = Marshal.load(payload)
+          handler        = @handlers[header.message_id]
+
+          handler.call(*response_args)
+        end
+      end
+
+      def method_missing(selector, *args, &block)
+        @channel.once_open do
+          message_id   = "message_identifier_#{rand(1_000_000)}"
+
+          if block
+            @handlers[message_id] = block
+            @exchange.publish(Marshal.dump([selector, *args]), :routing_key => @server_queue_name, :reply_to => @queue.name, :message_id => message_id)
+          else
+            @exchange.publish(Marshal.dump([selector, *args]), :routing_key => @server_queue_name, :message_id => message_id)
+          end
+        end
+      end
+    end # Client
+
+
+    class Server
+      def initialize(channel, queue_name, impl)
+        @channel  = channel
+        @exchange = AMQP::Exchange.default(@channel)
+        @queue    = @channel.queue(queue_name)
+        @impl     = impl
+
+        @handlers     = Hash.new
+        @id           = "client_identifier_#{rand(1_000_000)}"
+
+        @queue.subscribe do |header, payload|
+          selector, *args = Marshal.load(payload)
+          result = @impl.__send__(selector, *args)
+
+          respond_to(header, result) if header.to_hash[:reply_to]
+        end
+      end
+
+      def respond_to(header, result)
+        @exchange.publish(Marshal.dump(result), :message_id => header.message_id, :routing_key => header.reply_to)
+      end
+    end # Server
+
+
 
     protected
 
