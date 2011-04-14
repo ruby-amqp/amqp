@@ -54,7 +54,7 @@ module AMQP
     #
     # Marshalling and unmarshalling the objects is handled internally. This
     # marshalling is subject to the same restrictions as defined in the
-    # Marshal[http://ruby-doc.org/core/classes/Marshal.html] standard
+    # {http://ruby-doc.org/core/classes/Marshal.html Marshal} standard
     # library. See that documentation for further reference.
     #
     # When the optional object is not passed, the returned rpc reference is
@@ -91,7 +91,7 @@ module AMQP
     end
 
 
-
+    # @private
     class Client
       attr_accessor :identifier
 
@@ -125,7 +125,7 @@ module AMQP
       end
     end # Client
 
-
+    # @private
     class Server
       def initialize(channel, queue_name, impl)
         @channel  = channel
@@ -136,11 +136,12 @@ module AMQP
         @handlers     = Hash.new
         @id           = "client_identifier_#{rand(1_000_000)}"
 
-        @queue.subscribe do |header, payload|
+        @queue.subscribe(:ack => true) do |header, payload|
           selector, *args = Marshal.load(payload)
           result = @impl.__send__(selector, *args)
 
           respond_to(header, result) if header.to_hash[:reply_to]
+          header.ack
         end
       end
 
