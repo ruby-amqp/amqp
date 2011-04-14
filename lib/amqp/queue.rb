@@ -483,6 +483,10 @@ module AMQP
     # @api public
     def subscribe(opts = {}, &block)
       raise Error, 'already subscribed to the queue' if @consumer_tag
+
+      # having initial value for @consumer_tag makes a lot of obscure issues
+      # go away. It is set to real value once we receive consume-ok (it is handled by
+      # AMQ::Client::Queue we inherit from).
       @consumer_tag = "for now"
 
       opts[:nowait] = false if (@on_confirm_subscribe = opts[:confirm])
@@ -503,7 +507,11 @@ module AMQP
         end
       }
 
-      @channel.once_open { @consumer_tag = nil; self.consume(!opts[:ack], opts[:exclusive], (opts[:nowait] || block.nil?), opts[:no_local], nil, &opts[:confirm]) } # It sets consumer_tag in this callback which is too late.
+      @channel.once_open do
+        @consumer_tag = nil
+        # consumer_tag is set by AMQ::Client::Queue once we receive consume-ok, this takes a while.
+        self.consume(!opts[:ack], opts[:exclusive], (opts[:nowait] || block.nil?), opts[:no_local], nil, &opts[:confirm])
+      end
       self.on_delivery(&delivery_shim)
 
       self
