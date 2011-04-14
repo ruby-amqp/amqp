@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require "amq/client/adapters/event_machine"
 
 module AMQP
