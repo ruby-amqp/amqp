@@ -391,28 +391,28 @@ module AMQP
     #                          You are encouraged to take care of data serialization before publishing (using JSON, Thrift,
     #                          Protocol Buffers or other serialization library).
     #
-    # @option [String] :routing_key (nil)  Specifies message routing key. Routing key determines
+    # @option options [String] :routing_key (nil)  Specifies message routing key. Routing key determines
     #                                      what queues messages are delivered to (exact routing algorithms vary
     #                                      between exchange types).
     #
-    # @option [Boolean] :mandatory (false) This flag tells the server how to react if the message cannot be
+    # @option options [Boolean] :mandatory (false) This flag tells the server how to react if the message cannot be
     #                                      routed to a queue. If message is mandatory, the server will return
     #                                      unroutable message back to the client with basic.return AMQPmethod.
     #                                      If message is not mandatory, the server silently drops the message.
     #
-    # @option [Boolean] :immediate (false) This flag tells the server how to react if the message cannot be
+    # @option options [Boolean] :immediate (false) This flag tells the server how to react if the message cannot be
     #                                      routed to a queue consumer immediately.  If this flag is set, the
     #                                      server will return an undeliverable message with a Return method.
     #                                      If this flag is zero, the server will queue the message, but with
     #                                      no guarantee that it will ever be consumed.
     #
-    # @option [Boolean] :persistent (false) When true, this message will be persisted to disk and remain in the queue until
+    # @option options [Boolean] :persistent (false) When true, this message will be persisted to disk and remain in the queue until
     #                                       it is consumed. When false, the message is only kept in a transient store
     #                                       and will lost in case of server restart.
     #                                       When performance and latency are more important than durability, set :persistent => false.
     #                                       If durability is more important, set :persistent => true.
     #
-    # @option [String] :content_type (application/octet-stream) Content-type of message payload.
+    # @option options [String] :content_type (application/octet-stream) Content-type of message payload.
     #
     #
     # @example Publishing without routing key
