@@ -58,23 +58,17 @@ describe "Authentication attempt" do
       end # context
 
       context "and provided credentials ARE INCORRECT" do
-        default_timeout 4
+        default_timeout 10
 
         after(:all) { done }
 
         it "fails" do
-          callback_has_fired = false
           handler = Proc.new { |settings|
             puts "Callback has fired"
             callback_has_fired = true
+            done
           }
-
-
-          AMQP.connect(:username => "amqp_gem", :password => Time.now.to_i.to_s, :vhost => "/amqp_gem_testbed", :on_possible_authentication_failure => handler)
-          done(3.0) {
-            puts "Timeout!"
-            callback_has_fired.should be_true
-          }
+          connection = AMQP.connect(:username => "amqp_gem", :password => Time.now.to_i.to_s, :vhost => "/amqp_gem_testbed", :on_possible_authentication_failure => handler)
         end # it
       end
     end # context
@@ -102,20 +96,14 @@ describe "Authentication attempt" do
       end # context
 
       context "and provided credentials ARE INCORRECT" do
-        default_timeout 4
+        default_timeout 10
 
         after(:all) { done }
 
         it "fails" do
-          callback_has_fired = false
           connection = AMQP.connect "amqp://amqp_gem:#{Time.now.to_i}@localhost/amqp_gem_testbed", :on_possible_authentication_failure => Proc.new { |settings|
             puts "Callback has fired"
-            callback_has_fired = true
-          }
-
-          done(3.0) {
-            puts "Timeout!"
-            callback_has_fired.should be_true
+            done
           }
         end # it
       end # context
