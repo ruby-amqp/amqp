@@ -67,6 +67,7 @@ module AMQP
             log "Reconnecting due to missing server heartbeats"
             reconnect(true)
           else
+            @last_server_heartbeat = Time.now
             send AMQP::Frame::Heartbeat.new
           end
         end
