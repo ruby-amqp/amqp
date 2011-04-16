@@ -74,17 +74,23 @@ describe "Exclusive queue" do
       @connection2 = AMQP.connect do
         @connection1.should_not == @connection2
 
-        channel1 = AMQP::Channel.new(@connection1)
-        channel2 = AMQP::Channel.new(@connection2)
+        queue_name = "amqpgem.integration.queues.exclusive"
+        callback_fired = false
+        @channel1 = AMQP::Channel.new(@connection1) do
+          AMQP::Queue.new(@channel1, queue_name, :exclusive => true) do
+            @channel2 = AMQP::Channel.new(@connection2) do
+              AMQP::Queue.new(@channel2, queue_name, :exclusive => true) do
+                callback_fired = true
+              end
+            end
+          end
+        end
 
-        AMQP::Queue.new(channel1, "amqpgem.integration.queues.exclusive", :exclusive => true)
-        AMQP::Queue.new(channel2, "amqpgem.integration.queues.exclusive", :exclusive => true)
-
-
-        done(1.5) {
-          channel1.should_not be_closed
+        done(1) {
+          callback_fired.should be_false
+          @channel1.should_not be_closed
           # because it is a channel-level exception
-          channel2.should be_closed
+          @channel2.should be_closed
         }
       end
     end

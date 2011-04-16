@@ -5,7 +5,7 @@ source "http://gemcutter.org"
 # Use local clones if possible.
 def custom_gem(name, options = Hash.new)
   local_path = File.expand_path("../../#{name}", __FILE__)
-  if File.directory?(local_path)
+  if ENV["USE_AMQP_CUSTOM_GEMS"] && File.directory?(local_path)
     gem name, options.merge(:path => local_path).delete_if { |key, _| [:git, :branch].include?(key) }
   else
     gem name, options
