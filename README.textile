@@ -1,4 +1,4 @@
-h1. About amqp gem
+h1. About amqp gem "!http://travis-ci.org/ruby-amqp/amqp.png!":http://travis-ci.org/ruby-amqp/amqp
 
 amqp gem is a simple asynchronous Ruby AMQP client built on top of "EventMachine":http://rubyeventmachine.com.
 This library works with Ruby 1.8.7, Ruby 1.9.2, JRuby and Rubinius, and is
