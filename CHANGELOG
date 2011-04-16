@@ -22,6 +22,7 @@
   * [API] AMQP::Buffer is gone. Serialization & framing are now handled primarily by amq-protocol.
   * [FEATURE] AMQP gem is now AMQP 0.9.1 compatible: it runs atop of amq-client gem
   * [API] AMQP::Queue#publish is deprecated.
+  * [API] Name argument for AMQP::Queue.new and Channel#queue is optional.
 
 = Version 0.7.1
 

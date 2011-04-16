@@ -534,7 +534,7 @@ module AMQP
     #     end
     #   end
     #
-    # @param [String] name Queue name. If you want a server-named queue, pass in an empty string (note that in this case, using block is mandatory).
+    # @param [String] name Queue name. If you want a server-named queue, you can omit the name (note that in this case, using block is mandatory).
     #                                  See {Queue Queue class documentation} for discussion of queue lifecycles and when use of server-named queues
     #                                  is optimal.
     #
@@ -579,7 +579,7 @@ module AMQP
     #
     # @return [Queue]
     # @api public
-    def queue(name, opts = {}, &block)
+    def queue(name = AMQ::Protocol::EMPTY_STRING, opts = {}, &block)
       if name && !name.empty? && (queue = find_queue(name))
         extended_opts = Queue.add_default_options(name, opts, block)
 

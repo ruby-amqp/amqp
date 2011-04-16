@@ -153,10 +153,11 @@ module AMQP
     # @yieldparam [AMQP::Protocol::Queue::DeclareOk] declare_ok AMQP queue.declare-ok) instance.
     #
     # @api public
-    def initialize(channel, name, opts = {}, &block)
+    def initialize(channel, name = AMQ::Protocol::EMPTY_STRING, opts = {}, &block)
       @channel  = channel
-      @opts     = self.class.add_default_options(name, opts, block)
+      name      = AMQ::Protocol::EMPTY_STRING if name.nil?
       @name     = name unless name.empty?
+      @opts     = self.class.add_default_options(name, opts, block)
       @bindings = Hash.new
 
       if @opts[:nowait]
