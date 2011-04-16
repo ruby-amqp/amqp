@@ -51,6 +51,10 @@ h2. Getting started with amqp gem
 h3. Install RabbitMQ
 
 Please refer to "RabbitMQ installation guide":http://www.rabbitmq.com/install.html
+Note that for Ubuntu and Debian it is a good idea to use "RabbitMQ apt repository":http://www.rabbitmq.com/debian.html#apt
+that has recent versions of RabbitMQ. Ubuntu (even Karmic) and Debian both "ship with RabbitMQ 1.6.0":http://packages.ubuntu.com/karmic/rabbitmq-server,
+which was released in July 2009 and only supports AMQP 0.8.0. amqp gem 0.8.0 and later *will not work with RabbitMQ versions
+before 2.0*.
 
 
 h3. Install the gem
@@ -61,9 +65,6 @@ h3. Install the gem
 h3. "Hello, World" example
 
 <pre>
-#!/usr/bin/env ruby
-# encoding: utf-8
-
 #!/usr/bin/env ruby
 # encoding: utf-8
 
