@@ -3,3 +3,4 @@
 --markup="textile" lib/**/*.rb
 -
 LICENSE
+docs/*.textile

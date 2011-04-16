@@ -1,0 +1,32 @@
+h1. Vendor-specific AMQP extensions support in amqp gem
+
+h2. RabbitMQ extensions
+
+h3. Supported extensions
+
+AMQP gem supports two "RabbitMQ extensions to AMQP 0.9.1":
+
+* "Publisher confirmations":http://www.rabbitmq.com/extensions.html#confirms (confirm.* class)
+* "Negative acknowledgements":http://www.rabbitmq.com/extensions.html#negative-acknowledgements (basic.nack)
+
+h3. Enabling RabbitMQ extensions
+
+If you are using RabbitMQ as AMQP broker and want to use these extensions, simply replace
+
+<pre>require "amqp"</pre>
+
+with
+
+<pre>
+require "amqp"
+require "amqp/extensions/rabbitmq"
+</pre>
+
+h3. Example of using publisher confirmations
+
+<script src="https://gist.github.com/923599.js?file=rabbitmq_publisher_confirmations_with_amqp_gem_0.8.0.rb"></script>
+
+
+h3. Documentation
+
+RabbitMQ extensions documentation is part of "amq-client gem documentation":http://rubydoc.info/github/ruby-amqp/amq-client/master/frames

@@ -37,7 +37,7 @@ AMQP.start do |connection|
         puts "Publishing message ##{i}"
         x.publish("Message ##{i}")
       end
-    end    
+    end
   end
 
   show_stopper = Proc.new {

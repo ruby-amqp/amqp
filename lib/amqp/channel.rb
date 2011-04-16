@@ -14,6 +14,12 @@ module AMQP
   # with other channels, the available bandwidth being shared between the concurrent activities.
   #
   #
+  # h2. RabbitMQ extensions.
+  #
+  # AMQP gem supports several RabbitMQ extensions taht extend Channel functionality.
+  # Learn more in {file:docs/VendorSpecificExtensions.textile}
+  #
+  #
   # h2. Key methods
   #
   # Key methods of Channel class are

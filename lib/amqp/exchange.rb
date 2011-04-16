@@ -127,6 +127,12 @@ module AMQP
   # Note that *only durable queues can be bound to durable exchanges*.
   #
   #
+  # h2. RabbitMQ extensions.
+  #
+  # AMQP gem supports several RabbitMQ extensions taht extend Exchange functionality.
+  # Learn more in {file:docs/VendorSpecificExtensions.textile}
+  #
+  #
   # h2. Key methods
   #
   # Key methods of Exchange class are
