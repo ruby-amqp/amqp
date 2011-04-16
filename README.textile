@@ -208,4 +208,4 @@ h2. Links
 * "API Documentation":http://rdoc.info/github/ruby-amqp/amq-protocol/master/frames
 * "Examples":https://github.com/ruby-amqp/amq-protocol/tree/master/examples/
 * "Issue tracker":http://github.com/ruby-amqp/amq-protocol/issues
-* "Continous integration server":http://jenkins.101ideas.cz/job/AMQP
+* "Continous integration server":http://travis-ci.org/#!/ruby-amqp/amqp
