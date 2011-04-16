@@ -1,0 +1,1 @@
+require "amq/client/extensions/rabbitmq"
