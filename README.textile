@@ -98,14 +98,17 @@ end
 h2. How to use AMQP gem with Ruby on Rails, Merb, Sinatra and other web frameworks
 
 To use AMQP gem from web applications, you would need to have EventMachine reactor running.
-If you use [Thin](http://code.macournoyer.com/thin/), you are all set: Thin uses EventMachine under
-the hood.
+If you use "Thin":http://code.macournoyer.com/thin/ or "Goliath":https://github.com/postrank-labs/goliath/,
+you are all set: those two servers use EventMachine under the hood.
 
-With other web servers, you need to start EventMachine reactor in it's own thread like this:
+With other web servers, you need to start EventMachine reactor in a separate thread like this:
 
 <pre>Thread.new { EM.run }</pre>
 
-because otherwise EventMachine will block current thread. Then connect to AMQP broker:
+Otherwise EventMachine will block current thread.
+
+
+Then connect to AMQP broker:
 
 <pre>amqp_connection = AMQP.connect(:host => "localhost", :user => "guest", :pass => "guest", :vhost => "/")</pre>
 
@@ -114,13 +117,13 @@ In a Ruby on Rails app, probably the best place for this code is initializer
 Sinatra and pure Rack applications, place it next to other configuration
 code.
 
-If you want to integrate AMQP with "Thin":http://code.macournoyer.com/thin/, "Goliath":http://www.igvita.com/2011/03/08/goliath-non-blocking-ruby-19-web-server/ or another EventMachine-based software
-which already runs an event loop, you might want to use following code:
+If you want to integrate AMQP with "Thin":http://code.macournoyer.com/thin/, "Goliath":https://github.com/postrank-labs/goliath/ or
+some other EventMachine-based software which already runs an event loop, you might want to use following code:
 
 <pre>EM.next_tick { AMQP.connect(...) }</pre>
 
-So in case the reactor isn't running yet (which seems to be the case with Ruby on Rails 3.x and Thin combination),
-it won't fail, but wait when the reactor is started.
+So in case EventMachine reactor isn't running yet on server/application boot,
+connection won't fail but instead wait for reactor to start.
 
 Same separate thread technique can be used to make EventMachine play nicely with other
 libraries that would block current thread (like "File::Tail":http://rubygems.org/gems/file-tail).
@@ -144,6 +147,7 @@ h2. Examples
 
 You can find many examples (both real-world cases and simple demonstrations)
 "under examples directory":https://github.com/ruby-amqp/amqp/tree/master/examples in the repository.
+
 
 
 h2. How does amqp gem relate to amq-client gem, amq-protocol and libraries like bunny?
