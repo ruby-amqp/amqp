@@ -29,10 +29,9 @@ Gem::Specification.new do |s|
 
   begin
     require "changelog"
-  rescue LoadError
-    warn "You have to have changelog gem installed for post install message"
-  else
     s.post_install_message = CHANGELOG.new.version_changes
+  rescue LoadError
+    # warn "You have to have changelog gem installed for post install message"
   end
 
   # RubyForge
