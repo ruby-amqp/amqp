@@ -1,3 +1,6 @@
+= Version 0.7.2
+  * [BUG] Heartbeats broken for long running tasks [#43]
+
 = Version 0.7.1
 
   * [BUG] AMQP gem no longer conflicts with Builder 2.1.2 on Ruby 1.9.
