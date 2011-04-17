@@ -1,5 +1,6 @@
 = Version 0.7.2
   * [BUG] Heartbeats broken for long running tasks [#43]
+  * [BUG] Queue#reset leaks consumer tags [#40].
 
 = Version 0.7.1
 
