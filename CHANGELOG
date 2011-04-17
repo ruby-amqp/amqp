@@ -1,5 +1,8 @@
 = Version 0.8.0
 
+  * [API] AMQP::Queue#initialize now accepts :arguments option that takes a hash. RabbitMQ
+          recognizes x-message-ttl argument and uses it as message TTL in milliseconds for
+	  queue that is being declared.
   * [API] AMQP#Logger is deprecated. It will be removed before 1.0 release.
   * [API] AMQP#fork is deprecated. It will be removed before 1.0 release.
   * [API] AMQP::RPC is deprecated. It will be removed before 1.0 release.

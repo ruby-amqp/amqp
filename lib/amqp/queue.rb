@@ -148,6 +148,12 @@ module AMQP
     #                                        method it will raise a channel or connection exception.
     #
     #
+    # @option opts [Hash] :arguments (nil)  A hash of optional arguments with the declaration. Some brokers implement
+    #                                          AMQP extensions using x-prefixed declaration arguments. For example, RabbitMQ
+    #                                          recognizes x-message-ttl declaration arguments that defines TTL of messages in
+    #                                          the queue.
+    #
+    #
     # @yield [queue, declare_ok] Yields successfully declared queue instance and AMQP method (queue.declare-ok) instance. The latter is optional.
     # @yieldparam [Queue] queue Queue that is successfully declared and is ready to be used.
     # @yieldparam [AMQP::Protocol::Queue::DeclareOk] declare_ok AMQP queue.declare-ok) instance.
@@ -179,9 +185,9 @@ module AMQP
 
       @channel.once_open do
         if block
-          self.declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], @opts[:nowait], nil, &shim)
+          self.declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], @opts[:nowait], @opts[:arguments], &shim)
         else
-          self.declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], @opts[:nowait], nil)
+          self.declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], @opts[:nowait], @opts[:arguments])
         end
       end
     end
