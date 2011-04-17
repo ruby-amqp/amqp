@@ -1,5 +1,8 @@
 = Version 0.8.0
 
+  * [API] AMQP#Logger is deprecated. It will be removed before 1.0 release.
+  * [API] AMQP#fork is deprecated. It will be removed before 1.0 release.
+  * [API] AMQP::RPC is deprecated. It will be removed before 1.0 release.
   * [FEATURE] Significant improvements to the documentation
   * [FEATURE] Support for RabbitMQ extensions to AMQP 0.9.1
   * [API] AMQP::Exchange#publish now accepts (an optional) block that is called as soon as message
