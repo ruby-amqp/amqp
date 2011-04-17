@@ -1,5 +1,9 @@
 = Version 0.8.0
 
+  * [FEATURE] Significant improvements to the documentation
+  * [FEATURE] Support for RabbitMQ extensions to AMQP 0.9.1
+  * [API] AMQP::Exchange#publish now accepts (an optional) block that is called as soon as message
+          is considered published (EventMachine loop has pushed payload down the network stack).
   * [API] AMQP::Channel.new now accepts (an optional) block and yields newly opened channel to it as soon as
           channel.open-ok arrives from the broker.
   * [API] AMQP::Header#ack now can acknowledge multiple deliveries
