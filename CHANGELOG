@@ -14,8 +14,8 @@
   * [API] AMQP::Header now implements #to_hash
   * [API] AMQP::Queue#pop block now can take 1, 2 or 3 arguments.
           1 argument means handler is only interested in content payload
-	  2 arguments means handler is interested in headers and the content
-	  7 arguments means handlers wants all the properties get-ok (or get-empty) carries
+	  2 arguments mean handler is interested in headers and the content
+	  3 arguments mean handler is interested in headers, content and AMQP method instance
   * [API] AMQP::Queue#purge  now takes an optional block which is called when queue.purge-ok response arrives.
   * [API] AMQP::Queue#delete now takes an optional block which is called when queue.delete-ok response arrives.
   * [API] AMQP::Queue#delete now accepts :nowait option.
