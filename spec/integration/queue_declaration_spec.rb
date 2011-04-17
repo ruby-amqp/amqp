@@ -49,23 +49,61 @@ describe AMQP do
     end # context
 
 
+    context "when queue is redeclared with different attributes" do
+      let(:name) { "amqp-gem.nondurable.queue" }
+      let(:options) { {:durable => false, :passive => false} }
+      let(:different_options) { {:durable => true, :passive => false} }
+      amqp_before do
+        @queue       = @channel.queue(name, options)
+        delayed(0.25) { @queue.delete }
+      end
 
+      context "on the same channel" do
+        it "should raise ruby exception" do
+          expect {
+            @other_queue = @channel.queue(name, different_options)
+          }.to raise_error(AMQP::IncompatibleOptionsError)
+          @queue.delete
+          done(0.2)
+        end
+      end
+
+      context "on different channels (or even in different processes)" do
+        amqp_before { @other_channel = AMQP::Channel.new }
+
+        it "should not raise ruby exception" do
+          expect {
+            @other_queue = @other_channel.queue(name, different_options)
+          }.to_not raise_error
+          done
+        end
+
+        it "should trigger channel-level #on_error callback" do
+          @other_channel.on_error {|*args| @callback_fired = true }
+          @other_queue = @other_channel.queue(name, different_options)
+          done(0.35) {
+            @callback_fired.should be_true
+            @other_channel.should be_closed
+          }
+        end
+      end
+    end
 
     context "when passive option is used" do
-      context "and exchange with given name already exists" do
+      context "and queue with given name already exists" do
         it "silently returns" do
           name = "a_new_queue declared at #{Time.now.to_i}"
 
-          original_exchange = @channel.queue(name)
-          exchange          = @channel.queue(name, :passive => true)
+          original_queue = @channel.queue(name)
+          queue          = @channel.queue(name, :passive => true)
 
-          exchange.should == original_exchange
+          queue.should == original_queue
 
           done
         end # it
       end
 
-      context "and exchange with given name DOES NOT exist" do
+      context "and queue with given name DOES NOT exist" do
         it "raises an exception" do
           pending "Not yet supported"
 
