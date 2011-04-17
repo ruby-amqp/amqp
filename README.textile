@@ -144,7 +144,7 @@ gem "amqp", :git => "git://github.com/ruby-amqp/amqp.git", :branch => "master"
 h2. Examples
 
 You can find many examples (both real-world cases and simple demonstrations)
-"under examples directory":https://github.com/ruby-amqp/amqp/tree/master/examples in the repository.
+under "examples directory":https://github.com/ruby-amqp/amqp/tree/master/examples in the repository.
 
 
 
@@ -181,7 +181,8 @@ h2. Community
 
 h2. License
 
-AMQP gem is licensed under the "Ruby License:"http://www.ruby-lang.org/en/LICENSE.txt.
+AMQP gem is licensed under the "Ruby License":http://www.ruby-lang.org/en/LICENSE.txt.
+
 
 
 h2. Credits and copyright information
