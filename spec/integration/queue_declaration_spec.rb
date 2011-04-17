@@ -28,14 +28,12 @@ describe AMQP do
       it "declares a new queue with that name" do
         queue = @channel.queue(name)
         queue.name.should == name
-
         done
       end
 
       it "caches that queue" do
         queue = @channel.queue(name)
         @channel.queue(name).object_id.should == queue.object_id
-
         done
       end
     end # context
@@ -44,7 +42,8 @@ describe AMQP do
       it "uses server-assigned queue name" do
         @channel.queue("") do |queue, *args|
           queue.name.should_not be_empty
-          done
+          queue.delete
+          done(0.3)
         end
       end
     end # context

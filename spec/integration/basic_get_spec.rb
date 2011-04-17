@@ -47,7 +47,7 @@ describe AMQP::Queue, "#pop" do
 
         @queue.pop do |payload|
           callback_has_fired = true
-
+          @queue.delete
           payload.should be_nil
         end
 
@@ -58,7 +58,7 @@ describe AMQP::Queue, "#pop" do
     end
   end
 
-  context "when THERE ARE messages in the queue" do  
+  context "when THERE ARE messages in the queue" do
     it "yields message payload to the callback" do
       number_of_received_messages = 0
       expected_number_of_messages = 300
@@ -71,7 +71,7 @@ describe AMQP::Queue, "#pop" do
         expected_number_of_messages.times do
           @queue.pop do |headers, payload|
             payload.should_not be_nil
-            number_of_received_messages += 1            
+            number_of_received_messages += 1
             headers.message_count.should == (expected_number_of_messages - number_of_received_messages)
 
             if RUBY_VERSION =~ /^1.9/
@@ -83,6 +83,10 @@ describe AMQP::Queue, "#pop" do
         end # do
       end
 
+      delayed(1.3) {
+        # Queue.Get doesn't qualify for subscription, hence, manual deletion is required
+        @queue.delete
+      }
       done(1.5) {
         number_of_received_messages.should == expected_number_of_messages
       }
