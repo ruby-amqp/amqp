@@ -1,0 +1,2 @@
+V	120416201727Z		01	unknown	/CN=giove.local/O=server
+V	120416201833Z		02	unknown	/CN=giove.local/O=client
