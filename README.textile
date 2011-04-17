@@ -52,9 +52,7 @@ h3. Install RabbitMQ
 
 Please refer to "RabbitMQ installation guide":http://www.rabbitmq.com/install.html
 Note that for Ubuntu and Debian we strongly advice that you use "RabbitMQ apt repository":http://www.rabbitmq.com/debian.html#apt
-that has recent versions of RabbitMQ. Ubuntu (even 10.10) and Debian both "ship with old RabbitMQ version":http://packages.ubuntu.com/maverick/rabbitmq-server,
-that only supports AMQP protocol 0.8. amqp gem 0.8.0 and later *will not work with RabbitMQ versions
-before 2.0*.
+that has recent versions of RabbitMQ. Learn more in {file:docs/RabbitMQVersions.textile RabbitMQ versions} section.
 
 
 h3. Install the gem

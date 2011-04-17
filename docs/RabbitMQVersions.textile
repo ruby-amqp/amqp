@@ -1,0 +1,21 @@
+h1. amqp gem and RabbitMQ versions compatibility
+
+h2. Using recent versions on Debian and Ubuntu
+
+Ubuntu (even 10.10) and Debian both "ship with old RabbitMQ version":http://packages.ubuntu.com/maverick/rabbitmq-server,
+that only supports AMQP protocol 0.8. amqp gem 0.8.0 and later *will not work with RabbitMQ versions
+before 1.8.0*.
+
+We strongly recommend that you use "RabbitMQ apt repository":http://www.rabbitmq.com/debian.html#apt that has recent versions of RabbitMQ.
+
+
+
+h2. TLS (SSL) support
+
+Note that "before 1.7.0, RabbitMQ did not support TLS":http://www.rabbitmq.com/ssl.html. In order to have TLS
+support, RabbitMQ 1.7.0 requires
+
+ * Erlang/OTP R13B or later
+ * Erlang SSL 3.10 or later
+
+and recommends using Erlang R141B that ships with Erlang SSL 4.0.1.
