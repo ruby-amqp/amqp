@@ -294,6 +294,9 @@ module AMQP
     # @option opts [String] :default_routing_key (nil)  Default routing key that will be used by {Exchange#publish} when no routing key is not passed explicitly.
     #                                                   It is perfectly fine for applications to always specify routing key to {Exchange#publish}.
     #
+    # @option opts [Hash] :arguments (nil)  A hash of optional arguments with the declaration. Some brokers implement
+    #                                          AMQP extensions using x-prefixed declaration arguments.
+    #
     #
     # @raise [AMQP::Error] Raised when exchange is redeclared with parameters different from original declaration.
     # @raise [AMQP::Error] Raised when exchange is declared with :passive => true and the exchange does not exist.
@@ -357,7 +360,7 @@ module AMQP
 
         unless @opts[:no_declare]
           @channel.once_open do
-            self.declare(passive = @opts[:passive], durable = @opts[:durable], exclusive = @opts[:exclusive], auto_delete = @opts[:auto_delete], nowait = @opts[:nowait], nil, &shim)
+            self.declare(passive = @opts[:passive], durable = @opts[:durable], exclusive = @opts[:exclusive], auto_delete = @opts[:auto_delete], nowait = @opts[:nowait], @opts[:arguments], &shim)
           end
         end
       else
