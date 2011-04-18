@@ -1,10 +1,8 @@
 # encoding: utf-8
 
-source "http://gemcutter.org"
+source :rubygems
 
 gem "eventmachine"
-gem "json" if RUBY_VERSION < "1.9" || ARGV.first == "install"
-gem "amq-client", :git => "git://github.com/ruby-amqp/amq-client.git", :branch => "master"
 
 group(:test) do
   gem "rspec", ">=2.0.0"
