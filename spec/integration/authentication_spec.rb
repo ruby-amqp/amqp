@@ -13,14 +13,17 @@ describe "Authentication attempt" do
   em_before { AMQP.cleanup_state }
   em_after  { AMQP.cleanup_state }
 
-  describe "with default connection parameters" do
 
+  # Tests below use AMQP_OPTS for settings, if you really need to modify them,
+  # create amqp.yml file with new settings. (see spec/spec_helper)
+
+  # Also it assumes that guest/guest has access to /
+  describe "with default connection parameters" do
     #
     # Examples
     #
 
-    # assuming there is an account guest with password of "guest" that has
-    # access to / (default vhost)
+
     context "when guest/guest has access to /" do
       after :all do
         done
@@ -44,16 +47,16 @@ describe "Authentication attempt" do
     # Examples
     #
 
-    # assuming there is an account amqp_gem with password of "amqp_gem_password" that has
-    # access to /amqp_gem_testbed
-    context "when amqp_gem/amqp_gem_testbed has access to /amqp_gem_testbed" do
+    # assuming AMQP_OPTS are correct
+    # and SchadenFreude with random password doesn't have any access
+    context "when #{AMQP_OPTS[:username]} has access to #{AMQP_OPTS[:vhost]}" do
       after :all do
         done
       end
 
       context "and provided credentials are correct" do
         it "succeeds" do
-          connection = AMQP.connect :username => "amqp_gem", :password => "amqp_gem_password", :vhost => "/amqp_gem_testbed"
+          connection = AMQP.connect :username => AMQP_OPTS[:username], :password => AMQP_OPTS[:password], :vhost => AMQP_OPTS[:vhost]
 
           done(0.3) {
             connection.should be_connected
@@ -64,7 +67,7 @@ describe "Authentication attempt" do
 
       context "and provided credentials ARE INCORRECT" do
         it "fails" do
-          connection = AMQP.connect :user => "amqp_gem", :pass => Time.now.to_i.to_s, :vhost => "/amqp_gem_testbed"
+          connection = AMQP.connect :user => "SchadenFreude", :pass => Time.now.to_i.to_s, :vhost => AMQP_OPTS[:vhost]
 
           done(0.5) {
             connection.should_not be_connected
@@ -81,16 +84,16 @@ describe "Authentication attempt" do
     # Examples
     #
 
-    # assuming there is an account amqp_gem with password of "amqp_gem_password" that has
-    # access to /amqp_gem_testbed
-    context "when amqp_gem/amqp_gem_testbed has access to /amqp_gem_testbed" do
+    # assuming AMQP_OPTS are correct
+    # and SchadenFreude with random password doesn't have any access
+    context "when #{AMQP_OPTS[:username]} has access to #{AMQP_OPTS[:vhost]}" do
       after :all do
         done
       end
 
       context "and provided credentials are correct" do
         it "succeeds" do
-          connection = AMQP.connect "amqp://amqp_gem:amqp_gem_password@localhost/amqp_gem_testbed"
+          connection = AMQP.connect "amqp://#{AMQP_OPTS[:username]}:#{AMQP_OPTS[:password]}@localhost#{AMQP_OPTS[:vhost]}"
 
           done(0.3) {
             connection.should be_connected
@@ -101,7 +104,7 @@ describe "Authentication attempt" do
 
       context "and provided credentials ARE INCORRECT" do
         it "succeeds" do
-          connection = AMQP.connect "amqp://amqp_gem:#{Time.now.to_i}@localhost/amqp_gem_testbed"
+          connection = AMQP.connect "amqp://schadenfreude:#{Time.now.to_i}@localhost/"
 
           done(0.5) {
             connection.should_not be_connected

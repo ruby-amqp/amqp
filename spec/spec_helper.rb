@@ -24,7 +24,7 @@ if File.exists? amqp_config
   end
   AMQP_OPTS = YAML::load_file(amqp_config).symbolize_keys[:test]
 else
-  AMQP_OPTS = {:host => 'localhost', :port => 5672}
+  AMQP_OPTS = {:host => 'localhost', :port => 5672, :username => "guest", :password => "guest", :vhost => "/"}
 end
 
 #
