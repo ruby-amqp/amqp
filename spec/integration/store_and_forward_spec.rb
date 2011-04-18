@@ -112,7 +112,8 @@ describe "Store-and-forward routing" do
           end # pop
         end # do
 
-        done(0.5) {
+        delayed(0.4) { @queue.delete }
+        done(0.6) {
           number_of_received_messages.should == expected_number_of_messages
         }
       end # it

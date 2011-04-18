@@ -78,3 +78,8 @@ def test_method_deliver opts = {}
       AMQP::Protocol::Basic::Deliver.new(
           :consumer_tag => opts[:consumer_tag] || 'test_consumer'))
 end
+
+def delayed(timeout, &block)
+  instance = self
+  EM.add_timer(timeout) { instance.instance_eval(&block) }
+end # delayed

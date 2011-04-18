@@ -16,8 +16,8 @@ describe "Queue that was bound to default direct exchange thanks to Automatic Mo
     @channel   = AMQP::Channel.new
     @channel.should be_open
 
-    @queue1    = @channel.queue("queue1")
-    @queue2    = @channel.queue("queue2")
+    @queue1    = @channel.queue("amqp-gem.automatic-binding.q1", :auto_delete => true)
+    @queue2    = @channel.queue("amqp-gem.automatic-binding.q2", :auto_delete => true)
 
     # Rely on default direct exchange binding, see section 2.1.2.4 Automatic Mode in AMQP 0.9.1 spec.
     @exchange = AMQP::Exchange.default(@channel)
@@ -48,14 +48,16 @@ describe "Queue that was bound to default direct exchange thanks to Automatic Mo
     end
 
     expected_number_of_messages.times do
-      @exchange.publish(dispatched_data,    :routing_key => @queue1.name)    
+      @exchange.publish(dispatched_data,    :routing_key => @queue1.name)
     end
 
     4.times do
       @exchange.publish("some white noise", :routing_key => "killa key")
     end
 
-    done(0.2) {
+    delayed(0.2) { @queue2.delete }
+
+    done(0.35) {
       number_of_received_messages.should == expected_number_of_messages
     }
   end # it

@@ -28,15 +28,15 @@ describe AMQP do
       it "declares a new queue with that name" do
         queue = @channel.queue(name)
         queue.name.should == name
-
-        done
+        queue.delete
+        done(0.2)
       end
 
       it "caches that queue" do
         queue = @channel.queue(name)
         @channel.queue(name).object_id.should == queue.object_id
-
-        done
+        queue.delete
+        done(0.2)
       end
     end # context
 
@@ -44,7 +44,8 @@ describe AMQP do
       it "uses server-assigned queue name" do
         @channel.queue("") do |queue, *args|
           queue.name.should_not be_empty
-          done
+          queue.delete
+          done(0.2)
         end
       end
     end # context
@@ -53,25 +54,26 @@ describe AMQP do
 
 
     context "when passive option is used" do
-      context "and exchange with given name already exists" do
+      context "and queue with given name already exists" do
         it "silently returns" do
           name = "a_new_queue declared at #{Time.now.to_i}"
 
-          original_exchange = @channel.queue(name)
-          exchange          = @channel.queue(name, :passive => true)
+          original_queue = @channel.queue(name)
+          queue          = @channel.queue(name, :passive => true)
 
-          exchange.should == original_exchange
+          queue.should == original_queue
 
-          done
+          queue.delete
+          done(0.3)
         end # it
       end
 
-      context "and exchange with given name DOES NOT exist" do
+      context "and queue with given name DOES NOT exist" do
         it "raises an exception" do
           pending "Not yet supported"
 
           expect {
-            exchange = @channel.queue("queue declared at #{Time.now.to_i}", :passive => true)
+            queue = @channel.queue("queue declared at #{Time.now.to_i}", :passive => true)
           }.to raise_error
 
           done
@@ -84,13 +86,14 @@ describe AMQP do
 
     context "when queue is re-declared with parameters different from original declaration" do
       it "raises an exception" do
-        @channel.queue("previously.declared.durable.queue", :durable => true)
+        queue = @channel.queue("previously.declared.durable.queue", :durable => true)
 
         expect {
           @channel.queue("previously.declared.durable.queue", :durable => false)
         }.to raise_error(AMQP::IncompatibleOptionsError)
 
-        done
+        queue.delete
+        done(0.2)
       end # it
     end # context
   end # describe
