@@ -99,6 +99,32 @@ end
 (see "as a Gist":https://gist.github.com/910211)
 
 
+h2. Examples
+
+You can find many examples (both real-world cases and simple demonstrations)
+under "examples directory":https://github.com/ruby-amqp/amqp/tree/master/examples in the repository.
+Note that those examples are written against version 0.8.0.rc1 and later. 0.6.x and 0.7.x
+may not support certain AMQP protocol or "DSL syntax" features.
+
+
+h2. Tutorials
+
+"Tutorials":https://github.com/ruby-amqp/rabbitmq-tutorials aren't written yet :( Please refer to Examples
+and Documentation. Every major class and class method in documentation has usage examples as well as brief introduction to AMQP
+entities and use cases.
+
+
+h2. Documentation
+
+We believe that in order to be the best Ruby AMQP client out there, we need to care about documentation as much as
+code readability, API beauty and autotomated testing across 5 Ruby implementations on 3 operating systems.
+Documentation is "up on rdoc.info":http://rdoc.info/github/ruby-amqp/amqp/master/frames and is updated daily. It describes
+both the library itself and AMQP usage scenarios, broker-specific extensions, topics like dealing with ancient RabbitMQ versions
+Debian and Ubuntu ship with and so on.
+
+*If you don't find your answer in documentation, we consider it a high severity bug* that you should "file to us":http://github.com/ruby-amqp/amqp/issues.
+
+
 h2. How to use AMQP gem with Ruby on Rails, Merb, Sinatra and other web frameworks
 
 To use AMQP gem from web applications, you would need to have EventMachine reactor running.
@@ -144,15 +170,6 @@ If you want to use edge version (usually there is no need to):
 <pre>
 gem "amqp", :git => "git://github.com/ruby-amqp/amqp.git", :branch => "master"
 </pre>
-
-
-
-h2. Examples
-
-You can find many examples (both real-world cases and simple demonstrations)
-under "examples directory":https://github.com/ruby-amqp/amqp/tree/master/examples in the repository.
-Note that those examples are written against version 0.8.0.rc1 and later. 0.6.x and 0.7.x
-may not support certain AMQP protocol or "DSL syntax" features.
 
 
 
@@ -217,7 +234,7 @@ use version 0.7.
 
 h2. Links
 
-* "API Documentation":http://rdoc.info/github/ruby-amqp/amq-protocol/master/frames
+* "API Documentation":http://rdoc.info/github/ruby-amqp/amqp/master/frames
 * "Examples":https://github.com/ruby-amqp/amq-protocol/tree/master/examples/
-* "Issue tracker":http://github.com/ruby-amqp/amq-protocol/issues
+* "Issue tracker":http://github.com/ruby-amqp/amqp/issues
 * "Continous integration server":http://travis-ci.org/#!/ruby-amqp/amqp
