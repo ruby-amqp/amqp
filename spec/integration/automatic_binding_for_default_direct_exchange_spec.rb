@@ -10,13 +10,13 @@ describe "Queue that was bound to default direct exchange thanks to Automatic Mo
 
   include EventedSpec::AMQPSpec
 
-  default_timeout 2
+  default_timeout 3
 
   amqp_before do
     @channel   = AMQP::Channel.new
     @channel.should be_open
     @channel.on_error do |*args|
-      puts "Channel-level error!"
+      raise "Channel-level error!"
     end
 
     @queue1    = @channel.queue("queue1", :auto_delete => true)
@@ -58,12 +58,12 @@ describe "Queue that was bound to default direct exchange thanks to Automatic Mo
       @exchange.publish("some white noise", :routing_key => "killa key")
     end
 
-    delayed(0.3) {
+    delayed(0.6) {
       # We never subscribe to it, hence, need to delete manually
       @queue2.delete
     }
 
-    done(0.5) {
+    done(0.9) {
       number_of_received_messages.should == expected_number_of_messages
     }
   end # it
