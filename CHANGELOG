@@ -8,7 +8,8 @@
   * [API] AMQP#Logger is deprecated. It will be removed before 1.0 release.
   * [API] AMQP#fork is deprecated. It will be removed before 1.0 release.
   * [API] AMQP::RPC is deprecated. It will be removed before 1.0 release.
-  * [FEATURE] Significant improvements to the documentation
+  * [FEATURE] Significant improvements to the documentation. From now on lack of/poor documentation
+              is considered a severe bug that should be filed at https://github.com/ruby-amqp/amqp/issues
   * [FEATURE] Support for RabbitMQ extensions to AMQP 0.9.1
   * [API] AMQP::Exchange#publish now accepts (an optional) block that is called as soon as message
           is considered published (EventMachine loop has pushed payload down the network stack).
