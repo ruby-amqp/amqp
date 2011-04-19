@@ -62,14 +62,15 @@ module AMQP
     def init_heartbeat
       @last_server_heartbeat = Time.now
 
-      @timer ||= EM::PeriodicTimer.new(@settings[:heartbeat]) do
+      @timer.cancel if @timer
+      @timer = EM::PeriodicTimer.new(@settings[:heartbeat]) do
         if connected?
           if @last_server_heartbeat < (Time.now - (@settings[:heartbeat] * 2))
             log "Reconnecting due to missing server heartbeats"
             reconnect(true)
           else
             @last_server_heartbeat = Time.now
-            send AMQP::Frame::Heartbeat.new
+            send AMQP::Frame::Heartbeat.new, :channel => 0
           end
         end
       end
