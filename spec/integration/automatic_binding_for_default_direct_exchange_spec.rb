@@ -19,8 +19,8 @@ describe "Queue that was bound to default direct exchange thanks to Automatic Mo
       raise "Channel-level error!: #{close.inspect}"
     end
 
-    @queue1    = @channel.queue("queue1", :auto_delete => true)
-    @queue2    = @channel.queue("queue2", :auto_delete => true)
+    @queue1    = @channel.queue("amqpgem.tests.integration.queue1", :auto_delete => true)
+    @queue2    = @channel.queue("amqpgem.tests.integration.queue2", :auto_delete => true)
 
     # Rely on default direct exchange binding, see section 2.1.2.4 Automatic Mode in AMQP 0.9.1 spec.
     @exchange = AMQP::Exchange.default(@channel)
