@@ -15,8 +15,8 @@ describe "Queue that was bound to default direct exchange thanks to Automatic Mo
   amqp_before do
     @channel   = AMQP::Channel.new
     @channel.should be_open
-    @channel.on_error do |*args|
-      raise "Channel-level error!"
+    @channel.on_error do |ch, close|
+      raise "Channel-level error!: #{close.inspect}"
     end
 
     @queue1    = @channel.queue("queue1", :auto_delete => true)
