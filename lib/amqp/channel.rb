@@ -935,3 +935,25 @@ end # AMQP
 
 
 MQ = AMQP::Channel
+
+#
+# Backwards compatibility with 0.6.x
+#
+
+class MQ
+  # unique identifier
+  def MQ.id
+    Thread.current[:mq_id] ||= "#{`hostname`.strip}-#{Process.pid}-#{Thread.current.object_id}"
+  end
+
+  def MQ.default
+    # TODO: clear this when connection is closed
+    Thread.current[:mq] ||= MQ.new
+  end
+
+  # Allows for calls to all MQ instance methods. This implicitly calls
+  # MQ.new so that a new channel is allocated for subsequent operations.
+  def MQ.method_missing meth, *args, &blk
+    MQ.default.__send__(meth, *args, &blk)
+  end
+end
