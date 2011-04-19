@@ -62,33 +62,39 @@ h3. Install the gem
 
 h3. "Hello, World" example
 
-<pre>
+<pre><code>
 #!/usr/bin/env ruby
 # encoding: utf-8
 
 require "rubygems"
+# or
+#
+# require "bundler"
+# Bundler.setup
+#
+# if you use Bundler
+
 require 'amqp'
 
 EventMachine.run do
-  AMQP.connect(:host => 'localhost') do |connection|
-    puts "Connected to AMQP broker"
+  connection = AMQP.connect(:host => '127.0.0.1')
+  puts "Connected to AMQP broker. Running #{AMQP::VERSION} version of the gem..."
 
-    channel  = AMQP::Channel.new(connection)
-    queue    = channel.queue("amqpgem.examples.hello_world")
-    exchange = channel.default_exchange
+  channel  = AMQP::Channel.new(connection)
+  queue    = channel.queue("amqpgem.examples.hello_world", :auto_delete => true)
+  exchange = channel.direct("")
 
-    queue.subscribe do |payload|
-      puts "Received a message: #{payload}. Disconnecting..."
+  queue.subscribe do |payload|
+    puts "Received a message: #{payload}. Disconnecting..."
 
-      connection.close {
-        EM.stop { exit }
-      }
-    end
+    connection.close {
+      EM.stop { exit }
+    }
+  end
 
-    exchange.publish "Hello, world!", :routing_key => queue.name
-  end  
+  exchange.publish "Hello, world!", :routing_key => queue.name
 end
-</pre>
+</code></pre>
 
 (see "as a Gist":https://gist.github.com/910211)
 
@@ -145,6 +151,8 @@ h2. Examples
 
 You can find many examples (both real-world cases and simple demonstrations)
 under "examples directory":https://github.com/ruby-amqp/amqp/tree/master/examples in the repository.
+Note that those examples are written against version 0.8.0.rc1 and later. 0.6.x and 0.7.x
+may not support certain AMQP protocol or "DSL syntax" features.
 
 
 
