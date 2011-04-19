@@ -35,7 +35,7 @@ class MQ
 
   # Allows for calls to all MQ instance methods. This implicitly calls
   # MQ.new so that a new channel is allocated for subsequent operations.
-  def MQ.method_missing meth, *args, &blk
+  def MQ.method_missing(meth, *args, &blk)
     MQ.default.__send__(meth, *args, &blk)
   end
 end
