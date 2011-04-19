@@ -9,6 +9,11 @@ $:.unshift(File.expand_path("../../lib", __FILE__))
 require 'amqp'
 
 t = Thread.new { EventMachine.run }
+if defined?(JRUBY_VERSION)
+  # on the JVM, event loop startup takes longer and .next_tick behavior
+  # seem to be a bit different. Blocking current thread for a moment helps.
+  sleep 0.5
+end
 
 EventMachine.next_tick {
   connection = AMQP.connect(:host => '127.0.0.1')
