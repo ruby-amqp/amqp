@@ -4,7 +4,7 @@ h2. Using recent versions on Debian and Ubuntu
 
 Ubuntu (even 10.10) and Debian both "ship with old RabbitMQ version":http://packages.ubuntu.com/maverick/rabbitmq-server,
 that only supports AMQP protocol 0.8. amqp gem 0.8.0 and later *will not work with RabbitMQ versions
-before 1.8.0*.
+before 2.0.0*.
 
 We strongly recommend that you use "RabbitMQ apt repository":http://www.rabbitmq.com/debian.html#apt that has recent versions of RabbitMQ.
 
