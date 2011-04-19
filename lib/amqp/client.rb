@@ -68,7 +68,7 @@ module AMQP
             reconnect(true)
           else
             @last_server_heartbeat = Time.now
-            send AMQP::Frame::Heartbeat.new
+            send AMQP::Frame::Heartbeat.new, :channel => 0
           end
         end
       end
