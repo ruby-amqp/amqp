@@ -18,7 +18,7 @@ gem "eventmachine"
 
 group(:test) do
   gem "rspec", ">=2.0.0"
-
+  gem "rake"
   # gem "amqp-spec", :git => "git://github.com/ruby-amqp/amqp-spec.git", :branch => "master"
   custom_gem "evented-spec", :git => "git://github.com/ruby-amqp/evented-spec.git", :branch => "master"
 end
