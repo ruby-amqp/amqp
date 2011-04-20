@@ -29,29 +29,32 @@ describe AMQP do
 
 
     it "should trigger channel-level #on_error callback" do
-      channel = AMQP::Channel.new
-      channel.on_error do |ch, close|
-        @callback_fired = true
+      @channel = AMQP::Channel.new
+      @channel.on_error do |ch, close|
+        puts "This should never happen"
       end
-      puts "channel.id = #{channel.id}"
+      @q1 = @channel.queue(name, options)
 
-      q1 = channel.queue(name, options)
+      # Small delays to ensure the order of execution
+      delayed(0.1) {
+        @other_channel = AMQP::Channel.new
+        @other_channel.on_error do |ch, close|
+          @callback_fired = true
+        end
+        puts "other_channel.id = #{@other_channel.id}"
+        @q2 = @other_channel.queue(name, different_options)
+      }
 
-      other_channel = AMQP::Channel.new
-      other_channel.on_error do |ch, close|
-        @callback_fired = true
-      end
-      puts "other_channel.id = #{other_channel.id}"
-      q2 = other_channel.queue(name, different_options)
+      delayed(0.3) {
+        @q1.delete
+        @q2.delete
+      }
 
       done(0.4) {
         @callback_fired.should be_true
         # looks like there is a difference between platforms/machines
         # so check either one. MK.
-        (channel.closed? || other_channel.closed?).should be_true
-
-        q1.delete
-        q2.delete
+        @other_channel.closed?.should be_true
       }
     end
   end
