@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-source "http://gemcutter.org"
+source :rubygems
 
 # Use local clones if possible.
 # If you want to use your local copy, just symlink it to vendor.
