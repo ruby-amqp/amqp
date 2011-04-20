@@ -11,3 +11,5 @@ spec/amqp.yml
 vendor/cache
 vendor/amq*
 vendor/evented-spec
+doc/*
+.yardoc/*
