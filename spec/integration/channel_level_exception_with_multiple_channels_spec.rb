@@ -24,7 +24,7 @@ describe AMQP do
       { :durable => false, :passive => false }
     }
     let(:different_options) {
-      { :durable => true, :passive => false}
+      { :durable => true, :passive => false }
     }
 
 
@@ -35,20 +35,23 @@ describe AMQP do
       end
       puts "channel.id = #{channel.id}"
 
-      channel.queue(name, options)
+      q1 = channel.queue(name, options)
 
       other_channel = AMQP::Channel.new
       other_channel.on_error do |ch, close|
         @callback_fired = true
       end
       puts "other_channel.id = #{other_channel.id}"
-      other_channel.queue(name, different_options)
+      q2 = other_channel.queue(name, different_options)
 
       done(0.4) {
         @callback_fired.should be_true
         # looks like there is a difference between platforms/machines
         # so check either one. MK.
         (channel.closed? || other_channel.closed?).should be_true
+
+        q1.delete
+        q2.delete
       }
     end
   end
