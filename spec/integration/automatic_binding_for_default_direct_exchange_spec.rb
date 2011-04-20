@@ -8,7 +8,7 @@ describe "Queue that was bound to default direct exchange thanks to Automatic Mo
   # Environment
   #
 
-  include AMQP::Spec
+  include EventedSpec::AMQPSpec
 
   default_timeout 2
 

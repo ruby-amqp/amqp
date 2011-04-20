@@ -8,7 +8,7 @@ describe "Non-exclusive queue" do
   # Environment
   #
 
-  include AMQP::Spec
+  include EventedSpec::AMQPSpec
 
   default_timeout 5
 
@@ -60,7 +60,7 @@ describe "Exclusive queue" do
   # Environment
   #
 
-  include AMQP::Spec
+  include EventedSpec::AMQPSpec
 
   default_timeout 1
 
@@ -84,7 +84,7 @@ describe "Exclusive queue" do
     sleep 0.1
 
     AMQP::Queue.new(channel2, "amqpgem.integration.queues.exclusive", :exclusive => true)
-    
+
 
     done(0.2) {
       channel1.should_not be_closed

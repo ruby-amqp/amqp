@@ -7,7 +7,7 @@ describe "Exclusive server-named queue" do
   # Environment
   #
 
-  include AMQP::Spec
+  include EventedSpec::AMQPSpec
 
   default_timeout 1
 
@@ -57,7 +57,7 @@ describe "Exclusive server-named queue" do
           queue1.unsubscribe
           queue2.unsubscribe
         }
-      end # do      
+      end # do
     end # do
   end # it
 end # describe
