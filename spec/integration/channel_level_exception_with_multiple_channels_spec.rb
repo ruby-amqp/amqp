@@ -26,21 +26,24 @@ describe AMQP do
     let(:different_options) {
       { :durable => true, :passive => false}
     }
-  
-  
+
+
     it "should trigger channel-level #on_error callback" do
       channel = AMQP::Channel.new
       channel.on_error do |ch, close|
         @callback_fired = true
       end
       puts "channel.id = #{channel.id}"
-      
+
       channel.queue(name, options)
-      
+
       other_channel = AMQP::Channel.new
+      other_channel.on_error do |ch, close|
+        @callback_fired = true
+      end
       puts "other_channel.id = #{other_channel.id}"
       other_channel.queue(name, different_options)
-      
+
       done(0.4) {
         @callback_fired.should be_true
         channel.should be_closed
