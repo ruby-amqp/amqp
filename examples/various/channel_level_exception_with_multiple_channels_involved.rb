@@ -16,7 +16,7 @@ AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
     puts "Channel ##{ch.id} is now open!"
   end
   ch1.on_error do |ch, close|
-    puts "Handling channel-level exception on channel with id of #{ch.id} (ch1)"
+    raise "Handling channel-level exception on channel with id of #{ch.id} (ch1)"
   end
 
   ch2 = AMQP::Channel.new(connection) do |ch, open_ok|
@@ -27,13 +27,13 @@ AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
   end
 
 
-  EventMachine.add_timer(0.4) do
+  EventMachine.add_timer(0.2) do
     AMQP::Queue.new(ch1, "amqpgem.examples.channel_exception", :auto_delete => true, :durable => false) do |queue|
       puts "#{queue.name} is ready to go"
     end
   end
 
-  EventMachine.add_timer(0.4) do
+  EventMachine.add_timer(0.6) do
     AMQP::Queue.new(ch2, "amqpgem.examples.channel_exception", :auto_delete => true, :durable => true) do |queue|
       puts "#{queue.name} is ready to go"
     end
