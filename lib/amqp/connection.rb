@@ -180,13 +180,9 @@ module AMQP
     Client.connect(connection_options_or_string, other_options, &block)
   end
 
-  # @return [Hash] If default connection is set up, returns settings it was set up with. Otherwise, returns default settings.
+  # @return [Hash] Default AMQP connection settings. This hash may be modified.
   # @api public
   def self.settings
-    if @connection
-      @connection.settings
-    else
-      AMQ::Client::Settings.default
-    end
+    @settings ||= AMQ::Client::Settings.default
   end
 end # AMQP
