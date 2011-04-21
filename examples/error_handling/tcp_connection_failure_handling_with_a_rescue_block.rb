@@ -19,7 +19,7 @@ begin
              :vhost    => "/amq_client_testbed",
              :user     => "amq_client_gem",
              :password => "amq_client_gem_password",
-             :connection_timeout        => 0.3) do |connection, open_ok|
+             :timeout        => 0.3) do |connection, open_ok|
                raise "This should not be reachable"
   end  
 rescue AMQ::Client::TCPConnectionFailed => e
