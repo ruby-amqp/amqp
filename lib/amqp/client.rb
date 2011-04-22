@@ -17,6 +17,12 @@ module AMQP
   module Client
     include EM::Deferrable
 
+    #
+    # API
+    #
+
+    attr_reader :settings
+
     def initialize(opts = {})
       @settings = opts
       extend AMQP.client
