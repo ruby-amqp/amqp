@@ -19,9 +19,8 @@ module AMQP
     end
 
     # @api plugin
-    def reconnect(force = false)
-      # TODO
-      raise NotImplementedError.new
+    def reconnect(force = false, period = 2)
+      super(period, force)
     end # reconnect(force = false)
   end
 end
