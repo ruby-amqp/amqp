@@ -75,12 +75,13 @@ module AMQP
     @connection.closing?
   end
 
-
+  # @return [Boolean] Current global logging value
   # @api public
   def self.logging
     self.settings[:logging]
   end
 
+  # @return [Boolean] Sets current global logging value
   # @api public
   def self.logging=(value)
     self.settings[:logging] = !! value

@@ -67,5 +67,4 @@ module AMQP
   def self.client=(value)
     @client_implementation = value
   end
-
 end # AMQP
