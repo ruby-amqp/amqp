@@ -662,15 +662,7 @@ module AMQP
     end
 
 
-    # Define a callback to be run on channel-level exception.
-    #
-    # @param [String] msg Error message
-    #
-    # @api public
-    def self.error(msg = nil, &block)
-      # TODO
-      raise NotImplementedError.new
-    end
+
 
     # @param [Fixnum] size
     # @param [Boolean] global (false)
@@ -701,6 +693,46 @@ module AMQP
     #
     # Implementation
     #
+
+
+    # Defines a global callback to be run on channel-level exception across
+    # all channels. Consider using Channel#on_error instead. This method is here for sake
+    # of backwards compatibility with 0.6.x and 0.7.x releases.
+    #
+    # @param [String] msg Error message that passed to previously defined handler
+    #
+    # @see AMQP::Channel#on_error
+    # @deprecated
+    # @api public
+    # @private
+    def self.error(msg = nil, &block)
+      if block
+        @global_error_handler = block
+      else
+        @global_error_handler.call(msg) if @global_error_handler && msg
+      end
+    end
+
+    # Defines a global callback to be run on channel-level exception across
+    # all channels. Consider using Channel#on_error instead. This method is here for sake
+    # of backwards compatibility with 0.6.x and 0.7.x releases.
+    # @see AMQP::Channel#on_error
+    # @deprecated
+    # @api public
+    def self.on_error(&block)
+      self.error(&block)
+    end # self.on_error(&block)
+
+    # Overrides AMQ::Client::Channel version to also call global callback
+    # (if defined) for backwards compatibility.
+    #
+    # @private
+    # @api private
+    def handle_close(_, exception = nil)
+      super(_, exception)
+
+      self.class.error(exception.message)
+    end
 
 
     # Resets channel state (for example, list of registered queue objects and so on).

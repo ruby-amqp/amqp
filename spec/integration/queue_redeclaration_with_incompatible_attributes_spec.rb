@@ -37,7 +37,6 @@ describe AMQP do
       expect {
         channel.queue(name, different_options)
       }.to raise_error(AMQP::IncompatibleOptionsError)
-
       done
     end
   end
