@@ -25,5 +25,22 @@ module AMQP
       # support cross-referencing to dependencies. MK.
       super(force, period)
     end # reconnect(force = false)
-  end
-end
+
+
+
+
+    #
+    # Implementation
+    #
+
+    # Overrides TCP connection failure exception to one that inherits from AMQP::Error
+    # and thus is backwards compatible.
+    #
+    # @private
+    # @api plugin
+    # @return [Class] AMQP::TCPConnectionFailed
+    def self.tcp_connection_failure_exception_class
+      @tcp_connection_failure_exception_class ||= AMQP::TCPConnectionFailed
+    end # self.tcp_connection_failure_exception_class
+  end # BasicClient
+end # AMQP
