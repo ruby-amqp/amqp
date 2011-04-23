@@ -26,7 +26,7 @@ AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
 
       q2 = AMQP::Queue.new(channel, "amqpgem.examples.channel_exception", :auto_delete => true, :durable => true) do |queue|
         puts "#{queue.name} is ready to go"
-      end      
+      end
     end
   end
 
