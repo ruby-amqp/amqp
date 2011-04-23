@@ -49,11 +49,12 @@ module AMQP
     end
   end # IncompatibleOptionsError
 
-
+  # Raised on attempt to use a channel that was previously closed
+  # (either due to channel-level exception or intentionally via AMQP::Channel#close).
   # @api public
   class ChannelClosedError < Error
     def initialize(instance)
-      super("The channel #{instance.channel} was closed, you can't use it anymore!")
+      super("Channel with id = #{instance.channel} is closed, you can't use it anymore!")
     end
   end # ChannelClosedError
 end # AMQP

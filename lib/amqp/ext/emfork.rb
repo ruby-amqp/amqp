@@ -1,5 +1,6 @@
 # encoding: utf-8
 
+# @private
 EMFORK = $0 == __FILE__
 
 if EMFORK
@@ -8,9 +9,8 @@ end
 
 require 'eventmachine'
 
-#:stopdoc:
-
 # helper to fork off EM reactors
+# @private
 def EM.fork num = 1, &blk
   unless @forks
     trap('CHLD') {
@@ -47,6 +47,7 @@ def EM.fork num = 1, &blk
   end
 end
 
+# @private
 def EM.forks
   @forks ? @forks.keys : []
 end

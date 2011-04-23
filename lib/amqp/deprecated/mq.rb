@@ -28,6 +28,7 @@ class MQ
     Thread.current[:mq_id] ||= "#{`hostname`.strip}-#{Process.pid}-#{Thread.current.object_id}"
   end
 
+  # @private
   def MQ.default
     # TODO: clear this when connection is closed
     Thread.current[:mq] ||= MQ.new

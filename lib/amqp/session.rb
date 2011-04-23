@@ -3,6 +3,30 @@
 require "amq/client/adapters/event_machine"
 
 module AMQP
+  # AMQP session represents connection to the broker. Session objects let you define callbacks for
+  # various TCP connection lifecycle events, for instance:
+  #
+  # * Connection is established
+  # * Connection has failed
+  # * Authentication has failed
+  # * Connection is lost (there is a network failure)
+  # * AMQP connection is opened
+  # * AMQP connection parameters (tuning) are negotiated and accepted by the broker
+  # * AMQP connection is properly closed
+  #
+  # h2. Key methods
+  #
+  # * {Session#on_connection}
+  # * {Session#on_open}
+  # * {Session#on_disconnection}
+  # * {Session#on_possible_authentication_failure}
+  # * {Session#on_tcp_connection_failure}
+  # * {Session#on_tcp_connection_loss}
+  # * {Session#reconnect}
+  # * {Session#connected?}
+  #
+  #
+  # @api public
   class Session < AMQ::Client::EventMachineClient
 
     #
@@ -25,6 +49,65 @@ module AMQP
       # support cross-referencing to dependencies. MK.
       super(force, period)
     end # reconnect(force = false)
+
+
+    # Defines a callback that will be executed when AMQP connection is considered open,
+    # after client and broker has agreed on max channel identifier and maximum allowed frame
+    # size. You can define more than one callback.
+    #
+    # @see #on_open
+    # @api public
+    def on_connection(&block)
+      # defined here to make this method appear in YARD documentation. MK.
+      super(&block)
+    end # on_connection(&block)
+
+    # Defines a callback that will be executed when AMQP connection is considered open,
+    # before client and broker has agreed on max channel identifier and maximum allowed frame
+    # size. You can define more than one callback.
+    #
+    # @see #on_connection
+    # @api public
+    def on_open(&block)
+      # defined here to make this method appear in YARD documentation. MK.
+      super(&block)
+    end # on_open(&block)
+
+    # Defines a callback that will be run when broker confirms connection termination
+    # (client receives connection.close-ok). You can define more than one callback.
+    #
+    # @api public
+    def on_disconnection(&block)
+      # defined here to make this method appear in YARD documentation. MK.
+      super(&block)
+    end # on_disconnection(&block)
+
+    # Defines a callback that will be run when initial TCP connection fails.
+    # You can define only one callback.
+    #
+    # @api public
+    def on_tcp_connection_failure(&block)
+      # defined here to make this method appear in YARD documentation. MK.
+      super(&block)
+    end
+
+    # Defines a callback that will be run when initial TCP connection fails.
+    # You can define only one callback.
+    #
+    # @api public
+    def on_tcp_connection_loss(&block)
+      # defined here to make this method appear in YARD documentation. MK.
+      super(&block)
+    end
+
+    # Defines a callback that will be run when TCP connection is closed before authentication
+    # finishes. Usually this means authentication failure. You can define only one callback.
+    #
+    # @api public
+    def on_possible_authentication_failure(&block)
+      # defined here to make this method appear in YARD documentation. MK.
+      super(&block)
+    end
 
 
 

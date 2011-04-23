@@ -38,6 +38,8 @@ module AMQP
       @channel.reject(@method.delivery_tag, opts.fetch(:requeue, false))
     end
 
+    # @return [Hash] AMQP message header w/o method-specific information.
+    # @api public
     def to_hash
       @header
     end # to_hash
@@ -46,6 +48,8 @@ module AMQP
       (@header && args.empty? && blk.nil? && @header.has_key?(meth)) || @method.respond_to?(meth)
     end
 
+    # Returns AMQP message attributes.
+    # @api public
     def method_missing(meth, *args, &blk)
       if @header && args.empty? && blk.nil? && @header.has_key?(meth)
         @header[meth]

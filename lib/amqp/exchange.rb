@@ -517,6 +517,7 @@ module AMQP
 
     protected
 
+    # @private
     def self.add_default_options(type, name, opts, block)
       { :exchange => name, :type => type, :nowait => block.nil? }.merge(opts)
     end

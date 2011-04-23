@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 module AMQP
+  # @private
   class Logger
     def initialize(*args, &block)
       opts = args.pop if args.last.is_a? Hash

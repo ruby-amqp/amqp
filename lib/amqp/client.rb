@@ -3,9 +3,12 @@
 require "amqp/session"
 
 module AMQP
+  # @private
   module Client
 
+    # @private
     AMQP_PORTS = Hash["amqp" => 5672, "amqps" => 5671].freeze
+    # @private
     AMQPS      = "amqps".freeze
 
 

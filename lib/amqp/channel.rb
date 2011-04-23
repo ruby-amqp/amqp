@@ -131,10 +131,18 @@ module AMQP
       end # @connection.on_open
     end
 
-
+    # Takes a block that will be deferred till the moment when channel is considered open
+    # (channel.open-ok is received from the broker). If you need to delay an operation
+    # till the moment channel is open, this method is what you are looking for.
+    #
+    # Multiple callbacks are supported. If when this moment is called, channel is already
+    # open, block is executed immediately.
+    #
+    # @api public
     def once_open(&block)
       @channel_is_open_deferrable.callback(&block)
     end # once_open(&block)
+    alias once_opened once_open
 
 
     # Defines, intializes and returns a direct Exchange instance.
@@ -782,6 +790,7 @@ module AMQP
 
     protected
 
+    # @private
     def validate_parameters_match!(entity, parameters)
       unless entity.opts == parameters || parameters[:passive]
         raise AMQP::IncompatibleOptionsError.new(entity.name, entity.opts, parameters)

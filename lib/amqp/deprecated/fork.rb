@@ -2,7 +2,7 @@ require "amqp/ext/em"
 
 module AMQP
   # @deprecated
-  # @api public
+  # @private
   def self.fork(workers)
     EM.fork(workers) do
       # clean up globals in the fork
@@ -11,5 +11,5 @@ module AMQP
 
       yield
     end
-  end  
+  end
 end
