@@ -751,9 +751,22 @@ module AMQP
     # @private
     # @api plugin
     def reset
-      # TODO
-      raise NotImplementedError.new
+      # See AMQ::Client::Channel
+      self.reset_state!
+
+      # there is no way to reset a deferrable; we have to use a new instance. MK.
+      @channel_is_open_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
     end
+
+    # Overrides superclass method to also re-create @channel_is_open_deferrable
+    #
+    # @api plugin
+    # @private
+    def handle_connection_interruption(exception = nil)
+      super(exception)
+      @channel_is_open_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
+    end
+
 
     # @private
     # @api private
