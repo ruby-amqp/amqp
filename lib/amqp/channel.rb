@@ -97,7 +97,7 @@ module AMQP
     def initialize(connection = nil, id = self.class.next_channel_id, &block)
       raise 'AMQP can only be used from within EM.run {}' unless EM.reactor_running?
 
-      @connection = connection || AMQP.start
+      @connection = connection || AMQP.connection || AMQP.start
 
       super(@connection, id)
 
