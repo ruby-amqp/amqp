@@ -21,7 +21,7 @@ begin
              :password => "amq_client_gem_password",
              :timeout        => 0.3) do |connection, open_ok|
                raise "This should not be reachable"
-  end  
+  end
 rescue AMQ::Client::TCPConnectionFailed => e
   puts "TCP connection failed, as expected"
 end
