@@ -4,7 +4,7 @@ require "amqp/exchange"
 require "amqp/queue"
 
 module AMQP
-  # To quote {AMQP 0.9.1 specification http://bit.ly/hw2ELX}:
+  # To quote {http://bit.ly/hw2ELX AMQP 0.9.1 specification}:
   #
   # AMQP is a multi-channelled protocol. Channels provide a way to multiplex
   # a heavyweight TCP/IP connection into several light weight connections.
