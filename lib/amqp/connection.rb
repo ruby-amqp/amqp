@@ -144,7 +144,7 @@ module AMQP
   #       # ...
   #     end
   #   end
-  #  
+  #
   #
   # @overload connect(connection_string, options = {})
   #   Used to pass connection parameters as a connection string
@@ -161,7 +161,7 @@ module AMQP
   # @option connection_options_or_string [String]  :username ("guest") Username to use. Also can be specified as :user.
   # @option connection_options_or_string [String]  :password ("guest") Password to use. Also can be specified as :pass.
   # @option connection_options_or_string [Hash]  :ssl TLS (SSL) parameters to use.
-  # @option connection_options_or_string [#call]  :on_possible_authentication_failure A callable object that will be run if authentication fails (see Authentication failure section)  
+  # @option connection_options_or_string [#call]  :on_possible_authentication_failure A callable object that will be run if authentication fails (see Authentication failure section)
   #
   #
   # h2. Handling authentication failures
