@@ -3,7 +3,7 @@
 require "amq/client/adapters/event_machine"
 
 module AMQP
-  class BasicClient < AMQ::Client::EventMachineClient
+  class Session < AMQ::Client::EventMachineClient
 
     #
     # API
@@ -42,5 +42,5 @@ module AMQP
     def self.tcp_connection_failure_exception_class
       @tcp_connection_failure_exception_class ||= AMQP::TCPConnectionFailed
     end # self.tcp_connection_failure_exception_class
-  end # BasicClient
+  end # Session
 end # AMQP

@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-require "amqp/basic_client"
+require "amqp/session"
 
 module AMQP
   module Client
@@ -60,7 +60,7 @@ module AMQP
 
   # @private
   def self.client
-    @client_implementation ||= BasicClient
+    @client_implementation ||= AMQP::Session
   end
 
   # @private

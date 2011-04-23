@@ -30,7 +30,7 @@ describe AMQP, 'class object' do
     }
   end
 
-  its(:client) { should == AMQP::BasicClient }
+  its(:client) { should == AMQP::Session }
 
 
 
