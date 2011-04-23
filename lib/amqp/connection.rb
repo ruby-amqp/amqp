@@ -84,7 +84,7 @@ module AMQP
   # @return [Boolean] Sets current global logging value
   # @api public
   def self.logging=(value)
-    self.settings[:logging] = !! value
+    self.settings[:logging] = !!value
   end
 
   # Default connection. When you do not pass connection instance to methods like
@@ -95,6 +95,7 @@ module AMQP
     @connection
   end
 
+  # Sets global connection object.
   # @api public
   def self.connection=(value)
     @connection = value
