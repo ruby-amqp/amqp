@@ -2,6 +2,7 @@
 
   * [API] When initial TCP connection fails, default action is now to raise AMQP::TCPConnectionFailed.
           It inherits from AMQP::Error so your rescue blocks that handle AMQP::Error will work fine.
+  * [API] AMQP::BasicClient#reconnect now takes 2nd optional argument, period of waiting in seconds.
   * [API] AMQP::Exchange#initialize now accepts :arguments option that takes a hash. Brokers
           may implement AMQP extensions using (usually x-prefixed) declaration arguments.
   * [API] AMQP::Queue#initialize now accepts :arguments option that takes a hash. RabbitMQ
