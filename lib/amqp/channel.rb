@@ -606,21 +606,7 @@ module AMQP
 
         queue
       else
-        queue = if block.nil?
-                  Queue.new(self, name, opts)
-                else
-                  shim = Proc.new { |q, method|
-            queue = find_queue(method.queue)
-            if block.arity == 1
-              block.call(queue)
-            else
-              block.call(queue, method.consumer_count, method.message_count)
-            end
-          }
-                  Queue.new(self, name, opts, &shim)
-                end
-
-        register_queue(queue)
+        self.queue!(name, opts, &block)
       end
     end
 
@@ -631,10 +617,30 @@ module AMQP
       self.status == :opened || self.status == :opening
     end # open?
 
-
+    # Same as {Channel#queue} but when queue with the same name already exists in this channel
+    # object's cache, this method will replace existing queue with a newly defined one. Consider
+    # using {Channel#queue} instead.
+    #
+    # @see Channel#queue
+    #
+    # @return [Queue]
+    # @api public
     def queue!(name, opts = {}, &block)
-      # TODO
-      raise NotImplementedError.new
+      queue = if block.nil?
+                Queue.new(self, name, opts)
+              else
+                shim = Proc.new { |q, method|
+          queue = find_queue(method.queue)
+          if block.arity == 1
+            block.call(queue)
+          else
+            block.call(queue, method.consumer_count, method.message_count)
+          end
+        }
+                Queue.new(self, name, opts, &shim)
+              end
+
+      register_queue(queue)
     end
 
 
