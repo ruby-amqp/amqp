@@ -46,8 +46,6 @@ AMQP.start(:host => 'localhost') do |connection|
 
   show_stopper = Proc.new do
     $stdout.puts "Stopping..."
-    # now change this to just EM.stop and it
-    # unbinds instantly
     connection.close {
       EM.stop { exit }
     }
