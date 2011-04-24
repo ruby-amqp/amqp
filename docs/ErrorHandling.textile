@@ -1,0 +1,82 @@
+h1. Handling AMQP exceptions and connection failures
+
+h2. About this guide
+
+Development of a robust application, be it message publisher or message consumer, involves dealing with
+multiple kinds of failures: protocol exceptions, network failures, broker failures and so on.
+Correct error handling and recovery is not easy. This guide explains how amqp gem helps you in dealing with
+issues like
+
+ * Broker connection failures
+ * Network connection interruption
+ * TLS (SSL) related issues
+ * AMQP connection-level exceptions
+ * AMQP channel-level exceptions
+ * Broker failure
+
+
+h2. Covered versions
+
+This guide covers amqp gem v0.8.0 and later.
+
+
+h2. Code examples
+
+There are several {https://github.com/ruby-amqp/amqp/tree/master/examples/error_handling examples}  in the git repository dedicated to the topic of error handling and recovery. Feel
+free to contribute new examples.
+
+
+h2. Broker connection failures
+
+TBD
+
+
+
+h2. Network connection interruption
+
+TBD
+
+
+
+h2. TLS (SSL) related issues
+
+TBD
+
+
+
+h2. AMQP connection-level exceptions
+
+TBD
+
+
+
+h2. AMQP channel-level exceptions
+
+TBD
+
+
+
+h2. Broker failure
+
+TBD
+
+
+
+
+h2. Recovery
+
+TBD
+
+
+
+h2. Conclusion
+
+TBD
+
+
+
+h2. Tell us what you think!
+
+Please take a moment and tell us what you think about this guide on "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp:
+what was unclear? what wasn't covered? maybe you don't like guide style or grammar and spelling are incorrect? Readers feedback is
+key to making documentation better.

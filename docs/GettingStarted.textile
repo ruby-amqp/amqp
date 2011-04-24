@@ -1,0 +1,60 @@
+h1. Getting started with AMQP Ruby gem
+
+
+h2. About this guide
+
+This guide is a quick tutorial that helps you to get started with AMQP 0.9.1 in general and amqp gem in particular.
+It should take about 20 minutes to read and study provided code examples. This guide covers
+
+ * Installing RabbitMQ, a mature popular implementation of multiple versions of AMQP protocol.
+ * Installing amqp gem via "Rubygems":http://rubygems.org and "Bundler":http://gembundler.com.
+ * Running a "Hello, world"-like code example, a simple demonstration of 1:1 communication.
+ * Creating a "Twitter like" publish/subscribe example with 1 publisher and 4 subscribers, a case of 1:n communication.
+ * Creating a topic routing example with 2 publishers and 8 subscribers, a case of n:m communication when subscribers only receive messages they are interested in.
+
+
+h2. Covered versions
+
+This guide covers amqp gem v0.8.0 and later.
+
+
+h2. Installing RabbitMQ
+
+TBD
+
+
+h2. Installing amqp gem
+
+h3. With Rubygems
+
+TBD
+
+h3. With Bundler
+
+TBD
+
+
+
+h2. A "Hello, world" example
+
+TBD
+
+
+
+h2. Babblr: one-to-many publish/subscribe example
+
+TBD
+
+
+
+h2. Weathr: many-to-many topic routing example
+
+TBD
+
+
+
+h2. Tell us what you think!
+
+Please take a moment and tell us what you think about this guide on "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp:
+what was unclear? what wasn't covered? maybe you don't like guide style or grammar and spelling are incorrect? Readers feedback is
+key to making documentation better.

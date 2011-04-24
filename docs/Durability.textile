@@ -1,0 +1,25 @@
+h1. TBD
+
+
+h2. About this guide
+
+TBD
+
+
+h2. Covered versions
+
+This guide covers amqp gem v0.8.0 and later.
+
+
+
+h2. TBD
+
+TBD
+
+
+
+h2. Tell us what you think!
+
+Please take a moment and tell us what you think about this guide on "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp:
+what was unclear? what wasn't covered? maybe you don't like guide style or grammar and spelling are incorrect? Readers feedback is
+key to making documentation better.
