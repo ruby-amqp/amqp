@@ -17,6 +17,18 @@ module AMQP
   # Learn more about bindings in {Exchange Exchange class documentation}.
   #
   #
+  # h2. Key methods
+  #
+  # Key methods of Queue class are
+  #
+  # * {Queue#bind}
+  # * {Queue#subscribe}
+  # * {Queue#pop}
+  # * {Queue#delete}
+  # * {Queue#purge}
+  # * {Queue#unbind}
+  #
+  #
   # h2. Queue names. Server-named queues. Predefined queues.
   #
   # Like an Exchange, queue names starting with 'amq.' are reserved for
@@ -30,7 +42,7 @@ module AMQP
   #
   # To quote AMQP 0.9.1 spec, there are two common message queue life-cycles:
   #
-  #	 * Durable message queues that are shared by many consumers and have an independent existence: i.e. they
+  #  * Durable message queues that are shared by many consumers and have an independent existence: i.e. they
   #    will continue to exist and collect messages whether or not there are consumers to receive them.
   #  * Temporary message queues that are private to one consumer and are tied to that consumer. When the
   #    consumer disconnects, the message queue is deleted.
@@ -85,17 +97,11 @@ module AMQP
   #
   # RabbitMQ FAQ explains {http://www.rabbitmq.com/faq.html#message-ordering ordering of messages in AMQP queues}
   #
+  # h2. Error handling
   #
-  # h2. Key methods
-  #
-  # Key methods of Queue class are
-  #
-  # * {Queue#bind}
-  # * {Queue#subscribe}
-  # * {Queue#pop}
-  # * {Queue#delete}
-  # * {Queue#purge}
-  # * {Queue#unbind}
+  # When channel-level error occurs, queues associated with that channel are reset: internal state and callbacks
+  # are cleared. Recommended strategy is to open a new channel and re-declare all the entities you need.
+  # Learn more in {file:docs/ErrorHandling.textile Error Handling guide}.
   #
   #
   # @note Please make sure you read a section on queue durability vs. messages
