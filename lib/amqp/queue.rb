@@ -163,11 +163,8 @@ module AMQP
 
     # Name of this queue
     attr_reader :name
-    attr_reader :sync_bind
     # Options this queue object was instantiated with
     attr_accessor :opts
-    attr_accessor :on_declare
-    attr_accessor :on_bind
 
 
 
@@ -301,7 +298,6 @@ module AMQP
     # @see Queue#unbind
     def bind(exchange, opts = {}, &block)
       @status             = :unbound
-      @sync_bind          = !opts[:nowait]
       # amq-client's Queue already does exchange.respond_to?(:name) ? exchange.name : exchange
       # for us
       exchange            = exchange
@@ -672,14 +668,6 @@ module AMQP
     # @deprecated
     def callback
       @on_declare
-    end
-
-    # Compatibility alias for #on_bind.
-    #
-    # @api public
-    # @deprecated
-    def bind_callback
-      @on_bind
     end
 
 
