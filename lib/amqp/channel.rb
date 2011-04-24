@@ -236,7 +236,7 @@ module AMQP
     #
     # @api public
     def once_open(&block)
-      @channel_is_open_deferrable.append_callback(&block)
+      @channel_is_open_deferrable.callback(&block)
     end # once_open(&block)
     alias once_opened once_open
 
