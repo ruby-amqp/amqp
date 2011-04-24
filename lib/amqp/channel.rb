@@ -811,7 +811,6 @@ module AMQP
     #
     # @param [String] msg Error message that passed to previously defined handler
     #
-    # @see AMQP::Channel#on_error
     # @deprecated
     # @api public
     # @private
