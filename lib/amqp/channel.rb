@@ -4,6 +4,8 @@ require "amqp/exchange"
 require "amqp/queue"
 
 module AMQP
+  # h2. What are AMQP channels
+  #
   # To quote {http://bit.ly/hw2ELX AMQP 0.9.1 specification}:
   #
   # AMQP is a multi-channelled protocol. Channels provide a way to multiplex
@@ -13,11 +15,41 @@ module AMQP
   # Channels are independent of each other and can perform different functions simultaneously
   # with other channels, the available bandwidth being shared between the concurrent activities.
   #
+  # h2. Opening a channel
   #
-  # h2. RabbitMQ extensions.
+  # *Channels are opened asynchronously*. There are two ways to do it: using a callback or pseudo-synchronous mode.
   #
-  # AMQP gem supports several RabbitMQ extensions taht extend Channel functionality.
-  # Learn more in {file:docs/VendorSpecificExtensions.textile}
+  # @example Opening a channel with a callback
+  #   # this assumes EventMachine reactor is running
+  #   AMQP.connect("amqp://guest:guest@dev.rabbitmq.com:5672") do |client|
+  #     AMQP::Channel.new(client) do |channel, open_ok|
+  #       # when this block is executed, channel is open and ready for use
+  #     end
+  #   end
+  #
+  # <script src="https://gist.github.com/939480.js?file=gistfile1.rb"></script>
+  #
+  # Unless your application needs multiple channels, this approach is recommended. Alternatively,
+  # AMQP::Channel can be instantiated without a block. Then returned channel is not immediately open,
+  # however, it can be used as if it was a synchronous, blocking method:
+  #
+  # @example Instantiating a channel that will be open eventually
+  #   # this assumes EventMachine reactor is running
+  #   AMQP.connect("amqp://guest:guest@dev.rabbitmq.com:5672") do |client|
+  #     channel  = AMQP::Channel.new(client)
+  #     exchange = channel.default_exchange
+  #
+  #     # ...
+  #   end
+  #
+  # <script src="https://gist.github.com/939482.js?file=gistfile1.rb"></script>
+  #
+  # Even though in the example above channel isn't immediately open, it is safe to declare exchanges using
+  # it. Exchange declaration will be delayed until after channel is open. Same applies to queue declaration
+  # and other operations on exchanges and queues. Library methods that rely on channel being open will be
+  # enqueued and executed in a FIFO manner when broker confirms channel opening.
+  # Note, however, that *this "pseudo-synchronous mode" is easy to abuse and introduce race conditions AMQP gem
+  # cannot resolve for you*. AMQP is an inherently asynchronous protocol and AMQP gem embraces this fact.
   #
   #
   # h2. Key methods
@@ -31,6 +63,8 @@ module AMQP
   # * {Channel#topic}
   # * {Channel#close}
   #
+  # refer to documentation for those methods for usage examples.
+  #
   # Channel provides a number of convenience methods that instantiate queues and exchanges
   # of various types associated with this channel:
   #
@@ -40,8 +74,70 @@ module AMQP
   # * {Channel#fanout}
   # * {Channel#topic}
   #
+  #
+  # h2. Error handling
+  #
+  # It is possible (and, indeed, recommended) to handle channel-level exceptions by defining an errback using #on_error:
+  #
+  # @example Queue declaration with incompatible attributes results in a channel-level exception
+  #   AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+  #     AMQP::Channel.new do |channel, open_ok|
+  #       puts "Channel ##{channel.id} is now open!"
+  #
+  #       channel.on_error do |ch, close|
+  #         puts "Handling channel-level exception"
+  #
+  #         connection.close {
+  #           EM.stop { exit }
+  #         }
+  #       end
+  #
+  #       EventMachine.add_timer(0.4) do
+  #         # these two definitions result in a race condition. For sake of this example,
+  #         # however, it does not matter. Whatever definition succeeds first, 2nd one will
+  #         # cause a channel-level exception (because attributes are not identical)
+  #         AMQP::Queue.new(channel, "amqpgem.examples.channel_exception", :auto_delete => true, :durable => false) do |queue|
+  #           puts "#{queue.name} is ready to go"
+  #         end
+  #
+  #         AMQP::Queue.new(channel, "amqpgem.examples.channel_exception", :auto_delete => true, :durable => true) do |queue|
+  #           puts "#{queue.name} is ready to go"
+  #         end
+  #       end
+  #     end
+  #   end
+  #
+  # <script src="https://gist.github.com/939490.js?file=gistfile1.rb"></script>
+  #
+  # When channel-level exception is indicated by the broker and errback defined using #on_error is run, channel is already
+  # closed and all queue and exchange objects associated with this channel are reset. The recommended way to recover from
+  # channel-level exceptions is to open a new channel and re-instantiate queues, exchanges and bindings your application
+  # needs.
+  #
+  #
+  #
+  # h2. Closing a channel
+  #
   # Channels are opened when objects is instantiated and closed using {#close} method when application no longer
   # needs it.
+  #
+  # @example Closing a channel your application no longer needs
+  #   # this assumes EventMachine reactor is running
+  #   AMQP.connect("amqp://guest:guest@dev.rabbitmq.com:5672") do |client|
+  #     AMQP::Channel.new(client) do |channel, open_ok|
+  #       channel.close do |close_ok|
+  #         # when this block is executed, channel is successfully closed
+  #       end
+  #     end
+  #   end
+  #
+  # <script src="https://gist.github.com/939483.js?file=gistfile1.rb"></script>
+  #
+  #
+  # h2. RabbitMQ extensions.
+  #
+  # AMQP gem supports several RabbitMQ extensions taht extend Channel functionality.
+  # Learn more in {file:docs/VendorSpecificExtensions.textile}
   #
   # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.2.5)
   class Channel < AMQ::Client::Channel
@@ -140,7 +236,7 @@ module AMQP
     #
     # @api public
     def once_open(&block)
-      @channel_is_open_deferrable.callback(&block)
+      @channel_is_open_deferrable.append_callback(&block)
     end # once_open(&block)
     alias once_opened once_open
 

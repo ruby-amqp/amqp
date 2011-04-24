@@ -177,6 +177,7 @@ module AMQP
   # with :on_possible_authentication_failure option.
   #
   # @note This method assumes that EventMachine even loop is already running. If it is not the case or you are not sure, we recommend you use {AMQP.start} instead. It takes exactly the same parameters.
+  # @return [AMQP::Session]
   # @api public
   def self.connect(connection_options_or_string = {}, other_options = {}, &block)
     Client.connect(connection_options_or_string, other_options, &block)
