@@ -32,7 +32,7 @@ Specific examples:
    there are some new results.
 
  * Content aggregators may update full-text search and geospatial search indexes
-	 by delegating actual indexing work to other applications over AMQP.
+         by delegating actual indexing work to other applications over AMQP.
 
  * Companies may provide "Firehose-like" push APIs to their customers, partners
    or just general public.
@@ -42,7 +42,7 @@ Specific examples:
 
  * An application that watches updates from a real-time stream (be it markets data
    or Twitter stream) can propagate updates to interested parties, including
-	 Web applications that display that information in the real time.
+         Web applications that display that information in the real time.
 
 
 
@@ -234,7 +234,7 @@ use version 0.7.
 
 h2. Links
 
-* "API Documentation":http://rdoc.info/github/ruby-amqp/amqp/master/frames
+* "API reference":http://rdoc.info/github/ruby-amqp/amqp/master/frames
 * "Examples":https://github.com/ruby-amqp/amq-protocol/tree/master/examples/
 * "Issue tracker":http://github.com/ruby-amqp/amqp/issues
 * "Continous integration server":http://travis-ci.org/#!/ruby-amqp/amqp
