@@ -41,6 +41,10 @@ AMQP.start(:host => 'localhost') do |connection|
 
 
   show_stopper = Proc.new do
+    queue1.delete
+    queue2.delete
+    queue3.delete
+
     $stdout.puts "Stopping..."
     connection.close {
       EM.stop { exit }
