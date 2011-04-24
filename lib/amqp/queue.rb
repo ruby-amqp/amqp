@@ -10,9 +10,14 @@ module AMQP
   # to queues and finally queues deliver them to consumer applications (or consumer
   # applications fetch messages as needed).
   #
+  # Note that unlike some other messaging protocols/systems, messages are not delivered directly
+  # to queues. They are delivered to exchanges that route messages to queues using rules
+  # knows as *bindings*.
+  #
   #
   # h2. Concept of bindings
   #
+  # Binding is an association between a queue and an exchange.
   # Queues must be bound to at least one exchange in order to receive messages from publishers.
   # Learn more about bindings in {Exchange Exchange class documentation}.
   #
@@ -31,12 +36,51 @@ module AMQP
   #
   # h2. Queue names. Server-named queues. Predefined queues.
   #
-  # Like an Exchange, queue names starting with 'amq.' are reserved for
-  # internal use. Attempts to create queue names in violation of this
-  # reservation will raise AMQP::Error (ACCESS_REFUSED).
+  # Every queue has a name that identifies it. Queue names often contain several segments separated by a dot (.), similarly to how URI
+  # path segments are separated by a slash (/), although it may be almost any string, with some limitations (see below).
+  # Applications may pick queue names or ask broker to generate a name for them. To do so, pass *empty string* as queue name argument.
   #
-  # When a queue is created without a name, the server will generate a
-  # unique name internally (not currently supported in this library).
+  # Here is an example:
+  #
+  # @example Declaring a server-named queue using AMQP::Queue constructor
+  #   AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+  #     AMQP::Channel.new do |channel, open_ok|
+  #       AMQP::Queue.new(channel, "", :auto_delete => true) do |queue, declare_ok|
+  #         puts "#{queue.name} is ready to go. AMQP method: #{declare_ok.inspect}"
+  #
+  #         connection.close {
+  #           EM.stop { exit }
+  #         }
+  #       end
+  #     end
+  #   end
+  #
+  # <script src="https://gist.github.com/939596.js?file=gistfile1.rb"></script>
+  #
+  # If you want to declare a queue with a particular name, for example, "images.resize", pass it to Queue class constructor:
+  #
+  # @example Declaring a server-named queue using AMQP::Queue constructor
+  #   AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+  #     AMQP::Channel.new do |channel, open_ok|
+  #       AMQP::Queue.new(channel, "images.resize", :auto_delete => true) do |queue, declare_ok|
+  #         puts "#{queue.name} is ready to go."
+  #
+  #         connection.close {
+  #           EM.stop { exit }
+  #         }
+  #       end
+  #     end
+  #   end
+  #
+  # <script src="https://gist.github.com/939600.js?file=gistfile1.rb"></script>
+  #
+  # Queue names starting with 'amq.' are reserved for internal use by the broker. Attempts to declare queue with a name that violates this
+  # rule will result in AMQP::IncompatibleOptionsError to be thrown (when
+  # queue is re-declared on the same channel object) or channel-level exception (when originally queue
+  # was declared on one channel and re-declaration with different attributes happens on another channel).
+  # Learn more in {file:docs/Queues.textile Queues guide} and {file:docs/ErrorHandling.textile Error Handling guide}.
+  #
+  #
   #
   # h2. Queue life-cycles. When use of server-named queues is optimal and when it isn't.
   #
@@ -90,12 +134,13 @@ module AMQP
   # Publishing messages as persistent affects performance (just like with data stores, durability comes at a certain cost
   # in performance and vise versa). Pass :persistent => true to {Exchange#publish} to publish your message as persistent.
   #
-  # Note that *only durable queues can be bound to durable exchanges*.
+  # Note that *only durable queues can be bound to durable exchanges*. Learn more in our {file:docs/Durability.textile Durability guide}.
   #
   #
   # h2. Message ordering
   #
   # RabbitMQ FAQ explains {http://www.rabbitmq.com/faq.html#message-ordering ordering of messages in AMQP queues}
+  #
   #
   # h2. Error handling
   #
