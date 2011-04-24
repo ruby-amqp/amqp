@@ -20,11 +20,14 @@ AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
     end
 
     EventMachine.add_timer(0.4) do
-      q1 = AMQP::Queue.new(channel, "amqpgem.examples.channel_exception", :auto_delete => true, :durable => false) do |queue|
+      # these two definitions result in a race condition. For sake of this example,
+      # however, it does not matter. Whatever definition succeeds first, 2nd one will
+      # cause a channel-level exception (because attributes are not identical)
+      AMQP::Queue.new(channel, "amqpgem.examples.channel_exception", :auto_delete => true, :durable => false) do |queue|
         puts "#{queue.name} is ready to go"
       end
 
-      q2 = AMQP::Queue.new(channel, "amqpgem.examples.channel_exception", :auto_delete => true, :durable => true) do |queue|
+      AMQP::Queue.new(channel, "amqpgem.examples.channel_exception", :auto_delete => true, :durable => true) do |queue|
         puts "#{queue.name} is ready to go"
       end
     end
