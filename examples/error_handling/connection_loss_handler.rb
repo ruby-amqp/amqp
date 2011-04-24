@@ -26,10 +26,6 @@ AMQP.start(:port     => 5672,
   show_stopper = Proc.new do
     $stdout.puts "Stopping..."
 
-    # queue.purge :nowait => true
-
-    # now change this to just EM.stop and it
-    # unbinds instantly
     connection.close {
       EM.stop { exit }
     }
