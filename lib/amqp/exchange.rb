@@ -12,18 +12,10 @@ module AMQP
   # type and message attributes, determines how to deliver the message.
   #
   #
-  # h2. Exchange types
-  #
-  # There are 4 supported exchange types: direct, fanout, topic and headers.
-  #
-  # As part of the standard, the server _must_ predeclare the direct exchange
-  # 'amq.direct' and the fanout exchange 'amq.fanout'. All exchange names
-  # starting with 'amq.' are reserved: attempts to declare an exchange using
-  # 'amq.' as the name will raise an AMQP::Error and fail.
-  #
-  # Note that durability of exchanges and durability of messages published to exchanges
-  # are different concepts. Sending messages to durable exchanges does not make
-  # messages themselves persistent.
+  # Entities that forward messages to consumers (or consumers fetch messages
+  # from on demand) are called {Queue queues}. Exchanges are associated with
+  # queues via bindings. Roughly speaking, bindings determine messages placed
+  # in what exchange end up in what queues.
   #
   #
   # h2. AMQP bindings
@@ -36,16 +28,10 @@ module AMQP
   # queue.
   #
   #
-  # Defines, intializes and returns an Exchange to act as an ingress
-  # point for all published messages.
+  # h2. Exchange types
   #
-  # There are three (3) supported Exchange types: direct, fanout and topic.
-  #
-  # As part of the standard, the server _must_ predeclare the direct exchange
-  # 'amq.direct' and the fanout exchange 'amq.fanout' (all exchange names
-  # starting with 'amq.' are reserved). Attempts to declare an exchange using
-  # 'amq.' as the name will raise an AMQP::Error and fail. In practice these
-  # default exchanges are never used directly by client code.
+  # There are 4 supported exchange types: direct, fanout, topic and headers.
+  # Exchange type determines how exchange processes and routes messages.
   #
   #
   # h2. Direct exchanges
@@ -61,6 +47,11 @@ module AMQP
   # queue names. In other words, messages delivered to default exchange are routed to queues when
   # message routing key equals queue name. Default exchange name is an empty string.
   #
+  # As part of the standard, the server _must_ predeclare the direct exchange
+  # 'amq.direct' and the fanout exchange 'amq.fanout' (all exchange names
+  # starting with 'amq.' are reserved). Attempts to declare an exchange using
+  # 'amq.' as the name will raise an AMQP::Error and fail. In practice these
+  # default exchanges are never used directly by client code.
   #
   #
   # h2. Fanout exchanges
@@ -69,7 +60,6 @@ module AMQP
   # feeds multiple consumers. messages published
   # to a fanout exchange are delivered to queues that are bound to that exchange name (unconditionally).
   # Each queue gets it's own copy of the message.
-  #
   #
   #
   # h2. Topic exchanges
@@ -96,10 +86,7 @@ module AMQP
   #
   # h2. Headers exchanges
   #
-  # As part of the AMQP standard, each server _should_ predeclare a headers
-  # exchange named 'amq.match'.
-  #
-  # When publishing data to the exchange, bound queues subscribing to the
+  # When publishing data to exchange of type headers, bound queues subscribing to the
   # exchange indicate which data interests them by passing arguments
   # for matching against the headers in published messages. The
   # form of the matching can be controlled by the 'x-match' argument, which
@@ -108,6 +95,19 @@ module AMQP
   # A value of 'all' for 'x-match' implies that all values must match (i.e.
   # it does an AND of the headers ), while a value of 'any' implies that
   # at least one should match (ie. it does an OR).
+  #
+  # As part of the AMQP standard, each server _should_ predeclare a headers
+  # exchange named 'amq.match'.
+  #
+  #
+  # h2. Key methods
+  #
+  # Key methods of Exchange class are
+  #
+  # * {Exchange#publish}
+  # * {Exchange#delete}
+  # * {Exchange.default}
+  #
   #
   #
   # h2. Exchange durability and persistence of messages.
@@ -124,7 +124,8 @@ module AMQP
   # Publishing messages as persistent affects performance (just like with data stores, durability comes at a certain cost
   # in performance and vise versa). Pass :persistent => true to {Exchange#publish} to publish your message as persistent.
   #
-  # Note that *only durable queues can be bound to durable exchanges*.
+  # Note that *only durable queues can be bound to durable exchanges*.  Learn more in our {file:docs/Durability.textile Durability guide}.
+  #
   #
   #
   # h2. RabbitMQ extensions.
@@ -132,14 +133,6 @@ module AMQP
   # AMQP gem supports several RabbitMQ extensions taht extend Exchange functionality.
   # Learn more in {file:docs/VendorSpecificExtensions.textile}
   #
-  #
-  # h2. Key methods
-  #
-  # Key methods of Exchange class are
-  #
-  # * {Exchange#publish}
-  # * {Exchange#delete}
-  # * {Exchange.default}
   #
   #
   # @note Please make sure you read a section on exchanges durability vs. messages
