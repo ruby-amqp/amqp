@@ -63,11 +63,11 @@ module AMQP
     # @note We encourage you to not rely on default AMQP connection and pass connection parameter
     #       explicitly.
     #
-    # @param [AMQ::Client::EventMachineAdapter] Connection to open this channel on. If not given, default AMQP
-    #                                           connection (accessible via {AMQP.connection}) will be used.
-    # @param [Integer]                          Channel id. Must not be greater than max channel id client and broker
-    #                                           negotiated on during connection setup. Almost always the right thing to do
-    #                                           is to let AMQP gem pick channel identifier for you.
+    # @param [AMQP::Session] Connection to open this channel on. If not given, default AMQP
+    #                        connection (accessible via {AMQP.connection}) will be used.
+    # @param [Integer]       Channel id. Must not be greater than max channel id client and broker
+    #                        negotiated on during connection setup. Almost always the right thing to do
+    #                        is to let AMQP gem pick channel identifier for you.
     #
     # @example Instantiating a channel for default connection (accessible as AMQP.connection)
     #
@@ -763,6 +763,14 @@ module AMQP
       # there is no way to reset a deferrable; we have to use a new instance. MK.
       @channel_is_open_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
     end
+
+    # @private
+    # @api plugin
+    def reset_state!
+      super
+      @rpcs = Hash.new
+    end # reset_state!
+
 
     # Overrides superclass method to also re-create @channel_is_open_deferrable
     #
