@@ -214,8 +214,14 @@ module AMQP
       @channel  = channel
       name      = AMQ::Protocol::EMPTY_STRING if name.nil?
       @name     = name unless name.empty?
-      @opts     = self.class.add_default_options(name, opts, block)
-      @bindings = Hash.new
+      @server_named = name.empty?
+      @opts         = self.class.add_default_options(name, opts, block)
+      @bindings     = Hash.new
+
+      # a deferrable that we use to delay operations until this queue is actually declared.
+      # one reason for this is to support a case when a server-named queue is immediately bound.
+      # it's crazy, but 0.7.x supports it, so... MK.
+      @declaration_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
 
       if @opts[:nowait]
         @status = :opened
@@ -227,6 +233,8 @@ module AMQP
       super(channel.connection, channel, name)
 
       shim = Proc.new do |q, declare_ok|
+        @declaration_deferrable.succeed
+
         case block.arity
         when 1 then block.call(q)
         else
@@ -238,10 +246,18 @@ module AMQP
         if block
           self.declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], @opts[:nowait], @opts[:arguments], &shim)
         else
-          self.declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], @opts[:nowait], @opts[:arguments])
+          injected_callback = Proc.new { @declaration_deferrable.succeed }
+          # we cannot pass :nowait as true here, AMQ::Client::Queue will (rightfully) raise an exception because
+          # it has no idea about crazy edge cases we are trying to support for sake of backwards compatibility. MK.
+          self.declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], false, @opts[:arguments], &injected_callback)
         end
       end
     end
+
+    # @return [Boolean] true if this queue is server-named
+    def server_named?
+      @server_named
+    end # server_named?
 
 
     # This method binds a queue to an exchange.  Until a queue is
@@ -291,8 +307,16 @@ module AMQP
       exchange            = exchange
       @bindings[exchange] = opts
 
-      @channel.once_open do
-        super(exchange, (opts[:key] || opts[:routing_key] || AMQ::Protocol::EMPTY_STRING), (opts[:nowait] || block.nil?), opts[:arguments], &block)
+      if self.server_named?
+        @channel.once_open do
+          @declaration_deferrable.callback do
+            super(exchange, (opts[:key] || opts[:routing_key] || AMQ::Protocol::EMPTY_STRING), (opts[:nowait] || block.nil?), opts[:arguments], &block)
+          end
+        end
+      else
+        @channel.once_open do
+          super(exchange, (opts[:key] || opts[:routing_key] || AMQ::Protocol::EMPTY_STRING), (opts[:nowait] || block.nil?), opts[:arguments], &block)
+        end
       end
 
       self
