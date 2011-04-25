@@ -36,7 +36,7 @@ describe "Server-named", AMQP::Queue do
     }
 
     done(0.5) {
-      mailbox.should include(input)
+      mailbox.size.should == 1
     }
   end
 end
