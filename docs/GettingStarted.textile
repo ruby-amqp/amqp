@@ -20,25 +20,223 @@ This guide covers amqp gem v0.8.0 and later.
 
 h2. Installing RabbitMQ
 
-TBD
+RabbitMQ site has a good "installation guide":http://www.rabbitmq.com/install.html that covers many operating systems.
+On Mac OS X, the fastest way to install RabbitMQ is with Homebrew:
+
+<code>
+brew install rabbitmq
+</code>
+
+then run it:
+<code>
+rabbitmq-server
+</code>
+
+On "Debian and Ubuntu":http://www.rabbitmq.com/install.html#debian, you can either download a .deb package and install it with
+dpkg or use apt repository RabbitMQ team provides. RabbitMQ package in even recent (10.10) versions of Ubuntu are old and won't
+work with amqp gem 0.8.0 and later (we need at least version 2.0). For "RPM-based distributions":http://www.rabbitmq.com/install.html#rpm like RedHat
+or CentOS RabbitMQ team provides an RPM package.
+
 
 
 h2. Installing amqp gem
 
+h3. Make sure you have Ruby installed
+
+This guides assumes you have one of the supported Ruby implementations installed:
+
+ * Ruby 1.8.7
+ * Ruby 1.9.2
+ * JRuby (we recommend 1.6)
+ * Rubinius 1.2 or higher
+ * Ruby Enterprise Edition
+
+
 h3. With Rubygems
 
-TBD
+To get amqp gem 0.8.0
+<code>
+gem install amqp --pre
+</code>
 
 h3. With Bundler
 
-TBD
+<code>
+gem "amqp", :git => "git://github.com/ruby-amqp/amqp.git", :branch => "master"
+</code>
+
+h3. Verifying your installation
+
+Lets verify your installation with this quick irb session:
+
+<code>
+irb -rubygems
+
+:001 > require "amqp"
+ => true 
+ :002 > AMQP::VERSION
+ => "0.8.0.rc2"
+</code>
 
 
 
 h2. A "Hello, world" example
 
-TBD
+Lets begin with a classic Hello, world example. First, here's the code:
 
+<code>
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+require "rubygems"
+require "amqp"
+
+EventMachine.run do
+  connection = AMQP.connect(:host => '127.0.0.1')
+  puts "Connected to AMQP broker. Running #{AMQP::VERSION} version of the gem..."
+
+  channel  = AMQP::Channel.new(connection)
+  queue    = channel.queue("amqpgem.examples.hello_world", :auto_delete => true)
+  exchange = channel.direct("")
+
+  queue.subscribe do |payload|
+    puts "Received a message: #{payload}. Disconnecting..."
+
+    connection.close {
+      EM.stop { exit }
+    }
+  end
+
+  exchange.publish "Hello, world!", :routing_key => queue.name
+end
+</code>
+
+This example demonstrates a very common communication scenario: app A wants to publish a message that will end up in
+a queue that app B listens on. In this example, queue name is "amqpgem.examples.hello". Lets go through this example
+step by step:
+
+<pre>
+<code>
+require "rubygems"
+require "amqp"
+</code>
+</pre>
+
+is the simplest way to load amqp gem if you have installed it with RubyGems. The following piece of code
+
+<pre>
+<code>
+EventMachine.run do
+  # ...
+end
+</code>
+</pre>
+
+runs what is called EventMachine reactor. Without paying much attention to what exactly does reactor mean in this case,
+let us say that amqp gem is asynchronous and is based on an asynchronous network I/O library called "EventMachine":http://rubyeventmachine.com.
+
+Next line
+
+<pre>
+<code>
+connection = AMQP.connect(:host => '127.0.0.1')
+</code>
+</pre>
+
+connects to the server running on localhost, with default port, username, password and virtual host.
+
+<pre>
+<code>
+channel  = AMQP::Channel.new(connection)
+</code>
+</pre>
+
+opens the channel. AMQP is a multi-channeled protocol. Channels is a way to multiplex a TCP connection.
+Because channels are open on a connection, AMQP::Channel constructor takes connection object as a parameter.
+
+This line
+
+<pre>
+<code>
+queue    = channel.queue("amqpgem.examples.helloworld", :auto_delete => true)
+</code>
+</pre>
+
+declares a queue on the channel we've just opened. Queues are where consumer applications get messages from.
+We declare this queue with "auto-delete" parameter. Basically, that means "when there is no one left
+consuming messages from this queue, delete it".
+
+The next line,
+
+<pre>
+<code>
+exchange = channel.direct("")
+</code>
+</pre>
+
+instantiates an exchange. Exchange is where messages are sent by producers. Exchanges route messages to queues
+according to rules called bindings. In this particular example, there are no explicitly defined bindings.
+Exchange we defined is known as default exchange and it has implied binding to all queues. Before we get
+into that, lets see how we define a handler for incoming messages:
+
+<pre>
+<code>
+queue.subscribe do |payload|
+  puts "Received a message: #{payload}. Disconnecting..."
+
+  connection.close {
+    EM.stop { exit }
+  }
+end
+</code>
+</pre>
+
+AMQP::Queue#subscribe takes a block that will be called every time a message arrives. AMQP::Session#close closes
+AMQP connection and runs a callback that stops EventMachine reactor.
+
+Finally, we publish our message:
+
+<pre>
+<code>
+exchange.publish "Hello, world!", :routing_key => queue.name
+</code>
+</pre>
+
+Routing key is one of _message attributes_. Default exchange will route message to a queue that has the same name
+as message's routing key. This is how our message ends up in amqpgem.examples.helloworld queue.
+
+This first example can be modified to use method chaining technique:
+
+<pre>
+<code>
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+require "rubygems"
+require "amqp"
+
+EventMachine.run do
+  AMQP.connect(:host => '127.0.0.1') do |connection|
+    puts "Connected to AMQP broker. Running #{AMQP::VERSION} version of the gem..."
+
+    channel  = AMQP::Channel.new(connection)
+
+    channel.queue("amqpgem.examples.helloworld", :auto_delete => true).subscribe do |payload|
+      puts "Received a message: #{payload}. Disconnecting..."
+
+      connection.close {
+        EM.stop { exit }
+      }
+    end
+
+    channel.direct("").publish "Hello, world!", :routing_key => queue.name
+  end
+end
+</code>
+</pre>
+
+With classes and methods introduced in this example, lets move on to a little bit more
+sophisticated one.
 
 
 h2. Babblr: one-to-many publish/subscribe example
