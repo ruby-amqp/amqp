@@ -5,3 +5,6 @@ rvm:
   - ree
   - rbx
   - jruby
+gemfile:
+  - Gemfile
+  - gemfiles/eventmachine-pre
