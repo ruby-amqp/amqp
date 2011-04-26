@@ -1,5 +1,6 @@
 # encoding: utf-8
 
+require "uri"
 require "amqp/session"
 
 module AMQP
