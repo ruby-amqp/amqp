@@ -11,7 +11,7 @@ require "amqp"
 EventMachine.run do
   AMQP.connect do |connection|
     channel  = AMQP::Channel.new(connection)
-    exchange = channel.topic("pub/sub")
+    exchange = channel.topic("pub/sub", :auto_delete => true)
 
     # Subscribers.
     channel.queue("", :exclusive => true) do |queue|
