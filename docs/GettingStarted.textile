@@ -191,7 +191,7 @@ end
 </code>
 </pre>
 
-AMQP::Queue#subscribe takes a block that will be called every time a message arrives. AMQP::Session#close closes
+{AMQP::Queue#subscribe} takes a block that will be called every time a message arrives. {AMQP::Session#close} closes
 AMQP connection and runs a callback that stops EventMachine reactor.
 
 Finally, we publish our message:
@@ -241,7 +241,135 @@ sophisticated one.
 
 h2. Babblr: one-to-many publish/subscribe example
 
-TBD
+Previous example demonstrated how connection to the broker is made and how to do 1:1 communication
+using default exchange. Now lets take a look at another common scenario: broadcast, or multiple consumers
+and one producer.
+
+A very well know example of broadcast is Twitter: every time a person tweets, followers receive a notification.
+Blabbr, our imaginary information network, models this scenario this way: every network member has a separate
+queue and publishes blabs to a separate exchange. 3 Blabbr members, Joe, Aaron and Bob, follow official NBA
+account on Blabbr to get updates about what is up in the world of basketball. Here is the code:
+
+<pre>
+<code>
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+require "rubygems"
+require "amqp"
+
+AMQP.start("amqp://dev.rabbitmq.com:5672/") do |connection|
+  channel  = AMQP::Channel.new(connection)
+  exchange = channel.fanout("nba.scores")
+
+  channel.queue("joe", :auto_delete => true).bind(exchange).subscribe do |payload|
+    puts "#{payload} => joe"
+  end
+
+  channel.queue("aaron", :auto_delete => true).bind(exchange).subscribe do |payload|
+    puts "#{payload} => aaron"
+  end
+
+  channel.queue("bob", :auto_delete => true).bind(exchange).subscribe do |payload|
+    puts "#{payload} => bob"
+  end
+
+  exchange.publish("BOS 101, NYK 89").publish("ORL 85, ALT 88")
+
+  # disconnect & exit after 1 second
+  EventMachine.add_timer(1) do
+    exchange.delete
+
+    connection.close {
+      EM.stop { exit }
+    }
+  end
+end
+</code>
+</pre>
+
+First line has a few difference from "Hello, world" example above:
+
+ * We use {AMQP.start} instead of {AMQP.connect}
+ * Instead of return values, we pass connection method a block and it yields connection
+   object back as soon as connection is established.
+ * Instead of passing connection parameters as a hash, we used a URI string.
+
+{AMQP.start} is just a convenient way to do
+
+<pre>
+<code>
+EventMachine.run do
+  AMQP.connect(options) do |connection|
+    # ...
+  end
+end
+</code>
+</pre>
+
+{AMQP.start} call blocks current thread so it's use is limited to scripts and small command
+line applications. Blabbr is just that.
+
+{AMQP.connect}, when invoked with a block, will yield connection object to it as soon as AMQP connection
+is open. Finally, connection parameters maybe given as a Hash or as a connection string. {AMQP.connect}
+method documentation has all the details.
+
+Opening a channel in this example is no different from opening a channel in the example before that,
+but exchange is instantiated differently:
+
+<pre>
+<code>
+exchange = channel.fanout("nba.scores")
+</code>
+</pre>
+
+Exchange we declare above using {AMQP::Channel#fanout} is a _fanout exchange_. Fanout exchanges deliver messages to every queue that
+was bound to it: exactly what we want in case of Blabbr!
+
+This piece of code
+
+<pre>
+<code>
+channel.queue("joe", :auto_delete => true).bind(exchange).subscribe do |payload|
+  puts "#{payload} => joe"
+end
+</code>
+</pre>
+
+is similar to how we subscribed for message delivery before, but what does that {AMQP::Queue#bind}
+method do? It sets up a _binding_ between the queue and an exchange you pass to it. We need to do this
+to make sure that our fanout exchange routes messages to follower queues.
+
+<pre>
+<code>
+exchange.publish("BOS 101, NYK 89").publish("ORL 85, ALT 88")
+</code>
+</pre>
+
+demonstrates {AMQP::Exchange#publish} calls chaining. Because Blabbr members use fanout exchange
+for publishing, there is no need to specify routing key: every queue that was bound to exchange receiving
+a message will get it's own message copy, regardless of queue name and routing key used.
+
+Next we use EventMachine's {http://eventmachine.rubyforge.org/EventMachine.html#M000466 add_timer} method to
+run a piece of code in 1 second from now:
+
+<pre>
+<code>
+EventMachine.add_timer(1) do
+  exchange.delete
+
+  connection.close {
+    EM.stop { exit }
+  }
+end
+</code>
+</pre>
+
+The code we want to run deletes exchange we declared earlier using {AMQP::Exchange#delete} and closes AMQP
+connection with {AMQP::Session#close}. Finally, we stop EventMachine event loop and exit.
+
+Blabbr is pretty unlikely to secure hundreds of millions in funding but it does a pretty good job of
+demonstrating how one can use AMQP fanout exchanges to do broadcasting.
 
 
 
