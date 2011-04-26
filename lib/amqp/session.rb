@@ -110,6 +110,17 @@ module AMQP
     end
 
 
+    # Properly close connection with AMQ broker, as described in
+    # section 2.2.4 of the {http://bit.ly/hw2ELX AMQP 0.9.1 specification}.
+    #
+    # @api  plugin
+    # @see  #close_connection
+    def disconnect(reply_code = 200, reply_text = "Goodbye", &block)
+      # defined here to make this method appear in YARD documentation. MK.
+      super(reply_code, reply_text, &block)
+    end
+    alias close disconnect
+
 
 
     #
