@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   # RDoc
   s.has_rdoc = true
   s.rdoc_options = '--include=examples --main README.textile'
-  s.extra_rdoc_files = ["README.textile"] + Dir.glob("doc/*")
+  s.extra_rdoc_files = ["README.textile"] + Dir.glob("docs/*")
 
   # Dependencies
   s.add_dependency "eventmachine"
