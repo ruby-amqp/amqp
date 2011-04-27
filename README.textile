@@ -8,7 +8,7 @@ Versions 0.8.0 and later of amqp gem implement "AMQP 0.9.1":http://bit.ly/hw2ELX
 
 h2. I know what AMQP is, how do I get started?
 
-See "Getting started with amqp gem":#Getting_started_with_amqp_gem and "Documentation: tutorials, guides & API reference":#Documentation__tutorials__guides___API_reference
+See "Getting started with amqp gem":#Getting_started_with_amqp_gem and "Documentation: tutorials, guides & API reference":#Documentation_tutorials_guides_API_reference
 
 
 h2. What is AMQP?
@@ -51,7 +51,7 @@ Specific examples:
 
 
 
-h2. Getting started with amqp gem
+h2(Getting_started_with_amqp_gem). Getting started with amqp gem
 
 h3. Install RabbitMQ
 
@@ -105,7 +105,7 @@ end
 
 
 
-h2. Documentation: tutorials, guides & API reference
+h2(#Documentation_tutorials_guides_API_reference). Documentation: tutorials, guides & API reference
 
 We believe that in order to be the best Ruby AMQP client out there, we need to care about documentation as much as
 code readability, API beauty and autotomated testing across 5 Ruby implementations on 3 operating systems.
