@@ -73,7 +73,7 @@ Lets verify your installation with this quick irb session:
 irb -rubygems
 
 :001 > require "amqp"
- => true 
+ => true
  :002 > AMQP::VERSION
  => "0.8.0.rc2"
 </code>
@@ -375,8 +375,205 @@ demonstrating how one can use AMQP fanout exchanges to do broadcasting.
 
 h2. Weathr: many-to-many topic routing example
 
-TBD
+So far we have seen point-to-point communication and broadcast. These two are possible with many protocols:
+HTTP handles these scenarios just fine. What differentiates AMQP? Next is going to introduce you to topic
+exchanges and routing with patterns, one of the features that makes AMQP very powerful.
 
+Our third example is weather condition updates. What makes it different from the previous two is that
+not all consumers are interested in all messages: people who live in Portland usually don't care about
+weather in Hong Kong very much (unless they are going there soon). They are certainly interested in
+weather conditions around Portland, possibly all of Oregon and sometimes a few neighbouring states.
+
+Our example features multiple consumer applications monitoring updates for different regions. Some are
+interested in updates for a specific city, others for a specific state and so on all the way up to continents.
+Updates may overlap: an update for San Diego, CA _is_ an update for California, and should certainly show up
+on North America updates list.
+
+Here is the code:
+
+<pre>
+<code>
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+require "rubygems"
+require "amqp"
+
+EventMachine.run do
+  AMQP.connect do |connection|
+    channel  = AMQP::Channel.new(connection)
+    exchange = channel.topic("pub/sub", :auto_delete => true)
+
+    # Subscribers.
+    channel.queue("", :exclusive => true) do |queue|
+      queue.bind(exchange, :routing_key => "americas.north.#").subscribe do |headers, payload|
+        puts "An update for North America: #{payload}, routing key is #{headers.routing_key}"
+      end
+    end
+    channel.queue("americas.south").bind(exchange, :routing_key => "americas.south.#").subscribe do |headers, payload|
+      puts "An update for South America: #{payload}, routing key is #{headers.routing_key}"
+    end
+    channel.queue("us.california").bind(exchange, :routing_key => "americas.north.us.ca.*").subscribe do |headers, payload|
+      puts "An update for US/California: #{payload}, routing key is #{headers.routing_key}"
+    end
+    channel.queue("us.tx.austin").bind(exchange, :routing_key => "#.tx.austin").subscribe do |headers, payload|
+      puts "An update for Austin, TX: #{payload}, routing key is #{headers.routing_key}"
+    end
+    channel.queue("it.rome").bind(exchange, :routing_key => "europe.italy.rome").subscribe do |headers, payload|
+      puts "An update for Rome, Italy: #{payload}, routing key is #{headers.routing_key}"
+    end
+    channel.queue("asia.hk").bind(exchange, :routing_key => "asia.southeast.hk.#").subscribe do |headers, payload|
+      puts "An update for Hong Kong: #{payload}, routing key is #{headers.routing_key}"
+    end
+
+    EM.add_timer(1) do
+      exchange.publish("San Diego update", :routing_key => "americas.north.us.ca.sandiego").
+        publish("Berkeley update",         :routing_key => "americas.north.us.ca.berkeley").
+        publish("San Francisco update",    :routing_key => "americas.north.us.ca.sanfrancisco").
+        publish("New York update",         :routing_key => "americas.north.us.ny.newyork").
+        publish("São Paolo update",        :routing_key => "americas.south.brazil.saopaolo").
+        publish("Hong Kong update",        :routing_key => "asia.southeast.hk.hongkong").
+        publish("Kyoto update",            :routing_key => "asia.southeast.japan.kyoto").
+        publish("Shanghai update",         :routing_key => "asia.southeast.prc.shanghai").
+        publish("Rome update",             :routing_key => "europe.italy.roma").
+        publish("Paris update",            :routing_key => "europe.france.paris")
+    end
+
+
+    show_stopper = Proc.new {
+      connection.close do
+        EM.stop
+      end
+    }
+
+    EM.add_timer(2, show_stopper)
+  end
+end
+</code>
+</pre>
+
+First line that is different from Blabbr example is
+
+<pre>
+<code>
+exchange = channel.topic("pub/sub", :auto_delete => true)
+</code>
+</pre>
+
+We use a _topic exchange_ here. Topic exchanges are used for "multicast":http://en.wikipedia.org/wiki/Multicast messaging
+where consumers indicate what topics they are interested in (think of it as of subscribing to a feed for individual tag
+of your favourite blog as opposed to full feed). They do it by specifying _routing pattern_ on binding, for example:
+
+<pre>
+<code>
+channel.queue("americas.south").bind(exchange, :routing_key => "americas.south.#").subscribe do |headers, payload|
+  puts "An update for South America: #{payload}, routing key is #{headers.routing_key}"
+end
+</code>
+</pre>
+
+Here we bind a queue with the name of "americas.south" to the topic exchange declared earlier using {AMQP::Queue#bind} method.
+This means that only messages with routing key matching americas.south.# will be routed to that queue. Routing pattern consists of several words
+separated by dots, similarly to URI path segments joined by slash. A few of examples:
+
+ * asia.southeast.thailand.bangkok
+ * sports.basketball
+ * usa.nasdaq.aapl
+ * tasks.search.indexing.accounts
+
+Now lets take a look at a few routing keys that do match "americas.south.#" pattern:
+
+ * americas.south
+ * americas.south.*brazil*
+ * americas.south.*brazil.saopaolo*
+ * americas.south.*chile.santiago*
+
+In other words, # part of the pattern matches 0 or more words. For "americas.south.*", some of matching routing keys are
+
+ * americas.south.*brazil*
+ * americas.south.*chile*
+ * americas.south.*peru*
+
+but not
+
+ * americas.south
+ * americas.south.chile.santiago
+
+so * matches a single word, whatever it is. AMQP 0.9.1 spec says that topic segments (words) may contain the letters A-Z and a-z
+and digits 0-9.
+
+One more thing that is different from previous examples is that the block we pass to {AMQP::Queue#subscribe} now takes two arguments:
+header and body (aka payload). Long story short, the _header_ parameter lets you access metadata associated with the message. Some
+examples of message metadata attributes are
+
+ * message content type
+ * message content encoding
+ * message priority
+ * message expiration time
+ * message identifier
+ * reply to, to what message this message is a reply to
+ * application id, identifier of application that produced the message
+
+and so on.
+
+As this binding demonstrates, # (and *) can appear in the beginning of routing patterns, too:
+
+<pre>
+<code>
+channel.queue("us.tx.austin").bind(exchange, :routing_key => "#.tx.austin").subscribe do |headers, payload|
+  puts "An update for Austin, TX: #{payload}, routing key is #{headers.routing_key}"
+end
+</code>
+</pre>
+
+Publishing of messages is not different from previous examples. Running this example demonstrates that, for example,
+message published with routing key of "americas.north.us.ca.berkeley" is routed to several queues: us.california and
+_server-named queue_ we declared by passing blank string as the name:
+
+<pre>
+<code>
+channel.queue("", :exclusive => true) do |queue|
+  queue.bind(exchange, :routing_key => "americas.north.#").subscribe do |headers, payload|
+    puts "An update for North America: #{payload}, routing key is #{headers.routing_key}"
+  end
+end
+</code>
+</pre>
+
+Name of server-named queue is generated by the broker and sent back to the client with queue declaration confirmation.
+Because of queue name is not known before reply arrives, we passed {AMQP::Channel#queue} a callback and it yielded us back
+a queue object once confirmation has arrived.
+
+
+h3. Avoid race conditions
+
+A word of warning: you may find examples on the Web of {AMQP::Channel#queue} usage that do not use
+callback: we *strongly recommend you always use a callback for server-named queues*. Otherwise your code may be a subject
+to "race conditions":http://en.wikipedia.org/wiki/Race_condition and even though amqp gem tries to be reasonably smart and protect you from most common problems, there
+is no way it can do so for every case. The only reason we support {AMQP::Channel#queue} usage w/o a callback for server-named queues is
+backwards compatibility with earlier versions.
+
+
+h2. Wrapping up
+
+This tutorial ends here. Congratulations! You have learned quite a bit about both AMQP 0.9.1 and amqp gem.
+
+
+h2. What to read next
+
+Documentation is organized as a {file:docs/DocumentationGuidesIndex.textile Routing guide number of guides}, covering all kinds of
+topics from {file:docs/Routing.textile routing} to {file:docs/ErrorHandling.textile error handling} to
+{file:docs/VendorSpecificExchanges.textile Broker-specific AMQP 0.9.1 extensions}.
+
+To learn more on what you have seen in this tutorial, check out
+
+ * {file:docs/ConnectingToTheBroker.textile Connection to the broker}
+ * {file:docs/Queues.textile Queues}
+ * {file:docs/Exchanges.textile Exchanges}
+ * {file:docs/Bindings.textile Bindings}
+
+If you are migrating your application from earlier versions of amqp gem (0.6.x and 0.7.x), to 0.8.x and later, there is
+{file:docs/08Migration.textile amqp gem 0.8 migration guide}.
 
 
 h2. Tell us what you think!
