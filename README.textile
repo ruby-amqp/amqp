@@ -1,9 +1,14 @@
 h1. About amqp gem "!http://travis-ci.org/ruby-amqp/amqp.png!":http://travis-ci.org/ruby-amqp/amqp
 
-amqp gem is a widely used, feature-rich asynchronous Ruby AMQP client built on top of "EventMachine":http://rubyeventmachine.com.
+amqp gem is a widely used, feature-rich asynchronous AMQP 0.9.1 client with batteries included.
 This library works with Ruby 1.8.7, Ruby 1.9.2, JRuby, REE and Rubinius, and is
 licensed under the "Ruby License":http://www.ruby-lang.org/en/LICENSE.txt.
 Versions 0.8.0 and later of amqp gem implement "AMQP 0.9.1":http://bit.ly/hw2ELX.
+
+
+h2. I know what AMQP is, how do I get started?
+
+See "Getting started with amqp gem":#Getting_started_with_amqp_gem and "Documentation: tutorials, guides & API reference":#Documentation__tutorials__guides___API_reference
 
 
 h2. What is AMQP?
@@ -99,14 +104,20 @@ end
 (see "as a Gist":https://gist.github.com/910211)
 
 
-h2. Tutorials
+
+h2. Documentation: tutorials, guides & API reference
+
+We believe that in order to be the best Ruby AMQP client out there, we need to care about documentation as much as
+code readability, API beauty and autotomated testing across 5 Ruby implementations on 3 operating systems.
+
+
+h3. Tutorials
 
 We have written and maintain "Getting started guide":http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/GettingStarted.textile that is written in form of a tutorial.
 Check it out! If something isn't clear, every guide explains how to contact documentation authors.
 
 
-
-h2. Examples
+h3. Examples
 
 You can find many examples (both real-world cases and simple demonstrations)
 under "examples directory":https://github.com/ruby-amqp/amqp/tree/master/examples in the repository.
@@ -114,14 +125,15 @@ Note that those examples are written against version 0.8.0.rc1 and later. 0.6.x 
 may not support certain AMQP protocol or "DSL syntax" features.
 
 
+h3. Guides
 
-h2. Documentation guides & API reference
+"Documentation guides":http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/DocumentationGuidesIndex.textile describe
+the library itself as well as AMQP usage scenarios, routing, error handing & recovery, broker-specific extensions, TLS support  and so on.
 
-We believe that in order to be the best Ruby AMQP client out there, we need to care about documentation as much as
-code readability, API beauty and autotomated testing across 5 Ruby implementations on 3 operating systems.
-Documentation is "up on rdoc.info":http://rdoc.info/github/ruby-amqp/amqp/master/frames and is updated daily. It has "many guides":http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/DocumentationGuidesIndex.textile that  describe
-both the library itself and AMQP                                                         usage scenarios, broker-specific extensions, topics like dealing with ancient RabbitMQ versions
-Debian and Ubuntu ship with and so on.
+
+h3. API reference
+
+"Reference documentation":http://rdoc.info/github/ruby-amqp/amqp/master/frames is up on rdoc.info and is updated daily.
 
 *If you don't find your answer in documentation, we consider it a high severity bug* that you should "file to us":http://github.com/ruby-amqp/amqp/issues.
 
