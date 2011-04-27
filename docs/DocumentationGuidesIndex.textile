@@ -1,5 +1,7 @@
 h1. Ruby AMQP gem documentation guides
 
+h2. Guide list
+
  * {file:docs/GettingStarted.textile Getting started}
  * {file:docs/ConnectingToTheBroker.textile Connecting to the broker}
  * {file:docs/Queues.textile Queues}
