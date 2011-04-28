@@ -159,16 +159,18 @@ module AMQP
     # @note We encourage you to not rely on default AMQP connection and pass connection parameter
     #       explicitly.
     #
-    # @param [AMQP::Session] Connection to open this channel on. If not given, default AMQP
-    #                        connection (accessible via {AMQP.connection}) will be used.
-    # @param [Integer]       Channel id. Must not be greater than max channel id client and broker
-    #                        negotiated on during connection setup. Almost always the right thing to do
-    #                        is to let AMQP gem pick channel identifier for you.
+    # @param [AMQP::Session] connection Connection to open this channel on. If not given, default AMQP
+    #                                   connection (accessible via {AMQP.connection}) will be used.
+    # @param [Integer]       id         Channel id. Must not be greater than max channel id client and broker
+    #                                   negotiated on during connection setup. Almost always the right thing to do
+    #                                   is to let AMQP gem pick channel identifier for you. If you want to get next
+    #                                   channel id, use {AMQP::Channel.next_channel_id} (it is thread-safe).
+    # @param [Hash]          options    A hash of options
     #
     # @example Instantiating a channel for default connection (accessible as AMQP.connection)
     #
     #   AMQP.connect do |connection|
-    #     AMQP::Channel.new(connection) do |channel|
+    #     AMQP::Channel.new(connection) do |channel, open_ok|
     #       # channel is ready: set up your messaging flow by creating exchanges,
     #       # queues, binding them together and so on.
     #     end
@@ -177,12 +179,21 @@ module AMQP
     # @example Instantiating a channel for explicitly given connection
     #
     #   AMQP.connect do |connection|
-    #     AMQP::Channel.new(connection) do |channel|
-    #       # channel is ready: set up your messaging flow by creating exchanges,
-    #       # queues, binding them together and so on.
+    #     AMQP::Channel.new(connection) do |channel, open_ok|
+    #       # ...
     #     end
     #   end
     #
+    # @example Instantiating a channel with a :prefetch option
+    #
+    #   AMQP.connect do |connection|
+    #     AMQP::Channel.new(connection, AMQP::Channel.next_channel_id, :prefetch => 5) do |channel, open_ok|
+    #       # ...
+    #     end
+    #   end
+    #
+    #
+    # @option options [Boolean] :prefetch (nil)  Specifies number of messages to prefetch. Channel-specific. See {AMQP::Channel#prefetch}.
     #
     # @yield [channel, open_ok] Yields open channel instance and AMQP method (channel.open-ok) instance. The latter is optional.
     # @yieldparam [Channel] channel Channel that is successfully open
@@ -190,7 +201,7 @@ module AMQP
     #
     #
     # @api public
-    def initialize(connection = nil, id = self.class.next_channel_id, &block)
+    def initialize(connection = nil, id = self.class.next_channel_id, options = {}, &block)
       raise 'AMQP can only be used from within EM.run {}' unless EM.reactor_running?
 
       @connection = connection || AMQP.connection || AMQP.start
@@ -223,6 +234,8 @@ module AMQP
             else block.call(ch, open_ok)
             end # case
           end # if
+
+          self.prefetch(options[:prefetch], false) if options[:prefetch]
         end # self.open
       end # @connection.on_open
     end
@@ -774,16 +787,16 @@ module AMQP
 
 
 
-    # @param [Fixnum] size
+    # @param [Fixnum] Message count
     # @param [Boolean] global (false)
     #
     # @return [Channel] self
     #
     # @api public
-    def prefetch(size, global = false, &block)
+    def prefetch(count, global = false, &block)
       self.once_open do
         # RabbitMQ as of 2.3.1 does not support prefetch_size.
-        self.qos(0, size, global, &block)
+        self.qos(0, count, global, &block)
       end
 
       self
@@ -885,9 +898,9 @@ module AMQP
       @channel_id_mutex ||= Mutex.new
     end
 
+    # Returns incrementing channel id. This method is thread safe.
     # @return [Fixnum]
-    # @private
-    # @api private
+    # @api public
     def self.next_channel_id
       channel_id_mutex.synchronize do
         @last_channel_id ||= 0

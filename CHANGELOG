@@ -1,5 +1,7 @@
 = Version 0.8.0
 
+  * [API] AMQP::Channel#initialize now takes 3rd (optional) options hash. This makes it possible to specify
+          :prefetch right on object instantiation (basic.qos will be sent once channel is actually open).
   * [API] Broker connection class is now AMQP::Session. It used to be an anonymous class that mixed
           AMQP::Client. Vast majority of applications won't notice the difference but dealing with
 	  specific classes is easier.
