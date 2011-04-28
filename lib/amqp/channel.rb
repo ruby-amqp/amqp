@@ -200,6 +200,7 @@ module AMQP
     # @yieldparam [AMQP::Protocol::Channel::OpenOk] open_ok AMQP channel.open-ok) instance
     #
     #
+    # @see AMQP::Channel#prefetch
     # @api public
     def initialize(connection = nil, id = self.class.next_channel_id, options = {}, &block)
       raise 'AMQP can only be used from within EM.run {}' unless EM.reactor_running?
