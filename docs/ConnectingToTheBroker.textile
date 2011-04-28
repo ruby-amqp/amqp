@@ -1,9 +1,10 @@
-h1. TBD
+h1. Connecting to the broker
 
 
 h2. About this guide
 
-TBD
+This guide covers connection to AMQP broker from standalone and Web applications,
+connection error handling, authentication failure handling and related issues..
 
 
 h2. Covered versions
@@ -12,10 +13,148 @@ This guide covers amqp gem v0.8.0 and later.
 
 
 
-h2. TBD
+h2. Terminology
+
+In this guide we define standalone application as application that does not run on
+a Web server like Unicorn or Passenger. The key difference is that these applications
+control main Ruby VM thread and often use it to run EventMachine event loop. When
+amqp gem is used inside of a Web applications, main thread is occupied by Web application
+server and code required to establish connection to AMQP broker needs to be a little
+bit different.
+
+
+
+h2. In standalone applications
+
+h3. EventMachine event loop
+
+amqp gem uses "EventMachine":http://rubyeventmachine.com under the hood and needs EventMachine
+event loop to be running in order to connect to AMQP broker or send any data. This means that
+before connecting to AMQP broker, we need to _start EventMachine reactor_ (get the event loop
+going). Here is how to do it:
+
+<pre>
+<code>
+require "amqp"
+
+EventMachine.run do
+  # ...
+end
+</code>
+</pre>
+
+"EventMachine.run":http://eventmachine.rubyforge.org/EventMachine.html#M000461 will block current thread until event loop is stopped.
+Standalone applications often can afford starting event loop on the main thread. If you have no experience with threading, this is a
+recommended way.
+
+
+h3. AMQP.connect with a block
+
+Once event loop is running, {AMQP.connect} method will attempt to connect to the broker. It can be used in two ways. Here is the
+first one:
+
+<pre>
+<code>
+require "amqp"
+
+EventMachine.run do
+  # using AMQP.connect with a block
+  AMQP.connect(:host => "localhost") do |client|
+    # connection is open and ready to be used
+  end
+end
+</code>
+</pre>
+
+{AMQP.connect} takes a block that will be executed as soon as AMQP connection is open (TCP connection was set up,
+authentication succeeded, broker and client finished negotiating connection parameters like max frame size).
+
+
+h3. AMQP.connect without a callback
+
+Alternative way of connecting is this:
+
+<pre>
+<code>
+require "amqp"
+
+EventMachine.run do
+  # using AMQP.connect with a block
+  client = AMQP.connect(:host => "hub.megacorp.internal", :username => "hedgehog", :password => "t0ps3kr3t")
+  # connection is not yet open, however, amqp gem will delay
+  # channel operations until after connection is open. However,
+  # amqp gem cannot solve every possible race condition so be careful
+end
+</code>
+</pre>
+
+If you do not need to assign returned value to a variable, "block version" is recommended because it eliminates issues that may
+arise from attempts to use a connection object that is not fully opened yet. For example, handling of authentication failures is simpler
+with the block version, as we will see in the following sections.
+
+
+h3. AMQP.start
+
+EventMachine.run and {AMQP.connect} with a block is such a common combination that amqp gem provides a shortcut:
+
+<pre>
+<code>
+require "amqp"
+
+AMQP.start("amqp://dev.rabbitmq.com:5672/") do |client|
+  # connection is open and ready to be used
+end
+</code>
+</pre>
+
+As these examples demonstrate, {AMQP.connect} and {AMQP.start} accept either a Hash of connection options or a connection URI string.
+See reference documentation for each method to learn all the options they accept and what the default values are.
+
+
+h3. On Thread#sleep use
+
+When not passing a block to {AMQP.connect}, it is tempting to "give connection some time to get through" by using Thread#sleep. Unless you are
+running event loop in a separate thread, don't do this. Thread#sleep blocks current thread so if event loop is running the very same current thread,
+blocking it _will also block the event loop_. *When event loop is blocked, no data is sent or received, so connection does not proceed.*
+
+
+h3. Detecting TCP connection failures
 
 TBD
 
+
+h3. Detecting authentication failures
+
+TBD
+
+
+
+h2. In Web applications (Ruby on Rails, Sinatra, Merb, Rack)
+
+h3. With Unicorn
+
+TBD
+
+
+h3. With Thin
+
+TBD
+
+
+h3. With Goliath
+
+TBD
+
+
+h3. With Passenger
+
+TBD
+
+
+
+h2. What to read next
+
+TBD
 
 
 h2. Tell us what you think!
