@@ -12,7 +12,7 @@ h2. Guide list
  * {file:docs/ErrorHandling.textile Error handling}
  * {file:docs/08Migration.textile Upgrading from version 0.6.x/0.7.x to 0.8.x and above}
  * {file:docs/RabbitMQVersions.textile RabbitMQ versions}
- * {file:docs/TLS.textile Using TLS (SSL)}
+ * {file:docs/ConnectionEncryptionWithTLS.textile Using TLS (SSL)}
  * {file:docs/VendorSpecificExtensions.textile Vendor-specific extensions to AMQP 0.9.1 spec}
 
 
