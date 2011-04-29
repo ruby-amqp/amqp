@@ -1,49 +1,32 @@
 = Version 0.8.0
 
-  * [API] AMQP::Channel#initialize now takes 3rd (optional) options hash. This makes it possible to specify
-          :prefetch right on object instantiation (basic.qos will be sent once channel is actually open).
-  * [API] Broker connection class is now AMQP::Session. It used to be an anonymous class that mixed
-          AMQP::Client. Vast majority of applications won't notice the difference but dealing with
-	  specific classes is easier.
-  * [API] AMQP::Error instance now may carry cause, an exception in the underlying library that caused
-          exception in question to be raised.
+  * [FEATURE] AMQP 0.9.1 support, including tx.* operations class.
+  * [API] AMQP::Channel#initialize now takes 3rd (optional) options hash.
+  * [API] Broker connection class is now AMQP::Session.
+  * [API] AMQP::Error instance now may carry cause, an exception that caused exception in question to be raised.
   * [API] When initial TCP connection fails, default action is now to raise AMQP::TCPConnectionFailed.
-          It inherits from AMQP::Error so your rescue blocks that handle AMQP::Error will work fine.
   * [API] AMQP::BasicClient#reconnect now takes 2nd optional argument, period of waiting in seconds.
-  * [FEATURE] You now can define handlers for initial connection failre, connection loss, define channel-level
-              exceptions handlers on Channel instances. New exception hierarchy now makes it easier to
-              detect what exactly the problem is.
-  * [API] AMQP::Exchange#initialize now accepts :arguments option that takes a hash. Brokers
-          may implement AMQP extensions using (usually x-prefixed) declaration arguments.
-  * [API] AMQP::Queue#initialize now accepts :arguments option that takes a hash. RabbitMQ
-          recognizes x-message-ttl argument and uses it as message TTL in milliseconds for
-          queue that is being declared.
+  * [FEATURE] Handlers for initial connection failre, connection loss; channel-level exceptions handlers on Channel instances.
+  * [API] AMQP::Exchange#initialize now accepts :arguments option that takes a hash.
+  * [API] AMQP::Queue#initialize now accepts :arguments option that takes a hash.
   * [API] AMQP#Logger is deprecated. It will be removed before 1.0 release.
   * [API] AMQP#fork is deprecated. It will be removed before 1.0 release.
   * [API] AMQP::RPC is deprecated. It will be removed before 1.0 release.
-  * [FEATURE] Significant improvements to the documentation. From now on lack of/poor documentation
-              is considered a severe bug that should be filed at https://github.com/ruby-amqp/amqp/issues
+  * [FEATURE] Significant improvements to the documentation. From now on lack of/poor documentation is considered a severe bug.
   * [FEATURE] Support for RabbitMQ extensions to AMQP 0.9.1
-  * [API] AMQP::Exchange#publish now accepts (an optional) block that is called as soon as message
-          is considered published (EventMachine loop has pushed payload down the network stack).
-  * [API] AMQP::Channel.new now accepts (an optional) block and yields newly opened channel to it as soon as
-          channel.open-ok arrives from the broker.
+  * [API] AMQP::Exchange#publish now accepts (an optional) callback.
+  * [API] AMQP::Channel.new now accepts (an optional) callback.
   * [API] AMQP::Header#ack now can acknowledge multiple deliveries
   * [API] AMQP::Exchange#delete now takes (an optional) block that is called when exchange.delete-ok response arrives.
   * [API] AMQP::Header now implements #to_hash
   * [API] AMQP::Queue#pop block now can take 1, 2 or 3 arguments.
-          1 argument means handler is only interested in content payload
-          2 arguments mean handler is interested in headers and the content
-          3 arguments mean handler is interested in headers, content and AMQP method instance
   * [API] AMQP::Queue#purge  now takes an optional block which is called when queue.purge-ok response arrives.
   * [API] AMQP::Queue#delete now takes an optional block which is called when queue.delete-ok response arrives.
   * [API] AMQP::Queue#delete now accepts :nowait option.
   * [API] AMQP::Queue#unbind now takes an optional block which is called when queue.unbind-ok response arrives.
   * [API] AMQP::Queue#unbind now accepts :routing_key as alias to :key. we believe it is a good idea to use AMQP terms.
-  * [API] AMQP::Channel#prefetch now takes (an optional) 2nd parameter that specifies
-          that QoS settings should be applied to underlying connection, as well as optional callback.
-  * [API] AMQP::Channel#recover now takes (an optional) callback that is called when
-          basic.recover-ok is received.
+  * [API] AMQP::Channel#prefetch now takes (an optional) 2nd parameter that specifies that QoS settings should be applied to underlying connection, as well as optional callback.
+  * [API] AMQP::Channel#recover now takes (an optional) callback that is called when basic.recover-ok is received.
   * [API] AMQP::Frame is gone.
   * [API] AMQP::Buffer is gone. Serialization & framing are now handled primarily by amq-protocol.
   * [FEATURE] AMQP gem is now AMQP 0.9.1 compatible: it runs atop of amq-client gem
