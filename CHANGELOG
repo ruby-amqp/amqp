@@ -1,6 +1,7 @@
 = Version 0.8.0
 
   * [FEATURE] AMQP 0.9.1 support, including tx.* operations class.
+  * [API] Default authentication handler now raises AMQP::PossibleAuthenticationFailureError
   * [API] AMQP::Channel#initialize now takes 3rd (optional) options hash.
   * [API] Broker connection class is now AMQP::Session.
   * [API] AMQP::Error instance now may carry cause, an exception that caused exception in question to be raised.
