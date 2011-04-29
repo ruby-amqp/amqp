@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
 
   # Dependencies
   s.add_dependency "eventmachine"
-  s.add_dependency "amq-client", ">= 0.7.0.alpha11"
+  s.add_dependency "amq-client", ">= 0.7.0.alpha13"
 
   begin
     require "changelog"
