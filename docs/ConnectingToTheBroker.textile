@@ -120,12 +120,123 @@ blocking it _will also block the event loop_. *When event loop is blocked, no da
 
 h3. Detecting TCP connection failures
 
-TBD
+When applications connect to the broker, they need to handle connection failures. Networks are not 100% reliable, even with modern system configuration tools
+like Chef or Puppet misconfigurations happen and broker might be down, too. Error detection should happen as early as possible. There are two ways of detecting
+TCP connection failure, the first one is to catch an exception:
+
+<pre>
+<code>
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+require "rubygems"
+require "amqp"
+
+
+puts "=> TCP connection failure handling with a rescue statement"
+puts
+
+connection_settings = {
+  :port     => 9689,
+  :vhost    => "/amq_client_testbed",
+  :user     => "amq_client_gem",
+  :password => "amq_client_gem_password",
+  :timeout        => 0.3
+}
+
+begin
+  AMQP.start(connection_settings) do |connection, open_ok|
+    raise "This should not be reachable"
+  end
+rescue AMQP::TCPConnectionFailed => e
+  puts "Caught AMQP::TCPConnectionFailed => TCP connection failed, as expected."
+end
+</code>
+</pre>
+
+{AMQP.connect} (and, subsequentily, {AMQP.start}) will raise {AMQP::TCPConnectionFailed} if connection fails. Code that catches it can write to log
+about the issue or use retry to execute begin block one more time. Because initial connection failures are due to misconfiguration or network outage, reconnection
+to the same endpoint (hostname, port, vhost combination) will result in the same issue over and over. TBD: failover, connection to the cluster.
+
+Alternative way of handling connection failure is with an errback (a callback for specific kind of error):
+
+<pre>
+<code>
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+require "rubygems"
+require "amqp"
+
+puts "=> TCP connection failure handling with a callback"
+puts
+
+handler             = Proc.new { |settings| puts "Failed to connect, as expected"; EM.stop }
+connection_settings = {
+  :port     => 9689,
+  :vhost    => "/amq_client_testbed",
+  :user     => "amq_client_gem",
+  :password => "amq_client_gem_password",
+  :timeout        => 0.3,
+  :on_tcp_connection_failure => handler
+}
+
+
+AMQP.start(connection_settings) do |connection, open_ok|
+  raise "This should not be reachable"
+end
+</code>
+</pre>
+
+:on_tcp_connection_failure option accepts any object that responds to #call.
+
+If you connect to the broker from a code in a class (as opposed to top-level scope in a script), Object#method can be used to pass object method as a handler
+instead of a Proc.
+
+TBD: provide an example
 
 
 h3. Detecting authentication failures
 
-TBD
+Another reason why connection may fail is authentication failure. Handling authentication failure is very similar to handling initial TCP
+connection failure:
+
+<pre>
+<code>
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+require "rubygems"
+require "amqp"
+
+puts "=> TCP connection failure handling with a callback"
+puts
+
+handler             = Proc.new { |settings| puts "Failed to connect, as expected"; EM.stop }
+connection_settings = {
+  :port     => 5672,
+  :vhost    => "/amq_client_testbed",
+  :user     => "amq_client_gem",
+  :password => "amq_client_gem_password_that_is_incorrect #{Time.now.to_i}",
+  :timeout        => 0.3,
+  :on_tcp_connection_failure => handler,
+  :on_possible_authentication_failure => Proc.new { |settings|
+                                            puts "Authentication failed, as expected, settings are: #{settings.inspect}"
+
+                                            EM.stop
+                                          }
+}
+
+AMQP.start(connection_settings) do |connection, open_ok|
+  raise "This should not be reachable"
+end
+</code>
+</pre>
+
+In case you wonder why callback name has "possible" in it: {http://bit.ly/mTr1YN AMQP 0.9.1 spec} requires broker implementations to
+simply close TCP connection without sending any more data when an exception (such as authentication failure) occurs before AMQP connection
+is open. In practice, however, when broker closes TCP connection between successful TCP connection and before AMQP connection is open,
+it means that authentication has failed.
 
 
 
