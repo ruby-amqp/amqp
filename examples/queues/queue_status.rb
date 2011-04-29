@@ -19,12 +19,12 @@ puts "=> Queue#status example"
 puts
 AMQP.start(:host => 'localhost') do |connection|
   channel   = AMQP::Channel.new
-  
+
   queue_name = "amqpgem.integration.queue.status.queue"
-  
+
   exchange = channel.fanout("amqpgem.integration.queue.status.fanout", :auto_delete => true)
   queue    = channel.queue(queue_name, :auto_delete => true)
-  
+
   queue.bind(exchange) do
     puts "Bound #{exchange.name} => #{queue.name}"
   end
