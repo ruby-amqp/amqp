@@ -154,7 +154,7 @@ end
 </code>
 </pre>
 
-{AMQP.connect} (and, subsequentily, {AMQP.start}) will raise {AMQP::TCPConnectionFailed} if connection fails. Code that catches it can write to log
+{AMQP.connect} (and {AMQP.start}) will raise {AMQP::TCPConnectionFailed} if connection fails. Code that catches it can write to log
 about the issue or use retry to execute begin block one more time. Because initial connection failures are due to misconfiguration or network outage, reconnection
 to the same endpoint (hostname, port, vhost combination) will result in the same issue over and over. TBD: failover, connection to the cluster.
 
@@ -277,30 +277,80 @@ it means that authentication has failed.
 
 h2. In Web applications (Ruby on Rails, Sinatra, Merb, Rack)
 
-h3. With Unicorn
+Web applications are different from standalone applications in that main thread is occupied by Web/application server like Unicorn
+or Thin, so you need to start EventMachine reactor before you attempt to use {AMQP.connect}.
+In a Ruby on Rails app, probably the best place for this is in initializer (like config/initializers/amqp.rb). For Merb apps, it is config/init.rb.
+For Sinatra and pure Rack applications, place it next to other configuration code.
 
-TBD
+Next we are going to discuss issues specific to particular Web servers.
+
+h3. Using amqp gem with Unicorn
+
+h4. Use separate thread for EventMachine reactor
+
+Since Unicorn is not EventMachine-based, you need to start EventMachine reactor in a separate thread like this:
+
+<pre>
+<code>
+Thread.new { EventMachine.run }
+# give EventMachine reactor a moment to start
+sleep(0.5)
+
+# now is a good moment to use AMQP.connect
+</code>
+</pre>
+
+Otherwise EventMachine will block current thread.
+
+h4. Starting EventMachine reactor after Unicorn forks worker processes
+
+Because *Unicorn is a pre-forking server, you need to run the same piece of code in
+after_fork hook in Unicorn configuration file for your app*, otherwise, worker processes won't have EventMachine reactor running:
+
+<pre>
+<code>
+# example snippet of Unicorn configuration file ( config/unicorn/development.rb or similar)
+after_fork do |server, worker|
+  Thread.new { EventMachine.run }
+  # give EventMachine reactor a moment to start
+  sleep(0.5)
+
+  # now is a good moment to use AMQP.connect
+end
+</code>
+</pre>
 
 
-h3. With Thin
+h3. Using amqp gem with Passenger
 
-TBD
-
-
-h3. With Goliath
-
-TBD
+TBD: if you are a Passenger user, please help us write this section!
 
 
-h3. With Passenger
 
-TBD
+h3. Using amqp gem with Thin and Goliath
+
+h4. Thin and Goliath start EventMachine reactor for you, but there is a little nuance
+
+If you use "Thin":http://code.macournoyer.com/thin/ or "Goliath":https://github.com/postrank-labs/goliath/, you are all set: those two servers use EventMachine under the hood.
+There is no need to start EventMachine reactor. However, depending on app server, it's version, version of the framework and Rack middleware being used,
+EventMachine reactor start may be slightly delayed. To not depend on this factor, use EventMachine.next_tick to delay connection until after reactor is actually running:
+
+<pre>
+<code>
+EventMachine.next_tick { AMQP.connect(...) }
+</code>
+</pre>
+
+So in case EventMachine reactor isn't running yet on server/application boot, connection won't fail but instead wait for reactor to start.
+Thin and Goliath are not pre-forking servers so there is no need to re-establish connection the way you do it with Unicorn and Passenger.
 
 
 
 h2. What to read next
 
-TBD
+ * {file:docs/Queues.textile Queues}
+ * {file:docs/ErrorHandling.textile Error handling}
+ * {file:docs/ConnectionEncryptionWithTLS.textile Using TLS (SSL)} (if you want to use SSL encrypted connection to the broker)
 
 
 h2. Tell us what you think!
