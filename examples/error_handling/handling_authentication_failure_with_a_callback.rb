@@ -9,7 +9,7 @@ $:.unshift(File.expand_path("../../../lib", __FILE__))
 require 'amqp'
 
 
-puts "=> TCP connection failure handling with a callback"
+puts "=> Authentication failure handling with a callback"
 puts
 
 handler             = Proc.new { |settings| puts "Failed to connect, as expected"; EM.stop }

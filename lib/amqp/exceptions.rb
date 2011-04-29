@@ -23,11 +23,6 @@ module AMQP
   # Raised when initial TCP connection to the broker fails.
   # @api public
   class TCPConnectionFailed < Error
-
-    #
-    # API
-    #
-
     # @return [Hash] connection settings that were used
     attr_reader :settings
 
@@ -38,6 +33,20 @@ module AMQP
       super("Could not estabilish TCP connection to #{@settings[:host]}:#{@settings[:port]}")
     end # TCPConnectionFailed
   end
+
+  # Raised when authentication fails.
+  # @api public
+  class PossibleAuthenticationFailureError < Error
+    # @return [Hash] connection settings that were used
+    attr_reader :settings
+
+    def initialize(settings)
+      @settings = settings
+
+      super("AMQP broker closed TCP connection before authentication succeeded: this usually means authentication failure due to misconfiguration. Settings are #{settings.inspect}")
+    end # initialize(settings)
+  end # PossibleAuthenticationFailureError
+
 
 
   # Raised when queue (or exchange) declaration fails because another queue with the same

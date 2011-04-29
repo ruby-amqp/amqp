@@ -136,5 +136,16 @@ module AMQP
     def self.tcp_connection_failure_exception_class
       @tcp_connection_failure_exception_class ||= AMQP::TCPConnectionFailed
     end # self.tcp_connection_failure_exception_class
+
+
+    # Overrides authentication failure exception to one that inherits from AMQP::Error
+    # and thus is backwards compatible.
+    #
+    # @private
+    # @api plugin
+    # @return [Class] AMQP::PossibleAuthenticationFailureError
+    def self.authentication_failure_exception_class
+      @authentication_failure_exception_class ||= AMQP::PossibleAuthenticationFailureError
+    end # self.authentication_failure_exception_class
   end # Session
 end # AMQP
