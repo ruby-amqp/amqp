@@ -767,7 +767,7 @@ module AMQP
     # library. See that documentation for further reference.
     #
     # When the optional object is not passed, the returned rpc reference is
-    # used to send messages and arguments to the queue. See #method_missing
+    # used to send messages and arguments to the queue. See {AMQP::RPC#method_missing}
     # which does all of the heavy lifting with the proxy. Some client
     # elsewhere must call this method *with* the optional block so that
     # there is a valid destination. Failure to do so will just enqueue
