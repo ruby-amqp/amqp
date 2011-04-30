@@ -5,7 +5,7 @@ require "amq/client/queue"
 module AMQP
   # h2. What are AMQP queues?
   #
-  # Queues store and forward messages to consumers. They similar to mailboxes in SMTP.
+  # Queues store and forward messages to consumers. They are similar to mailboxes in SMTP.
   # Messages flow from producing applications to {Exchange exchanges} that route them
   # to queues and finally queues deliver them to consumer applications (or consumer
   # applications fetch messages as needed).
@@ -42,35 +42,9 @@ module AMQP
   #
   # Here is an example:
   #
-  # @example Declaring a server-named queue using AMQP::Queue constructor
-  #   AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
-  #     AMQP::Channel.new do |channel, open_ok|
-  #       AMQP::Queue.new(channel, "", :auto_delete => true) do |queue, declare_ok|
-  #         puts "#{queue.name} is ready to go. AMQP method: #{declare_ok.inspect}"
-  #
-  #         connection.close {
-  #           EM.stop { exit }
-  #         }
-  #       end
-  #     end
-  #   end
-  #
   # <script src="https://gist.github.com/939596.js?file=gistfile1.rb"></script>
   #
   # If you want to declare a queue with a particular name, for example, "images.resize", pass it to Queue class constructor:
-  #
-  # @example Declaring a server-named queue using AMQP::Queue constructor
-  #   AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
-  #     AMQP::Channel.new do |channel, open_ok|
-  #       AMQP::Queue.new(channel, "images.resize", :auto_delete => true) do |queue, declare_ok|
-  #         puts "#{queue.name} is ready to go."
-  #
-  #         connection.close {
-  #           EM.stop { exit }
-  #         }
-  #       end
-  #     end
-  #   end
   #
   # <script src="https://gist.github.com/939600.js?file=gistfile1.rb"></script>
   #
