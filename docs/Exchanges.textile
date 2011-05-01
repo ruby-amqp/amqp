@@ -11,11 +11,76 @@ h2. Covered versions
 This guide covers amqp gem v0.8.0 and later.
 
 
-
-h2. TBD
+h2. Exchanges in AMQP 0.9.1, briefly
 
 TBD
 
+
+h2. Exchange types
+
+TBD
+
+
+h2. Fanout exchanges
+
+TBD
+
+
+h2. Direct exchanges
+
+TBD
+
+
+h2. Topic exchanges
+
+TBD
+
+
+
+h2. Publishing messages
+
+TBD
+
+
+
+h2. Binding queues to exchanges
+
+TBD
+
+
+
+h2. Unbinding queues from exchanges
+
+TBD
+
+
+h2. Deleting exchanges
+
+TBD
+
+
+
+h2. Exchange durability vs Message durability
+
+TBD
+
+
+
+h2. Error handling and recovery
+
+TBD
+
+
+
+h2. Vendor-specific extensions related to exchanges
+
+TBD
+
+
+
+h2.  What to read next
+
+TBD
 
 
 h2. Tell us what you think!
