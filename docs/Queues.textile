@@ -399,20 +399,125 @@ TBD
 
 h2. Unbinding queues from exchanges
 
-TBD
+To unbind queue from exchange, use {AMQP::Queue#unbind}:
+
+<pre>
+<code>
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+require "rubygems"
+require "amqp"
+
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+  puts "Connected"
+  AMQP::Channel.new(connection) do |channel, open_ok|
+    puts "Opened a channel"
+    channel.on_error do |arg|
+      raise "Channel-level exception!"
+    end
+    exchange = channel.fanout("amq.fanout")
+
+    channel.queue("", :auto_delete => true, :exclusive => true) do |queue, declare_ok|
+      queue.bind(exchange) do |_|
+        puts "Bound"
+      end
+
+      EventMachine.add_timer(0.5) do
+        queue.unbind(exchange) do |_|
+          puts "Unbound. Shutting down..."
+
+          connection.close {
+            EM.stop { exit }
+          }
+        end
+      end # EventMachine.add_timer
+    end # channel.queue
+  end
+end
+</code>
+</pre>
+
+Note that unbinding an exchange queue was never bound to will result in an exception.
 
 
 h2. Purging queues
 
-TBD
+It is possible to purge (remove all messages from) a queue using {AMQP::Queue#purge):
 
+<pre>
+<code>
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+require "rubygems"
+require "amqp"
+
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+  puts "Connected"
+  AMQP::Channel.new(connection) do |channel, open_ok|
+    puts "Opened a channel"
+    channel.on_error do |arg|
+      raise "Channel-level exception!"
+    end
+    exchange = channel.fanout("amq.fanout")
+
+    channel.queue("", :auto_delete => true, :exclusive => true) do |queue, declare_ok|
+      queue.purge do |_|
+        puts "Queue now has no messages"
+      end
+
+      EventMachine.add_timer(0.5) do
+        connection.close {
+          EM.stop { exit }
+        }
+      end # EventMachine.add_timer
+    end # channel.queue
+  end
+end
+</code>
+</pre>
+
+Callback is optional. However, remember that this operation takes some time.
 
 
 h2. Deleting queues
 
-TBD
+To delete a queue, use {AMQP::Queue#delete}:
 
+<pre>
+<code>
+#!/usr/bin/env ruby
+# encoding: utf-8
 
+require "rubygems"
+require "amqp"
+
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+  puts "Connected"
+  AMQP::Channel.new(connection) do |channel, open_ok|
+    puts "Opened a channel"
+    channel.on_error do |arg|
+      raise "Channel-level exception!"
+    end
+    exchange = channel.fanout("amq.fanout")
+
+    channel.queue("", :auto_delete => true, :exclusive => true) do |queue, declare_ok|
+      EventMachine.add_timer(0.5) do
+        queue.delete do
+          puts "Deleted a queue"
+          connection.close {
+            EM.stop { exit }
+          }
+        end
+      end # EventMachine.add_timer
+    end # channel.queue
+  end
+end
+</code>
+</pre>
+
+Callback can be omitted. However, remember that this operation takes some time.
 
 h2. Queue durability vs Message durability
 
