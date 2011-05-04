@@ -1,9 +1,10 @@
-h1. TBD
+h1. Durability and related matters
 
 
 h2. About this guide
 
-TBD
+This guide covers queue, exchange and message durability, as well as other
+topics related to durability, for example, durability in cluster environment.
 
 
 h2. Covered versions
@@ -11,11 +12,27 @@ h2. Covered versions
 This guide covers amqp gem v0.8.0 and later.
 
 
+h2. Entity durability and message persistence
 
-h2. TBD
+AMQP separates concept of durability of entities (queues, exchanges) from messages persistence.
+Exchanges can be durable or transient. Durable exchanges survive broker restart, transient exchanges don't (they
+have to be redeclared when broker comes back online). Not all scenarios and use cases mandate exchanges to be
+durable.
 
-TBD
+The concept of messages persistence is separate: messages may be published as persistent. That makes
+AMQP broker persist them to disk. If the server is restarted, the system ensures that received persistent messages
+are not lost. Simply publishing message to a durable exchange or the fact that queue(s) they are routed to
+is durable doesn't make messages persistent: it all depends on persistence mode of the messages itself.
+Publishing messages as persistent affects performance (just like with data stores, durability comes at a certain cost
+in performance and vise versa). Pass :persistent => true to {Exchange#publish} to publish your message as persistent.
 
+Durable queues are persisted to disk and thus survive broker restarts. Queues that are not durable are called transient.
+
+Durability of a queue does not make _messages_ that are routed to that queue durable. If broker is taken down and then
+brought back up, durable queue will be re-declared during broker startup, however, only durable messages will be recovered.
+
+Note that *only durable queues can be bound to durable exchanges*. This guarantees that it is possible to restore bindings
+on broker restart.
 
 
 h2. Tell us what you think!

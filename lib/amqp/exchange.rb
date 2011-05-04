@@ -112,19 +112,7 @@ module AMQP
   #
   # h2. Exchange durability and persistence of messages.
   #
-  # AMQP separates concept of durability of entities (queues, exchanges) from messages persistence.
-  # Exchanges can be durable or transient. Durable exchanges survive broker restart, transient exchanges don't (they
-  # have to be redeclared when broker comes back online). Not all scenarios and use cases mandate exchanges to be
-  # durable.
-  #
-  # The concept of messages persistence is separate: messages may be published as persistent. That makes
-  # AMQP broker persist them to disk. If the server is restarted, the system ensures that received persistent messages
-  # are not lost. Simply publishing message to a durable exchange or the fact that queue(s) they are routed to
-  # is durable doesn't make messages persistent: it all depends on persistence mode of the messages itself.
-  # Publishing messages as persistent affects performance (just like with data stores, durability comes at a certain cost
-  # in performance and vise versa). Pass :persistent => true to {Exchange#publish} to publish your message as persistent.
-  #
-  # Note that *only durable queues can be bound to durable exchanges*.  Learn more in our {file:docs/Durability.textile Durability guide}.
+  # Learn more in our {file:docs/Durability.textile Durability guide}.
   #
   #
   #
@@ -429,7 +417,7 @@ module AMQP
     #
     # @return [Exchange] self
     #
-    # @note Please make sure you read {Exchange Exchange class} documentation section on exchanges durability vs. messages
+    # @note Please make sure you read {file:docs/Durability.textile Durability guide} that covers exchanges durability vs. messages
     #       persistence.
     # @api public
     def publish(payload, options = {}, &block)

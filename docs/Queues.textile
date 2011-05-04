@@ -521,7 +521,7 @@ Callback can be omitted. However, remember that this operation takes some time.
 
 h2. Queue durability vs Message durability
 
-TBD
+See {file:docs/Durability.textile Durability guide}
 
 
 
