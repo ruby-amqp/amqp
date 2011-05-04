@@ -89,6 +89,7 @@ h2. A "Hello, world" example
 
 Lets begin with a classic Hello, world example. First, here's the code:
 
+<pre>
 <code>
 #!/usr/bin/env ruby
 # encoding: utf-8
@@ -115,6 +116,7 @@ EventMachine.run do
   exchange.publish "Hello, world!", :routing_key => queue.name
 end
 </code>
+</pre>
 
 This example demonstrates a very common communication scenario: app A wants to publish a message that will end up in
 a queue that app B listens on. In this example, queue name is "amqpgem.examples.hello". Lets go through this example
