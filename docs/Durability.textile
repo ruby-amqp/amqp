@@ -44,6 +44,16 @@ Publishing messages as persistent affects performance (just like with data store
 in performance and vise versa). Pass :persistent => true to {Exchange#publish} to publish your message as persistent.
 
 
+h3. Transactions
+
+TBD
+
+
+h3. Publisher confirms
+
+TBD
+
+
 h3. Clustering
 
 To achieve degree of durability critical applications need, it's necessary but not enough to use durable queues,
