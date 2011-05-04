@@ -853,10 +853,10 @@ module AMQP
     #
     # @private
     # @api private
-    def handle_close(_, exception = nil)
-      super(_, exception)
+    def handle_close(method)
+      super(method)
 
-      self.class.error(exception.message)
+      self.class.error(method.reply_text)
     end
 
 
