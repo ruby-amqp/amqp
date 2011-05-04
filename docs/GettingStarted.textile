@@ -383,7 +383,7 @@ demonstrating how one can use AMQP fanout exchanges to do broadcasting.
 h2. Weathr: many-to-many topic routing example
 
 So far we have seen point-to-point communication and broadcast. These two are possible with many protocols:
-HTTP handles these scenarios just fine. What differentiates AMQP? Next is going to introduce you to topic
+HTTP handles these scenarios just fine. What differentiates AMQP? Next we are going to introduce you to topic
 exchanges and routing with patterns, one of the features that makes AMQP very powerful.
 
 Our third example is weather condition updates. What makes it different from the previous two is that
