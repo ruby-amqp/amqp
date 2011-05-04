@@ -55,29 +55,34 @@ This guides assumes you have one of the supported Ruby implementations installed
 h3. With Rubygems
 
 To get amqp gem 0.8.0
+<pre>
 <code>
 gem install amqp --pre
 </code>
+</pre>
 
 h3. With Bundler
 
+<pre>
 <code>
 gem "amqp", :git => "git://github.com/ruby-amqp/amqp.git", :branch => "master"
 </code>
+</pre>
 
 h3. Verifying your installation
 
 Lets verify your installation with this quick irb session:
 
+<pre>
 <code>
 irb -rubygems
 
 :001 > require "amqp"
- => true
- :002 > AMQP::VERSION
- => "0.8.0.rc2"
+=> true
+:002 > AMQP::VERSION
+=> "0.8.0.rc2"
 </code>
-
+</pre>
 
 
 h2. A "Hello, world" example
