@@ -573,7 +573,7 @@ module AMQP
     # The method accepts a block which will be executed when the
     # unsubscription request is acknowledged as complete by the server.
     #
-    # @option opts [Boolean] :nowait (false)  If set, the server will not respond to the method. The client should
+    # @option opts [Boolean] :nowait (true)  If set, the server will not respond to the method. The client should
     #                                        not wait for a reply method.  If the server could not complete the
     #                                        method it will raise a channel or connection exception.
     #
