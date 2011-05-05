@@ -344,6 +344,11 @@ end
 </code>
 </pre>
 
+In books, articles and documentation about AMQP 0.9.1 you may come around discussions of _consumer tags_. Consumer tag in AMQP
+parlance is an identifier for subscription: most often, it is used to unsubscribe from messages (more on that later in this chapter).
+If you need to obtain consumer tag of a queue that is subscribed to receive messages, use {AMQP::Queue#consumer_tag}.
+
+
 h3. Exclusive consumers
 
 TBD
@@ -394,7 +399,42 @@ TBD
 
 h2. Unsubscribing from messages
 
-TBD
+Sometimes it is necessary to unsubscribe from messages without deleting a queue. To do that, use {AMQP::Queue#unsubscribe} method:
+
+<pre>
+<code>
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+require "rubygems"
+require "amqp"
+
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+  AMQP::Channel.new do |channel, open_ok|
+    exchange = channel.fanout("amq.fanout")
+
+    channel.queue("", :auto_delete => true, :exclusive => true) do |queue, declare_ok|
+      queue.bind(exchange).subscribe do |headers, payload|
+        puts "Received a new message"
+      end
+
+      EventMachine.add_timer(0.3) do
+        queue.unsubscribe
+        puts "Unsubscribed. Shutting down..."
+
+        connection.close {
+          EM.stop { exit }
+        }
+      end # EventMachine.add_timer
+    end # channel.queue
+  end
+end
+</code>
+</pre>
+
+By default {AMQP::Queue#unsubscribe} uses :noack option to inform broker that there is no need to send a
+confirmation. In other words, it does not expect you to pass in a callback, because consumer tag and registered
+callbacks are cleared immediately.
 
 
 h2. Unbinding queues from exchanges

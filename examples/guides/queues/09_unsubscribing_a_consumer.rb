@@ -14,14 +14,12 @@ AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
       end
 
       EventMachine.add_timer(0.3) do
-        puts "Timer tick"
-        queue.unsubscribe do |_|
-          puts "Unsubscribed. Shutting down..."
+        queue.unsubscribe
+        puts "Unsubscribed. Shutting down..."
 
-          connection.close {
-            EM.stop { exit }
-          }
-        end
+        connection.close {
+          EM.stop { exit }
+        }
       end # EventMachine.add_timer
     end # channel.queue
   end
