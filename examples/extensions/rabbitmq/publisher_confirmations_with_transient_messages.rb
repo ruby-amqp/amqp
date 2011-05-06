@@ -13,13 +13,13 @@ AMQP.start do |connection|
   AMQP::Channel.new(connection) do |channel|
     puts "Channel #{channel.id} is now open"
 
-    channel.confirmations
+    channel.confirm_select
     channel.on_error do
       puts "Oops, there is a channel-levle exceptions!"
     end
 
 
-    channel.confirm do |basic_ack|
+    channel.on_ack do |basic_ack|
       puts "Received basic_ack: multiple = #{basic_ack.multiple}, delivery_tag = #{basic_ack.delivery_tag}"
     end
 
