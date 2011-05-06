@@ -425,7 +425,11 @@ module AMQP
         opts    = @default_publish_options.merge(options)
 
         @channel.once_open do
-          super(payload.to_s, opts[:key] || opts[:routing_key] || @default_routing_key, @default_headers.merge(options), opts[:mandatory], opts[:immediate], &block)
+          super(payload.to_s, opts[:key] || opts[:routing_key] || @default_routing_key, @default_headers.merge(options), opts[:mandatory], opts[:immediate])
+
+          # don't pass block to AMQ::Client::Exchange#publish because it will be executed
+          # immediately and we want to do it later. See ruby-amqp/amqp/#67 MK.
+          block.call if block
         end
       end
 
