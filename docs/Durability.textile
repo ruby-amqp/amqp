@@ -51,7 +51,37 @@ TBD
 
 h3. Publisher confirms
 
-TBD
+Because transactions carry certain (for some applications, significant) overhead, RabbitMQ introduced an extension to AMQP 0.9.1
+called {http://www.rabbitmq.com/blog/2011/02/10/introducing-publisher-confirms/ publisher confirms} ({http://www.rabbitmq.com/extensions.html#confirms documentation}).
+
+amqp gem implements support for this extension, but it is not loaded by default when you require "amqp". To load it, use
+
+<pre>
+<code>
+require "amqp/extensions/rabbitmq"
+</code>
+</pre>
+
+and then define a callback for publisher confirms using {AMQP::Channel#confirm}:
+
+<pre>
+<code>
+# enable publisher acknowledgements for this channel
+channel.confirm_select
+
+# define a callback that will be executed when message is acknowledged
+channel.on_ack do |basic_ack|
+  puts "Received an acknowledgement: delivery_tag = #{basic_ack.delivery_tag}, multiple = #{basic_ack.multiple}"
+end
+
+# define a callback that will be executed when message is rejected using basic.nack (a RabbitMQ-specific extension)
+channel.on_nack do |basic_nack|
+  puts "Received a nack: delivery_tag = #{basic_nack.delivery_tag}, multiple = #{basic_nack.multiple}"
+end
+</code>
+</pre>
+
+Note that the same callback is used for all messages published via all exchanges on the given channel.
 
 
 h3. Clustering

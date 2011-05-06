@@ -364,6 +364,8 @@ module AMQP
     # and distributed to any active consumers. Routing logic is determined by exchange type and
     # configuration as well as  message attributes (like :routing_key).
     #
+    #
+    #
     # h2. Data serialization
     #
     # Note that this method calls #to_s on payload argument value. You are encouraged to take care of
@@ -376,6 +378,21 @@ module AMQP
     # h2. Event loop blocking
     #
     # To minimize blocking of EventMachine event loop, this method performs network I/O on the next event loop tick.
+    #
+    #
+    #
+    # h2. Publishing and persistence
+    #
+    # In cases when you application cannot afford to lose a message, AMQP 0.9.1 has several features to offer:
+    #
+    # * Persistent messages
+    # * Messages acknowledgements
+    # * Transactions
+    # * (a RabbitMQ-specific extension) Publisher confirms
+    #
+    # This is a broad topic and we dedicate a separate guide, {file:docs/Durability.textile Durability and message persistence}, to it.
+    #
+    #
     #
     # @param  [#to_s] payload  Message payload (content). Note that this method calls #to_s on payload argument value.
     #                          You are encouraged to take care of data serialization before publishing (using JSON, Thrift,
