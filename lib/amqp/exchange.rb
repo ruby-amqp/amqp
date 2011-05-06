@@ -377,8 +377,16 @@ module AMQP
     #
     # h2. Event loop blocking
     #
-    # To minimize blocking of EventMachine event loop, this method performs network I/O on the next event loop tick.
+    # To minimize blocking of EventMachine event loop, this method performs network I/O on the next event loop tick. This means
+    # that shutting down the event loop immediately after {Exchange#publish} returns will result in message never being sent.
+    # If you need to send a one-off message and then stop the event loop, pass a block to {Exchange#publish} that will be executed
+    # after message is pushed down the network stack, and use {AMQP::Session#disconnect} to properly tear down AMQP connection
+    # (see example under Examples section below).
     #
+    # @example Publishing a one-off message and properly closing AMQP connection then stopping the event loop:
+    #   exchange.publish(data) do
+    #     connection.disconnect { EventMachine.stop }
+    #   end
     #
     #
     # h2. Publishing and persistence
