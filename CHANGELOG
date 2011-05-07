@@ -1,5 +1,6 @@
 = Version 0.8.0
 
+  * [WIP] AMQP::Utilities::EventLoopHelper detects app server (if any) being used and starts EventMachine reactor in an optimal way.
   * [FEATURE] AMQP 0.9.1 support, including tx.* operations class.
   * [API] Default authentication handler now raises AMQP::PossibleAuthenticationFailureError
   * [API] AMQP::Channel#initialize now takes 3rd (optional) options hash.
