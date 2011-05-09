@@ -331,17 +331,21 @@ module AMQP
       unless name == "amq.#{type}" or name.empty? or opts[:no_declare]
         @status = :opening
 
-        shim = Proc.new do |exchange, declare_ok|
-          case block.arity
-          when 1 then block.call(exchange)
-          else
-            block.call(exchange, declare_ok)
-          end
-        end
-
         unless @opts[:no_declare]
           @channel.once_open do
-            self.declare(passive = @opts[:passive], durable = @opts[:durable], auto_delete = @opts[:auto_delete], nowait = @opts[:nowait], @opts[:arguments], &shim)
+            if block
+              shim = Proc.new do |exchange, declare_ok|
+                case block.arity
+                when 1 then block.call(exchange)
+                else
+                  block.call(exchange, declare_ok)
+                end
+              end
+
+              self.declare(passive = @opts[:passive], durable = @opts[:durable], auto_delete = @opts[:auto_delete], nowait = @opts[:nowait], @opts[:arguments], &shim)
+            else
+              self.declare(passive = @opts[:passive], durable = @opts[:durable], auto_delete = @opts[:auto_delete], nowait = @opts[:nowait], @opts[:arguments])
+            end
           end
         end
       else
