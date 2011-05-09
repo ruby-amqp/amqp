@@ -18,6 +18,6 @@ EventMachine.run do
       }
     end
 
-    channel.direct("").publish "Hello, world!", :routing_key => queue.name
+    channel.direct("").publish "Hello, world!", :routing_key => "amqpgem.examples.helloworld"
   end
 end
