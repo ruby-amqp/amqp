@@ -22,8 +22,8 @@ AMQP.start("amqp://dev.rabbitmq.com:5672/") do |connection|
 
   exchange.publish("BOS 101, NYK 89").publish("ORL 85, ALT 88")
 
-  # disconnect & exit after 1 second
-  EventMachine.add_timer(1) do
+  # disconnect & exit after 2 seconds
+  EventMachine.add_timer(2) do
     exchange.delete
 
     connection.close {
