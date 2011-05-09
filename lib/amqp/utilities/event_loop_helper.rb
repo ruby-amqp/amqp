@@ -1,6 +1,8 @@
 require "eventmachine"
 require "amqp/utilities/server_type"
 
+require "thread"
+
 module AMQP
   module Utilities
     class EventLoopHelper
@@ -17,32 +19,28 @@ module AMQP
         @server_type ||= ServerType.detect
       end # self.server_type
 
-      def self.run(in_a_worker_process = false)
-        # TODO: make reentrant
+      def self.run
+        @eventmachine_thread  ||= begin
+                                    case self.server_type
+                                    when :thin, :goliath, :evented_mongrel then
+                                      Thread.current
+                                    when :unicorn, :passenger, :mongrel, :scgi, :webrick, nil then
+                                      t = Thread.new { EventMachine.run }
+                                      # give EventMachine reactor some time to start
+                                      sleep(0.25)
 
-        @eventmachine_thread  = case self.server_type
-                                when :thin, :goliath, :evented_mongrel then
-                                  Thread.current
-                                when :unicorn, :passenger then
-                                  EventMachine.stop if in_a_worker_process
+                                      t
+                                    else
+                                      t = Thread.new { EventMachine.run }
+                                      # give EventMachine reactor some time to start
+                                      sleep(0.25)
 
-                                  t = Thread.new { EventMachine.run }
-                                  # give EventMachine reactor some time to start
-                                  sleep(0.25)
-
-                                  t
-                                when :mongrel, :scgi, :webrick, nil then
-                                  t = Thread.new { EventMachine.run }
-                                  # give EventMachine reactor some time to start
-                                  sleep(0.25)
-
-                                  t
-                                end
+                                      t
+                                    end
+                                  end
       end # self.run
 
-      def self.stop
-        EventMachine.stop
-      end
+
     end # EventLoopHelper
   end # Utilities
 end # AMQP
