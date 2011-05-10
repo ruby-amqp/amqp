@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe AMQP do
+describe AMQP::Channel do
 
   #
   # Environment
@@ -11,6 +11,7 @@ describe AMQP do
   include EventedSpec::AMQPSpec
 
   default_timeout 2
+
 
   amqp_before do
     @channel = AMQP::Channel.new
