@@ -23,7 +23,25 @@
 
 module AMQP
   module Utilities
+    # A helper that detects Web server that may be running (if any). Partially derived
+    # from Qusion project by Daniel DeLeo.
     class ServerType
+
+      # Return a symbol representing Web server that is running (if any).
+      #
+      # Possible values are:
+      #
+      #  * :thin for Thin
+      #  * :unicorn for Unicorn
+      #  * :passenger for Passenger (Apache mod_rack)
+      #  * :goliath for PostRank's Goliath
+      #  * :evented_mongrel for Swiftiply's Evented Mongrel
+      #  * :mongrel for Mongrel
+      #  * :scgi for SCGI
+      #  * :webrick for WEBrick
+      #  * nil: none of the above (the case for non-Web application, for example)
+      #
+      # @return [Symbol]
       def self.detect
         if defined?(::PhusionPassenger)
           :passenger

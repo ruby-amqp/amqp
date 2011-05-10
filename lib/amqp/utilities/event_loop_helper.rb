@@ -26,6 +26,9 @@ module AMQP
         EventMachine.reactor_running?
       end # self.reactor_running?
 
+      # Type of server (if any) that is running.
+      #
+      # @see AMQP::Utilities::ServerType.detect
       def self.server_type
         @server_type ||= ServerType.detect
       end # self.server_type
@@ -40,16 +43,16 @@ module AMQP
       #
       # @example Using EventLoopHelper.run to start EventMachine reactor the optimal way without blocking current thread
       #
-      # AMQP::Utilities::EventLoopHelper.run do
-      #   # Sets up default connection, accessible via AMQP.connection, and opens a channel
-      #   # accessible via AMQP.channel for convenience
-      #   AMQP.start
+      #   AMQP::Utilities::EventLoopHelper.run do
+      #     # Sets up default connection, accessible via AMQP.connection, and opens a channel
+      #     # accessible via AMQP.channel for convenience
+      #     AMQP.start
       #
-      #   exchange          = AMQP.channel.fanout("amq.fanout")
+      #     exchange          = AMQP.channel.fanout("amq.fanout")
       #
-      #   AMQP.channel.queue("", :auto_delete => true, :exclusive => true).bind(exchange)
-      #   AMQP::channel.default_exchange.publish("Started!", :routing_key => AMQP::State.queue.name)
-      # end
+      #     AMQP.channel.queue("", :auto_delete => true, :exclusive => true).bind(exchange)
+      #     AMQP::channel.default_exchange.publish("Started!", :routing_key => AMQP::State.queue.name)
+      #   end
       #
       # @return [Thread] A thread EventMachine event loop will be started in (there is no guarantee it is already running).
       #
