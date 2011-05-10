@@ -10,11 +10,12 @@ describe AMQP do
 
   include EventedSpec::AMQPSpec
 
-  default_timeout 10
+  default_timeout 2
 
   amqp_before do
     @channel = AMQP::Channel.new
   end
+
 
 
   #
