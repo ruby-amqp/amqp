@@ -12,3 +12,4 @@ vendor
 
 .yardoc/*
 doc/*
+tmp/*
