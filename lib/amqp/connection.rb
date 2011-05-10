@@ -38,6 +38,7 @@ module AMQP
   def self.start(connection_options_or_string = {}, other_options = {}, &block)
     EM.run do
       @connection ||= connect(connection_options_or_string, other_options, &block)
+      @channel      = Channel.new(@connection)
       @connection
     end
   end
@@ -61,6 +62,10 @@ module AMQP
     EM.next_tick do
       shim = Proc.new {
         block.call
+        if AMQP.channel
+          AMQP.channel.close
+          AMQP.channel = nil
+        end
         AMQP.connection = nil
       }
       @connection.disconnect(reply_code, reply_text, &shim)
@@ -93,6 +98,26 @@ module AMQP
   # @api public
   def self.connection
     @connection
+  end
+
+  # "Default channel". A placeholder for apps that only want to use one channel. This channel is not global, *not* used
+  # under the hood by methods like {AMQP::Exchange#initialize} and only shared by exchanges/queues you decide on.
+  # To reiterate: this is only a conventience accessor, since many apps (especially Web apps) can get by with just one
+  # connection and one channel.
+  #
+  # @api public
+  def self.channel
+    @channel
+  end
+
+  # A placeholder for applications that only need one channel. If you use {AMQP.start} to set up default connection,
+  # {AMQP.channel} is open on that connection, but can be replaced by your application.
+  #
+  #
+  # @see AMQP.channel
+  # @api public
+  def self.channel=(value)
+    @channel = value
   end
 
   # Sets global connection object.
@@ -176,7 +201,8 @@ module AMQP
   # To handle it, pass a callable object (a proc, a lambda, an instance of a class that responds to #call)
   # with :on_possible_authentication_failure option.
   #
-  # @note This method assumes that EventMachine even loop is already running. If it is not the case or you are not sure, we recommend you use {AMQP.start} instead. It takes exactly the same parameters.
+  # @note This method assumes that EventMachine even loop is already running. If it is not the case or you are not sure, we recommend you use {AMQP.start} instead.
+  #       It takes exactly the same parameters.
   # @return [AMQP::Session]
   # @api public
   def self.connect(connection_options_or_string = {}, other_options = {}, &block)
