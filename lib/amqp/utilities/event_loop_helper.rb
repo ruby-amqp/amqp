@@ -19,19 +19,20 @@ module AMQP
         @server_type ||= ServerType.detect
       end # self.server_type
 
-      def self.run
+      def self.run(&block)
         @eventmachine_thread  ||= begin
                                     case self.server_type
                                     when :thin, :goliath, :evented_mongrel then
+                                      EventMachine.next_tick { block.call }
                                       Thread.current
                                     when :unicorn, :passenger, :mongrel, :scgi, :webrick, nil then
-                                      t = Thread.new { EventMachine.run }
+                                      t = Thread.new { EventMachine.run(&block) }
                                       # give EventMachine reactor some time to start
                                       sleep(0.25)
 
                                       t
                                     else
-                                      t = Thread.new { EventMachine.run }
+                                      t = Thread.new { EventMachine.run(&block) }
                                       # give EventMachine reactor some time to start
                                       sleep(0.25)
 
