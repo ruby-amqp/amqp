@@ -642,7 +642,7 @@ module AMQP
     # @deprecated
     # @api public
     def publish(data, opts = {})
-      exchange.publish(data, opts)
+      exchange.publish(data, opts.merge(:routing_key => self.name))
     end
 
     # Resets queue state. Useful for error handling.
