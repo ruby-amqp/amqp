@@ -25,7 +25,11 @@ group(:development) do
 
   custom_gem "nake",         :platform => :ruby_19
   custom_gem "contributors", :platform => :ruby_19
+
+  # To test event loop helper and various Rack apps
   gem "thin"
+  gem "goliath", :platform => :ruby_19
+  gem "unicorn", :platform => :ruby
 end
 
 group(:test) do
