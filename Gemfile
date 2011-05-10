@@ -28,7 +28,6 @@ group(:development) do
 
   # To test event loop helper and various Rack apps
   gem "thin"
-  gem "goliath", :platform => :ruby_19
   gem "unicorn", :platform => :ruby
 end
 
