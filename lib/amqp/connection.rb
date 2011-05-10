@@ -60,12 +60,15 @@ module AMQP
     return if @connection.nil? || self.closing?
 
     EM.next_tick do
+      if AMQP.channel and AMQP.channel.open? and AMQP.channel.connection.open?
+        AMQP.channel.close
+      end
+      AMQP.channel = nil
+
+
       shim = Proc.new {
         block.call
-        if AMQP.channel
-          AMQP.channel.close
-          AMQP.channel = nil
-        end
+
         AMQP.connection = nil
       }
       @connection.disconnect(reply_code, reply_text, &shim)
