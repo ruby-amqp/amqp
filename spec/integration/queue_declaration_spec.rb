@@ -16,6 +16,10 @@ describe AMQP do
     @channel = AMQP::Channel.new
   end
 
+  after(:all) do
+    AMQP.cleanup_state
+    done(0.3)
+  end
 
   #
   # Examples
@@ -28,13 +32,13 @@ describe AMQP do
       it "declares a new queue with that name" do
         queue = @channel.queue(name)
         queue.name.should == name
-        done
+        done(0.3)
       end
 
       it "caches that queue" do
         queue = @channel.queue(name)
         @channel.queue(name).object_id.should == queue.object_id
-        done
+        done(0.3)
       end
     end # context
 
@@ -68,7 +72,7 @@ describe AMQP do
             @channel.queue(name, different_options)
           }.to raise_error(AMQP::IncompatibleOptionsError)
           @queue.delete
-          done(0.2)
+          done(0.3)
         end
       end
     end
@@ -83,7 +87,7 @@ describe AMQP do
 
           queue.should == original_queue
 
-          done
+          done(0.3)
         end # it
       end
 
@@ -95,7 +99,7 @@ describe AMQP do
             exchange = @channel.queue("queue declared at #{Time.now.to_i}", :passive => true)
           }.to raise_error
 
-          done
+          done(0.3)
         end # it
       end # context
     end # context
@@ -111,7 +115,7 @@ describe AMQP do
           @channel.queue("previously.declared.durable.queue", :durable => false)
         }.to raise_error(AMQP::IncompatibleOptionsError)
 
-        done
+        done(0.3)
       end # it
     end # context
   end # describe
