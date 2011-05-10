@@ -18,8 +18,6 @@ Gem::Specification.new do |s|
   s.files = `git ls-files`.split("\n").reject { |file| file =~ /^vendor\// || file =~ /^gemfiles\// }
   s.require_paths = ["lib"]
 
-  # RDoc
-  s.has_rdoc = true
   s.rdoc_options = '--include=examples --main README.textile'
   s.extra_rdoc_files = ["README.textile"] + Dir.glob("docs/*")
 
