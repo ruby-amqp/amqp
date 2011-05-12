@@ -34,7 +34,7 @@ describe "Message published as mandatory" do
     it "is returned to the publisher via basic.return" do
       returned_messages  = []
 
-      @exchange.on_return do |basic_return|
+      @exchange.on_return do |basic_return, header, body|
         returned_messages << basic_return.reply_text
       end
       (1..10).to_a.each { |m| @exchange.publish(m, :immediate => true) }
