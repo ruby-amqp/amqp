@@ -1,5 +1,6 @@
 = Version 0.8.0
 
+  * [FEATURE] Returned messages, including header & content via AMQP::Exchange#on_publish. Callback accepts 3 args: basic_return, header, body
   * [BUG] Ruby 1.8.7-p249 is not supported because of this (p249-specific) Ruby bug: http://bit.ly/iONBmH
   * [FEATURE] AMQP::Utilities::EventLoopHelper detects app server (if any) being used and starts EventMachine reactor in an optimal way.
   * [FEATURE] AMQP 0.9.1 support, including tx.* operations class.
