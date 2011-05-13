@@ -7,7 +7,7 @@ describe "Authentication attempt" do
   # Environment
   #
 
-  include EventedSpec::AMQPSpec
+  include EventedSpec::EMSpec
   include EventedSpec::SpecHelper
 
 
