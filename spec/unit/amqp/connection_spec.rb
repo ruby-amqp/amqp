@@ -65,6 +65,8 @@ describe AMQP, 'class object' do
           @block_fired = true
 
           AMQP.connection.should be_connected
+          AMQP.channel.should_not be_nil
+          AMQP.channel.connection.should == AMQP.connection
         end
         done(0.1) { @block_fired.should be_true }
       end

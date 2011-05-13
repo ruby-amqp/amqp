@@ -14,6 +14,19 @@ module AMQP
     @client = mod
   end
 
+  def self.mutex
+    @mutex ||= Mutex.new
+  end
+
+  def self.channel
+    self.mutex.synchronize { @channel }
+  end
+
+  def self.channel=(value)
+    self.mutex.synchronize { @channel = value }
+  end
+
+
   module Client
     include EM::Deferrable
 

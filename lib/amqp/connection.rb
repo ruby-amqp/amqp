@@ -81,6 +81,9 @@ module AMQP
   def self.start *args, &blk
     EM.run {
       @conn ||= connect *args
+      @conn.callback { AMQP.channel = AMQP::Channel.new(@conn) }
+
+      # callback passed to .start must come last
       @conn.callback(&blk) if blk
       @conn
     }
@@ -91,11 +94,13 @@ module AMQP
   end
 
   def self.stop
-    if @conn and not @closing
+    if @conn && !@closing
       @closing = true
       EM.next_tick do
+        AMQP.channel.close
         @conn.close {
           yield if block_given?
+          @channel = nil
           @conn = nil
           @closing = false
         }
