@@ -26,6 +26,8 @@ describe AMQP do
       it 'declares a new direct exchange with that name' do
         @channel.direct('name').name.should == 'name'
 
+        @channel.direct('name').delete
+
         done
       end
 
@@ -35,6 +37,8 @@ describe AMQP do
         exchange.should_not be_durable
         exchange.should be_transient
 
+        exchange.delete
+
         done
       end
 
@@ -42,6 +46,7 @@ describe AMQP do
         exchange = @channel.direct('name')
 
         exchange.should_not be_auto_deleted
+        exchange.delete
 
         done
       end
@@ -58,7 +63,7 @@ describe AMQP do
 
     context "when exchange name was specified as a blank string" do
       it 'returns direct exchange with server-generated name' do
-        pending <<-EOF
+        pending << -EOF
       This has to be fixed in RabbitMQ first
       https://bugzilla.rabbitmq.com/show_bug.cgi?id=23509
     EOF
@@ -79,6 +84,9 @@ describe AMQP do
           exchange          = @channel.direct(name, :passive => true)
 
           exchange.should == original_exchange
+
+          original_exchange.delete
+          exchange.delete
 
           done
         end # it
@@ -104,6 +112,8 @@ describe AMQP do
         exchange.should be_durable
         exchange.should_not be_transient
 
+        exchange.delete
+
         done
       end # it
     end # context
@@ -115,6 +125,8 @@ describe AMQP do
         exchange.should_not be_durable
         exchange.should be_transient
 
+        exchange.delete
+
         done
       end # it
     end # context
@@ -125,6 +137,7 @@ describe AMQP do
         exchange = @channel.direct("a new auto-deleted direct exchange", :auto_delete => true)
 
         exchange.should be_auto_deleted
+        exchange.delete
         done
       end # it
     end # context
@@ -135,6 +148,7 @@ describe AMQP do
         exchange = @channel.direct("a new non-auto-deleted direct exchange", :auto_delete => false)
 
         exchange.should_not be_auto_deleted
+        exchange.delete
         done
       end # it
     end # context
@@ -145,6 +159,7 @@ describe AMQP do
         exchange = @channel.direct("a new non-auto-deleted direct exchange", :auto_delete => false)
 
         exchange.should_not be_auto_deleted
+        exchange.delete
         done
       end # it
     end # context
@@ -152,11 +167,13 @@ describe AMQP do
 
     context "when exchange is re-declared with parameters different from original declaration" do
       it "raises an exception" do
-        @channel.direct("previously.declared.durable.direct.exchange", :durable => true)
+        exchange = @channel.direct("previously.declared.durable.direct.exchange", :durable => true)
 
         expect {
           @channel.direct("previously.declared.durable.direct.exchange", :durable => false)
         }.to raise_error(AMQP::IncompatibleOptionsError)
+
+        exchange.delete
 
         done
       end # it
@@ -174,6 +191,7 @@ describe AMQP do
         exchange = @channel.fanout(name)
 
         exchange.name.should == name
+        exchange.delete
 
         done
       end
@@ -198,6 +216,9 @@ describe AMQP do
           exchange          = @channel.fanout(name, :passive => true)
 
           exchange.should == original_exchange
+
+          original_exchange.delete
+          exchange.delete
 
           done
         end # it
@@ -293,6 +314,8 @@ describe AMQP do
         exchange = @channel.topic(name)
         exchange.name.should == name
 
+        exchange.delete
+
         done
       end
     end # context
@@ -316,6 +339,8 @@ describe AMQP do
           exchange          = @channel.topic(name, :passive => true)
 
           exchange.should == original_exchange
+          original_exchange.delete
+          exchange.delete
 
           done
         end # it
@@ -341,6 +366,8 @@ describe AMQP do
         exchange.should be_durable
         exchange.should_not be_transient
 
+        exchange.delete
+
         done
       end # it
     end # context
@@ -351,6 +378,8 @@ describe AMQP do
         exchange = @channel.topic("a_new_non_durable_topic_exchange", :durable => false)
         exchange.should_not be_durable
         exchange.should be_transient
+
+        exchange.delete
 
         done
       end # it
@@ -372,6 +401,7 @@ describe AMQP do
         exchange = @channel.topic("a new non-auto-deleted topic exchange", :auto_delete => false)
 
         exchange.should_not be_auto_deleted
+        exchange.delete
         done
       end # it
     end # context
@@ -382,6 +412,7 @@ describe AMQP do
         exchange = @channel.topic("a new non-auto-deleted topic exchange", :auto_delete => false)
 
         exchange.should_not be_auto_deleted
+        exchange.delete
         done
       end # it
     end # context
@@ -395,12 +426,14 @@ describe AMQP do
       it "raises an exception" do
         channel = AMQP::Channel.new
 
-        channel.topic("previously.declared.durable.topic.exchange", :durable => true)
+        exchange = channel.topic("previously.declared.durable.topic.exchange", :durable => true)
         channel.should be_open
 
         expect {
           channel.topic("previously.declared.durable.topic.exchange", :durable => false)
         }.to raise_error(AMQP::IncompatibleOptionsError)
+
+        exchange.delete
 
         done
       end # it
@@ -418,6 +451,7 @@ describe AMQP do
         exchange = @channel.headers(name)
 
         exchange.name.should == name
+        exchange.delete
 
         done
       end
@@ -446,6 +480,8 @@ describe AMQP do
           exchange          = @channel.headers(name, :passive => true)
 
           exchange.should == original_exchange
+          original_exchange.delete
+          exchange.delete
 
           done
         end # it
@@ -471,6 +507,8 @@ describe AMQP do
         exchange.should be_durable
         exchange.should_not be_transient
 
+        exchange.delete
+
         done
       end # it
     end # context
@@ -482,6 +520,8 @@ describe AMQP do
         exchange.should_not be_durable
         exchange.should be_transient
 
+        exchange.delete
+
         done
       end # it
     end # context
@@ -492,6 +532,7 @@ describe AMQP do
         exchange = @channel.headers("a new auto-deleted headers exchange", :auto_delete => true)
 
         exchange.should be_auto_deleted
+
         done
       end # it
     end # context
@@ -502,6 +543,8 @@ describe AMQP do
         exchange = @channel.headers("a new non-auto-deleted headers exchange", :auto_delete => false)
 
         exchange.should_not be_auto_deleted
+        exchange.delete
+
         done
       end # it
     end # context
@@ -512,6 +555,8 @@ describe AMQP do
         exchange = @channel.headers("a new non-auto-deleted headers exchange", :auto_delete => false)
 
         exchange.should_not be_auto_deleted
+        exchange.delete
+
         done
       end # it
     end # context
@@ -523,11 +568,13 @@ describe AMQP do
       end
 
       it "raises an exception" do
-        @channel.headers("previously.declared.durable.topic.exchange", :durable => true)
+        exchange = @channel.headers("previously.declared.durable.topic.exchange", :durable => true)
 
         expect {
           @channel.headers("previously.declared.durable.topic.exchange", :durable => false)
         }.to raise_error(AMQP::IncompatibleOptionsError)
+
+        exchange.delete
 
         done
       end # it
