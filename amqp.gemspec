@@ -11,7 +11,6 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/ruby-amqp/amqp"
   s.summary = "AMQP client implementation in Ruby/EventMachine."
   s.description = "Asynchronous AMQP 0.9.1 client for Ruby. Built on top of Eventmachine."
-  s.cert_chain = nil
   s.email = ["bWljaGFlbEBub3ZlbWJlcmFpbi5jb20=\n", "c3Rhc3RueUAxMDFpZGVhcy5jeg==\n"].map { |i| Base64.decode64(i) }
 
   # files
@@ -19,7 +18,6 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   # RDoc
-  s.has_rdoc = true
   s.rdoc_options = '--include=examples --main README.md'
   s.extra_rdoc_files = ["README.md"] + Dir.glob("doc/*")
 
