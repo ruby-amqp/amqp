@@ -32,7 +32,7 @@ EventMachine.next_tick {
   end
 
 
-  payload = <<-MESSAGE
+  message = <<-MESSAGE
   Historical origin
 
   In May, 1974, the Institute of Electrical and Electronic Engineers (IEEE) published a paper entitled "A Protocol for Packet Network Interconnection."[1] The paper's authors, Vinton G. Cerf and Bob Kahn, described an internetworking protocol for sharing resources using packet-switching among the nodes. A central control component of this model was the Transmission Control Program that incorporated both connection-oriented links and datagram services between hosts. The monolithic Transmission Control Program was later divided into a modular architecture consisting of the Transmission Control Protocol at the connection-oriented layer and the Internet Protocol at the internetworking (datagram) layer. The model became known informally as TCP/IP, although formally it was henceforth called the Internet Protocol Suite.
@@ -389,6 +389,8 @@ EventMachine.next_tick {
 
   Many TCP/IP software stack implementations provide options to use hardware assistance to automatically compute the checksum in the network adapter prior to transmission onto the network or upon reception from the network for validation.
   MESSAGE
+
+  payload = message * 87
 
   puts "Publishing a message #{payload.bytesize} bytes in size"
   exchange.publish(payload, :routing_key => queue.name)
