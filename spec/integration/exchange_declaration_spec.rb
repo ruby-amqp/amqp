@@ -63,10 +63,10 @@ describe AMQP do
 
     context "when exchange name was specified as a blank string" do
       it 'returns direct exchange with server-generated name' do
-        pending << -EOF
-      This has to be fixed in RabbitMQ first
-      https://bugzilla.rabbitmq.com/show_bug.cgi?id=23509
-    EOF
+        pending <<-EOF
+          This has to be fixed in RabbitMQ first
+          https://bugzilla.rabbitmq.com/show_bug.cgi?id=23509
+        EOF
         @channel.direct("") do |exchange|
           exchange.name.should_not be_empty
           done
