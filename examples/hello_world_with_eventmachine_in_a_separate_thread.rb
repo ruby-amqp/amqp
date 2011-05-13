@@ -31,7 +31,7 @@ EventMachine.next_tick {
     }
   end
 
-  exchange.publish "Hello, world!", :routing_key => queue.name  
+  exchange.publish "Hello, world!", :routing_key => queue.name
 }
 
 t.join
