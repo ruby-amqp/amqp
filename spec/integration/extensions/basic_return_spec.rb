@@ -21,7 +21,7 @@ describe "Message published as mandatory" do
     @channel   = AMQP::Channel.new
     @channel.should be_open
 
-    @exchange = @channel.fanout
+    @exchange = @channel.fanout("amqpgem.specs.#{Time.now.to_i}", :auto_delete => true, :durable => false)
   end
 
   after(:all) do
