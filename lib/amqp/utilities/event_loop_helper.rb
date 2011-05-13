@@ -59,6 +59,12 @@ module AMQP
       #
       # @note This method, unlike EventMachine.run, DOES NOT block current thread.
       def self.run(&block)
+        if reactor_running?
+          EventMachine.run(&block)
+
+          return
+        end
+
         @eventmachine_thread  ||= begin
                                     case self.server_type
                                     when :thin, :goliath, :evented_mongrel then
@@ -78,6 +84,8 @@ module AMQP
                                       t
                                     end
                                   end
+
+        @eventmachine_thread
       end # self.run
 
 
