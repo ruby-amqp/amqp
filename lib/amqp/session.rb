@@ -51,25 +51,26 @@ module AMQP
     end # reconnect(force = false)
 
 
-    # Defines a callback that will be executed when AMQP connection is considered open,
+    # Defines a callback that will be executed when AMQP connection is considered open:
     # after client and broker has agreed on max channel identifier and maximum allowed frame
-    # size. You can define more than one callback.
+    # size and authentication succeeds. You can define more than one callback.
     #
-    # @see #on_open
+    # @see #on_closed
     # @api public
-    def on_connection(&block)
+    def on_open(&block)
       # defined here to make this method appear in YARD documentation. MK.
       super(&block)
-    end # on_connection(&block)
+    end # on_open(&block)
 
     # Defines a callback that will be run when broker confirms connection termination
     # (client receives connection.close-ok). You can define more than one callback.
     #
+    # @see #on_closed
     # @api public
-    def on_disconnection(&block)
+    def on_closed(&block)
       # defined here to make this method appear in YARD documentation. MK.
       super(&block)
-    end # on_disconnection(&block)
+    end # on_closed(&block)
 
     # Defines a callback that will be run when initial TCP connection fails.
     # You can define only one callback.
