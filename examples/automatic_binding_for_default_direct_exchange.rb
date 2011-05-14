@@ -20,7 +20,7 @@ end
 
 EM.run do
   connection = AMQP.connect
-  mq         = AMQP::Channel.new(connection)
+  ch         = AMQP::Channel.new(connection)
 
   show_stopper = Proc.new do
     $stdout.puts "Stopping..."
@@ -35,14 +35,14 @@ EM.run do
 
   $stdout.puts "Bound! Running #{AMQP::VERSION} version of the gem."
 
-  queue1    = mq.queue("queue1")
-  queue2    = mq.queue("queue2")
-  queue3    = mq.queue("queue3")
+  queue1    = ch.queue("queue1")
+  queue2    = ch.queue("queue2")
+  queue3    = ch.queue("queue3")
 
   queues    = [queue1, queue2, queue3]
 
   # Rely on default direct exchange binding, see section 2.1.2.4 Automatic Mode in AMQP 0.9.1 spec.
-  exchange = AMQP::Exchange.default
+  exchange = ch.default_exchange
 
   queue1.subscribe do |payload|
     puts "Got #{payload} for #{queue1.name}"
