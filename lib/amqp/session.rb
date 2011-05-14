@@ -62,17 +62,6 @@ module AMQP
       super(&block)
     end # on_connection(&block)
 
-    # Defines a callback that will be executed when AMQP connection is considered open,
-    # before client and broker has agreed on max channel identifier and maximum allowed frame
-    # size. You can define more than one callback.
-    #
-    # @see #on_connection
-    # @api public
-    def on_open(&block)
-      # defined here to make this method appear in YARD documentation. MK.
-      super(&block)
-    end # on_open(&block)
-
     # Defines a callback that will be run when broker confirms connection termination
     # (client receives connection.close-ok). You can define more than one callback.
     #

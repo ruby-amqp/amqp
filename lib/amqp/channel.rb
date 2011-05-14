@@ -225,7 +225,7 @@ module AMQP
 
       # only send channel.open when connection is actually open. Makes it possible to
       # do c = AMQP.connect; AMQP::Channel.new(c) that is what some people do. MK.
-      @connection.on_open do
+      @connection.on_connection do
         self.open do |ch, open_ok|
           @channel_is_open_deferrable.succeed
 
