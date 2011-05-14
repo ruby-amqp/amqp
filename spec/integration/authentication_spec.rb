@@ -71,6 +71,22 @@ describe "Authentication attempt" do
           connection = AMQP.connect(:username => "amqp_gem", :password => Time.now.to_i.to_s, :vhost => "/amqp_gem_testbed", :on_possible_authentication_failure => handler)
         end # it
       end
+
+
+      context "and provided vhost DOES NOT EXIST" do
+        default_timeout 10
+
+        after(:all) { done }
+
+        it "fails" do
+          handler = Proc.new { |settings|
+            puts "Callback has fired"
+            callback_has_fired = true
+            done
+          }
+          connection = AMQP.connect(:username => "amqp_gem", :password => Time.now.to_i.to_s, :vhost => "/a/b/c/#{rand}/#{Time.now.to_i}", :on_possible_authentication_failure => handler)
+        end # it
+      end
     end # context
   end
 
