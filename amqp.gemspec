@@ -24,14 +24,6 @@ Gem::Specification.new do |s|
   # Dependencies
   s.add_dependency "eventmachine"
 
-  begin
-    require "changelog"
-  rescue LoadError
-    warn "You have to have changelog gem installed for post install message"
-  else
-    s.post_install_message = CHANGELOG.new.version_changes
-  end
-
   # RubyForge
   s.rubyforge_project = "amqp"
 end
