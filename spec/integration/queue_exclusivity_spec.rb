@@ -62,7 +62,7 @@ describe "Exclusive queue" do
 
   include EventedSpec::AMQPSpec
 
-  default_timeout 1
+  default_timeout 3
 
   amqp_before do
     @connection1 = AMQP.connect
@@ -80,16 +80,18 @@ describe "Exclusive queue" do
     channel1 = AMQP::Channel.new(@connection1)
     channel2 = AMQP::Channel.new(@connection2)
 
-    AMQP::Queue.new(channel1, "amqpgem.integration.queues.exclusive", :exclusive => true)
-    sleep 0.1
+    AMQP::Queue.new(channel1, "amqpgem.integration.queues.exclusive", :exclusive => true, :auto_delete => true)
 
-    AMQP::Queue.new(channel2, "amqpgem.integration.queues.exclusive", :exclusive => true)
+    EventMachine.add_timer(1.0) do
+      AMQP::Queue.new(channel2, "amqpgem.integration.queues.exclusive", :exclusive => true, :auto_delete => true)
+    end
 
-
-    done(0.5) {
-      channel1.should_not be_closed
-      # because it is a channel-level exception
-      channel2.should be_closed
-    }
+    EventMachine.add_timer(1.3) do
+      done(0.5) {
+        channel1.should_not be_closed
+        # because it is a channel-level exception
+        channel2.should be_closed
+      }
+    end
   end
 end
