@@ -37,7 +37,9 @@ module AMQP
   # @api public
   def self.start(connection_options_or_string = {}, other_options = {}, &block)
     EM.run do
-      @connection   = connect(connection_options_or_string, other_options, &block)
+      if !@connection || @connection.closed? || @connection.closing?
+        @connection   = connect(connection_options_or_string, other_options, &block)
+      end
       @channel      = Channel.new(@connection)
       @connection
     end

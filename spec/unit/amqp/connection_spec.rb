@@ -76,12 +76,21 @@ describe AMQP, 'class object' do
 
     it 'should try to connect again in case previous conection failed' do
       em do
+        timeout(20)
+        error_handler = proc { EM.next_tick { AMQP.start(AMQP_OPTS) { done } } }
+        # Assuming that you don't run your amqp @ port 65535
+        AMQP.start(AMQP_OPTS.merge(:port => 65535, :on_tcp_connection_failure => error_handler))
+
+      end
+    end
+
+    it 'should keep connection if there was no failure' do
+      em do
         error_handler = proc {}
-        AMQP.start(:host => "google.com", :on_tcp_connection_failure => error_handler)
-        AMQP.start(AMQP_OPTS) { @block_fired = true }
-        done(0.1) {
-          @block_fired.should be_true
-        }
+        @block_fired_times = 0
+        AMQP.start(AMQP_OPTS) { @block_fired_times += 1 }
+        delayed(0.1) { AMQP.start(AMQP_OPTS) { @block_fired_times += 1 } }
+        done(0.2) { @block_fired_times.should == 1 }
       end
     end
   end # .start
