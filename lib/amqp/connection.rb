@@ -15,7 +15,7 @@ module AMQP
   # to AMQP broker using {AMQP.connect}. It is generally a good idea to
   # start EventMachine event loop in a separate thread and use {AMQP.connect}.
   # That said, for applications that do not publish or handle large volumes of
-  # data {AMQP.start} works very well and it's use is not discouraged.
+  # data {AMQP.start} works very well and its use is not discouraged.
   #
   # See {AMQP.connect} for information about arguments this method takes and
   # information about relevant topics such as authentication failure handling.
@@ -191,6 +191,7 @@ module AMQP
   # @option connection_options_or_string [String]  :username ("guest") Username to use. Also can be specified as :user.
   # @option connection_options_or_string [String]  :password ("guest") Password to use. Also can be specified as :pass.
   # @option connection_options_or_string [Hash]  :ssl TLS (SSL) parameters to use.
+  # @option connection_options_or_string [#call]  :on_tcp_connection_failure A callable object that will be run if connection to server fails
   # @option connection_options_or_string [#call]  :on_possible_authentication_failure A callable object that will be run if authentication fails (see Authentication failure section)
   #
   #
