@@ -92,7 +92,7 @@ describe "Authentication attempt" do
 
       context "and provided credentials are correct" do
         it "succeeds" do
-          connection = AMQP.connect "amqp://#{AMQP_OPTS[:username]}:#{AMQP_OPTS[:password]}@localhost#{AMQP_OPTS[:vhost]}"
+          connection = AMQP.connect "amqp://#{AMQP_OPTS[:username]}:#{AMQP_OPTS[:password]}@localhost/#{URI::escape AMQP_OPTS[:vhost], /[^-_.!~*'()a-zA-Z\d]/n}"
 
           done(0.3) {
             connection.should be_connected
@@ -103,7 +103,7 @@ describe "Authentication attempt" do
 
       context "and provided credentials ARE INCORRECT" do
         it "succeeds" do
-          connection = AMQP.connect "amqp://schadenfreude:#{Time.now.to_i}@localhost/"
+          connection = AMQP.connect "amqp://schadenfreude:#{Time.now.to_i}@localhost"
 
           done(0.5) {
             connection.should_not be_connected
