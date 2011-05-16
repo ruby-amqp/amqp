@@ -237,7 +237,7 @@ module AMQP
 
       opts[:user]  = URI.unescape(uri.user) if uri.user
       opts[:pass]  = URI.unescape(uri.password) if uri.password
-      opts[:vhost] = URI.unescape(uri.path) if uri.path
+      opts[:vhost] = URI.unescape($1) if uri.path =~ %r{^/([^/]*)}
       opts[:host]  = uri.host if uri.host
       opts[:port]  = uri.port || Hash["amqp" => 5672, "amqps" => 5671][uri.scheme]
       opts[:ssl]   = uri.scheme == "amqps"
