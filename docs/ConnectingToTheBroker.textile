@@ -101,7 +101,7 @@ EventMachine.run and {AMQP.connect} with a block is such a common combination th
 <code>
 require "amqp"
 
-AMQP.start("amqp://dev.rabbitmq.com:5672/") do |client|
+AMQP.start("amqp://dev.rabbitmq.com:5672") do |client|
   # connection is open and ready to be used
 end
 </code>

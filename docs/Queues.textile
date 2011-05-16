@@ -59,7 +59,7 @@ Here is an example:
 <pre>
 <code>
 # Declaring a server-named queue using AMQP::Queue constructor
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   AMQP::Channel.new do |channel, open_ok|
     AMQP::Queue.new(channel, "", :auto_delete => true) do |queue, declare_ok|
       puts "#{queue.name} is ready to go. AMQP method: #{declare_ok.inspect}"
@@ -78,7 +78,7 @@ If you want to declare a queue with a particular name, for example, "images.resi
 <pre>
 <code>
 # Declaring a server-named queue using AMQP::Queue constructor
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   AMQP::Channel.new do |channel, open_ok|
     AMQP::Queue.new(channel, "images.resize", :auto_delete => true) do |queue, declare_ok|
       puts "#{queue.name} is ready to go."
@@ -153,7 +153,7 @@ require "rubygems"
 require "amqp"
 
 # Declaring a client-named queue using AMQP::Queue constructor
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   AMQP::Channel.new do |channel, open_ok|
     AMQP::Queue.new(channel, "images.resize", :durable => true) do |queue, declare_ok|
       puts "#{queue.name} is ready to go."
@@ -178,7 +178,7 @@ require "rubygems"
 require "amqp"
 
 # Declaring a client-named queue using AMQP::Queue constructor
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   AMQP::Channel.new do |channel, open_ok|
     channel.queue("images.resize", :durable => true) do |queue, declare_ok|
       puts "#{queue.name} is ready to go."
@@ -207,7 +207,7 @@ require "rubygems"
 require "amqp"
 
 # Declaring a server-named queue using AMQP::Queue constructor
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   AMQP::Channel.new do |channel, open_ok|
     AMQP::Queue.new(channel, "", :auto_delete => true, :exclusive => true) do |queue, declare_ok|
       puts "#{queue.name} is ready to go."
@@ -232,7 +232,7 @@ require "rubygems"
 require "amqp"
 
 # Declaring a server-named queue using AMQP::Queue constructor
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   AMQP::Channel.new do |channel, open_ok|
     channel.queue("", :auto_delete => true, :exclusive => true) do |queue, declare_ok|
       puts "#{queue.name} is ready to go."
@@ -262,7 +262,7 @@ require "rubygems"
 require "amqp"
 
 # Binding a queue to an exchange
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   AMQP::Channel.new do |channel, open_ok|
     exchange = channel.fanout("amq.fanout")
 
@@ -289,7 +289,7 @@ require "rubygems"
 require "amqp"
 
 # Binding a queue to an exchange
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   AMQP::Channel.new do |channel, open_ok|
     exchange_name = "amq.fanout"
 
@@ -322,7 +322,7 @@ Then when a message arrives, message header and body (aka payload) are passed to
 require "rubygems"
 require "amqp"
 
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   AMQP::Channel.new do |channel, open_ok|
     exchange = channel.fanout("amq.fanout")
 
@@ -368,7 +368,7 @@ AMQP 0.9.1 also provides a way for applications to fetch (pull) messages from th
 require "rubygems"
 require "amqp"
 
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   AMQP::Channel.new do |channel, open_ok|
     exchange = channel.fanout("amq.fanout")
 
@@ -409,7 +409,7 @@ Sometimes it is necessary to unsubscribe from messages without deleting a queue.
 require "rubygems"
 require "amqp"
 
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   AMQP::Channel.new do |channel, open_ok|
     exchange = channel.fanout("amq.fanout")
 
@@ -449,7 +449,7 @@ To unbind queue from exchange, use {AMQP::Queue#unbind}:
 require "rubygems"
 require "amqp"
 
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   puts "Connected"
   AMQP::Channel.new(connection) do |channel, open_ok|
     puts "Opened a channel"
@@ -493,7 +493,7 @@ It is possible to purge (remove all messages from) a queue using {AMQP::Queue#pu
 require "rubygems"
 require "amqp"
 
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   puts "Connected"
   AMQP::Channel.new(connection) do |channel, open_ok|
     puts "Opened a channel"
@@ -533,7 +533,7 @@ To delete a queue, use {AMQP::Queue#delete}:
 require "rubygems"
 require "amqp"
 
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   puts "Connected"
   AMQP::Channel.new(connection) do |channel, open_ok|
     puts "Opened a channel"

@@ -28,7 +28,7 @@ MSG
 puts
 puts
 
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   AMQP::Channel.new do |channel, open_ok|
     puts "Channel ##{channel.id} is now open!"
 
