@@ -73,5 +73,16 @@ describe AMQP, 'class object' do
         done(0.1) { @block_fired.should be_true }
       end
     end
+
+    it 'should try to connect again in case previous conection failed' do
+      em do
+        error_handler = proc {}
+        AMQP.start(:host => "google.com", :on_tcp_connection_failure => error_handler)
+        AMQP.start(AMQP_OPTS) { @block_fired = true }
+        done(0.1) {
+          @block_fired.should be_true
+        }
+      end
+    end
   end # .start
 end # describe AMQP
