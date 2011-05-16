@@ -11,7 +11,7 @@ require 'amqp'
 
 puts "=> AMQP gem #{AMQP::VERSION}"
 puts
-AMQP.start do |connection, open_ok|
+AMQP.start do |connection|
   channel = AMQP::Channel.new
   puts "Channel ##{channel.channel} is now open!"
 
