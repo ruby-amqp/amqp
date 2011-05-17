@@ -11,7 +11,7 @@ require 'amqp'
 
 puts "=> Queue redeclaration with different attributes results in a channel exception that is handled"
 puts
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   ch1 = AMQP::Channel.new(connection) do |ch, open_ok|
     puts "Channel ##{ch.id} is now open!"
   end

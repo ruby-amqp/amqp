@@ -4,7 +4,7 @@
 require "rubygems"
 require "amqp"
 
-AMQP.start("amqp://dev.rabbitmq.com:5672/") do |connection|
+AMQP.start("amqp://dev.rabbitmq.com:5672") do |connection|
   channel  = AMQP::Channel.new(connection)
   exchange = channel.fanout("nba.scores")
 
