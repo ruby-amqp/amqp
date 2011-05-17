@@ -219,27 +219,33 @@ module AMQP
     end # server_named?
 
 
-    # This method binds a queue to an exchange.  Until a queue is
-    # bound it will not receive any messages.  In a classic messaging
+    # This method binds a queue to an exchange. Until a queue is
+    # bound it will not receive any messages. In a classic messaging
     # model, store-and-forward queues are bound to a dest exchange
     # and subscription queues are bound to a dest_wild exchange.
     #
     # A valid exchange name (or reference) must be passed as the first
     # parameter.
-    # @example Both of these are valid
-    #  exch = AMQP::Channel.direct('foo exchange')
-    #  queue = AMQP::Channel.queue('bar queue')
-    #  queue.bind('foo.exchange') # OR
-    #  queue.bind(exch)
+    # @example Binding a queue to exchange using AMQP::Exchange instance
     #
-    # It is not valid to call #bind without the +exchange+ parameter.
+    #  ch       = AMQP::Channel.new(connection)
+    #  exchange = ch.direct('backlog.events')
+    #  queue    = ch.queue('', :exclusive => true)
+    #  queue.bind(exchange)
     #
-    # It is unnecessary to call #bind when the exchange name and queue
-    # name match exactly (for :direct and :fanout exchanges only).
-    # There is an implicit bind which will deliver the messages from
-    # the exchange to the queue.
     #
-    # @param [Exchange] Exchange to bind to.
+    # @example Binding a queue to exchange using exchange name
+    #
+    #  ch       = AMQP::Channel.new(connection)
+    #  queue    = ch.queue('', :exclusive => true)
+    #  queue.bind('backlog.events')
+    #
+    #
+    # Note that if your producer application knows consumer queue name and wants to deliver
+    # a message there, direct exchange may be sufficient (in other words, if your code declares an exchange with
+    # the same name as a queue and binds it to that queue, consider using the default exchange and routing key on publishing).
+    #
+    # @param [Exchange] Exchange to bind to. May also be a string or any object that responds to #name.
     #
     # @option opts [String] :routing_key   Specifies the routing key for the binding. The routing key is
     #                                      used for routing messages depending on the exchange configuration.
