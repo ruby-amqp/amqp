@@ -568,7 +568,7 @@ This tutorial ends here. Congratulations! You have learned quite a bit about bot
 
 h2. What to read next
 
-Documentation is organized as a {file:docs/DocumentationGuidesIndex.textile Routing guide number of guides}, covering all kinds of
+Documentation is organized as a {file:docs/DocumentationGuidesIndex.textile Number of guides}, covering all kinds of
 topics from {file:docs/Routing.textile routing} to {file:docs/ErrorHandling.textile error handling} to
 {file:docs/VendorSpecificExchanges.textile Broker-specific AMQP 0.9.1 extensions}.
 
