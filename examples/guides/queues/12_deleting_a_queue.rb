@@ -4,7 +4,7 @@
 require "rubygems"
 require "amqp"
 
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   puts "Connected"
   AMQP::Channel.new(connection) do |channel, open_ok|
     puts "Opened a channel"

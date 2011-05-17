@@ -171,7 +171,7 @@ module AMQP
   #
   # @example Using AMQP.connect to connect to a public RabbitMQ instance with connection settings given as a URI
   #
-  #   AMQP.connect "amqp://guest:guest@dev.rabbitmq.com:5672/", :on_possible_authentication_failure => Proc.new { puts("Looks like authentication has failed") } do |connection|
+  #   AMQP.connect "amqp://guest:guest@dev.rabbitmq.com:5672", :on_possible_authentication_failure => Proc.new { puts("Looks like authentication has failed") } do |connection|
   #     AMQP::Channel.new(connection) do |channel|
   #       # ...
   #     end

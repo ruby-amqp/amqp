@@ -80,7 +80,7 @@ module AMQP
   # It is possible (and, indeed, recommended) to handle channel-level exceptions by defining an errback using #on_error:
   #
   # @example Queue declaration with incompatible attributes results in a channel-level exception
-  #   AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672/") do |connection, open_ok|
+  #   AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   #     AMQP::Channel.new do |channel, open_ok|
   #       puts "Channel ##{channel.id} is now open!"
   #
