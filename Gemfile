@@ -29,6 +29,7 @@ group(:development) do
   # To test event loop helper and various Rack apps
   gem "thin"
   gem "unicorn", :platform => :ruby
+  gem "changelog"
 end
 
 group(:test) do
