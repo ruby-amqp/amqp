@@ -926,6 +926,32 @@ module AMQP
     end
 
 
+    #
+    # Backwards compatibility with 0.6.x
+    #
+
+    # unique identifier
+    # @deprecated
+    def self.id
+      Thread.current[:mq_id] ||= "#{`hostname`.strip}-#{Process.pid}-#{Thread.current.object_id}"
+    end
+
+    # @private
+    # @deprecated
+    def self.default
+      # TODO: clear this when connection is closed
+      Thread.current[:mq] ||= AMQP::Channel.new
+    end
+
+    # Allows for calls to all MQ instance methods. This implicitly calls
+    # AMQP::Channel.new so that a new channel is allocated for subsequent operations.
+    # @deprecated
+    def self.method_missing(meth, *args, &blk)
+      self.default.__send__(meth, *args, &blk)
+    end
+
+
+
     protected
 
     # @private
