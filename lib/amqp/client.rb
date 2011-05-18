@@ -40,8 +40,27 @@ module AMQP
       end
     end
 
-    # Parses AMQP connection string and returns it's components as a hash. Note that even though some brokers use /
-    # as the default vhost parameter, it can be *any string*.
+    # Parses AMQP connection string and returns it's components as a hash.
+    #
+    # h2. vhost naming schemes
+    #
+    # AMQP 0.9.1 spec does not define what vhost naming scheme should be. RabbitMQ and Apache Qpid use different schemes
+    # (Qpid said to have two) but the bottom line is: even though some brokers use / as the default vhost, it can be *any string*.
+    # Host (and optional port) part must be separated from vhost (path component) with a slash character (/).
+    #
+    # This method will also unescape path part of the URI.
+    #
+    # @example How vhost is parsed
+    #
+    #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com")            # => vhost is nil, so default (/) will be used
+    #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/")           # => vhost is an empty string
+    #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com//")          # => vhost is /
+    #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com//vault")     # => vhost is /vault
+    #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/%2Fvault")   # => vhost is /vault
+    #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/production") # => vhost is production
+    #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/a.b.c")      # => vhost is a.b.c
+    #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com///a/b/c/d")  # => vhost is //a/b/c/d
+    #
     #
     # @param [String] connection_string AMQP connection URI, à la JDBC connection string. For example: amqp://bus.megacorp.internal:5877.
     # @return [Hash] Connection parameters (:username, :password, :vhost, :host, :port, :ssl)
@@ -56,12 +75,14 @@ module AMQP
 
       opts = {}
 
-      opts[:user]  = URI.unescape(uri.user) if uri.user
-      opts[:pass]  = URI.unescape(uri.password) if uri.password
-      opts[:vhost] = URI.unescape($1) if uri.path =~ %r{^/([^/]*)}
-      opts[:host]  = uri.host if uri.host
-      opts[:port]  = uri.port || AMQP_PORTS[uri.scheme]
-      opts[:ssl]   = uri.scheme == AMQPS
+
+      opts[:scheme] = uri.scheme
+      opts[:user]   = URI.unescape(uri.user) if uri.user
+      opts[:pass]   = URI.unescape(uri.password) if uri.password
+      opts[:vhost]  = URI.unescape($1) if uri.path =~ %r{^/(.*)}
+      opts[:host]   = uri.host if uri.host
+      opts[:port]   = uri.port || AMQP_PORTS[uri.scheme]
+      opts[:ssl]    = uri.scheme == AMQPS
 
       opts
     end
