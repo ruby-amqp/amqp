@@ -8,6 +8,8 @@ $:.unshift(File.expand_path("../../../lib", __FILE__))
 
 require 'amqp'
 
+puts "Running amqp gem #{AMQP::VERSION}"
+
 AMQP.start(:host => "localhost") do |connection|
   channel  = AMQP::Channel.new(connection)
   exchange = channel.fanout("logs", :auto_delete => false)
