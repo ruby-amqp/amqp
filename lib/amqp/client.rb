@@ -46,6 +46,8 @@ module AMQP
     # @param [String] connection_string AMQP connection URI, à la JDBC connection string. For example: amqp://bus.megacorp.internal:5877.
     # @return [Hash] Connection parameters (:username, :password, :vhost, :host, :port, :ssl)
     #
+    # @raise [ArgumentError] When connection URI schema is not amqp or amqps.
+    #
     # @see http://bit.ly/ks8MXK Connecting to The Broker documentation guide
     # @api public
     def self.parse_connection_uri(connection_string)
