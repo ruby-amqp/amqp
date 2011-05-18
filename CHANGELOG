@@ -1,5 +1,6 @@
 = Version 0.8.0
 
+  * [API] Connection URI (string) format for vhosts no longer assumes that vhosts begin with a slash (/), learn more at http://bit.ly/mfzwcB
   * [FEATURE] Returned messages, including header & content via AMQP::Exchange#on_publish. Callback accepts 3 args: basic_return, header, body
   * [BUG] Ruby 1.8.7-p249 is not supported because of this (p249-specific) Ruby bug: http://bit.ly/iONBmH
   * [FEATURE] AMQP::Utilities::EventLoopHelper detects app server (if any) being used and starts EventMachine reactor in an optimal way.
