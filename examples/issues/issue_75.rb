@@ -10,9 +10,10 @@ require 'amqp'
 
 AMQP.start(:host => "localhost") do |connection|
   channel  = AMQP::Channel.new(connection)
-  exchange = channel.fanout("logs", :auto_delete => false)
+  channel.fanout("logs.nad", :auto_delete => false)
+  channel.fanout("logs.ad",  :auto_delete => true)
 
-  EM.add_timer(500) do
+  EM.add_timer(1) do
     connection.close do
       EM.stop { exit }
     end
