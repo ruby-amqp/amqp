@@ -458,7 +458,7 @@ exception on TCP connection <0.4770.0> from 127.0.0.1:46551
                             'connection.start_ok'}}
 </pre>
 
-This means that connectiong attempt with username pipeline_agent failed because credentials were invalid. If you are seeing this message, make sure username,
+This means that connection attempt with username pipeline_agent failed because credentials were invalid. If you are seeing this message, make sure username,
 password *and vhost* are correct.
 
 
