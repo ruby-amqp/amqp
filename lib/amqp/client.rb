@@ -50,7 +50,7 @@ module AMQP
     # @api public
     def self.parse_connection_uri(connection_string)
       uri = URI.parse(connection_string)
-      raise("Connection URI must use amqp or amqps schema (example: amqp://bus.megacorp.internal:5766), learn more at http://bit.ly/ks8MXK") unless %w{amqp amqps}.include?(uri.scheme)
+      raise ArgumentError.new("Connection URI must use amqp or amqps schema (example: amqp://bus.megacorp.internal:5766), learn more at http://bit.ly/ks8MXK") unless %w{amqp amqps}.include?(uri.scheme)
 
       opts = {}
 
