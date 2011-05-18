@@ -22,7 +22,7 @@ describe AMQP::Client do
     it "handles amqp:// URIs w/o path part" do
       val = described_class.parse_connection_uri("amqp://dev.rabbitmq.com")
 
-      val[:vhost].should be_nil
+      val[:vhost].should be_nil # in this case, default / will be used
       val[:host].should == "dev.rabbitmq.com"
       val[:port].should == 5672
       val[:scheme].should == "amqp"
@@ -128,6 +128,21 @@ describe AMQP::Client do
         val[:scheme].should == "amqp"
         val[:ssl].should be_false
         val[:vhost].should == "//a/b/c/d"
+      end
+    end
+
+
+    context "when URI has username:password, for instance, amqp://hedgehog:t0ps3kr3t@hub.megacorp.internal" do
+      it "parses them out" do
+        val = described_class.parse_connection_uri("amqp://hedgehog:t0ps3kr3t@hub.megacorp.internal")
+
+        val[:host].should == "hub.megacorp.internal"
+        val[:port].should == 5672
+        val[:scheme].should == "amqp"
+        val[:ssl].should be_false
+        val[:user].should == "hedgehog"
+        val[:pass].should == "t0ps3kr3t"
+        val[:vhost].should be_nil # in this case, default / will be used
       end
     end
   end

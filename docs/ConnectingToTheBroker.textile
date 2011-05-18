@@ -23,8 +23,86 @@ server and code required to establish connection to AMQP broker needs to be a li
 bit different.
 
 
+h2. Two ways to specify connection parameters
 
-h2. In standalone applications
+Connection parameters (host, port, username, vhost and so on) can be passed in two forms:
+
+ * As a hash
+ * As a connection URI string (à la JDBC)
+
+
+h3. Using a hash
+
+Hash options amqp gem will recognize are
+
+ * :host
+ * :port
+ * :username (aliased as :user)
+ * :password (aliased as :pass)
+ * :vhost
+ * :ssl
+ * :timeout
+ * :frame_max
+
+h4. Default parameters
+
+Default connection parameters are
+
+<pre>
+<code>
+{
+  :host      => "127.0.0.1",
+  :port      => 5672,
+  :user      => "guest",
+  :pass      => "guest",
+  :vhost     => "/",
+  :ssl       => false,
+  :frame_max => 131072
+}
+</code>
+</pre>
+
+
+h3. Using connection strings
+
+It is possible to use connection URIs (à la JDBC) with amqp and amqps schemas, for example:
+
+ * amqp://dev.rabbitmq.com
+ * amqp://dev.rabbitmq.com:5672
+ * amqp://guest:guest@dev.rabbitmq.com:5672
+ * amqp://hedgehog:t0ps3kr3t@hub.megacorp.internal/production
+ * amqps://hub.megacorp.internal//
+
+Two supported schemas are *amqp* and *amqps*. Default port for amqp is 5672. If port isn't given, and schema
+is amqps, amqp gem will assume it has to connect to 5671, default port for amqps.
+
+h4. Vhosts: naming schemas and parsing
+
+AMQP 0.9.1 spec does not define what vhost naming scheme should be. RabbitMQ and Apache Qpid use different schemes
+(Qpid said to have two) but the bottom line is: even though some brokers use / as the default vhost, it can be *any string*.
+Host (and optional port) part must be separated from vhost (path component) with a slash character (/).
+
+Here are some examples that demonstrate how {AMQP::Client.parse_connection_uri} parses out vhost from connection URI:
+
+<pre>
+<code>
+AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com")            # => vhost is nil, so default (/) will be used
+AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/")           # => vhost is an empty string
+AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com//")          # => vhost is /
+AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com//vault")     # => vhost is /vault
+AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/%2Fvault")   # => vhost is /vault
+AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/production") # => vhost is production
+AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/a.b.c")      # => vhost is a.b.c
+AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com///a/b/c/d")  # => vhost is //a/b/c/d
+</code>
+</pre>
+
+{AMQP::Client.parse_connection_uri} will also unescape path part of the URI.
+
+
+
+
+h2. Starting event loop & connecting in standalone applications
 
 h3. EventMachine event loop
 
@@ -48,7 +126,7 @@ Standalone applications often can afford starting event loop on the main thread.
 recommended way.
 
 
-h3. AMQP.connect with a block
+h3. Using AMQP.connect with a block
 
 Once event loop is running, {AMQP.connect} method will attempt to connect to the broker. It can be used in two ways. Here is the
 first one:
@@ -70,7 +148,7 @@ end
 authentication succeeded, broker and client finished negotiating connection parameters like max frame size).
 
 
-h3. AMQP.connect without a callback
+h3. Using AMQP.connect without a callback
 
 Alternative way of connecting is this:
 
@@ -93,7 +171,8 @@ arise from attempts to use a connection object that is not fully opened yet. For
 with the block version, as we will see in the following sections.
 
 
-h3. AMQP.start
+
+h3. Using AMQP.start
 
 EventMachine.run and {AMQP.connect} with a block is such a common combination that amqp gem provides a shortcut:
 
@@ -275,7 +354,7 @@ it means that authentication has failed.
 
 
 
-h2. In Web applications (Ruby on Rails, Sinatra, Merb, Rack)
+h2. Starting event loop & connecting in Web applications (Ruby on Rails, Sinatra, Merb, Rack)
 
 Web applications are different from standalone applications in that main thread is occupied by Web/application server like Unicorn
 or Thin, so you need to start EventMachine reactor before you attempt to use {AMQP.connect}.
@@ -343,6 +422,57 @@ EventMachine.next_tick { AMQP.connect(...) }
 
 So in case EventMachine reactor isn't running yet on server/application boot, connection won't fail but instead wait for reactor to start.
 Thin and Goliath are not pre-forking servers so there is no need to re-establish connection the way you do it with Unicorn and Passenger.
+
+
+
+
+h2. If it just doesn't work: troubleshooting
+
+If you read this guide yet your issue is still unresolved, check the following things before asking on the mailing list:
+
+ * AMQP broker log.
+ * List of users in a particular vhost you are trying to connect
+ * Network connectivity. We know, it's obvious, yet even experienced developers and devops engineers struggle with network access misconfigurations every once in a while.
+ * If EventMachine is started in a separate thread, make sure that isn't dead. If it is, this usually means there was an exception that caused it to terminate.
+
+
+h3. Inspecting AMQP broker log file
+
+In this section we will cover typical problems that can be tracked down by reading AMQP broker log. We will use RabbitMQ as an example, however, different AMQP brokers
+often log most of the same issues.
+
+RabbitMQ logs abrupt TCP connection failures, timeouts, protocol version mismatches and so on.
+If you are running RabbitMQ, log locations for various operating systems and distributions is documented in the "RabbitMQ installation guide":http://www.rabbitmq.com/install.html
+
+On Mac OS X, RabbitMQ installed via Homebrew logs to $HOMEBREW_HOME/var/log/rabbitmq/rabbit@$HOSTNAME.log. For example, if you have Homebrew installed at /usr/local and
+your hostname is giove, log will be at /usr/local/var/log/rabbitmq/rabbit@giove.log.
+
+Here is what authentication failure looks like in RabbitMQ log:
+
+<pre>
+=ERROR REPORT==== 17-May-2011::17:37:58 ===
+exception on TCP connection <0.4770.0> from 127.0.0.1:46551
+{channel0_error,starting,
+                {amqp_error,access_refused,
+                            "AMQPLAIN login refused: user 'pipeline_agent' - invalid credentials",
+                            'connection.start_ok'}}
+</pre>
+
+This means that connectiong attempt with username pipeline_agent failed because credentials were invalid. If you are seeing this message, make sure username,
+password *and vhost* are correct.
+
+
+The following entry:
+
+<pre>
+=ERROR REPORT==== 17-May-2011::17:26:28 ===
+exception on TCP connection <0.4201.62> from 10.8.0.30:57990
+{bad_header,<<65,77,81,80,0,0,9,1>>}
+</pre>
+
+Means that client supports AMQP 0.9.1 but broker doesn't (RabbitMQ versions pre-2.0 only support AMQP 0.8, for example). If you are using amqp gem 0.8 or later
+and seeing this entry in your broker log, you are connecting to AMQP broker that is too old to support this AMQP version. In case of RabbitMQ, make sure you run
+version 2.0 or later.
 
 
 
