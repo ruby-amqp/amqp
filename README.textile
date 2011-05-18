@@ -37,7 +37,7 @@ Specific examples:
    there are some new results.
 
  * Content aggregators may update full-text search and geospatial search indexes
-         by delegating actual indexing work to other applications over AMQP.
+   by delegating actual indexing work to other applications over AMQP.
 
  * Companies may provide "Firehose-like" push APIs to their customers, partners
    or just general public.
@@ -47,7 +47,7 @@ Specific examples:
 
  * An application that watches updates from a real-time stream (be it markets data
    or Twitter stream) can propagate updates to interested parties, including
-         Web applications that display that information in the real time.
+   Web applications that display that information in the real time.
 
 
 
