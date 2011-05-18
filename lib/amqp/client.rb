@@ -21,6 +21,8 @@ module AMQP
     # @see AMQP.start
     # @see AMQP.connect
     # @api plugin
+    #
+    # @see http://bit.ly/ks8MXK Connecting to The Broker documentation guide
     def self.connect(connection_string_or_options = {}, options = {}, &block)
       opts = case connection_string_or_options
              when String then
@@ -38,14 +40,17 @@ module AMQP
       end
     end
 
-    # Parses AMQP connection string and returns it's components as a hash.
+    # Parses AMQP connection string and returns it's components as a hash. Note that even though some brokers use /
+    # as the default vhost parameter, it can be *any string*.
     #
-    # @param [String] connection_string AMQP connection URI, à la JDBC connection string. For example: amqp://bus.megacorp.internal:5877/qa
+    # @param [String] connection_string AMQP connection URI, à la JDBC connection string. For example: amqp://bus.megacorp.internal:5877.
     # @return [Hash] Connection parameters (:username, :password, :vhost, :host, :port, :ssl)
+    #
+    # @see http://bit.ly/ks8MXK Connecting to The Broker documentation guide
     # @api public
     def self.parse_connection_uri(connection_string)
       uri = URI.parse(connection_string)
-      raise("Connection URI must use amqp or amqps schema (example: amqp://bus.megacorp.internal:5766/testbed)") unless %w{amqp amqps}.include?(uri.scheme)
+      raise("Connection URI must use amqp or amqps schema (example: amqp://bus.megacorp.internal:5766), learn more at http://bit.ly/ks8MXK") unless %w{amqp amqps}.include?(uri.scheme)
 
       opts = {}
 
