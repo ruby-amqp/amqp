@@ -1,3 +1,5 @@
+# @title Ruby AMQP gem: Clustering
+
 h1. Clustering
 
 

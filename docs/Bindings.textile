@@ -1,3 +1,5 @@
+# @title Ruby AMQP gem: Bindings
+
 h1. TBD
 
 

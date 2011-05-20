@@ -1,3 +1,5 @@
+# @title Ruby AMQP gem: using vendor-specific AMQP extensions
+
 h1. Vendor-specific AMQP extensions support in amqp gem
 
 h2. RabbitMQ extensions

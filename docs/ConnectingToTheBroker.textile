@@ -1,3 +1,5 @@
+# @title Ruby AMQP gem: Connecting to the broker
+
 h1. Connecting to the broker
 
 
