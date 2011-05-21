@@ -116,7 +116,8 @@ code readability, API beauty and autotomated testing across 5 Ruby implementatio
 
 h3. Tutorials
 
-We have written and maintain "Getting started guide":http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/GettingStarted.textile that is written in form of a tutorial.
+"Getting started guide":http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/GettingStarted.textile is written as a tutorial that walks you through
+3 examples: from the "Hello, world" of messaging to many-to-many communication with sophisticated routing. All in under 20 minutes.
 Check it out! If something isn't clear, every guide explains how to contact documentation authors.
 
 
