@@ -12,7 +12,6 @@ describe AMQP::Channel, "#close(&callback)" do
       @events << :open_ok
       ch.close do |channel, close_ok|
         @events << :close_ok
-        puts "My effin callback has fired! {close_ok.inspect}"
       end
     end
 
