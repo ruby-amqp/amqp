@@ -62,7 +62,7 @@ that has recent versions of RabbitMQ. Learn more in {file:docs/RabbitMQVersions.
 
 h3. Install the gem
 
-<pre>gem install amqp</pre>
+<pre>gem install amqp --pre # installs 0.8.0.RCs</pre>
 
 
 h3. "Hello, World" example
