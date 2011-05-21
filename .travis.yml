@@ -4,7 +4,6 @@ rvm:
   - 1.9.2
   - ree
   - rbx
-  - jruby
 gemfile:
   - Gemfile
   - gemfiles/eventmachine-pre
