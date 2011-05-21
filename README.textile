@@ -129,15 +129,15 @@ Note that those examples are written against version 0.8.0.rc1 and later. 0.6.x 
 may not support certain AMQP protocol or "DSL syntax" features.
 
 
-h3. Guides
+h3. Documentation guides
 
 "Documentation guides":http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/DocumentationGuidesIndex.textile describe
-the library itself as well as AMQP usage scenarios, routing, error handing & recovery, broker-specific extensions, TLS support  and so on.
+the library itself as well as AMQP usage scenarios, topics like routing, error handing & recovery, broker-specific extensions, TLS support and so on.
 
 
 h3. API reference
 
-"Reference documentation":http://rdoc.info/github/ruby-amqp/amqp/master/frames is up on rdoc.info and is updated daily.
+"API reference":http://rdoc.info/github/ruby-amqp/amqp/master/frames is up on rdoc.info and is updated daily.
 
 *If you don't find your answer in documentation, we consider it a high severity bug* that you should "file to us":http://github.com/ruby-amqp/amqp/issues.
 
