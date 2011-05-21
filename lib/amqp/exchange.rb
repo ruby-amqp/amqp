@@ -381,8 +381,16 @@ module AMQP
     #
     # h2. Event loop blocking
     #
-    # To minimize blocking of EventMachine event loop, this method performs network I/O on the next event loop tick. This means
-    # that shutting down the event loop immediately after {Exchange#publish} returns will result in message never being sent.
+    # When intermixing publishing of many messages with other workload that may take some time, even loop blocking may affect the performance.
+    # There are several ways to avoid it:
+    #
+    # * Run EventMachine in a separate thread.
+    # * Use EventMachine.next_tick.
+    # * Use EventMachine.defer to offload operation to EventMachine thread pool.
+    #
+    #
+    # h2. Sending one-off messages
+    #
     # If you need to send a one-off message and then stop the event loop, pass a block to {Exchange#publish} that will be executed
     # after message is pushed down the network stack, and use {AMQP::Session#disconnect} to properly tear down AMQP connection
     # (see example under Examples section below).
@@ -450,16 +458,14 @@ module AMQP
     #       persistence.
     # @api public
     def publish(payload, options = {}, &block)
-      EM.next_tick do
-        opts    = @default_publish_options.merge(options)
+      opts    = @default_publish_options.merge(options)
 
-        @channel.once_open do
-          super(payload.to_s, opts[:key] || opts[:routing_key] || @default_routing_key, @default_headers.merge(options), opts[:mandatory], opts[:immediate])
+      @channel.once_open do
+        super(payload.to_s, opts[:key] || opts[:routing_key] || @default_routing_key, @default_headers.merge(options), opts[:mandatory], opts[:immediate])
 
-          # don't pass block to AMQ::Client::Exchange#publish because it will be executed
-          # immediately and we want to do it later. See ruby-amqp/amqp/#67 MK.
-          block.call if block
-        end
+        # don't pass block to AMQ::Client::Exchange#publish because it will be executed
+        # immediately and we want to do it later. See ruby-amqp/amqp/#67 MK.
+        block.call if block
       end
 
       self
