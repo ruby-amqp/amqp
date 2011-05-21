@@ -366,7 +366,7 @@ module AMQP
 
     # Publishes message to the exchange. The message will be routed to queues by the exchange
     # and distributed to any active consumers. Routing logic is determined by exchange type and
-    # configuration as well as  message attributes (like :routing_key).
+    # configuration as well as message attributes (like :routing_key).
     #
     #
     #
@@ -387,6 +387,8 @@ module AMQP
     # * Run EventMachine in a separate thread.
     # * Use EventMachine.next_tick.
     # * Use EventMachine.defer to offload operation to EventMachine thread pool.
+    #
+    # TBD: this subject worth a separate guide
     #
     #
     # h2. Sending one-off messages
@@ -412,6 +414,9 @@ module AMQP
     #
     # This is a broad topic and we dedicate a separate guide, {file:docs/Durability.textile Durability and message persistence}, to it.
     #
+    # Exact moment when message is published is not determined and depends on many factors, including machine's networking stack configuration,
+    # so (optional) block this method takes is scheduled for next event loop tick, and data is staged for delivery for current event loop
+    # tick. For most applications, this is good enough. TBD: covering this requires finishing EventMachine documentation rewrite. MK.
     #
     #
     # @param  [#to_s] payload  Message payload (content). Note that this method calls #to_s on payload argument value.
@@ -465,7 +470,7 @@ module AMQP
 
         # don't pass block to AMQ::Client::Exchange#publish because it will be executed
         # immediately and we want to do it later. See ruby-amqp/amqp/#67 MK.
-        block.call if block
+        EventMachine.next_tick(&block) if block
       end
 
       self
