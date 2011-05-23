@@ -8,7 +8,7 @@ Versions 0.8.0 and later of amqp gem implement "AMQP 0.9.1":http://bit.ly/hw2ELX
 
 h2. I know what AMQP is, how do I get started?
 
-See "Getting started with amqp gem" and "Documentation: tutorials, guides & API reference" sections below.
+See "Getting started with amqp gem":http://bit.ly/getting-started-with-amqp-ruby-gem and other "documentation guides":http://bit.ly/amqp-gem-docs.
 
 
 h2. What is AMQP?
