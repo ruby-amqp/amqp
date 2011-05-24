@@ -69,7 +69,7 @@ module AMQP
     #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/%2Fvault")   # => vhost is /vault
     #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/production") # => vhost is production
     #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/a.b.c")      # => vhost is a.b.c
-    #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/foo/bar")  # => ArgumentError
+    #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/foo/bar")    # => ArgumentError
     #
     #
     # @param [String] connection_string AMQP connection URI, à la JDBC connection string. For example: amqp://bus.megacorp.internal:5877.
@@ -92,7 +92,7 @@ module AMQP
       opts[:port]   = uri.port || AMQP_PORTS[uri.scheme]
       opts[:ssl]    = uri.scheme == AMQPS
       if uri.path =~ %r{^/(.*)}
-        raise ArgumentError.new("multiple-segment path; please percent-encode any slashes in the vhost name") if $1.index('/')
+        raise ArgumentError.new("#{uri} has multiple-segment path; please percent-encode any slashes in the vhost name (e.g. /production => %2Fproduction). Learn more at http://bit.ly/amqp-gem-and-connection-uris") if $1.index('/')
         opts[:vhost] = URI.unescape($1)
       end
 
