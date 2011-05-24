@@ -9,8 +9,9 @@ Gem::Specification.new do |s|
   s.version = AMQP::VERSION
   s.authors = ["Aman Gupta", "Jakub Stastny aka botanicus", "Michael S. Klishin"]
   s.homepage = "http://github.com/ruby-amqp/amqp"
-  s.summary = "AMQP client implementation in Ruby/EventMachine."
-  s.description = "Widely used, feature-rich asynchronous AMQP 0.9.1 client with batteries included"
+  s.summary = "Widely used, feature-rich asynchronous AMQP 0.9.1 client with batteries included"
+  # RubyGems will emit warnings if summary is the same as description. I have no idea why but lets trick it. MK.
+  s.description = "Widely used, feature-rich asynchronous AMQP 0.9.1 client with batteries included."
   s.email = ["bWljaGFlbEBub3ZlbWJlcmFpbi5jb20=\n", "c3Rhc3RueUAxMDFpZGVhcy5jeg==\n"].map { |i| Base64.decode64(i) }
 
   # files
@@ -22,7 +23,8 @@ Gem::Specification.new do |s|
 
   # Dependencies
   s.add_dependency "eventmachine"
-  s.add_dependency "amq-client", ">= 0.7.0.alpha25"
+  s.add_dependency "amq-client",   ">= 0.7.0.alpha27"
+  s.add_dependency "amq-protocol", ">= 0.7.0.alpha4"
 
   begin
     require "changelog"
