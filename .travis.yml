@@ -2,8 +2,8 @@ script: "bundle exec rake spec:ci"
 rvm:
   - 1.8.7
   - rbx
-  - ree
   - 1.9.2
+  - ree
 gemfile:
   - Gemfile
   - gemfiles/eventmachine-pre
