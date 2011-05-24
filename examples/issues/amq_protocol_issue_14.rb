@@ -20,9 +20,15 @@ AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
     end
 
     EventMachine.add_timer(0.4) do
-      q = AMQP::Queue.new(channel, "amqpgem.examples.channel_exception", :auto_delete => true, :durable => false)
+      # this one works
+      # binding = '12345678901234567890123456789012'
 
-      q.unbind("amq.fanout")
+      # this one does not work
+      binding = '123456789012345678901234567890123'
+      queue   = channel.queue 'test', :auto_delete => true, :durable => false
+      queue.bind('amq.topic', :routing_key => binding)
+      queue.unbind('amq.topic', :routing_key => binding)
+      queue.unbind('amq.topic', :routing_key => binding)
     end
   end
 
