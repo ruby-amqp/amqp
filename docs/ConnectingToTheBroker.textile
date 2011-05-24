@@ -67,41 +67,46 @@ Default connection parameters are
 
 h3. Using connection strings
 
-It is possible to use connection URIs (à la JDBC) with amqp and amqps schemas, for example:
+It is convenient to be able to specify the AMQP connection
+parameters as a URI string, and various "amqp" URI schemes
+exist.  Unfortunately, there is no standard for these URIs, so
+while the schemes share the basic idea, they differ in some
+details.  This implementation aims to encourage URIs that work
+as widely as possible.
+
+Here are some examples:
 
  * amqp://dev.rabbitmq.com
  * amqp://dev.rabbitmq.com:5672
  * amqp://guest:guest@dev.rabbitmq.com:5672
  * amqp://hedgehog:t0ps3kr3t@hub.megacorp.internal/production
- * amqps://hub.megacorp.internal//
+ * amqps://hub.megacorp.internal/%2Fvault
 
-Two supported schemas are *amqp* and *amqps*. Default port for amqp is 5672. If port isn't given, and schema
-is amqps, amqp gem will assume it has to connect to 5671, default port for amqps.
+The URI scheme should be "amqp", or "amqps" if SSL is required.
 
-h4. Vhosts: naming schemas and parsing
+The host, port, username and password are represented in the
+authority component of the URI in the same way as in http URIs.
 
-AMQP 0.9.1 spec does not define what vhost naming scheme should be. RabbitMQ and Apache Qpid use different schemes
-(Qpid said to have two) but the bottom line is: even though some brokers use / as the default vhost, it can be *any string*.
-Host (and optional port) part must be separated from vhost (path component) with a slash character (/).
+The vhost is obtained from the first segment of the path, with the
+leading slash removed.  The path should contain only a single segment
+(i.e, the only slash in it should be the leading one).  If the vhost
+is to include slashes or other reserved URI characters, these should
+be percent-escaped.
 
-Here are some examples that demonstrate how {AMQP::Client.parse_connection_uri} parses out vhost from connection URI:
+Here are some examples that demonstrate how
+{AMQP::Client.parse_connection_uri} parses out the vhost from
+connection URIs:
 
 <pre>
 <code>
 AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com")            # => vhost is nil, so default (/) will be used
 AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/")           # => vhost is an empty string
-AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com//")          # => vhost is /
-AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com//vault")     # => vhost is /vault
 AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/%2Fvault")   # => vhost is /vault
 AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/production") # => vhost is production
 AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/a.b.c")      # => vhost is a.b.c
-AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com///a/b/c/d")  # => vhost is //a/b/c/d
+AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/foo/bar")  # => ArgumentError
 </code>
 </pre>
-
-{AMQP::Client.parse_connection_uri} will also unescape path part of the URI.
-
-
 
 
 h2. Starting event loop & connecting in standalone applications
