@@ -1,0 +1,98 @@
+# @title Ruby AMQP gem: running tests
+
+h1. Running amqp gem test suite
+
+
+h2. About this guide
+
+This guide is for people who want to contribute to amqp gem development. It has no relevant information for those
+who want to build applications using the library.
+
+
+h2. Covered versions
+
+Not applicable.
+
+
+
+
+h2. Canonical repository
+
+Since late 2010, the canonical amqp gem repository is at "github.com/ruby-amqp/amqp":https://github.com/ruby-amqp/amqp and *not tmm1/amqp*.
+
+
+
+
+h2. Initial setup
+
+amqp gem currently uses recent releases of RabbitMQ for automated tests. Broker installation is described in the {file:docs/GettingStarted.textile Getting started} guide
+and on "rabbitmq.com":http://www.rabbitmq.com/install.html. Once the broker is running, the only other step is to run
+
+<pre><code>
+./bin/set_test_suite_realms_up.sh
+</code></pre>
+
+that will set up vhosts and users we test authentication and authorization against. Please note that the script uses `rabbitmqctl` tool
+and in the server environment (for example, a virtual instance in the cloud) depending on your OS and/or distribution of choice, that tool
+may or may not be accessible to your OS user, so pay attention to that.
+
+
+
+h2. Dependencies
+
+Dependencies are managed by Bundler. So begin with
+
+<pre><code>
+gem install bundler --version "~> 1.0.13"
+</code></pre>
+
+and then, from the root of the repository run
+
+<pre><code>
+bundle install
+</code></pre>
+
+and you are good to go.
+
+
+
+
+h2. Running spec examples
+
+During development, it is sufficient to just use
+
+<pre><code>
+bundle exec rspec -c ./spec
+</code></pre>
+
+or replace ./spec with an individual file you want to run.
+
+
+
+
+h2. Continuous integration
+
+CI happens in two steps:
+
+ * Clean up *.rbc files produced by "Rubinius":http://rubini.us.
+ * Run the whole test suite
+
+For that, we use Rake:
+
+<pre><code>
+rake spec:ci
+</code></pre>
+
+Thanks to the excellent "Travis CI":http://travis-ci.org project, we run test suites across 5 Ruby implementations and 2 EventMachine versions, and can
+add more implementations/versions so easily it still seems unreal.
+
+
+
+
+h2. Tell us what you think!
+
+Please take a moment and tell us what you think about this guide on "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp:
+what was unclear? what wasn't covered? maybe you don't like guide style or grammar and spelling are incorrect? Readers feedback is
+key to making documentation better.
+
+If mailing list communication is not an option for you for some reason, you can "contact guides author directly":mailto:michael@novemberain.com?subject=amqp%20gem%20documentation

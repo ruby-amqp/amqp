@@ -17,6 +17,7 @@ h2. Guide list
  * {file:docs/RabbitMQVersions.textile RabbitMQ versions}
  * {file:docs/ConnectionEncryptionWithTLS.textile Using TLS (SSL)}
  * {file:docs/VendorSpecificExtensions.textile Vendor-specific extensions to AMQP 0.9.1 spec}
+ * {file:docs/RunningTests.textile Running amqp gem test suite}
 
 
 h2. Tell us what you think!
