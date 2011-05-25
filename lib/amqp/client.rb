@@ -229,28 +229,47 @@ module AMQP
 
     private
 
-    # Parses AMQP connection string and returns it's components as a hash.
+    AMQP_PORTS = Hash["amqp" => 5672, "amqps" => 5671].freeze
+
+    # Parses AMQP connection URI and returns its components as a hash.
     #
-    # == vhost naming schemes
+    # h2. vhost naming schemes
     #
-    # AMQP spec does not define what vhost naming scheme should be. RabbitMQ and Apache Qpid use different schemes
-    # (Qpid said to have two) but the bottom line is: even though some brokers use / as the default vhost, it can be *any string*.
-    # Host (and optional port) part must be separated from vhost (path component) with a slash character (/).
+    # It is convenient to be able to specify the AMQP connection
+    # parameters as a URI string, and various "amqp" URI schemes
+    # exist.  Unfortunately, there is no standard for these URIs, so
+    # while the schemes share the basic idea, they differ in some
+    # details.  This implementation aims to encourage URIs that work
+    # as widely as possible.
     #
-    # This method will also unescape path part of the URI.
+    # The URI scheme should be "amqp", or "amqps" if SSL is required.
     #
-    # == How vhost is parsed
+    # The host, port, username and password are represented in the
+    # authority component of the URI in the same way as in http URIs.
+    #
+    # The vhost is obtained from the first segment of the path, with the
+    # leading slash removed.  The path should contain only a single
+    # segment (i.e, the only slash in it should be the leading one).
+    # If the vhost is to include slashes or other reserved URI
+    # characters, these should be percent-escaped.
+    #
+    # @example How vhost is parsed
     #
     #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com")            # => vhost is nil, so default (/) will be used
     #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/")           # => vhost is an empty string
-    #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com//")          # => vhost is /
-    #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com//vault")     # => vhost is /vault
     #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/%2Fvault")   # => vhost is /vault
     #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/production") # => vhost is production
     #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/a.b.c")      # => vhost is a.b.c
-    #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com///a/b/c/d")  # => vhost is //a/b/c/d
+    #   AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/foo/bar")    # => ArgumentError
     #
     #
+    # @param [String] connection_string AMQP connection URI, à la JDBC connection string. For example: amqp://bus.megacorp.internal:5877.
+    # @return [Hash] Connection parameters (:username, :password, :vhost, :host, :port, :ssl)
+    #
+    # @raise [ArgumentError] When connection URI schema is not amqp or amqps, or the path contains multiple segments
+    #
+    # @see http://bit.ly/ks8MXK Connecting to The Broker documentation guide
+    # @api public
     def self.parse_connection_uri(connection_string)
       uri = URI.parse(connection_string)
       raise ArgumentError.new("Connection URI must use amqp or amqps schema (example: amqp://bus.megacorp.internal:5766), learn more at http://bit.ly/ks8MXK") unless %w{amqp amqps}.include?(uri.scheme)
@@ -258,12 +277,15 @@ module AMQP
       opts = {}
 
       opts[:scheme] = uri.scheme
-      opts[:user]  = URI.unescape(uri.user) if uri.user
-      opts[:pass]  = URI.unescape(uri.password) if uri.password
-      opts[:vhost]  = URI.unescape($1) if uri.path =~ %r{^/(.*)}
-      opts[:host]  = uri.host if uri.host
-      opts[:port]  = uri.port || Hash["amqp" => 5672, "amqps" => 5671][uri.scheme]
-      opts[:ssl]   = uri.scheme == "amqps"
+      opts[:user]   = URI.unescape(uri.user) if uri.user
+      opts[:pass]   = URI.unescape(uri.password) if uri.password
+      opts[:host]   = uri.host if uri.host
+      opts[:port]   = uri.port || AMQP_PORTS[uri.scheme]
+      opts[:ssl]    = uri.scheme == "amqps"
+      if uri.path =~ %r{^/(.*)}
+        raise ArgumentError.new("#{uri} has multiple-segment path; please percent-encode any slashes in the vhost name (e.g. /production => %2Fproduction). Learn more at http://bit.ly/amqp-gem-and-connection-uris") if $1.index('/')
+        opts[:vhost] = URI.unescape($1)
+      end
 
       opts
     end
