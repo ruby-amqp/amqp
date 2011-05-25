@@ -62,7 +62,18 @@ that has recent versions of RabbitMQ. Learn more in {file:docs/RabbitMQVersions.
 
 h3. Install the gem
 
-<pre>gem install amqp --pre # installs 0.8.0.RCs</pre>
+On Microsoft Windows 7
+
+<pre>
+gem install eventmachine --pre
+gem install amqp --pre --version "~> 0.8.0.RC12"
+</pre>
+
+On other OSes or JRuby:
+
+<pre>
+gem install amqp --pre --version "~> 0.8.0.RC12"
+</pre>
 
 
 h3. "Hello, World" example

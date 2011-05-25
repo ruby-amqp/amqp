@@ -57,10 +57,18 @@ This guides assumes you have one of the supported Ruby implementations installed
 h3. With Rubygems
 
 To get amqp gem 0.8.0
+
+h4. On Microsoft Windows 7
+
 <pre>
-<code>
-gem install amqp --pre
-</code>
+gem install eventmachine --pre
+gem install amqp --pre --version "~> 0.8.0.RC12"
+</pre>
+
+h4. On other OSes or JRuby:
+
+<pre>
+gem install amqp --pre --version "~> 0.8.0.RC12"
 </pre>
 
 h3. With Bundler
