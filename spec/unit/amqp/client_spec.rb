@@ -22,7 +22,7 @@ describe AMQP::Client do
     it "handles amqp:// URIs w/o path part" do
       val = described_class.parse_connection_uri("amqp://dev.rabbitmq.com")
 
-      val[:vhost].should be_nil
+      val[:vhost].should be_nil # in this case, default / will be used
       val[:host].should == "dev.rabbitmq.com"
       val[:port].should == 5672
       val[:scheme].should == "amqp"
@@ -53,33 +53,6 @@ describe AMQP::Client do
     end
 
 
-    context "when URI ends in two consecutive slashes (//)" do
-      it "parses vhost as /" do
-        val = described_class.parse_connection_uri("amqp://dev.rabbitmq.com//")
-
-        val[:host].should == "dev.rabbitmq.com"
-        val[:port].should == 5672
-        val[:scheme].should == "amqp"
-        val[:ssl].should be_false
-        val[:vhost].should == "/"
-      end
-    end
-
-
-    context "when URI ends in //vault" do
-      it "parses vhost as /vault" do
-        val = described_class.parse_connection_uri("amqp://dev.rabbitmq.com//vault")
-
-        val[:host].should == "dev.rabbitmq.com"
-        val[:port].should == 5672
-        val[:scheme].should == "amqp"
-        val[:ssl].should be_false
-        val[:vhost].should == "/vault"
-      end
-    end
-
-
-
     context "when URI ends in /%2Fvault" do
       it "parses vhost as /vault" do
         val = described_class.parse_connection_uri("amqp://dev.rabbitmq.com/%2Fvault")
@@ -93,41 +66,36 @@ describe AMQP::Client do
     end
 
 
-    context "when URI is amqp://dev.rabbitmq.com/i.am.a.vhost.without.slashes" do
-      it "parses vhost as i.am.a.vhost.without.slashes" do
-        val = described_class.parse_connection_uri("amqp://dev.rabbitmq.com/i.am.a.vhost.without.slashes")
+    context "when URI is amqp://dev.rabbitmq.com/a.path.without.slashes" do
+      it "parses vhost as a.path.without.slashes" do
+        val = described_class.parse_connection_uri("amqp://dev.rabbitmq.com/a.path.without.slashes")
 
         val[:host].should == "dev.rabbitmq.com"
         val[:port].should == 5672
         val[:scheme].should == "amqp"
         val[:ssl].should be_false
-        val[:vhost].should == "i.am.a.vhost.without.slashes"
+        val[:vhost].should == "a.path.without.slashes"
+      end
+    end
+
+    context "when URI is amqp://dev.rabbitmq.com/a/path/with/slashes" do
+      it "raises an ArgumentError" do
+        lambda { described_class.parse_connection_uri("amqp://dev.rabbitmq.com/a/path/with/slashes") }.should raise_error(ArgumentError)
       end
     end
 
 
-    context "when URI is amqp://dev.rabbitmq.com/production" do
-      it "parses vhost as production" do
-        val = described_class.parse_connection_uri("amqp://dev.rabbitmq.com/production")
+    context "when URI has username:password, for instance, amqp://hedgehog:t0ps3kr3t@hub.megacorp.internal" do
+      it "parses them out" do
+        val = described_class.parse_connection_uri("amqp://hedgehog:t0ps3kr3t@hub.megacorp.internal")
 
-        val[:host].should == "dev.rabbitmq.com"
+        val[:host].should == "hub.megacorp.internal"
         val[:port].should == 5672
         val[:scheme].should == "amqp"
         val[:ssl].should be_false
-        val[:vhost].should == "production"
-      end
-    end
-
-
-    context "when URI is amqp://dev.rabbitmq.com///a/b/c/d" do
-      it "parses vhost as ///a/b/c/d" do
-        val = described_class.parse_connection_uri("amqp://dev.rabbitmq.com///a/b/c/d")
-
-        val[:host].should == "dev.rabbitmq.com"
-        val[:port].should == 5672
-        val[:scheme].should == "amqp"
-        val[:ssl].should be_false
-        val[:vhost].should == "//a/b/c/d"
+        val[:user].should == "hedgehog"
+        val[:pass].should == "t0ps3kr3t"
+        val[:vhost].should be_nil # in this case, default / will be used
       end
     end
   end
