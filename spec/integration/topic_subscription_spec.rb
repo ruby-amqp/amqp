@@ -67,7 +67,7 @@ describe "Topic-based subscription" do
         @exchange.publish(626 + rand(1000)/400.0, :key => "nasdaq.goog")
       end # do
 
-      done(0.2) {
+      done(0.4) {
         received_messages.should == expected_messages
         @aapl_queue.unsubscribe
         @amzn_queue.unsubscribe
