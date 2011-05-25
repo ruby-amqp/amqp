@@ -370,41 +370,67 @@ For Sinatra and pure Rack applications, place it next to other configuration cod
 
 Next we are going to discuss issues specific to particular Web servers.
 
+
+
 h3. Using amqp gem with Unicorn
 
-h4. Use separate thread for EventMachine reactor
+h4. Unicorn is a pre-forking server
 
-Since Unicorn is not EventMachine-based, you need to start EventMachine reactor in a separate thread like this:
+Unicorn is a pre-forking server. That means it forks processes that serve HTTP requests. Master process never serves them and thus
+doesn't need to keep AMQP broker connection open. This is a recommended way, both because master process usually doesn't need a connection
+but also because there is a known issue with EventMachine that makes it a little bit difficult to stop and start EventMachine reactor after
+process that originally started it forks. Next lets see how to spin up EventMachine reactor and connect to the broker after Unicorn forks a worker.
 
-<pre>
-<code>
-Thread.new { EventMachine.run }
-# give EventMachine reactor a moment to start
-sleep(0.5)
 
-# now is a good moment to use AMQP.connect
-</code>
-</pre>
+h4. Starting EventMachine reactor and connecting to the broker after Unicorn forks worker processes
 
-Otherwise EventMachine will block current thread.
-
-h4. Starting EventMachine reactor after Unicorn forks worker processes
-
-Because *Unicorn is a pre-forking server, you need to run the same piece of code in
-after_fork hook in Unicorn configuration file for your app*, otherwise, worker processes won't have EventMachine reactor running:
+Unicorn lets you specify a configuration file to use. In that file, you define a callback Unicorn runs after it forks worker process(es):
 
 <pre>
 <code>
-# example snippet of Unicorn configuration file ( config/unicorn/development.rb or similar)
+ENV["FORKING"] = "true"
+
+listen 3000
+
+worker_processes 1
+timeout          30
+
+preload_app true
+
+
 after_fork do |server, worker|
-  Thread.new { EventMachine.run }
-  # give EventMachine reactor a moment to start
-  sleep(0.5)
+  require "amqp"
 
-  # now is a good moment to use AMQP.connect
+  # the following is *required* for Rails + "preload_app true",
+  defined?(ActiveRecord::Base) and
+    ActiveRecord::Base.establish_connection
+
+
+  t = Thread.new { AMQP.start }
+  sleep(1.0)
+
+  EventMachine.next_tick do
+    AMQP.channel ||= AMQP::Channel.new(AMQP.connection)
+    AMQP.channel.queue("amqpgem.examples.rails23.warmup", :durable => true)
+
+    3.times do |i|
+      puts "[after_fork/amqp] Publishing a warmup message ##{i}"
+
+      AMQP.channel.default_exchange.publish("A warmup message #{i} from #{Time.now.strftime('%H:%M:%S %m/%b/%Y')}", :routing_key => "amqpgem.examples.rails23.warmup")
+    end
+  end
 end
 </code>
 </pre>
+
+In the example above we start EventMachine reactor in a separate thread, block current thread for 1 second to let event loop spin up and then
+connect to AMQP broker on the next event loop tick. Publishing several warmup messages on boot is a good idea because it
+lets you detect issues that forking may cause earlier.
+
+Note that configuration file can easily be used in development environments: other than the fact that Unicorn runs in the foreground,
+it gives you exactly the same application boot behavior as in QA and production environments, which is a good thing.
+
+
 
 
 h3. Using amqp gem with Passenger
