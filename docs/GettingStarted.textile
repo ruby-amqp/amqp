@@ -90,7 +90,7 @@ irb -rubygems
 :001 > require "amqp"
 => true
 :002 > AMQP::VERSION
-=> "0.8.0.rc2"
+=> "0.8.0.rc12"
 </code>
 </pre>
 
