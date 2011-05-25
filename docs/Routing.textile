@@ -1,4 +1,4 @@
-# @title Ruby AMQP gem: routing
+# @title Routing
 
 
 h1. TBD

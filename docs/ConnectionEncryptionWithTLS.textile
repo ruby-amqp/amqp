@@ -1,4 +1,4 @@
-# @title Ruby AMQP gem: Using TLS
+# @title Using TLS
 
 h1. TBD
 

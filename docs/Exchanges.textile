@@ -1,4 +1,4 @@
-# @title Ruby AMQP gem: Working with exchanges
+# @title Working with exchanges
 
 h1. TBD
 

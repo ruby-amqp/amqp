@@ -1,4 +1,4 @@
-# @title Ruby AMQP gem: RabbitMQ version compatibility
+# @title RabbitMQ version compatibility
 
 h1. amqp gem and RabbitMQ versions compatibility
 

@@ -1,4 +1,4 @@
-# @title Ruby AMQP gem: Working with queues
+# @title Working with queues
 
 h1. AMQP queues in detail
 

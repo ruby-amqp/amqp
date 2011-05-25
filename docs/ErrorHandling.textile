@@ -1,4 +1,4 @@
-# @title Ruby AMQP gem: Error handling and recovery
+# @title Error handling and recovery
 
 h1. Error handling and recovery
 

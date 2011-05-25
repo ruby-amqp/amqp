@@ -1,4 +1,4 @@
-# @title Ruby AMQP gem: Durability and related matters
+# @title Durability and related matters
 
 h1. Durability and related matters
 
