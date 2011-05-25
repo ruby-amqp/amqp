@@ -95,9 +95,9 @@ irb -rubygems
 </pre>
 
 
-h2. A "Hello, world" example
+h2. "Hello, world" example
 
-Lets begin with a classic Hello, world example. First, here's the code:
+Lets begin with the classic "Hello, world" example. First, here's the code:
 
 <pre>
 <code>
