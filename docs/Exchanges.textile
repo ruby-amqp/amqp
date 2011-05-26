@@ -46,21 +46,68 @@ Before we start looking at various exchange types and their routing semantics, w
 Each AMQP message has a number of *attributes* applications can set. Some attributes are very important and used by nearly all
 applications, other are rarely used. AMQP message attributes are metadata: they are similar in purpose to HTTP request and response headers.
 
+Every AMQP 0.9.1 message has an attribute called the *routing key*. The routing key is an "address" that the exchange may use to decide how to route
+the message (similar to, but more generic, than URL in HTTP). Most exchange types use routing key to implement routing logic, but some ignore
+it and use other criteria (for example, message content).
 
-
-h2. Direct exchanges
-
-Direct exchange delivers messages to queues based on *message routing key*. 
-
-TBD
 
 
 
 h2. Fanout exchanges
 
-Fanout exchanges route messages to all queues bound to it, routing key is ignored.
+Fanout exchanges route messages to all queues bound to it, the routing key is ignored. If N queues are bound to a fanout exchange,
+when a new message is published to that exchange, a *copy of the message* is delivered to all N queues, so fanout exchanges
+are ideal for "broadcast routing":http://en.wikipedia.org/wiki/Broadcasting_%28computing%29 of messages.
 
-TBD
+Graphically this can be represented as
+
+!http://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Broadcast.svg/500px-Broadcast.svg.png!
+
+AMQP 0.9.1 brokers must implement fanout exchange type and pre-declare one instance with the name of "amq.fanout".
+This means that applications can rely on that exchange to always be available to them. Each vhost has a separate instance of that exchange,
+it is *not shared across vhosts* for obvious reasons.
+
+
+
+h2. Direct exchanges
+
+Direct exchange delivers messages to queues based on *message routing key*, an attribute every AMQP 0.9.1 message has.
+
+Here is how it works:
+
+ * A queue binds to the exchange with a routing key, K.
+ * When a new message with routing key R arrives to direct exchange, the exchange routes it to the queue if K = R.
+
+Direct exchange is ideal for "unicast routing":http://en.wikipedia.org/wiki/Unicast of messages.
+
+!http://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Unicast.svg/500px-Unicast.svg.png!
+
+AMQP 0.9.1 brokers must implement direct exchange type and pre-declare two instances
+
+ * *amq.direct*.
+ * *""* (unnamed, referred to as an empty string by many clients including amqp Ruby gem) exchange known as *default exchange*.
+
+This means that applications can rely on those exchanges to always be available to them. Each vhost has separate instances of those exchanges,
+they are *not shared across vhosts* for obvious reasons.
+
+
+h3. Default exchange
+
+Default exchange is a direct exchange with no name (amqp gem refers to it using an empty string) pre-declared by the broker. It has one key special
+property that makes it very useful for simple applications: *every queue is automatically bound to it with a routing key the same as queue name".
+
+For example, when you declare a queue with the name of "search.indexing.online", AMQP broker will bind it to the default exchange using
+"search.indexing.online" as routing key. So a message publishes to the default exchange with routing key = "search.indexing.online"
+will be routed to the queue "search.indexing.online". In other words, default exchange makes it possible to "deliver messages directly to queues",
+even though that is not technically correct.
+
+
+amqp gem offers two ways of obtaining of the default exchange: {AMQP::Channel#default_exchange} and {AMQP::Channel#direct} (use  empty string as exchange name).
+{AMQP::Exchange#initialize} can be used as well but requires more effort and for this particular case offers no benefits over instance methods on {AMQP::Channel}.
+
+The default exchange is what the "Hello, World" example uses:
+
+{include:file:examples/hello_world.rb}
 
 
 
@@ -69,11 +116,26 @@ h2. Topic exchanges
 Topic exchanges route messages to one or many queues based on matching between message routing key and pattern that was used for binding
 queue to the exchange.
 
+
+Topic exchanges are commonly used for "multicast routing":http://en.wikipedia.org/wiki/Multicast of messages.
+
+!http://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Multicast.svg/500px-Multicast.svg.png!
+
+Topic exchanges can be used for "broadcast routing":http://en.wikipedia.org/wiki/Broadcasting_%28computing%29 but usually fanout exchanges are more efficient at that.
+
+
+
+Here is an example of topic exchange in action:
+
+{include:file:examples/routing/weather_updates.rb}
+
 TBD
 
 
 
-h2. Header exchanges
+h2. Headers exchanges
+
+
 
 TBD
 
@@ -85,7 +147,28 @@ TBD
 
 
 
+h2. Declaring/Instantiating exchanges
+
+
+
+Below is an example of {AMQP::Exchange#initialize} used with a callback:
+
+{include:file:examples/exchanges/declare_an_exchange_without_assignment.rb}
+
+
+TBD
+
+
+
 h2. Publishing messages
+
+
+h3. Publishing one-off messages
+
+The following example publishes a message and *safely* closes AMQP connection after that by passing a block
+to {AMQP::Exchange#publish}:
+
+{include:file:examples/publishing/publishing_a_one_off_message.rb}
 
 TBD
 
@@ -103,6 +186,11 @@ TBD
 
 
 h2. Deleting exchanges
+
+
+Exchanges are be *auto-deleted*. An example that uses two auto-deleted exchanges:
+
+{include:file:examples/exchanges/autodeletion_of_exchanges.rb}
 
 TBD
 

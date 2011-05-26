@@ -8,12 +8,6 @@ $:.unshift(File.expand_path("../../../lib", __FILE__))
 
 require 'amqp'
 
-if RUBY_VERSION == "1.8.7"
-  class Array
-    alias sample choice
-  end
-end
-
 puts "=> Publishing and immediately stopping the event loop in the callback"
 puts
 
@@ -23,15 +17,18 @@ puts
 #          http://bit.ly/lQP1Al
 
 EventMachine.run do
-  client   = AMQP.connect(:host => '127.0.0.1')
-  channel  = AMQP::Channel.new(client)
-  channel.on_error { puts 'channel error'; EM.stop }
+  connection = AMQP.connect(:host => '127.0.0.1')
+  channel    = AMQP::Channel.new(connection)
+  channel.on_error do |reason|
+    puts "Channel-level error: #{reason}, shutting down..."
+    connection.close { EventMachine.stop }
+  end
 
   queue    = channel.queue("some_topic", :auto_delete => true)
   exchange = channel.topic("foo", :durable => true, :auto_delete => true)
 
-  exchange.publish( 'hello world', :routing_key => "some_topic", :persistent => true, :nowait => false ) do
-    puts 'enqueued message for publishing on next event loop tick'
-    EventMachine.stop
+  exchange.publish('hello world', :routing_key => "some_topic", :persistent => true, :nowait => false ) do
+    puts 'About to disconnect'
+    connection.close { EventMachine.stop }
   end
 end
