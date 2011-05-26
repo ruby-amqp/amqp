@@ -43,15 +43,26 @@ describe AMQP do
     end # context
 
     context "when queue name is passed on as an empty string" do
-      it "uses server-assigned queue name" do
-        @channel.queue("") do |queue, *args|
-          queue.name.should_not be_empty
-          queue.delete
-          done(0.3)
+      context "and :nowait isn't used" do
+        it "uses server-assigned queue name" do
+          @channel.queue("") do |queue, *args|
+            queue.name.should_not be_empty
+            queue.delete
+            done(0.3)
+          end
         end
       end
-    end # context
 
+
+      context "and :nowait is used" do
+        it "raises ArgumentError" do
+          expect { AMQP::Queue.new(@channel, "", :nowait => true) }.to raise_error(ArgumentError, /makes no sense/)
+          expect { @channel.queue("", :nowait => true) }.to raise_error(ArgumentError, /makes no sense/)
+
+          done
+        end
+      end # context
+    end
 
     context "when queue name is nil" do
       it "raises ArgumentError" do

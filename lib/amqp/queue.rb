@@ -177,6 +177,9 @@ module AMQP
       @name     = name unless name.empty?
       @server_named = name.empty?
       @opts         = self.class.add_default_options(name, opts, block)
+
+      raise ArgumentError.new("server-named queues (name = '') declaration with :nowait => true makes no sense. If you are not sure what that means, simply drop :nowait => true from opts.") if @server_named && @opts[:nowait]
+
       @bindings     = Hash.new
 
       # a deferrable that we use to delay operations until this queue is actually declared.
