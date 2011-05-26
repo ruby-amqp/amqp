@@ -53,6 +53,16 @@ describe AMQP do
     end # context
 
 
+    context "when queue name is nil" do
+      it "raises ArgumentError" do
+        expect { AMQP::Queue.new(@channel, nil) }.to raise_error(ArgumentError, /queue name must not be nil/)
+        expect { @channel.queue(nil) }.to raise_error(ArgumentError, /queue name must not be nil/)
+
+        done
+      end
+    end # context
+
+
     context "when queue is redeclared with different attributes" do
       let(:name)              { "amqp-gem.nondurable.queue" }
       let(:options)           {
