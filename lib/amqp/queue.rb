@@ -667,7 +667,7 @@ module AMQP
 
     # @private
     def self.add_default_options(name, opts, block)
-      { :queue => name, :nowait => block.nil? }.merge(opts)
+      { :queue => name, :nowait => (block.nil? && !name.empty?) }.merge(opts)
     end
 
     private
