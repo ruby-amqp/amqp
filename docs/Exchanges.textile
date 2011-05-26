@@ -1,11 +1,12 @@
 # @title Working with exchanges
 
-h1. TBD
+h1. AMQP exchanges in detail
 
 
 h2. About this guide
 
-TBD
+This guide covers everything related to exchanges in AMQP 0.9.1, common usage scenarios and how to accomplish typical operations using
+amqp gem.
 
 
 h2. Covered versions
@@ -15,25 +16,70 @@ This guide covers amqp gem v0.8.0 and later.
 
 h2. Exchanges in AMQP 0.9.1, briefly
 
-TBD
+h3. What are AMQP exchanges?
+
+An exchange accepts messages from a producer application and routes these to message queues. They can be thought of as "mailboxes" of AMQP
+world. Unlike some other messaging middleware products and protocols, in AMQP messages are *not* published directly to queues: they
+are published to exchanges that route them to queue(s) using pre-arranged criteria (called bindings).
+
+There are multiple exchange types in AMQP 0.9.1, each with its own routing semantics. Custom exchange types can be created to cover
+sophisticated routing scenarios (for example, routing based on geolocation data), edge cases or just for convenience.
 
 
 h2. Exchange types
 
-TBD
+There are 4 built-in exchange types in AMQP 0.9.1:
+
+ * Direct
+ * Fanout
+ * Topic
+ * Headers
+
+As stated previously, each exchange type has own routing semantics and new exchange types can be added by extending brokers with plugins.
+Custom exchange types begin with x-, much like custom HTTP headers, for example, "x-recent-history exchange":https://github.com/videlalvaro/rabbitmq-recent-history-exchange.
 
 
-h2. Fanout exchanges
 
-TBD
+h2. Message attributes
+
+Before we start looking at various exchange types and their routing semantics, we need to introduce idea of message attributes.
+Each AMQP message has a number of *attributes* applications can set. Some attributes are very important and used by nearly all
+applications, other are rarely used. AMQP message attributes are metadata: they are similar in purpose to HTTP request and response headers.
+
 
 
 h2. Direct exchanges
 
+Direct exchange delivers messages to queues based on *message routing key*. 
+
 TBD
 
 
+
+h2. Fanout exchanges
+
+Fanout exchanges route messages to all queues bound to it, routing key is ignored.
+
+TBD
+
+
+
 h2. Topic exchanges
+
+Topic exchanges route messages to one or many queues based on matching between message routing key and pattern that was used for binding
+queue to the exchange.
+
+TBD
+
+
+
+h2. Header exchanges
+
+TBD
+
+
+
+h2. Custom exchange types
 
 TBD
 
