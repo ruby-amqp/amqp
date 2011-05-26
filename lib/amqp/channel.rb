@@ -205,6 +205,7 @@ module AMQP
     def initialize(connection = nil, id = self.class.next_channel_id, options = {}, &block)
       raise 'AMQP can only be used from within EM.run {}' unless EM.reactor_running?
 
+      @options    = options
       @connection = connection || AMQP.connection || AMQP.start
 
       super(@connection, id)
@@ -867,12 +868,19 @@ module AMQP
     #
     # @private
     # @api plugin
-    def reset
+    def reset(&block)
       # See AMQ::Client::Channel
       self.reset_state!
 
       # there is no way to reset a deferrable; we have to use a new instance. MK.
       @channel_is_open_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
+      @channel_is_open_deferrable.callback(&block)
+
+      @connection.on_connection do
+        @channel_is_open_deferrable.succeed
+
+        self.prefetch(@options[:prefetch], false) if @options[:prefetch]
+      end
     end
 
     # @private
