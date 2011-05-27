@@ -40,7 +40,7 @@ Specific examples:
  * Content aggregators may update full-text search and geospatial search indexes
    by delegating actual indexing work to other applications over AMQP.
 
- * Companies may provide "Firehose-like" push APIs to their customers, partners
+ * Companies may provide streaming/push APIs to their customers, partners
    or just general public.
 
  * A new shiny Ruby-based system may be integrated with an existing C++-based component
