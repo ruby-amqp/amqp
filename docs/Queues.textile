@@ -575,7 +575,7 @@ TBD
 
 h2. Vendor-specific extensions related to queues
 
-TBD
+See {file:docs/VendorSpecificExtensions.textile Vendor-specific Extensions guide}
 
 
 
