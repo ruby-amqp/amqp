@@ -216,7 +216,7 @@ TBD
 
 h2. Exchange durability vs Message durability
 
-TBD
+See {file:docs/Durability.textile Durability guide}
 
 
 
