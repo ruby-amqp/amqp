@@ -87,7 +87,7 @@ describe AMQP::Queue, "#pop" do
         # Queue.Get doesn't qualify for subscription, hence, manual deletion is required
         @queue.delete
       }
-      done(1.8) {
+      done(2.5) {
         number_of_received_messages.should == expected_number_of_messages
       }
     end # it
