@@ -114,7 +114,7 @@ end
 
 (see "as a Gist":https://gist.github.com/910211)
 
-"Getting started guide":http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/GettingStarted.textile explains this and two more examples in detail,
+"Getting started guide":http://bit.ly/getting-started-with-amqp-ruby-gem explains this and two more examples in detail,
 and is written in a form of a tutorial.
 
 
@@ -127,7 +127,7 @@ code readability, API beauty and autotomated testing across 5 Ruby implementatio
 
 h3. Tutorials
 
-"Getting started guide":http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/GettingStarted.textile is written as a tutorial that walks you through
+"Getting started guide":http://bit.ly/getting-started-with-amqp-ruby-gem is written as a tutorial that walks you through
 3 examples: from the "Hello, world" of messaging to many-to-many communication with sophisticated routing. All in under 20 minutes.
 Check it out! If something isn't clear, every guide explains how to contact documentation authors.
 
@@ -142,13 +142,13 @@ may not support certain AMQP protocol or "DSL syntax" features.
 
 h3. Documentation guides
 
-"Documentation guides":http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/DocumentationGuidesIndex.textile describe
+"Documentation guides":http://bit.ly/amqp-gem-docs. describe
 the library itself as well as AMQP usage scenarios, topics like routing, error handing & recovery, broker-specific extensions, TLS support and so on.
 
 
 h3. API reference
 
-"API reference":http://rdoc.info/github/ruby-amqp/amqp/master/frames is up on rdoc.info and is updated daily.
+"API reference":http://bit.ly/mDm1JE is up on rdoc.info and is updated daily.
 
 *If you don't find your answer in documentation, we consider it a high severity bug* that you should "file to us":http://github.com/ruby-amqp/amqp/issues.
 
