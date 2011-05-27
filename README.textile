@@ -18,8 +18,8 @@ h2. What is AMQP?
 AMQP is an "open standard for messaging middleware":http://www.amqp.org/confluence/display/AMQP/About+AMQP that
 emphasizes interoperability between different technologies (for example, Java, .NET, Ruby, Python, Node.js, C and so on).
 
-Key features of AMQP are very flexible yet simple routing and binary protocol
-efficiency.
+Key features of AMQP are very flexible yet simple routing and binary protocol efficiency. AMQP supports many sophisticated features, for example,
+message acknowledgements, returning messages to producer, delivery confirmation, flow control and so on.
 
 
 h2. What is amqp gem good for?
