@@ -26,6 +26,23 @@ There are multiple exchange types in AMQP 0.9.1, each with its own routing seman
 sophisticated routing scenarios (for example, routing based on geolocation data), edge cases or just for convenience.
 
 
+h3. Concept of bindings
+
+Binding is an association between a queue and an exchange. Queues must be bound to at least one exchange in order to receive messages from publishers.
+Learn more about bindings in {file:docs/Bindings.textile Bindings guide}.
+
+
+h3. Attributes
+
+Exchanges have several attributes associated with them:
+
+ * Name
+ * Type (direct, fanout, topic, headers or some custom type)
+ * Durability
+ * Whether exchange is auto-deleted when no longer used
+ * Other metadata (aka X-arguments)
+
+
 h2. Exchange types
 
 There are 4 built-in exchange types in AMQP 0.9.1:
@@ -37,6 +54,7 @@ There are 4 built-in exchange types in AMQP 0.9.1:
 
 As stated previously, each exchange type has own routing semantics and new exchange types can be added by extending brokers with plugins.
 Custom exchange types begin with x-, much like custom HTTP headers, for example, "x-recent-history exchange":https://github.com/videlalvaro/rabbitmq-recent-history-exchange.
+
 
 
 
@@ -78,7 +96,7 @@ Here is how it works:
  * A queue binds to the exchange with a routing key, K.
  * When a new message with routing key R arrives to direct exchange, the exchange routes it to the queue if K = R.
 
-Direct exchange is ideal for "unicast routing":http://en.wikipedia.org/wiki/Unicast of messages.
+Direct exchange is ideal for "unicast routing":http://en.wikipedia.org/wiki/Unicast of messages (although it can be used for "multicast routing":http://en.wikipedia.org/wiki/Multicast, too).
 
 !http://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Unicast.svg/500px-Unicast.svg.png!
 
