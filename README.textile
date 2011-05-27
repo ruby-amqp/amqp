@@ -16,7 +16,7 @@ See "Getting started with amqp gem":http://bit.ly/getting-started-with-amqp-ruby
 h2. What is AMQP?
 
 AMQP is an "open standard for messaging middleware":http://www.amqp.org/confluence/display/AMQP/About+AMQP that
-emphasizes interoperability between different technologies (for example, Java, .NET, Ruby, Python, C and so on).
+emphasizes interoperability between different technologies (for example, Java, .NET, Ruby, Python, Node.js, C and so on).
 
 Key features of AMQP are very flexible yet simple routing and binary protocol
 efficiency.
