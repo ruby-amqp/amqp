@@ -242,19 +242,9 @@ module AMQP
       end # @connection.on_open
     end
 
-    # Takes a block that will be deferred till the moment when channel is considered open
-    # (channel.open-ok is received from the broker). If you need to delay an operation
-    # till the moment channel is open, this method is what you are looking for.
-    #
-    # Multiple callbacks are supported. If when this moment is called, channel is already
-    # open, block is executed immediately.
-    #
-    # @api public
-    def once_open(&block)
-      @channel_is_open_deferrable.callback(&block)
-    end # once_open(&block)
-    alias once_opened once_open
 
+
+    # @group Declaring exchanges
 
     # Defines, intializes and returns a direct Exchange instance.
     #
@@ -626,6 +616,11 @@ module AMQP
       end
     end
 
+    # @endgroup
+
+
+    # @group Declaring queues
+
 
     # Declares and returns a Queue instance associated with this channel. See {Queue Queue class documentation} for
     # more information about queues.
@@ -721,13 +716,6 @@ module AMQP
       end
     end
 
-    # Returns true if channel is not closed.
-    # @return [Boolean]
-    # @api public
-    def open?
-      self.status == :opened || self.status == :opening
-    end # open?
-
     # Same as {Channel#queue} but when queue with the same name already exists in this channel
     # object's cache, this method will replace existing queue with a newly defined one. Consider
     # using {Channel#queue} instead.
@@ -754,6 +742,9 @@ module AMQP
       register_queue(queue)
     end
 
+    # @endgroup
+
+
 
     # Instantiates and returns an RPC instance associated with this channel.
     #
@@ -764,8 +755,8 @@ module AMQP
     #
     # Marshalling and unmarshalling the objects is handled internally. This
     # marshalling is subject to the same restrictions as defined in the
-    # Marshal[http://ruby-doc.org/core/classes/Marshal.html] standard
-    # library. See that documentation for further reference.
+    # [http://ruby-doc.org/core/classes/Marshal.html Marshal module} in the Ruby standard
+    # library.
     #
     # When the optional object is not passed, the returned rpc reference is
     # used to send messages and arguments to the queue. See {AMQP::RPC#method_missing}
@@ -788,6 +779,82 @@ module AMQP
 
 
 
+    # Returns a hash of all rpc proxy objects.
+    #
+    # Most of the time, this method is not
+    # called by application code.
+    # @api plugin
+    def rpcs
+      @rpcs.values
+    end
+
+
+
+    # @group Channel lifecycle
+
+    # Opens AMQP channel.
+    #
+    # @note Instantiated channels are opened by default. This method should only be used for error recovery after network connection loss.
+    # @api public
+    def open(&block)
+      super(&block)
+    end
+
+    # @return [Boolean] true if channel is not closed.
+    # @api public
+    def open?
+      self.status == :opened || self.status == :opening
+    end # open?
+
+    # Takes a block that will be deferred till the moment when channel is considered open
+    # (channel.open-ok is received from the broker). If you need to delay an operation
+    # till the moment channel is open, this method is what you are looking for.
+    #
+    # Multiple callbacks are supported. If when this moment is called, channel is already
+    # open, block is executed immediately.
+    #
+    # @api public
+    def once_open(&block)
+      @channel_is_open_deferrable.callback(&block)
+    end # once_open(&block)
+    alias once_opened once_open
+
+    # Closes AMQP channel.
+    #
+    # @api public
+    def close(reply_code = 200, reply_text = DEFAULT_REPLY_TEXT, class_id = 0, method_id = 0, &block)
+      super(reply_code, reply_text, class_id, method_id, &block)
+    end
+
+    # @endgroup
+
+
+
+
+    # @group QoS and flow handling
+
+    # Asks the peer to pause or restart the flow of content data sent to a consumer.
+    # This is a simple flow­control mechanism that a peer can use to avoid overflowing its
+    # queues or otherwise finding itself receiving more messages than it can process. Note that
+    # this method is not intended for window control. It does not affect contents returned to
+    # Queue#get callers.
+    #
+    # @param [Boolean] Desired flow state.
+    #
+    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.5.2.3.)
+    # @api public
+    def flow(active = false, &block)
+      super(active, &block)
+    end
+
+    # @return [Boolean]  True if flow in this channel is active (messages will be delivered to consumers that use this channel).
+    #
+    # @api public
+    def flow_is_active?
+      @flow_is_active
+    end # flow_is_active?
+
+
 
     # @param [Fixnum] Message count
     # @param [Boolean] global (false)
@@ -804,16 +871,104 @@ module AMQP
       self
     end
 
+    # @endgroup
 
 
-    # Returns a hash of all rpc proxy objects.
+
+    # @group Message acknowledgements
+
+    # Acknowledge one or all messages on the channel.
     #
-    # Most of the time, this method is not
-    # called by application code.
-    # @api plugin
-    def rpcs
-      @rpcs.values
+    # @api public
+    # @see #reject
+    # @see #recover
+    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.8.3.13.)
+    def acknowledge(delivery_tag, multiple = false)
+      super(delivery_tag, multiple)
+    end # acknowledge(delivery_tag, multiple = false)
+
+    # Reject a message with given delivery tag.
+    #
+    # @api public
+    # @see #acknowledge
+    # @see #recover
+    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.8.3.14.)
+    def reject(delivery_tag, requeue = true)
+      super(delivery_tag, requeue)
+    end # reject(delivery_tag, requeue = true)
+
+    # Notifies AMQ broker that consumer has recovered and unacknowledged messages need
+    # to be redelivered.
+    #
+    # @return [Channel]  self
+    #
+    # @note RabbitMQ as of 2.3.1 does not support basic.recover with requeue = false.
+    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.8.3.16.)
+    # @see #acknowledge
+    # @api public
+    def recover(requeue = true, &block)
+      super(requeue, &block)
+    end # recover(requeue = false, &block)
+
+    # @endgroup
+
+
+
+
+    # @group Transactions
+
+    # Sets the channel to use standard transactions. One must use this method at least
+    # once on a channel before using #tx_tommit or tx_rollback methods.
+    #
+    # @api public
+    def tx_select(&block)
+      super(&block)
+    end # tx_select(&block)
+
+    # Commits AMQP transaction.
+    #
+    # @api public
+    def tx_commit(&block)
+      super(&block)
+    end # tx_commit(&block)
+
+    # Rolls AMQP transaction back.
+    #
+    # @api public
+    def tx_rollback(&block)
+      super(&block)
+    end # tx_rollback(&block)
+
+
+    # @endgroup
+
+
+
+
+
+    # @group Error handling
+
+    # Defines a callback that will be executed when channel is closed after
+    # channel-level exception.
+    #
+    # @api public
+    def on_error(&block)
+      super(&block)
     end
+
+
+    # Defines a global callback to be run on channel-level exception across
+    # all channels. Consider using Channel#on_error instead. This method is here for sake
+    # of backwards compatibility with 0.6.x and 0.7.x releases.
+    # @see AMQP::Channel#on_error
+    # @deprecated
+    # @api public
+    def self.on_error(&block)
+      self.error(&block)
+    end # self.on_error(&block)
+
+    # @endgroup
+
 
 
 
@@ -839,15 +994,6 @@ module AMQP
       end
     end
 
-    # Defines a global callback to be run on channel-level exception across
-    # all channels. Consider using Channel#on_error instead. This method is here for sake
-    # of backwards compatibility with 0.6.x and 0.7.x releases.
-    # @see AMQP::Channel#on_error
-    # @deprecated
-    # @api public
-    def self.on_error(&block)
-      self.error(&block)
-    end # self.on_error(&block)
 
     # Overrides AMQ::Client::Channel version to also call global callback
     # (if defined) for backwards compatibility.
@@ -938,8 +1084,9 @@ module AMQP
     # Backwards compatibility with 0.6.x
     #
 
-    # unique identifier
+    # unique identifier of the default thread-local channel
     # @deprecated
+    # @private
     def self.id
       Thread.current[:mq_id] ||= "#{`hostname`.strip}-#{Process.pid}-#{Thread.current.object_id}"
     end
