@@ -10,7 +10,7 @@ It should take about 20 minutes to read and study provided code examples. This g
 
  * Installing RabbitMQ, a mature popular implementation of multiple versions of AMQP protocol.
  * Installing amqp gem via "Rubygems":http://rubygems.org and "Bundler":http://gembundler.com.
- * Running a "Hello, world"-like code example, a simple demonstration of 1:1 communication.
+ * Running the "Hello, world" of messaging, a simple demonstration of 1:1 communication.
  * Creating a "Twitter like" publish/subscribe example with 1 publisher and 4 subscribers, a case of 1:n communication.
  * Creating a topic routing example with 2 publishers and 8 subscribers, a case of n:m communication when subscribers only receive messages they are interested in.
 
@@ -22,26 +22,34 @@ This guide covers amqp gem v0.8.0 and later.
 
 h2. Installing RabbitMQ
 
-RabbitMQ site has a good "installation guide":http://www.rabbitmq.com/install.html that covers many operating systems.
-On Mac OS X, the fastest way to install RabbitMQ is with Homebrew:
+"RabbitMQ site":http://rabbitmq.com has a good "installation guide":http://www.rabbitmq.com/install.html that covers many operating systems.
+On Mac OS X, the fastest way to install RabbitMQ is with "Homebrew":http://mxcl.github.com/homebrew/:
 
+<pre>
 <code>
 brew install rabbitmq
 </code>
+</pre>
 
 then run it:
+
+<pre>
 <code>
 rabbitmq-server
 </code>
+</pre>
 
-On "Debian and Ubuntu":http://www.rabbitmq.com/install.html#debian, you can either download a .deb package and install it with
-dpkg or use apt repository RabbitMQ team provides. RabbitMQ package in even recent (10.10) versions of Ubuntu are old and won't
-work with amqp gem 0.8.0 and later (we need at least version 2.0). For "RPM-based distributions":http://www.rabbitmq.com/install.html#rpm like RedHat
-or CentOS RabbitMQ team provides an RPM package.
+On Debian and Ubuntu, you can either "download RabbitMQ .deb package":http://www.rabbitmq.com/server.html and install it with
+"dpkg":http://www.debian.org/doc/FAQ/ch-pkgtools.en.html or use "apt repository RabbitMQ team provides":http://www.rabbitmq.com/debian.html#apt.
+For RPM-based distributions like RedHat or CentOS RabbitMQ team provides an "RPM package":http://www.rabbitmq.com/install.html#rpm.
+
+<span class="note">
+RabbitMQ package in even recent (10.10) versions of Ubuntu are outdated and *won't work with amqp gem 0.8.0 and later* (we need at least version 2.0).
+</span>
 
 
 
-h2. Installing amqp gem
+h2. Installing Ruby amqp gem
 
 h3. Make sure you have Ruby installed
 
@@ -75,7 +83,9 @@ h3. With Bundler
 
 <pre>
 <code>
-gem "amqp", :git => "git://github.com/ruby-amqp/amqp.git", :branch => "master"
+source :rubygems
+
+gem "amqp", "~> 0.8.0.RC12" # optionally: :git => "git://github.com/ruby-amqp/amqp.git", :branch => "master"
 </code>
 </pre>
 
@@ -256,14 +266,14 @@ With classes and methods introduced in this example, lets move on to a little bi
 sophisticated one.
 
 
-h2. Babblr: one-to-many publish/subscribe example
+h2. Blabblr: one-to-many publish/subscribe example
 
 Previous example demonstrated how connection to the broker is made and how to do 1:1 communication
 using default exchange. Now lets take a look at another common scenario: broadcast, or multiple consumers
 and one producer.
 
 A very well know example of broadcast is Twitter: every time a person tweets, followers receive a notification.
-Blabbr, our imaginary information network, models this scenario this way: every network member has a separate
+Blabbr, our imaginary information network, models this scenario: every network member has a separate
 queue and publishes blabs to a separate exchange. 3 Blabbr members, Joe, Aaron and Bob, follow official NBA
 account on Blabbr to get updates about what is up in the world of basketball. Here is the code:
 
