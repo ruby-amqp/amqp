@@ -4,7 +4,7 @@
 require "rubygems"
 require "amqp"
 
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
+AMQP.start("amqp://guest:guest@dev.rabbitmq.com") do |connection, open_ok|
   AMQP::Channel.new do |channel, open_ok|
     exchange = channel.fanout("amq.fanout")
 

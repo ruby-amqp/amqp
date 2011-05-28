@@ -144,61 +144,14 @@ the same piece of code that uses {AMQP::Channel#queue} for convenience:
 h2. Binding queues to exchanges
 
 In order to receive messages, a queue needs to be bound to at least one exchange. Most of the time binding is explcit (done by applications).
-To bind a queue to an exchange, use {AMQP::Queue#bind). Argument can be either an {AMQP::Exchange} instance or exchange name:
+To bind a queue to an exchange, use {AMQP::Queue#bind). Argument can be either an {AMQP::Exchange} instance, as demonstrated in this example
 
-<pre>
-<code>
-#!/usr/bin/env ruby
-# encoding: utf-8
+{include:file:examples/guides/queues/04_bind_a_queue_using_exchange_instance.rb}
 
-require "rubygems"
-require "amqp"
+or an exchange name given as a string:
 
-# Binding a queue to an exchange
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
-  AMQP::Channel.new do |channel, open_ok|
-    exchange = channel.fanout("amq.fanout")
+{include:file:examples/guides/queues/05_bind_a_queue_using_exchange_name.rb}
 
-    channel.queue("", :auto_delete => true, :exclusive => true) do |queue, declare_ok|
-      queue.bind(exchange) do |bind_ok|
-        puts "Just bound #{queue.name} to #{exchange.name}"
-      end
-
-      connection.close {
-        EventMachine.stop { exit }
-      }
-    end
-  end
-end
-</code>
-</pre>
-
-<pre>
-<code>
-#!/usr/bin/env ruby
-# encoding: utf-8
-
-require "rubygems"
-require "amqp"
-
-# Binding a queue to an exchange
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
-  AMQP::Channel.new do |channel, open_ok|
-    exchange_name = "amq.fanout"
-
-    channel.queue("", :auto_delete => true, :exclusive => true) do |queue, declare_ok|
-      queue.bind(exchange_name) do |bind_ok|
-        puts "Just bound #{queue.name} to #{exchange_name}"
-      end
-
-      connection.close {
-        EventMachine.stop { exit }
-      }
-    end
-  end
-end
-</code>
-</pre>
 
 
 h2. Subscribing to receive messages ("push API")
@@ -207,42 +160,20 @@ Each queue usually has one or more consumers (message handlers). Without it, que
 To subscribe to receive messages when they arrive to the queue ("start a queue consumer"), one uses {AMQP::Queue#subscribe} method.
 Then when a message arrives, message header and body (aka payload) are passed to handling block:
 
-<pre>
-<code>
-#!/usr/bin/env ruby
-# encoding: utf-8
+{include:file:examples/guides/queues/06_subscribe_to_receive_messages.rb}
 
-require "rubygems"
-require "amqp"
 
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
-  AMQP::Channel.new do |channel, open_ok|
-    exchange = channel.fanout("amq.fanout")
-
-    channel.queue("", :auto_delete => true, :exclusive => true) do |queue, declare_ok|
-      queue.bind(exchange).subscribe do |headers, payload|
-        puts "Received a message: #{payload.inspect}. Shutting down..."
-
-        connection.close {
-          EM.stop { exit }
-        }
-      end
-
-      EventMachine.add_timer(0.2) do
-        exchange.publish("Ohai!")
-      end
-    end
-  end
-end
-</code>
-</pre>
-
-In books, articles and documentation about AMQP 0.9.1 you may come around discussions of _consumer tags_. Consumer tag in AMQP
-parlance is an identifier for subscription: most often, it is used to unsubscribe from messages (more on that later in this chapter).
+In books, articles and documentation about AMQP 0.9.1 you may come around discussions of <i>consumer tags</i>. Consumer tag in AMQP
+parlance is identifier for subscription: most often, it is used to unsubscribe from messages (more on that later in this chapter).
 If you need to obtain consumer tag of a queue that is subscribed to receive messages, use {AMQP::Queue#consumer_tag}.
 
 
 h3. Exclusive consumers
+
+TBD
+
+
+h3. Message acknowledgements
 
 TBD
 
@@ -253,39 +184,7 @@ h2. Fetching messages when needed ("pull API")
 AMQP 0.9.1 also provides a way for applications to fetch (pull) messages from the queue only when necessary. For that, use
 {AMQP::Queue#pop}:
 
-<pre>
-<code>
-#!/usr/bin/env ruby
-# encoding: utf-8
-
-require "rubygems"
-require "amqp"
-
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
-  AMQP::Channel.new do |channel, open_ok|
-    exchange = channel.fanout("amq.fanout")
-
-    channel.queue("", :auto_delete => true, :exclusive => true) do |queue, declare_ok|
-      queue.bind(exchange) do |_|
-        puts "Bound. Publishing a message..."
-        exchange.publish("Ohai!")
-      end
-
-      EventMachine.add_timer(0.5) do
-        queue.pop do |response|
-          puts "Fetched a message: #{response.inspect}. Shutting down..."
-
-          connection.close {
-            EM.stop { exit }
-          }
-        end
-      end
-    end
-  end
-end
-</code>
-</pre>
-
+{include:file:examples/guides/queues/07_fetch_a_message_from_the_queue.rb}
 
 TBD
 
