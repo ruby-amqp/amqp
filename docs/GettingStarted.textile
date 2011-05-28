@@ -234,8 +234,7 @@ as message's routing key. This is how our message ends up in amqpgem.examples.he
 
 This first example can be modified to use method chaining technique:
 
-<pre>
-<code>
+``` ruby
 #!/usr/bin/env ruby
 # encoding: utf-8
 
@@ -259,8 +258,7 @@ EventMachine.run do
     channel.direct("").publish "Hello, world!", :routing_key => "amqpgem.examples.helloworld"
   end
 end
-</code>
-</pre>
+```
 
 With classes and methods introduced in this example, lets move on to a little bit more
 sophisticated one.
@@ -277,8 +275,7 @@ Blabbr, our imaginary information network, models this scenario: every network m
 queue and publishes blabs to a separate exchange. 3 Blabbr members, Joe, Aaron and Bob, follow official NBA
 account on Blabbr to get updates about what is up in the world of basketball. Here is the code:
 
-<pre>
-<code>
+``` ruby
 #!/usr/bin/env ruby
 # encoding: utf-8
 
@@ -312,8 +309,7 @@ AMQP.start("amqp://dev.rabbitmq.com:5672") do |connection|
     }
   end
 end
-</code>
-</pre>
+```
 
 First line has a few difference from "Hello, world" example above:
 
