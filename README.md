@@ -116,8 +116,10 @@ and is written in a form of a tutorial.
 
 ## Documentation: tutorials, guides & API reference ##
 
-We believe that in order to be the best Ruby AMQP client out there, we need to care about documentation as much as
-code readability, API beauty and autotomated testing across 5 Ruby implementations across multiple operating systems.
+We believe that in order to be a library our users **really** love, we need to care about documentation as much as (or more)
+code readability, API beauty and autotomated testing across 5 Ruby implementations on multiple operating systems. We do care
+about our documentation: **if you don't find your answer in documentation, we consider it a high severity bug** that you
+should [file to us](http://github.com/ruby-amqp/amqp/issues). Or just complain to [@rubyamqp](https://twitter.com/rubyamqp) on Twitter.
 
 
 ### Tutorials ###
@@ -147,10 +149,6 @@ Note that those examples are written against version 0.8.0.rc1 and later. 0.6.x 
 ### API reference ###
 
 [API reference](http://bit.ly/mDm1JE) is up on [rubydoc.info](http://rubydoc.info) and is updated daily.
-
-### We do care about our documentation ###
-
-**If you don't find your answer in documentation, we consider it a high severity bug** that you should [file to us](http://github.com/ruby-amqp/amqp/issues). Or complain to [@rubyamqp](https://twitter.com/rubyamqp) on Twitter.
 
 
 
