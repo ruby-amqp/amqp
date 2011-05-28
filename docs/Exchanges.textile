@@ -1,6 +1,6 @@
 # @title Working with exchanges
 
-h1. AMQP exchanges in detail
+h1. Working with exchanges
 
 
 h2. About this guide

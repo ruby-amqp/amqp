@@ -6,8 +6,8 @@ h2. Guide list
 
  * {file:docs/GettingStarted.textile Getting started}
  * {file:docs/ConnectingToTheBroker.textile Connecting to the broker}
- * {file:docs/Queues.textile Queues}
- * {file:docs/Exchanges.textile Exchanges}
+ * {file:docs/Queues.textile Working with queues}
+ * {file:docs/Exchanges.textile Working with exchanges}
  * {file:docs/Bindings.textile Bindings}
  * {file:docs/Routing.textile Routing}
  * {file:docs/Durability.textile Durability and message persistence}

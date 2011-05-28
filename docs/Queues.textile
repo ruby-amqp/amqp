@@ -1,6 +1,6 @@
 # @title Working with queues
 
-h1. AMQP queues in detail
+h1. Working with queues
 
 
 h2. About this guide
