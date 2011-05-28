@@ -1,7 +1,7 @@
 --no-private
 --protected
 --markup="textile" lib/**/*.rb
---main README.textile
+--main README.md
 -
 LICENSE
 CHANGELOG
