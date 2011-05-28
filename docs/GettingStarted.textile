@@ -109,34 +109,7 @@ h2. "Hello, world" example
 
 Lets begin with the classic "Hello, world" example. First, here's the code:
 
-<pre>
-<code>
-#!/usr/bin/env ruby
-# encoding: utf-8
-
-require "rubygems"
-require "amqp"
-
-EventMachine.run do
-  connection = AMQP.connect(:host => '127.0.0.1')
-  puts "Connected to AMQP broker. Running #{AMQP::VERSION} version of the gem..."
-
-  channel  = AMQP::Channel.new(connection)
-  queue    = channel.queue("amqpgem.examples.hello_world", :auto_delete => true)
-  exchange = channel.direct("")
-
-  queue.subscribe do |payload|
-    puts "Received a message: #{payload}. Disconnecting..."
-
-    connection.close {
-      EM.stop { exit }
-    }
-  end
-
-  exchange.publish "Hello, world!", :routing_key => queue.name
-end
-</code>
-</pre>
+{include:file:examples/guides/getting_started/01_hello_world.rb}
 
 This example demonstrates a very common communication scenario: app A wants to publish a message that will end up in
 a queue that app B listens on. In this example, queue name is "amqpgem.examples.hello". Lets go through this example
@@ -234,31 +207,7 @@ as message's routing key. This is how our message ends up in amqpgem.examples.he
 
 This first example can be modified to use method chaining technique:
 
-``` ruby
-#!/usr/bin/env ruby
-# encoding: utf-8
-
-require "rubygems"
-require "amqp"
-
-EventMachine.run do
-  AMQP.connect(:host => '127.0.0.1') do |connection|
-    puts "Connected to AMQP broker. Running #{AMQP::VERSION} version of the gem..."
-
-    channel  = AMQP::Channel.new(connection)
-
-    channel.queue("amqpgem.examples.helloworld", :auto_delete => true).subscribe do |payload|
-      puts "Received a message: #{payload}. Disconnecting..."
-
-      connection.close {
-        EM.stop { exit }
-      }
-    end
-
-    channel.direct("").publish "Hello, world!", :routing_key => "amqpgem.examples.helloworld"
-  end
-end
-```
+{include:file:examples/guides/getting_started/02_hello_world_dslified.rb}
 
 With classes and methods introduced in this example, lets move on to a little bit more
 sophisticated one.
@@ -275,41 +224,7 @@ Blabbr, our imaginary information network, models this scenario: every network m
 queue and publishes blabs to a separate exchange. 3 Blabbr members, Joe, Aaron and Bob, follow official NBA
 account on Blabbr to get updates about what is up in the world of basketball. Here is the code:
 
-``` ruby
-#!/usr/bin/env ruby
-# encoding: utf-8
-
-require "rubygems"
-require "amqp"
-
-AMQP.start("amqp://dev.rabbitmq.com:5672") do |connection|
-  channel  = AMQP::Channel.new(connection)
-  exchange = channel.fanout("nba.scores")
-
-  channel.queue("joe", :auto_delete => true).bind(exchange).subscribe do |payload|
-    puts "#{payload} => joe"
-  end
-
-  channel.queue("aaron", :auto_delete => true).bind(exchange).subscribe do |payload|
-    puts "#{payload} => aaron"
-  end
-
-  channel.queue("bob", :auto_delete => true).bind(exchange).subscribe do |payload|
-    puts "#{payload} => bob"
-  end
-
-  exchange.publish("BOS 101, NYK 89").publish("ORL 85, ALT 88")
-
-  # disconnect & exit after 1 second
-  EventMachine.add_timer(1) do
-    exchange.delete
-
-    connection.close {
-      EM.stop { exit }
-    }
-  end
-end
-```
+{include:file:examples/guides/getting_started/03_blabbr.rb}
 
 First line has a few difference from "Hello, world" example above:
 
@@ -414,66 +329,7 @@ on North America updates list.
 
 Here is the code:
 
-<pre>
-<code>
-#!/usr/bin/env ruby
-# encoding: utf-8
-
-require "rubygems"
-require "amqp"
-
-EventMachine.run do
-  AMQP.connect do |connection|
-    channel  = AMQP::Channel.new(connection)
-    exchange = channel.topic("pub/sub", :auto_delete => true)
-
-    # Subscribers.
-    channel.queue("", :exclusive => true) do |queue|
-      queue.bind(exchange, :routing_key => "americas.north.#").subscribe do |headers, payload|
-        puts "An update for North America: #{payload}, routing key is #{headers.routing_key}"
-      end
-    end
-    channel.queue("americas.south").bind(exchange, :routing_key => "americas.south.#").subscribe do |headers, payload|
-      puts "An update for South America: #{payload}, routing key is #{headers.routing_key}"
-    end
-    channel.queue("us.california").bind(exchange, :routing_key => "americas.north.us.ca.*").subscribe do |headers, payload|
-      puts "An update for US/California: #{payload}, routing key is #{headers.routing_key}"
-    end
-    channel.queue("us.tx.austin").bind(exchange, :routing_key => "#.tx.austin").subscribe do |headers, payload|
-      puts "An update for Austin, TX: #{payload}, routing key is #{headers.routing_key}"
-    end
-    channel.queue("it.rome").bind(exchange, :routing_key => "europe.italy.rome").subscribe do |headers, payload|
-      puts "An update for Rome, Italy: #{payload}, routing key is #{headers.routing_key}"
-    end
-    channel.queue("asia.hk").bind(exchange, :routing_key => "asia.southeast.hk.#").subscribe do |headers, payload|
-      puts "An update for Hong Kong: #{payload}, routing key is #{headers.routing_key}"
-    end
-
-    EM.add_timer(1) do
-      exchange.publish("San Diego update", :routing_key => "americas.north.us.ca.sandiego").
-        publish("Berkeley update",         :routing_key => "americas.north.us.ca.berkeley").
-        publish("San Francisco update",    :routing_key => "americas.north.us.ca.sanfrancisco").
-        publish("New York update",         :routing_key => "americas.north.us.ny.newyork").
-        publish("São Paolo update",        :routing_key => "americas.south.brazil.saopaolo").
-        publish("Hong Kong update",        :routing_key => "asia.southeast.hk.hongkong").
-        publish("Kyoto update",            :routing_key => "asia.southeast.japan.kyoto").
-        publish("Shanghai update",         :routing_key => "asia.southeast.prc.shanghai").
-        publish("Rome update",             :routing_key => "europe.italy.roma").
-        publish("Paris update",            :routing_key => "europe.france.paris")
-    end
-
-
-    show_stopper = Proc.new {
-      connection.close do
-        EM.stop
-      end
-    }
-
-    EM.add_timer(2, show_stopper)
-  end
-end
-</code>
-</pre>
+{include:file:examples/guides/getting_started/04_weathr.rb}
 
 First line that is different from Blabbr example is
 
