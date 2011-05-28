@@ -79,7 +79,7 @@ gem install amqp --pre --version "~> 0.8.0.RC12"
 
 h3. "Hello, World" example
 
-<pre><code>
+``` ruby
 #!/usr/bin/env ruby
 # encoding: utf-8
 
@@ -111,7 +111,7 @@ EventMachine.run do
 
   exchange.publish "Hello, world!", :routing_key => queue.name
 end
-</code></pre>
+```
 
 (see "as a Gist":https://gist.github.com/910211)
 
