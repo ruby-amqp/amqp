@@ -22,6 +22,7 @@ group(:development) do
   gem "yard", ">= 0.7.1"
   # yard tags this buddy along
   gem "RedCloth"
+  gem "rdiscount"
 
   custom_gem "nake",         :platform => :ruby_19
   custom_gem "contributors", :platform => :ruby_19
