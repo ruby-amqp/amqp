@@ -58,41 +58,11 @@ Applications may pick queue names or ask broker to generate a name for them. To 
 
 Here is an example:
 
-<pre>
-<code>
-# Declaring a server-named queue using AMQP::Queue constructor
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
-  AMQP::Channel.new do |channel, open_ok|
-    AMQP::Queue.new(channel, "", :auto_delete => true) do |queue, declare_ok|
-      puts "#{queue.name} is ready to go. AMQP method: #{declare_ok.inspect}"
-
-      connection.close {
-        EventMachine.stop { exit }
-      }
-    end
-  end
-end
-</code>
-</pre>
+{include:file:examples/guides/queues/01a_declaring_a_server_named_queue_using_queue_constructor.rb}
 
 If you want to declare a queue with a particular name, for example, "images.resize", pass it to Queue class constructor:
 
-<pre>
-<code>
-# Declaring a server-named queue using AMQP::Queue constructor
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
-  AMQP::Channel.new do |channel, open_ok|
-    AMQP::Queue.new(channel, "images.resize", :auto_delete => true) do |queue, declare_ok|
-      puts "#{queue.name} is ready to go."
-
-      connection.close {
-        EventMachine.stop { exit }
-      }
-    end
-  end
-end
-</code>
-</pre>
+{include:file:examples/guides/queues/01b_declaring_a_queue_using_queue_constructor.rb}
 
 Queue names starting with 'amq.' are reserved for internal use by the broker. Attempts to declare queue with a name that violates this
 rule will result in AMQP::IncompatibleOptionsError to be thrown (when queue is re-declared on the same channel object) or channel-level exception
@@ -102,6 +72,10 @@ Learn more in Error handling and recovery section below.
 
 
 h2. Common usage scenarios
+
+TBD
+
+
 
 h2. Queue life-cycles. When use of server-named queues is optimal and when it isn't.
 
@@ -146,53 +120,12 @@ h2. Declaring a durable shared queue
 
 To declare a durable shared queue, you pass queue name that is a non-blank string and use :durable option:
 
-<pre>
-<code>
-#!/usr/bin/env ruby
-# encoding: utf-8
-
-require "rubygems"
-require "amqp"
-
-# Declaring a client-named queue using AMQP::Queue constructor
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
-  AMQP::Channel.new do |channel, open_ok|
-    AMQP::Queue.new(channel, "images.resize", :durable => true) do |queue, declare_ok|
-      puts "#{queue.name} is ready to go."
-
-      connection.close {
-        EventMachine.stop { exit }
-      }
-    end
-  end
-end
-</code>
-</pre>
+{include:file:examples/guides/queues/02a_declaring_a_durable_shared_queue.rb}
 
 the same piece of code that uses {AMQP::Channel#queue} for convenience:
 
-<pre>
-<code>
-#!/usr/bin/env ruby
-# encoding: utf-8
+{include:file:examples/guides/queues/02b_declaring_a_durable_shared_queue.rb}
 
-require "rubygems"
-require "amqp"
-
-# Declaring a client-named queue using AMQP::Queue constructor
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
-  AMQP::Channel.new do |channel, open_ok|
-    channel.queue("images.resize", :durable => true) do |queue, declare_ok|
-      puts "#{queue.name} is ready to go."
-
-      connection.close {
-        EventMachine.stop { exit }
-      }
-    end
-  end
-end
-</code>
-</pre>
 
 
 h2. Declaring a temporary exclusive queue
@@ -200,53 +133,11 @@ h2. Declaring a temporary exclusive queue
 To declare a server-named, exclusive, auto-deleted queue, pass "" (empty string) as queue name and
 use :exclusive and :auto_delete options:
 
-<pre>
-<code>
-#!/usr/bin/env ruby
-# encoding: utf-8
-
-require "rubygems"
-require "amqp"
-
-# Declaring a server-named queue using AMQP::Queue constructor
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
-  AMQP::Channel.new do |channel, open_ok|
-    AMQP::Queue.new(channel, "", :auto_delete => true, :exclusive => true) do |queue, declare_ok|
-      puts "#{queue.name} is ready to go."
-
-      connection.close {
-        EventMachine.stop { exit }
-      }
-    end
-  end
-end
-</code>
-</pre>
+{include:file:examples/guides/queues/03a_declaring_a_temporary_exclusive_queue.rb}
 
 the same piece of code that uses {AMQP::Channel#queue} for convenience:
 
-<pre>
-<code>
-#!/usr/bin/env ruby
-# encoding: utf-8
-
-require "rubygems"
-require "amqp"
-
-# Declaring a server-named queue using AMQP::Queue constructor
-AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
-  AMQP::Channel.new do |channel, open_ok|
-    channel.queue("", :auto_delete => true, :exclusive => true) do |queue, declare_ok|
-      puts "#{queue.name} is ready to go."
-
-      connection.close {
-        EventMachine.stop { exit }
-      }
-    end
-  end
-end
-</code>
-</pre>
+{include:file:examples/guides/queues/03b_declaring_a_temporary_exclusive_queue.rb}
 
 
 
