@@ -35,7 +35,6 @@ EventMachine.run do
 
     puts "metadata.app_id      : #{metadata.app_id}"
     puts "metadata.exchange    : #{metadata.exchange}"
-    # puts "metadata.user_id     : #{metadata.user_id}"
     puts
     puts "Received a message: #{payload}. Disconnecting..."
 
@@ -48,6 +47,7 @@ EventMachine.run do
                    :app_id      => "amqpgem.example",
                    :priority    => 8,
                    :type        => "kinda.checkin",
+                   # headers table keys can be anything
                    :headers     => {
                      :coordinates => {
                        :latitude  => 59.35,
