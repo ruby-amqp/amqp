@@ -477,7 +477,7 @@ module AMQP
     #
     # @example Use of callback with a single argument
     #
-    #  EM.run do
+    #  EventMachine.run do
     #    exchange = AMQP::Channel.direct("foo queue")
     #    EM.add_periodic_timer(1) do
     #      exchange.publish("random number #{rand(1000)}")
@@ -493,19 +493,55 @@ module AMQP
     #
     # @example Use of callback with two arguments
     #
-    #  EM.run do
-    #    exchange = AMQP::Channel.direct("foo queue")
-    #    EM.add_periodic_timer(1) do
-    #      exchange.publish("random number #{rand(1000)}")
+    #  EventMachine.run do
+    #    connection = AMQP.connect(:host => '127.0.0.1')
+    #    puts "Connected to AMQP broker. Running #{AMQP::VERSION} version of the gem..."
+    #
+    #    channel  = AMQP::Channel.new(connection)
+    #    queue    = channel.queue("amqpgem.examples.hello_world", :auto_delete => true)
+    #    exchange = channel.direct("amq.direct")
+    #
+    #    queue.bind(exchange)
+    #
+    #    channel.on_error do |ch, channel_close|
+    #      puts channel_close.reply_text
+    #      connection.close { EventMachine.stop }
     #    end
     #
-    #    # note that #bind is never called; it is implicit because
-    #    # the exchange and queue names match
-    #    queue = AMQP::Channel.queue('foo queue')
-    #    queue.subscribe do |header, body|
-    #      p header
-    #      puts "received payload [#{body}]"
+    #    queue.subscribe do |metadata, payload|
+    #      puts "metadata.routing_key : #{metadata.routing_key}"
+    #      puts "metadata.content_type: #{metadata.content_type}"
+    #      puts "metadata.priority    : #{metadata.priority}"
+    #      puts "metadata.headers     : #{metadata.headers.inspect}"
+    #      puts "metadata.timestamp   : #{metadata.timestamp.inspect}"
+    #      puts "metadata.type        : #{metadata.type}"
+    #      puts "metadata.delivery_tag: #{metadata.delivery_tag}"
+    #      puts "metadata.redelivered : #{metadata.redelivered}"
+    #
+    #      puts "metadata.app_id      : #{metadata.app_id}"
+    #      puts "metadata.exchange    : #{metadata.exchange}"
+    #      puts
+    #      puts "Received a message: #{payload}. Disconnecting..."
+    #
+    #      connection.close {
+    #        EventMachine.stop { exit }
+    #      }
     #    end
+    #
+    #    exchange.publish("Hello, world!",
+    #                     :app_id      => "amqpgem.example",
+    #                     :priority    => 8,
+    #                     :type        => "kinda.checkin",
+    #                     # headers table keys can be anything
+    #                     :headers     => {
+    #                       :coordinates => {
+    #                         :latitude  => 59.35,
+    #                         :longitude => 18.066667
+    #                       },
+    #                       :participants => 11,
+    #                       :venue        => "Stockholm"
+    #                     },
+    #                     :timestamp   => Time.now.to_i)
     #  end
     #
     #
