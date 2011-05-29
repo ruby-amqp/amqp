@@ -148,23 +148,55 @@ or an exchange name given as a string:
 
 
 
+
 h2. Subscribing to receive messages ("push API")
 
-Each queue usually has one or more consumers (message handlers). Without it, queues are not very useful, right?
 To subscribe to receive messages when they arrive to the queue ("start a queue consumer"), one uses {AMQP::Queue#subscribe} method.
-Then when a message arrives, message header and body (aka payload) are passed to handling block:
+Then when a message arrives, message header and body (aka payload) are passed to the handler:
 
 {include:file:examples/guides/queues/06_subscribe_to_receive_messages.rb}
 
+Subscriptions for message delivery are usually referred to as "consumers" in the AMQP 0.9.1 spec, client libraries documentation and books.
+Consumers last as long as the channel they were declared on, or until the client cancels them (unsubscribes).
 
-In books, articles and documentation about AMQP 0.9.1 you may come around discussions of <i>consumer tags</i>. Consumer tag in AMQP
-parlance is identifier for subscription: most often, it is used to unsubscribe from messages (more on that later in this chapter).
-If you need to obtain consumer tag of a queue that is subscribed to receive messages, use {AMQP::Queue#consumer_tag}.
+Consumers are identified by <i>consumer tags</i>. If you need to obtain consumer tag of a queue that is subscribed to receive messages,
+use {AMQP::Queue#consumer_tag}.
+
+
+h3. Accessing message metadata
+
+`header` object in the example above provides access to message metadata and delivery information:
+
+ * Message content type
+ * Message content­encoding
+ * Message routing key
+ * Message delivery mode (persistent or not)
+ * Consumer tag this delivery is for
+ * Delivery tag
+ * Message priority
+ * Whether or not message is redelivered
+ * Producer application id
+
+and so on. An example to demonstrate how to access some of those attributes:
+
+{include:file:examples/queues/accessing_message_metadata.rb}
 
 
 h3. Exclusive consumers
 
-TBD
+Consumers can request exclusive access to the queue (meaning only this consumer can access the queue). This is useful when you want a long-lived shared
+queue to be temporarily accessible by just one application (or thread, or process). If application exclusive consumer is part of crashes or loses
+TCP connection to the broker, channel is closed and exclusive consumer is thus cancelled.
+
+To exclusively receive messages from the queue, pass :exclusive option to {AMQP::Queue#subscribe}:
+
+<pre>
+<code>
+queue.subscribe(:ack => true, :exclusive => true) do |metadata, payload|
+  # message handling logic...
+end
+</code>
+</pre>
 
 
 h3. Message acknowledgements
