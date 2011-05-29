@@ -14,8 +14,9 @@ EventMachine.run do
 
   channel  = AMQP::Channel.new(connection)
   queue    = channel.queue("amqpgem.examples.hello_world", :auto_delete => true)
-  exchange = channel.direct("")
+  exchange = channel.direct("amq.direct")
 
+  queue.bind(exchange)
 
   channel.on_error do |ch, channel_close|
     puts channel_close.reply_text
@@ -23,12 +24,17 @@ EventMachine.run do
   end
 
   queue.subscribe do |metadata, payload|
+    puts "metadata.routing_key : #{metadata.routing_key}"
     puts "metadata.content_type: #{metadata.content_type}"
-    puts "metadata.app_id      : #{metadata.app_id}"
     puts "metadata.priority    : #{metadata.priority}"
     puts "metadata.headers     : #{metadata.headers.inspect}"
     puts "metadata.timestamp   : #{metadata.timestamp.inspect}"
     puts "metadata.type        : #{metadata.type}"
+    puts "metadata.delivery_tag: #{metadata.delivery_tag}"
+    puts "metadata.redelivered : #{metadata.redelivered}"
+
+    puts "metadata.app_id      : #{metadata.app_id}"
+    puts "metadata.exchange    : #{metadata.exchange}"
     # puts "metadata.user_id     : #{metadata.user_id}"
     puts
     puts "Received a message: #{payload}. Disconnecting..."
@@ -39,7 +45,6 @@ EventMachine.run do
   end
 
   exchange.publish("Hello, world!",
-                   :routing_key => queue.name,
                    :app_id      => "amqpgem.example",
                    :priority    => 8,
                    :type        => "kinda.checkin",
