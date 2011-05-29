@@ -561,10 +561,10 @@ module AMQP
     #                                       automatically set :nowait => false. This is required for the server
     #                                       to send a confirmation.
     #
-    # @option opts [Boolean] :exclusive     Request exclusive consumer access, meaning only this consumer can access the queue.
-    #                                       This is useful when you want a long-lived shared queue to be temporarily accessible by just
-    #                                       one application (or thread, or process). If application exclusive consumer is part of crashes
-    #                                       or loses network connection to the broker, channel is closed and exclusive consumer is thus cancelled.
+    # @option opts [Boolean] :exclusive (false) Request exclusive consumer access, meaning only this consumer can access the queue.
+    #                                           This is useful when you want a long-lived shared queue to be temporarily accessible by just
+    #                                           one application (or thread, or process). If application exclusive consumer is part of crashes
+    #                                           or loses network connection to the broker, channel is closed and exclusive consumer is thus cancelled.
     #
     #
     # @yield [headers, payload] When block only takes one argument, yields payload to it. In case of two arguments, yields headers and payload.
