@@ -14,8 +14,8 @@ AMQP.start do |connection|
     puts "Channel #{channel.id} is now open"
 
     channel.confirm_select
-    channel.on_error do
-      puts "Oops, there is a channel-levle exceptions!"
+    channel.on_error do |ch, channel_close|
+      puts "Oops! a channel-level exception: #{channel_close.reply_text}"
     end
 
 

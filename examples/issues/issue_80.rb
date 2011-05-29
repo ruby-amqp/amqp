@@ -13,7 +13,7 @@ puts "Running amqp gem #{AMQP::VERSION}"
 
 AMQP.start("amqp://guest:guest@localhost:5672") do |connection, open_ok|
   channel  = AMQP::Channel.new(connection)
-  channel.on_error { |ch,close| puts "Error #{close.inspect}" }
+  channel.on_error { |ch, channel_close| puts "Error #{channel_close.inspect}" }
   queue    = channel.queue("reset_test", :auto_delete => false, :durable=>true)
   exchange = channel.direct("foo")
   queue.bind(exchange) { puts 'Got bind ok'}

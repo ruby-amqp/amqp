@@ -14,9 +14,9 @@ AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   AMQP::Channel.new do |channel, open_ok|
     puts "Channel ##{channel.id} is now open!"
 
-    channel.on_error do |ch, close|
-      puts "close = #{close.inspect}"
-      puts "Handling channel-level exception"
+    channel.on_error do |ch, channel_close|
+      puts "channel.close = #{channel_close.inspect}"
+      puts "Handling a channel-level exception"
     end
 
     EventMachine.add_timer(0.4) do

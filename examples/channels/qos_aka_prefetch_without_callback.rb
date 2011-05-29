@@ -13,8 +13,8 @@ puts "=> Channel#prefetch"
 puts
 AMQP.start(:host => 'localhost') do |connection|
   ch = AMQP::Channel.new
-  ch.on_error do |ex|
-    raise "Oops! there has been a channel-level exception"
+  ch.on_error do |ch, channel_close|
+    raise "Oops! a channel-level exception: #{channel_close.inspect}"
   end
   ch.prefetch(1, false)
 

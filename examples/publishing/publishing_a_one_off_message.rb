@@ -19,8 +19,8 @@ puts
 EventMachine.run do
   connection = AMQP.connect(:host => '127.0.0.1')
   channel    = AMQP::Channel.new(connection)
-  channel.on_error do |reason|
-    puts "Channel-level error: #{reason}, shutting down..."
+  channel.on_error do |ch, channel_close|
+    puts "Channel-level error: #{channel_close.reply_text}, shutting down..."
     connection.close { EventMachine.stop }
   end
 

@@ -24,5 +24,5 @@ EventMachine.run do
     }
   end
 
-  exchange.publish "Hello, world!", :routing_key => queue.name
+  exchange.publish "Hello, world!", :routing_key => queue.name, :app_id => "Hello world"
 end

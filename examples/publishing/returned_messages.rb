@@ -19,7 +19,7 @@ puts
 
 AMQP.start(:host => '127.0.0.1') do |connection|
   channel  = AMQP.channel
-  channel.on_error { EM.stop; raise 'channel error' }
+  channel.on_error { |ch, channel_close| EventMachine.stop; raise "channel error: #{channel_close.reply_text}" }
 
   exchange = channel.fanout("amq.fanout")
   exchange.on_return do |basic_return, header, payload|
@@ -29,7 +29,7 @@ AMQP.start(:host => '127.0.0.1') do |connection|
   EventMachine.add_timer(0.3) {
     10.times do |i|
       exchange.publish("Message ##{i}", :immediate => true)
-    end    
+    end
   }
 
   EventMachine.add_timer(2) {

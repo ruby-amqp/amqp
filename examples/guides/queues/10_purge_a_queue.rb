@@ -8,8 +8,8 @@ AMQP.start("amqp://guest:guest@dev.rabbitmq.com:5672") do |connection, open_ok|
   puts "Connected"
   AMQP::Channel.new(connection) do |channel, open_ok|
     puts "Opened a channel"
-    channel.on_error do |arg|
-      raise "Channel-level exception: #{arg.inspect}"
+    channel.on_error do |ch, channel_close|
+      raise "Channel-level exception: #{channel_close.reply_text}"
     end
     exchange = channel.fanout("amq.fanout")
 
