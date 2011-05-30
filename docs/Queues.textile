@@ -179,7 +179,7 @@ h3. Accessing message metadata
 
 and so on. An example to demonstrate how to access some of those attributes:
 
-{include:file:docs/examples/queues/12_accessing_message_metadata.rb}
+<script src="https://gist.github.com/998739.js"> </script>
 
 
 h3. Exclusive consumers
