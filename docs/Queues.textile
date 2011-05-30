@@ -230,7 +230,7 @@ end
 
 To demonstrate how redelivery works, lets have a look at the following code example:
 
-{include:file:examples/queues/using_explicit_acknowledgements.rb}
+<script src="https://gist.github.com/999396.js"> </script>
 
 Example output it produces:
 
