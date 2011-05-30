@@ -192,14 +192,117 @@ To exclusively receive messages from the queue, pass :exclusive option to {AMQP:
 
 <pre>
 <code>
-queue.subscribe(:ack => true, :exclusive => true) do |metadata, payload|
+queue.subscribe(:exclusive => true) do |metadata, payload|
   # message handling logic...
 end
 </code>
 </pre>
 
+TBD: describe what happens when exclusivity property is violated and how to handle it.
+
 
 h3. Message acknowledgements
+
+Consumer applications (applications that receive and process messages) may (and will) occasionally fail to process individual messages, or will just
+crash. That's not to mention possible network issues. This raises a question: when should AMQP broker remove messages from queues?  AMQP 0.9.1 lets
+you choose one of two answers:
+
+ * After broker sends a message to an application (using either basic.deliver or basic.get-ok methods).
+ * After the application sends back an acknowledgement (using basic.ack method).
+
+The former model is called *automatic acknowledgement model* while the latter is *explicit acknowledgement model*. With the explicit model, application
+chooses when it's time to send an ack: it can be right after receiving it, or after persisting it to a data store before processing, or after fully
+processing the message (for example, updating a full-text search index and an indication of operation success).
+
+If a consumer dies without sending an ack, AMQP broker will redeliver it to another consumer (or, if none are available at the time, it will wait
+until at least one consumer is registered for the same queue).
+
+Acknowledgement model is chosen when a new consumer is registered for a queue. By default, {AMQP::Queue#subscribe} will use the *automatic* model.
+To switch to the *explicit* model, :ack option should be used:
+
+<pre>
+<code>
+queue.subscribe(:ack => true) do |metadata, payload|
+  # message handling logic...
+end
+</code>
+</pre>
+
+To demonstrate how redelivery works, lets have a look at the following code example:
+
+{include:file:examples/queues/using_explicit_acknowledgements.rb}
+
+Example output it produces:
+
+<pre>
+=> Subscribing for messages using explicit acknowledgements model
+
+[consumer2] Received Message #0, redelivered = false, ack-ed
+[consumer1] Got message #1, SKIPPPED
+[consumer1] Got message #2, SKIPPPED
+[consumer1] Got message #3, ack-ed
+[consumer2] Received Message #4, redelivered = false, ack-ed
+[consumer1] Got message #5, SKIPPPED
+[consumer2] Received Message #6, redelivered = false, ack-ed
+[consumer2] Received Message #7, redelivered = false, ack-ed
+[consumer2] Received Message #8, redelivered = false, ack-ed
+[consumer2] Received Message #9, redelivered = false, ack-ed
+[consumer2] Received Message #10, redelivered = false, ack-ed
+[consumer2] Received Message #11, redelivered = false, ack-ed
+Connection 1 is now closed (we pretend that it has crashed)
+[consumer2] Received Message #5, redelivered = true, ack-ed
+[consumer2] Received Message #1, redelivered = true, ack-ed
+[consumer2] Received Message #2, redelivered = true, ack-ed
+[consumer2] Received Message #12, redelivered = false, ack-ed
+[consumer2] Received Message #13, redelivered = false, ack-ed
+[consumer2] Received Message #14, redelivered = false, ack-ed
+[consumer2] Received Message #15, redelivered = false, ack-ed
+[consumer2] Received Message #16, redelivered = false, ack-ed
+[consumer2] Received Message #17, redelivered = false, ack-ed
+[consumer2] Received Message #18, redelivered = false, ack-ed
+[consumer2] Received Message #19, redelivered = false, ack-ed
+[consumer2] Received Message #20, redelivered = false, ack-ed
+[consumer2] Received Message #21, redelivered = false, ack-ed
+[consumer2] Received Message #22, redelivered = false, ack-ed
+[consumer2] Received Message #23, redelivered = false, ack-ed
+[consumer2] Received Message #24, redelivered = false, ack-ed
+[consumer2] Received Message #25, redelivered = false, ack-ed
+[consumer2] Received Message #26, redelivered = false, ack-ed
+[consumer2] Received Message #27, redelivered = false, ack-ed
+[consumer2] Received Message #28, redelivered = false, ack-ed
+[consumer2] Received Message #29, redelivered = false, ack-ed
+[consumer2] Received Message #30, redelivered = false, ack-ed
+[consumer2] Received Message #31, redelivered = false, ack-ed
+[consumer2] Received Message #32, redelivered = false, ack-ed
+[consumer2] Received Message #33, redelivered = false, ack-ed
+[consumer2] Received Message #34, redelivered = false, ack-ed
+[consumer2] Received Message #35, redelivered = false, ack-ed
+</pre>
+
+TBD: walk through this example line by line, explaining what is going on and how {AMQP::Channel#prefetch} works.
+
+As we can see, app #1 did not acknowledge 3 messages:
+
+<pre>
+[consumer1] Got message #1, SKIPPPED
+[consumer1] Got message #2, SKIPPPED
+...
+[consumer1] Got message #5, SKIPPPED
+</pre>
+
+and then, once app #1 had "crashed", those messages were immediately redelivered to  app #2:
+
+<pre>
+Connection 1 is now closed (we pretend that it has crashed)
+[consumer2] Received Message #5, redelivered = true, ack-ed
+[consumer2] Received Message #1, redelivered = true, ack-ed
+[consumer2] Received Message #2, redelivered = true, ack-ed
+</pre>
+
+TBD
+
+Multiple messages delivered on the same channel can be acknowledged at once.
+
 
 TBD
 
