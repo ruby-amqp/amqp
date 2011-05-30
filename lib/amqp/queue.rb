@@ -573,6 +573,9 @@ module AMQP
     #
     # @return [Queue] Self
     # @api public
+    #
+    # @see file:docs/Queues.textile Documentation guide on queues
+    # @see #unsubscribe
     def subscribe(opts = {}, &block)
       raise Error, 'already subscribed to the queue' if @consumer_tag
 
