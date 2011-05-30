@@ -111,6 +111,8 @@ Lets begin with the classic "Hello, world" example. First, here's the code:
 
 {include:file:examples/guides/getting_started/01_hello_world.rb}
 
+(as a "gist":https://gist.github.com/998690)
+
 This example demonstrates a very common communication scenario: app A wants to publish a message that will end up in
 a queue that app B listens on. In this example, queue name is "amqpgem.examples.hello". Lets go through this example
 step by step:
@@ -209,6 +211,8 @@ This first example can be modified to use method chaining technique:
 
 {include:file:examples/guides/getting_started/02_hello_world_dslified.rb}
 
+(as a "gist":https://gist.github.com/998691)
+
 With classes and methods introduced in this example, lets move on to a little bit more
 sophisticated one.
 
@@ -225,6 +229,8 @@ queue and publishes blabs to a separate exchange. 3 Blabbr members, Joe, Aaron a
 account on Blabbr to get updates about what is up in the world of basketball. Here is the code:
 
 {include:file:examples/guides/getting_started/03_blabbr.rb}
+
+(as a "gist":https://gist.github.com/998692)
 
 First line has a few difference from "Hello, world" example above:
 
@@ -330,6 +336,8 @@ on North America updates list.
 Here is the code:
 
 {include:file:examples/guides/getting_started/04_weathr.rb}
+
+(as a "gist":https://gist.github.com/998694)
 
 First line that is different from Blabbr example is
 
