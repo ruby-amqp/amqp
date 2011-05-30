@@ -58,11 +58,11 @@ Applications may pick queue names or ask broker to generate a name for them. To 
 
 Here is an example:
 
-{include:file:examples/guides/queues/01a_declaring_a_server_named_queue_using_queue_constructor.rb}
+<script src="https://gist.github.com/998720.js"> </script>
 
 If you want to declare a queue with a particular name, for example, "images.resize", pass it to Queue class constructor:
 
-{include:file:examples/guides/queues/01b_declaring_a_queue_using_queue_constructor.rb}
+<script src="https://gist.github.com/998721.js"> </script>
 
 Queue names starting with 'amq.' are reserved for internal use by the broker. Attempts to declare queue with a name that violates this
 rule will result in AMQP::IncompatibleOptionsError to be thrown (when queue is re-declared on the same channel object) or channel-level exception
@@ -114,11 +114,11 @@ h2. Declaring a durable shared queue
 
 To declare a durable shared queue, you pass queue name that is a non-blank string and use :durable option:
 
-{include:file:examples/guides/queues/02a_declaring_a_durable_shared_queue.rb}
+<script src="https://gist.github.com/998723.js"> </script>
 
 the same piece of code that uses {AMQP::Channel#queue} for convenience:
 
-{include:file:examples/guides/queues/02b_declaring_a_durable_shared_queue.rb}
+<script src="https://gist.github.com/998724.js"> </script>
 
 
 
@@ -127,24 +127,24 @@ h2. Declaring a temporary exclusive queue
 To declare a server-named, exclusive, auto-deleted queue, pass "" (empty string) as queue name and
 use :exclusive and :auto_delete options:
 
-{include:file:examples/guides/queues/03a_declaring_a_temporary_exclusive_queue.rb}
+<script src="https://gist.github.com/998725.js"> </script>
 
 the same piece of code that uses {AMQP::Channel#queue} for convenience:
 
-{include:file:examples/guides/queues/03b_declaring_a_temporary_exclusive_queue.rb}
+<script src="https://gist.github.com/998726.js"> </script>
 
 
 
 h2. Binding queues to exchanges
 
 In order to receive messages, a queue needs to be bound to at least one exchange. Most of the time binding is explcit (done by applications).
-To bind a queue to an exchange, use {AMQP::Queue#bind). Argument can be either an {AMQP::Exchange} instance, as demonstrated in this example
+To bind a queue to an exchange, use {AMQP::Queue#bind}. Argument can be either an {AMQP::Exchange} instance, as demonstrated in this example
 
-{include:file:examples/guides/queues/04_bind_a_queue_using_exchange_instance.rb}
+<script src="https://gist.github.com/998727.js"> </script>
 
 or an exchange name given as a string:
 
-{include:file:examples/guides/queues/05_bind_a_queue_using_exchange_name.rb}
+<script src="https://gist.github.com/998729.js"> </script>
 
 
 
@@ -154,7 +154,7 @@ h2. Subscribing to receive messages ("push API")
 To subscribe to receive messages when they arrive to the queue ("start a queue consumer"), one uses {AMQP::Queue#subscribe} method.
 Then when a message arrives, message header and body (aka payload) are passed to the handler:
 
-{include:file:examples/guides/queues/06_subscribe_to_receive_messages.rb}
+<script src="https://gist.github.com/998731.js"> </script>
 
 Subscriptions for message delivery are usually referred to as "consumers" in the AMQP 0.9.1 spec, client libraries documentation and books.
 Consumers last as long as the channel they were declared on, or until the client cancels them (unsubscribes).
@@ -179,7 +179,7 @@ h3. Accessing message metadata
 
 and so on. An example to demonstrate how to access some of those attributes:
 
-{include:file:examples/queues/accessing_message_metadata.rb}
+<script src="https://gist.github.com/998739.js"> </script>
 
 
 h3. Exclusive consumers
@@ -313,7 +313,7 @@ h2. Fetching messages when needed ("pull API")
 AMQP 0.9.1 also provides a way for applications to fetch (pull) messages from the queue only when necessary. For that, use
 {AMQP::Queue#pop}:
 
-{include:file:examples/guides/queues/07_fetch_a_message_from_the_queue.rb}
+<script src="https://gist.github.com/998732.js"> </script>
 
 TBD
 
@@ -322,7 +322,7 @@ h2. Unsubscribing from messages
 
 Sometimes it is necessary to unsubscribe from messages without deleting a queue. To do that, use {AMQP::Queue#unsubscribe} method:
 
-{include:file:examples/guides/queues/08_unsubscribing_a_consumer.rb}
+<script src="https://gist.github.com/998734.js"> </script>
 
 By default {AMQP::Queue#unsubscribe} uses :noack option to inform broker that there is no need to send a
 confirmation. In other words, it does not expect you to pass in a callback, because consumer tag on the queue instance and registered
@@ -333,7 +333,7 @@ h2. Unbinding queues from exchanges
 
 To unbind queue from exchange, use {AMQP::Queue#unbind}:
 
-{include:file:examples/guides/queues/09_unbinding_from_exchange.rb}
+<script src="https://gist.github.com/998742.js"> </script>
 
 Note that unbinding an exchange queue was never bound to will result in a channel-level exception.
 
@@ -342,7 +342,7 @@ h2. Purging queues
 
 It is possible to purge (remove all messages from) a queue using {AMQP::Queue#purge}:
 
-{include:file:examples/guides/queues/10_purge_a_queue.rb}
+<script src="https://gist.github.com/998743.js"> </script>
 
 
 This method takes a callback but it is optional. However, remember that this operation is performed asynchronously.
@@ -353,7 +353,7 @@ h2. Deleting queues
 
 To delete a queue, use {AMQP::Queue#delete}:
 
-{include:file:examples/guides/queues/11_deleting_a_queue.rb}
+<script src="https://gist.github.com/998744.js"> </script>
 
 This method takes a callback but it is optional. However, remember that this operation is performed asynchronously.
 
