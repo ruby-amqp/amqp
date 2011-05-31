@@ -55,7 +55,7 @@ queue1.bind(exchange).subscribe(:ack => true) do |metadata, payload|
     channel1.acknowledge(metadata.delivery_tag, false)
     puts "[consumer1] Got message ##{metadata.headers['i']}, ack-ed"
   else
-    # odd messages are not ack-ed and will remain in the queue for redelivery
+    # some messages are not ack-ed and will remain in the queue for redelivery
     # when app #1 connection is closed (either properly or due to a crash)
     puts "[consumer1] Got message ##{metadata.headers['i']}, SKIPPPED"
   end
