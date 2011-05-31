@@ -18,8 +18,8 @@ Gem::Specification.new do |s|
   s.files = `git ls-files`.split("\n").reject { |file| file =~ /^vendor\// || file =~ /^gemfiles\// }
   s.require_paths = ["lib"]
 
-  s.rdoc_options = '--include=examples --main README.textile'
-  s.extra_rdoc_files = ["README.textile"] + Dir.glob("docs/*")
+  s.rdoc_options = '--include=examples --main README.md'
+  s.extra_rdoc_files = ["README.md"] + Dir.glob("docs/*")
 
   # Dependencies
   s.add_dependency "eventmachine"
