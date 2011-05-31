@@ -208,11 +208,11 @@ crash. That's not to mention possible network issues. This raises a question: wh
 you choose one of two answers:
 
  * After broker sends a message to an application (using either basic.deliver or basic.get-ok methods).
- * After the application sends back an acknowledgement (using basic.ack method).
+ * After the application sends back an acknowledgement (using basic.ack AMQP method).
 
 The former model is called *automatic acknowledgement model* while the latter is *explicit acknowledgement model*. With the explicit model, application
 chooses when it's time to send an ack: it can be right after receiving it, or after persisting it to a data store before processing, or after fully
-processing the message (for example, updating a full-text search index and an indication of operation success).
+processing the message (for example, successfully fetching a Web page, processing and storing it into some persistent data store).
 
 If a consumer dies without sending an ack, AMQP broker will redeliver it to another consumer (or, if none are available at the time, it will wait
 until at least one consumer is registered for the same queue).
@@ -380,19 +380,28 @@ multiple messages at once. Delivery tag is simply a channel-specific increasing 
 When acknowledging multiple messages at once, the delivery tag is treated as "up to and including". For example, for delivery
 tag = 5 that would mean "acknowledge messages 1, 2, 3, 4 and 5".
 
-As a shortcut, it is possible to acknowledge messages using {AMQP::Header#ack} method.
+As a shortcut, it is possible to acknowledge messages using {AMQP::Header#ack} method:
+
+<pre>
+<code>
+queue2.subscribe(:ack => true) do |metadata, payload|
+  metadata.ack
+end
+</code>
+</pre>
 
 <span class="note">
-Acknowledgements are channel-specific. Applications must not receive messages on one channel and acknowledge it on another
-channel.
+Acknowledgements are channel-specific. Applications must not receive messages on one channel and acknowledge them on another channel.
 </span>
 
 <span class="note">
-A message MUST not be acknowledged more than once.
+A message MUST not be acknowledged more than once. Doing so will result in a channel-level exception (PRECONDITION_FAILED)
+with an error message like this: «PRECONDITION_FAILED - unknown delivery tag»
 </span>
 
 
 h3. Rejecting messages. Negative acknowledgements.
+
 
 TBD
 
@@ -430,7 +439,7 @@ Note that unbinding an exchange queue was never bound to will result in a channe
 
 h2. Purging queues
 
-It is possible to purge (remove all messages from) a queue using {AMQP::Queue#purge}:
+It is possible to purge a queue (remove all messages from it) using {AMQP::Queue#purge}:
 
 <script src="https://gist.github.com/998743.js"> </script>
 
@@ -446,6 +455,8 @@ To delete a queue, use {AMQP::Queue#delete}:
 <script src="https://gist.github.com/998744.js"> </script>
 
 This method takes a callback but it is optional. However, remember that this operation is performed asynchronously.
+
+When queue is deleted, all the messages in it are deleted as well.
 
 
 
