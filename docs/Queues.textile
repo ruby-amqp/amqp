@@ -402,6 +402,9 @@ with an error message like this: «PRECONDITION_FAILED - unknown delivery tag»
 
 h3. Rejecting messages. Negative acknowledgements.
 
+When a consumer application receives a message, processing of that message may or may not succeed. Application can
+indicate it to the broker that message processing has failed by rejecting a message. While rejecting a message application can
+ask broker to discard or requeue it.
 
 TBD
 
