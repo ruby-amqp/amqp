@@ -68,7 +68,7 @@ queue2.subscribe(:ack => true) do |metadata, payload|
   puts "[consumer2] Received #{payload}, redelivered = #{metadata.redelivered}, ack-ed"
 end
 
-# after 2.5 seconds one of the consumers dies
+# after some time one of the consumers quits/crashes
 EventMachine.add_timer(4.0) {
   connection1.close
   puts "----- Connection 1 is now closed (we pretend that it has crashed) -----"
