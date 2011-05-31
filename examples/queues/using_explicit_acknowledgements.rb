@@ -19,6 +19,7 @@ sleep(0.5)
 # open two connections to imitate two apps
 connection1 = AMQP.connect
 connection2 = AMQP.connect
+connection3 = AMQP.connect
 
 channel_exception_handler = Proc.new { |ch, channel_close| EventMachine.stop; raise "channel error: #{channel_close.reply_text}" }
 
@@ -35,9 +36,11 @@ channel2.on_error(&channel_exception_handler)
 # app #2 processes messages one-by-one and has to send and ack every time
 channel2.prefetch(1)
 
-# make sure to use channel #2 because channel #1 will be closed when we
-# imitate app #1 crash
-exchange = channel2.direct("amq.direct")
+# app 3 will just publish messages
+channel3    = AMQP::Channel.new(connection3)
+channel3.on_error(&channel_exception_handler)
+
+exchange = channel3.direct("amq.direct")
 
 queue1    = channel1.queue("amqpgem.examples.acknowledgements.explicit", :auto_delete => false)
 # purge the queue so that we don't get any redeliveries from previous runs
@@ -68,13 +71,17 @@ end
 # after 2.5 seconds one of the consumers dies
 EventMachine.add_timer(4.0) {
   connection1.close
-  puts "Connection 1 is now closed (we pretend that it has crashed)"
+  puts "----- Connection 1 is now closed (we pretend that it has crashed) -----"
 }
 
-EventMachine.add_timer(10.0) {
+EventMachine.add_timer(10.0) do
   # purge the queue so that we don't get any redeliveries on the next run
-  queue2.purge { connection2.close { EventMachine.stop } }
-}
+  queue2.purge {
+    connection2.close {
+      connection3.close { EventMachine.stop }
+    }
+  }
+end
 
 
 i = 0

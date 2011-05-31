@@ -232,7 +232,76 @@ To demonstrate how redelivery works, lets have a look at the following code exam
 
 <script src="https://gist.github.com/999396.js"> </script>
 
-Example output it produces:
+So what is going on here? This example uses 3 AMQP connections to imitate 3 applications, 1 producer and two consumers. Each AMQP connection opens a single
+channel:
+
+<pre>
+<code>
+# open two connections to imitate two apps
+connection1 = AMQP.connect
+connection2 = AMQP.connect
+connection3 = AMQP.connect
+
+channel_exception_handler = Proc.new { |ch, channel_close| EventMachine.stop; raise "channel error: #{channel_close.reply_text}" }
+
+# open two channels
+channel1    = AMQP::Channel.new(connection1)
+channel1.on_error(&channel_exception_handler)
+# ...
+
+channel2    = AMQP::Channel.new(connection2)
+channel2.on_error(&channel_exception_handler)
+# ...
+
+# app 3 will just publish messages
+channel3    = AMQP::Channel.new(connection3)
+channel3.on_error(&channel_exception_handler)
+</code>
+</pre>
+
+Consumers share a queue and producer publishes messages there periodically using `amq.direct` exchange. Both "applications" subscribe to receive messages
+using explicit acknowledgement model. AMQP broker by default will send each message to the next consumer, in sequence
+(this kind of load balancing is knownas *round-robin*). So some messages will be delivered to consumer #1 and some to consumer #2.
+
+<pre>
+<code>
+exchange = channel3.direct("amq.direct")
+
+# ...
+
+queue1    = channel1.queue("amqpgem.examples.acknowledgements.explicit", :auto_delete => false)
+# purge the queue so that we don't get any redeliveries from previous runs
+queue1.purge
+queue1.bind(exchange).subscribe(:ack => true) do |metadata, payload|
+  # do some work
+  sleep(0.2)
+
+  # acknowledge some messages, they will be removed from the queue
+  if rand > 0.5
+    # FYI: there is a shortcut, metadata.ack
+    channel1.acknowledge(metadata.delivery_tag, false)
+    puts "[consumer1] Got message ##{metadata.headers['i']}, ack-ed"
+  else
+    # odd messages are not ack-ed and will remain in the queue for redelivery
+    # when app #1 connection is closed (either properly or due to a crash)
+    puts "[consumer1] Got message ##{metadata.headers['i']}, SKIPPPED"
+  end
+end
+
+queue2    = channel2.queue!("amqpgem.examples.acknowledgements.explicit", :auto_delete => false)
+queue2.subscribe(:ack => true) do |metadata, payload|
+  metadata.ack
+  # app 2 always acks messages
+  puts "[consumer2] Received #{payload}, redelivered = #{metadata.redelivered}, ack-ed"
+end
+</code>
+</pre>
+
+To demonstrate message redelivery we make consumer #1 randomly select what messages to acknowledge. After 4 seconds we disconnect it (to imitate
+a crash). When that happens, AMQP broker redelivers unacknowledged messages to the consumer #2 which acknowledges them unconditionally. After 10 seconds,
+this example closes all outstanding connections and exits.
+
+An example output produced by this example:
 
 <pre>
 => Subscribing for messages using explicit acknowledgements model
@@ -249,7 +318,7 @@ Example output it produces:
 [consumer2] Received Message #9, redelivered = false, ack-ed
 [consumer2] Received Message #10, redelivered = false, ack-ed
 [consumer2] Received Message #11, redelivered = false, ack-ed
-Connection 1 is now closed (we pretend that it has crashed)
+----- Connection 1 is now closed (we pretend that it has crashed) -----
 [consumer2] Received Message #5, redelivered = true, ack-ed
 [consumer2] Received Message #1, redelivered = true, ack-ed
 [consumer2] Received Message #2, redelivered = true, ack-ed
@@ -279,9 +348,7 @@ Connection 1 is now closed (we pretend that it has crashed)
 [consumer2] Received Message #35, redelivered = false, ack-ed
 </pre>
 
-TBD: walk through this example line by line, explaining what is going on and how {AMQP::Channel#prefetch} works.
-
-As we can see, app #1 did not acknowledge 3 messages:
+As we can see, consumer #1 did not acknowledge 3 messages (labelled 1, 2 and 5):
 
 <pre>
 [consumer1] Got message #1, SKIPPPED
@@ -290,7 +357,7 @@ As we can see, app #1 did not acknowledge 3 messages:
 [consumer1] Got message #5, SKIPPPED
 </pre>
 
-and then, once app #1 had "crashed", those messages were immediately redelivered to  app #2:
+and then, once consumer #1 had "crashed", those messages were immediately redelivered to the consumer #2:
 
 <pre>
 Connection 1 is now closed (we pretend that it has crashed)
@@ -299,10 +366,33 @@ Connection 1 is now closed (we pretend that it has crashed)
 [consumer2] Received Message #2, redelivered = true, ack-ed
 </pre>
 
-TBD
+To acknowledge a message, use {AMQP::Channel#acknowledge}:
 
-Multiple messages delivered on the same channel can be acknowledged at once.
+<pre>
+<code>
+channel1.acknowledge(metadata.delivery_tag, false)
+</code>
+</pre>
 
+{AMQP::Channel#acknowledge} takes two arguments: message *delivery tag* and a flag that indicates whether or not we acknowledge
+multiple messages at once. Delivery tag is simply a channel-specific increasing number that server uses to identify deliveries.
+
+When acknowledging multiple messages at once, the delivery tag is treated as "up to and including". For example, for delivery
+tag = 5 that would mean "acknowledge messages 1, 2, 3, 4 and 5".
+
+As a shortcut, it is possible to acknowledge messages using {AMQP::Header#ack} method.
+
+<span class="note">
+Acknowledgements are channel-specific. Applications must not receive messages on one channel and acknowledge it on another
+channel.
+</span>
+
+<span class="note">
+A message MUST not be acknowledged more than once.
+</span>
+
+
+h3. Rejecting messages. Negative acknowledgements.
 
 TBD
 
