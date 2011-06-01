@@ -372,14 +372,18 @@ Next we are going to discuss issues specific to particular Web servers.
 
 
 
-h3. Using amqp gem with Unicorn
+h3. Using Ruby amqp gem with Unicorn
 
 h4. Unicorn is a pre-forking server
 
-Unicorn is a pre-forking server. That means it forks processes that serve HTTP requests. Master process never serves them and thus
-doesn't need to keep AMQP broker connection open. This is a recommended way, both because master process usually doesn't need a connection
-but also because there is a known issue with EventMachine that makes it a little bit difficult to stop and start EventMachine reactor after
-process that originally started it forks. Next lets see how to spin up EventMachine reactor and connect to the broker after Unicorn forks a worker.
+"Unicorn":http://unicorn.bogomips.org is a pre-forking server. That means it forks worker processes that serve HTTP requests. The "fork(2)":http://en.wikipedia.org/wiki/Fork_(operating_system) system call
+has several gotchas associated with it, two of which affect EventMachine and "Ruby amqp gem":http://github.com/ruby-amqp/amqp:
+
+ * Unintentional file descriptor sharing
+ * The fact that "forked child process only inherits one thread":http://bit.ly/fork-and-threads (and EventMachine thread thus is not inherited)
+
+To avoid both problems, start EventMachine reactor and AMQP connection *after* master process forks workers. Master Unicorn process never serves HTTP requests and usually
+doesn't need to hold an AMQP connection. Next lets see how to spin up EventMachine reactor and connect to the broker after Unicorn forks a worker.
 
 
 h4. Starting EventMachine reactor and connecting to the broker after Unicorn forks worker processes
@@ -430,16 +434,25 @@ lets you detect issues that forking may cause earlier.
 Note that configuration file can easily be used in development environments: other than the fact that Unicorn runs in the foreground,
 it gives you exactly the same application boot behavior as in QA and production environments, which is a good thing.
 
+An "example Ruby on Rails application that uses Ruby amqp gem and Unicorn":http://bit.ly/ruby-amqp-gem-example-with-ruby-on-rails-and-unicorn is available on GitHub.
 
 
 
-h3. Using amqp gem with Passenger
 
-TBD: if you are a Passenger user, please help us write this section!
+h3. Using Ruby amqp gem with Passenger
+
+Phusion Passenger is a pre-forking server, much like Unicorn. Just like with Unicorn, EventMachine reactor and AMQP connection should be started *after* it forks worker
+processes. Passenger documentation has [a section](http://bit.ly/passenger-forking-gotchas) that explains how to avoid problems related to the behavior of fork(2) system
+call, namely:
+
+ * Unintentional file descriptor sharing
+ * The fact that "forked child process only inherits one thread":http://bit.ly/fork-and-threads (and EventMachine thread thus is not inherited)
+
+TBD: if you are a Passenger user, please help us write the rest of this section!
 
 
 
-h3. Using amqp gem with Thin and Goliath
+h3. Using Ruby amqp gem with Thin and Goliath
 
 h4. Thin and Goliath start EventMachine reactor for you, but there is a little nuance
 
