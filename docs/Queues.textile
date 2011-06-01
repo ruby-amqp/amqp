@@ -400,6 +400,7 @@ with an error message like this: «PRECONDITION_FAILED - unknown delivery tag»
 </span>
 
 
+
 h3. Rejecting messages.
 
 When a consumer application receives a message, processing of that message may or may not succeed. Application can
@@ -462,6 +463,62 @@ messages, like you can do with acknowledgements. If you are using "RabbitMQ":htt
 an AMQP 0.9.1 extension known as "negative acknowledgements":http://www.rabbitmq.com/extensions.html#negative-acknowledgements (nacks) and
 amqp gem supports it. For more information, please refer to the {file:docs/VendorSpecificExtensions.textile Vendor-specific Extensions guide}.
 
+
+h3. QoS. Prefetching messages.
+
+For cases when multiple consumers share a queue, it is useful to be able to specify how many messages each consumer can be sent at once
+(before sending the next acknowledgement). This can be used as a simple load balancing technique or to improve throughput if messages tend
+to be published in batches (for example, if producing application sends them every minute because of the nature of the work it is doing).
+
+Imagine a Website that takes data from social media sources like Twitter or Facebook during the Champions League final (or the Superbowl), and then
+calculates how many tweets mentioned a particular team over the last minute. It can be structured as 3 applications:
+
+ * A crawler that uses streaming APIs to fetch tweets/statuses, normalizes them and sends them in JSON for processing by other applications ("app A").
+ * A calculator that detects what team is mentioned in a message, updates statistics and pushes an update to the Web UI once a minute ("app B").
+ * A Web UI that fans visit to see the stats ("app C").
+
+In this imaginary example, tweets per second rate will vary but to improve throughput of the system and decrease maximum number of messages AMQP broker
+has to hold in memory at once, applications can be designed in such a way that application "app B", the "calculator", receives 5000 messages and then
+acknowledges them all at once. Broker will not send message 5001 to it unless it receives an acknowledgement for #1, either individually or in bulk
+with other messages.
+
+In AMQP parlance this is know as *QoS* or "message prefetching*. Prefetching is configured on per-channel (typically) or per-connection (rarely used)
+basis. To configure prefetching per channel, use {AMQP::Channel#prefetch} method. Lets come back to the example we used in the "Message acknowledgements"
+section:
+
+<pre>
+<code>
+# first app will be given up to 3 messages at a time. If it doesn't
+# ack any messages after it was delivered 3, messages will be routed to
+# the app #2.
+channel1.prefetch(3)
+
+# app #2 processes messages one-by-one and has to send and ack every time
+channel2.prefetch(1)
+</code>
+</pre>
+
+In that example, one consumer prefetches 3 messages and another consumer prefetches just 1. If we take a look at the output that example produces,
+we will see that `consumer1` fetched 4 messages and acknowledged 1. After that, all subsequent messages were delivered to the `consumer2`:
+
+<pre>
+[consumer2] Received Message #0, redelivered = false, ack-ed
+[consumer1] Got message #1, SKIPPPED
+[consumer1] Got message #2, SKIPPPED
+[consumer1] Got message #3, ack-ed
+[consumer2] Received Message #4, redelivered = false, ack-ed
+[consumer1] Got message #5, SKIPPPED
+[consumer2] Received Message #6, redelivered = false, ack-ed
+[consumer2] Received Message #7, redelivered = false, ack-ed
+[consumer2] Received Message #8, redelivered = false, ack-ed
+[consumer2] Received Message #9, redelivered = false, ack-ed
+[consumer2] Received Message #10, redelivered = false, ack-ed
+[consumer2] Received Message #11, redelivered = false, ack-ed
+</pre>
+
+<span class="note">
+Prefetching setting is ignored for consumers that do not use explicit acknowledgements
+</span>
 
 
 
