@@ -482,7 +482,7 @@ has to hold in memory at once, applications can be designed in such a way that a
 acknowledges them all at once. Broker will not send message 5001 to it unless it receives an acknowledgement for #1, either individually or in bulk
 with other messages.
 
-In AMQP parlance this is know as *QoS* or "message prefetching*. Prefetching is configured on per-channel (typically) or per-connection (rarely used)
+In AMQP parlance this is know as *QoS* or *message prefetching*. Prefetching is configured on per-channel (typically) or per-connection (rarely used)
 basis. To configure prefetching per channel, use {AMQP::Channel#prefetch} method. Lets come back to the example we used in the "Message acknowledgements"
 section:
 
