@@ -442,7 +442,7 @@ An "example Ruby on Rails application that uses Ruby amqp gem and Unicorn":http:
 h3. Using Ruby amqp gem with Passenger
 
 Phusion Passenger is a pre-forking server, much like Unicorn. Just like with Unicorn, EventMachine reactor and AMQP connection should be started *after* it forks worker
-processes. Passenger documentation has [a section](http://bit.ly/passenger-forking-gotchas) that explains how to avoid problems related to the behavior of fork(2) system
+processes. Passenger documentation has "a section":http://bit.ly/passenger-forking-gotchas that explains how to avoid problems related to the behavior of fork(2) system
 call, namely:
 
  * Unintentional file descriptor sharing
