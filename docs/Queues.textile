@@ -508,7 +508,7 @@ we will see that `consumer1` fetched 4 messages and acknowledged 1. After that, 
 [consumer1] Got message #3, ack-ed
 [consumer2] Received Message #4, redelivered = false, ack-ed
 [consumer1] Got message #5, SKIPPPED
---- by now consumer 1 has received 3 unacknowledged messages. With prefetch = 3, AMQP broker won't send it any more messages until it receives an ack ---
+--- by now consumer 1 has received 3 messages it did not acknowledge. With prefetch = 3, AMQP broker won't send it any more messages until consumer 1 sends an ack ---
 [consumer2] Received Message #6, redelivered = false, ack-ed
 [consumer2] Received Message #7, redelivered = false, ack-ed
 [consumer2] Received Message #8, redelivered = false, ack-ed
