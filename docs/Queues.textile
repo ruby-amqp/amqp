@@ -400,13 +400,68 @@ with an error message like this: «PRECONDITION_FAILED - unknown delivery tag»
 </span>
 
 
-h3. Rejecting messages. Negative acknowledgements.
+h3. Rejecting messages.
 
 When a consumer application receives a message, processing of that message may or may not succeed. Application can
-indicate it to the broker that message processing has failed by rejecting a message. While rejecting a message application can
-ask broker to discard or requeue it.
+indicate it to the broker that message processing has failed (or cannot be accomplished at the time) by rejecting a message.
+While rejecting a message, application can ask broker to discard or requeue it.
 
-TBD
+To reject a message, use {AMQP::Channel#reject} method:
+
+<pre>
+<code>
+queue.bind(exchange).subscribe do |metadata, payload|
+  # reject but don't requeue (simply discard)
+  channel.reject(metadata.delivery_tag)
+end
+</code>
+</pre>
+
+in the example above messages are rejected without requeueing (broker will simply discard them). To requeue rejected message,
+use the second argument {AMQP::Channel#reject} takes:
+
+<pre>
+<code>
+queue.bind(exchange).subscribe do |metadata, payload|
+  # reject & requeue
+  channel.reject(metadata.delivery_tag, true)
+end
+</code>
+</pre>
+
+<span class="note">
+When there is only one consumer on a queue, make sure you don't create infinite message delivery loops by rejecting & requeueing
+message from that consumer over and over.
+</span>
+
+Another way to reject a message is by using {AMQP::Header#reject}:
+
+<pre>
+<code>
+queue.bind(exchange).subscribe do |metadata, payload|
+  # reject but don't requeue (simply discard)
+  metadata.reject
+end
+</code>
+</pre>
+
+<pre>
+<code>
+queue.bind(exchange).subscribe do |metadata, payload|
+  # reject & requeue
+  metadata.reject(true)
+end
+</code>
+</pre>
+
+
+h3. Negative acknowledgements.
+
+Messages are rejected with `basic.reject` AMQP method. There is one limitation `basic.reject` has: there is no way to reject multiple
+messages, like you can do with acknowledgements. If you are using "RabbitMQ":http://rabbitmq.com, there is a solution: RabbitMQ provides
+an AMQP 0.9.1 extension known as "negative acknowledgements":http://www.rabbitmq.com/extensions.html#negative-acknowledgements (nacks) and
+amqp gem supports it. For more information, please refer to the {file:docs/VendorSpecificExtensions.textile Vendor-specific Extensions guide}.
+
 
 
 
