@@ -259,6 +259,10 @@ module AMQP
     #                                      name is empty, the routing key will be the current queue for the
     #                                      channel, which is the last declared queue.
     #
+    # @option opts [Hash] :arguments (nil)  A hash of optional arguments with the declaration. Headers exchange type uses these metadata
+    #                                       attributes for routing matching.
+    #                                       In addition, brokers may implement AMQP extensions using x-prefixed declaration arguments.
+    #
     # @option opts [Boolean] :nowait (true)  If set, the server will not respond to the method. The client should
     #                                       not wait for a reply method.  If the server could not complete the
     #                                       method it will raise a channel or connection exception.
