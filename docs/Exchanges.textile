@@ -1,4 +1,4 @@
-# @title Working with exchanges
+# @title Ruby AMQP gem: Working with exchanges
 
 h1. Working with exchanges
 
@@ -11,7 +11,7 @@ amqp gem.
 
 h2. Covered versions
 
-This guide covers amqp gem v0.8.0 and later.
+This guide covers "Ruby amqp gem":http://github.com/ruby-amqp/amqp v0.8.0 and later.
 
 
 h2. Exchanges in AMQP 0.9.1, briefly

@@ -1,12 +1,23 @@
-# @title RabbitMQ version compatibility
+# @title Ruby AMQP gem: RabbitMQ version compatibility
 
-h1. amqp gem and RabbitMQ versions compatibility
+h1. Ruby amqp gem and RabbitMQ versions compatibility
+
+h2. About this guide
+
+This guide covers compatibility of the "Ruby amqp gem":http://github.com/ruby-amqp/amqp with various versions of "RabbitMQ":http://rabbitmq.com messaging broker.
+
+
+
+h2. Covered versions
+
+This guide covers "Ruby amqp gem":http://github.com/ruby-amqp/amqp v0.6.0 and later.
+
+
 
 h2. Using recent versions on Debian and Ubuntu
 
 Ubuntu (even 10.10) and Debian both "ship with old RabbitMQ version":http://packages.ubuntu.com/maverick/rabbitmq-server,
-that only supports AMQP protocol 0.8. amqp gem 0.8.0 and later *will not work with RabbitMQ versions
-before 2.0.0*.
+that only supports AMQP protocol 0.8. Ruby amqp gem 0.8.0 and later *will not work with RabbitMQ versions before 2.0.0*.
 
 We strongly recommend that you use "RabbitMQ apt repository":http://www.rabbitmq.com/debian.html#apt that has recent versions of RabbitMQ.
 

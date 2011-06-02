@@ -1,4 +1,4 @@
-# @title Running tests
+# @title Ruby AMQP gem: Running tests
 
 h1. Running amqp gem test suite
 

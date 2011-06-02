@@ -1,4 +1,4 @@
-# @title Error handling and recovery
+# @title Ruby AMQP gem: Error handling and recovery
 
 h1. Error handling and recovery
 
@@ -19,7 +19,7 @@ issues like
 
 h2. Covered versions
 
-This guide covers amqp gem v0.8.0 and later.
+This guide covers "Ruby amqp gem":http://github.com/ruby-amqp/amqp v0.8.0 and later.
 
 
 h2. Code examples

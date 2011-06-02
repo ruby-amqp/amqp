@@ -1,4 +1,4 @@
-# @title Using vendor-specific AMQP extensions
+# @title Ruby AMQP gem: Using vendor-specific AMQP extensions
 
 h1. Vendor-specific AMQP extensions support in amqp gem
 

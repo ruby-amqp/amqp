@@ -11,7 +11,7 @@ connection error handling, authentication failure handling and related issues..
 
 h2. Covered versions
 
-This guide covers amqp gem v0.8.0 and later.
+This guide covers "Ruby amqp gem":http://github.com/ruby-amqp/amqp v0.8.0 and later.
 
 
 
