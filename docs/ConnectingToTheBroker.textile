@@ -474,51 +474,8 @@ Thin and Goliath are not pre-forking servers so there is no need to re-establish
 
 h2. If it just doesn't work: troubleshooting
 
-If you read this guide yet your issue is still unresolved, check the following things before asking on the mailing list:
+If you read this guide yet your issue is still unresolved, check our {file:docs/Troubleshooting.textile Troubleshooting guide} before asking on the mailing list
 
- * AMQP broker log.
- * List of users in a particular vhost you are trying to connect
- * Network connectivity. We know, it's obvious, yet even experienced developers and devops engineers struggle with network access misconfigurations every once in a while.
- * If EventMachine is started in a separate thread, make sure that isn't dead. If it is, this usually means there was an exception that caused it to terminate.
-
-
-h3. Inspecting AMQP broker log file
-
-In this section we will cover typical problems that can be tracked down by reading AMQP broker log. We will use RabbitMQ as an example, however, different AMQP brokers
-often log most of the same issues.
-
-RabbitMQ logs abrupt TCP connection failures, timeouts, protocol version mismatches and so on.
-If you are running RabbitMQ, log locations for various operating systems and distributions is documented in the "RabbitMQ installation guide":http://www.rabbitmq.com/install.html
-
-On Mac OS X, RabbitMQ installed via Homebrew logs to $HOMEBREW_HOME/var/log/rabbitmq/rabbit@$HOSTNAME.log. For example, if you have Homebrew installed at /usr/local and
-your hostname is giove, log will be at /usr/local/var/log/rabbitmq/rabbit@giove.log.
-
-Here is what authentication failure looks like in RabbitMQ log:
-
-<pre>
-=ERROR REPORT==== 17-May-2011::17:37:58 ===
-exception on TCP connection <0.4770.0> from 127.0.0.1:46551
-{channel0_error,starting,
-                {amqp_error,access_refused,
-                            "AMQPLAIN login refused: user 'pipeline_agent' - invalid credentials",
-                            'connection.start_ok'}}
-</pre>
-
-This means that connection attempt with username pipeline_agent failed because credentials were invalid. If you are seeing this message, make sure username,
-password *and vhost* are correct.
-
-
-The following entry:
-
-<pre>
-=ERROR REPORT==== 17-May-2011::17:26:28 ===
-exception on TCP connection <0.4201.62> from 10.8.0.30:57990
-{bad_header,<<65,77,81,80,0,0,9,1>>}
-</pre>
-
-Means that client supports AMQP 0.9.1 but broker doesn't (RabbitMQ versions pre-2.0 only support AMQP 0.8, for example). If you are using amqp gem 0.8 or later
-and seeing this entry in your broker log, you are connecting to AMQP broker that is too old to support this AMQP version. In case of RabbitMQ, make sure you run
-version 2.0 or later.
 
 
 

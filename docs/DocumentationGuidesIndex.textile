@@ -13,6 +13,7 @@ h2. Guide list
  * {file:docs/Durability.textile Durability and message persistence}
  * {file:docs/ErrorHandling.textile Error handling}
  * {file:docs/08Migration.textile Upgrading from version 0.6.x/0.7.x to 0.8.x and above}
+ * {file:docs/Troubleshooting.textile Troubleshooting and debugging AMQP applications}
  * {file:docs/Clustering.textile Clustering}
  * {file:docs/RabbitMQVersions.textile RabbitMQ versions}
  * {file:docs/ConnectionEncryptionWithTLS.textile Using TLS (SSL)}
