@@ -165,7 +165,7 @@ what wasn't clear.
  * Join [Ruby AMQP mailing list](http://groups.google.com/group/ruby-amqp)
  * Follow [@rubyamqp](https://twitter.com/rubyamqp) on Twitter for Ruby AMQP ecosystem updates.
  * Join also [RabbitMQ mailing list](https://lists.rabbitmq.com/cgi-bin/mailman/listinfo/rabbitmq-discuss) (AMQP community epicenter).
- * Drop by our [Jabber room](xmpp://amqp-dev@conf.netlab.cz) where you can talk to library maintainers.
+ * Drop by #rabbitmq on irc.freenode.net.
 
 
 
