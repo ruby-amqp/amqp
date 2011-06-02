@@ -30,7 +30,7 @@ AMQP.start(:host => 'localhost') do |connection|
 
   100.times do |i|
     print "."
-    exchange.publish(Time.now.to_i.to_s + "_#{i}", :key => queue_name)
+    exchange.publish(Time.now.to_i.to_s + "_#{i}", :key => queue.name)
   end
   $stdout.flush
 
