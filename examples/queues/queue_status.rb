@@ -8,13 +8,6 @@ $:.unshift(File.expand_path("../../../lib", __FILE__))
 
 require 'amqp'
 
-if RUBY_VERSION == "1.8.7"
-  class Array
-    alias sample choice
-  end
-end
-
-
 puts "=> Queue#status example"
 puts
 AMQP.start(:host => 'localhost') do |connection|
