@@ -1,12 +1,12 @@
-# @title Connecting to the broker
+# @title Ruby amqp gem: Connecting to the broker, integrating with Ruby on Rails, Merb and Sinatra
 
-h1. Connecting to the broker
+h1. Connecting to the broker, integrating with Ruby on Rails, Merb and Sinatra
 
 
 h2. About this guide
 
 This guide covers connection to AMQP broker from standalone and Web applications,
-connection error handling, authentication failure handling and related issues..
+connection error handling, authentication failure handling and related issues.
 
 
 h2. Covered versions
