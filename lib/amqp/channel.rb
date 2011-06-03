@@ -1155,6 +1155,7 @@ module AMQP
 
     # @private
     def validate_parameters_match!(entity, parameters)
+      parameters.delete_if { |key| key == :no_declare }
       unless entity.opts == parameters || parameters[:passive]
         raise AMQP::IncompatibleOptionsError.new(entity.name, entity.opts, parameters)
       end
