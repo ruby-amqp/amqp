@@ -327,6 +327,7 @@ module AMQP
 
         validate_parameters_match!(exchange, extended_opts)
 
+        block.call(exchange) if block
         exchange
       else
         register_exchange(Exchange.new(self, :direct, name, opts, &block))
@@ -434,6 +435,7 @@ module AMQP
 
         validate_parameters_match!(exchange, extended_opts)
 
+        block.call(exchange) if block
         exchange
       else
         register_exchange(Exchange.new(self, :fanout, name, opts, &block))
@@ -549,6 +551,7 @@ module AMQP
 
         validate_parameters_match!(exchange, extended_opts)
 
+        block.call(exchange) if block
         exchange
       else
         register_exchange(Exchange.new(self, :topic, name, opts, &block))
@@ -654,6 +657,7 @@ module AMQP
 
         validate_parameters_match!(exchange, extended_opts)
 
+        block.call(exchange) if block
         exchange
       else
         register_exchange(Exchange.new(self, :headers, name, opts, &block))
@@ -754,6 +758,7 @@ module AMQP
 
         validate_parameters_match!(queue, extended_opts)
 
+        block.call(queue) if block
         queue
       else
         self.queue!(name, opts, &block)
@@ -1155,7 +1160,7 @@ module AMQP
 
     # @private
     def validate_parameters_match!(entity, parameters)
-      parameters.delete_if { |key| key == :no_declare }
+      parameters.delete(:no_declare)
       unless entity.opts == parameters || parameters[:passive]
         raise AMQP::IncompatibleOptionsError.new(entity.name, entity.opts, parameters)
       end
