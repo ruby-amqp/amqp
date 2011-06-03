@@ -109,7 +109,9 @@ h2. "Hello, world" example
 
 Lets begin with the classic "Hello, world" example. First, here's the code:
 
-{include:file:examples/guides/getting_started/01_hello_world.rb}
+<script src="https://gist.github.com/998690.js"> </script>
+
+(if the example above isn't displayed, see this "gist":https://gist.github.com/998690)
 
 This example demonstrates a very common communication scenario: app A wants to publish a message that will end up in
 a queue that app B listens on. In this example, queue name is "amqpgem.examples.hello". Lets go through this example
