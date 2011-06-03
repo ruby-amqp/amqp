@@ -327,6 +327,8 @@ module AMQP
 
         validate_parameters_match!(exchange, extended_opts)
 
+        call_block_or_register_callback(exchange, &block) if block
+
         exchange
       else
         register_exchange(Exchange.new(self, :direct, name, opts, &block))
@@ -433,6 +435,8 @@ module AMQP
         extended_opts = Exchange.add_default_options(:fanout, name, opts, block)
 
         validate_parameters_match!(exchange, extended_opts)
+
+        call_block_or_register_callback(exchange, &block) if block
 
         exchange
       else
@@ -549,6 +553,8 @@ module AMQP
 
         validate_parameters_match!(exchange, extended_opts)
 
+        call_block_or_register_callback(exchange, &block) if block
+
         exchange
       else
         register_exchange(Exchange.new(self, :topic, name, opts, &block))
@@ -654,6 +660,8 @@ module AMQP
 
         validate_parameters_match!(exchange, extended_opts)
 
+        call_block_or_register_callback(exchange, &block) if block
+
         exchange
       else
         register_exchange(Exchange.new(self, :headers, name, opts, &block))
@@ -753,6 +761,8 @@ module AMQP
         extended_opts = Queue.add_default_options(name, opts, block)
 
         validate_parameters_match!(queue, extended_opts)
+
+        call_block_or_register_callback(queue, &block) if block
 
         queue
       else
@@ -1160,5 +1170,14 @@ module AMQP
         raise AMQP::IncompatibleOptionsError.new(entity.name, entity.opts, parameters)
       end
     end # validate_parameters_match!(entity, parameters)
+
+    # @private
+    def call_block_or_register_callback(entity, &block)
+      if entity.opened?
+        block.call(entity)
+      else
+        entity.append_callback(:declare, &block)
+      end
+    end # call_block_or_register_callback
   end # Channel
 end # AMQP
