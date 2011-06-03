@@ -42,6 +42,7 @@ Queues have several attributes associated with them:
 
  * Name
  * Exclusivity
+ * Durability
  * Whether queue is auto-deleted when no longer used
  * Other metadata (aka X-arguments)
 
