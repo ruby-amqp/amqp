@@ -2,6 +2,7 @@
 --protected
 --markup="textile" lib/**/*.rb
 --main README.md
+--asset docs:docs --asset examples:examples
 -
 LICENSE
 CHANGELOG
