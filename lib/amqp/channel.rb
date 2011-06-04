@@ -753,6 +753,8 @@ module AMQP
     # @return [Queue]
     # @api public
     def queue(name = AMQ::Protocol::EMPTY_STRING, opts = {}, &block)
+      raise ArgumentError.new("queue name must not be nil; if you want broker to generate queue name for you, pass an empty string") if name.nil?
+
       if name && !name.empty? && (queue = find_queue(name))
         extended_opts = Queue.add_default_options(name, opts, block)
 
