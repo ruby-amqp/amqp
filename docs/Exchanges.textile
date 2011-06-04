@@ -61,8 +61,8 @@ Custom exchange types begin with x-, much like custom HTTP headers, for example,
 h2. Message attributes
 
 Before we start looking at various exchange types and their routing semantics, we need to introduce idea of message attributes.
-Every AMQP message has a number of *attributes* applications can set. Some attributes are very important and used by nearly all
-applications, other are rarely used. AMQP message attributes are metadata: they are similar in purpose to HTTP request and response headers.
+Every AMQP message has a number of *attributes*. Some attributes are important and used very often, other are used rarely. AMQP message attributes are metadata:
+they are similar in purpose to HTTP request and response headers.
 
 Every AMQP 0.9.1 message has an attribute called the *routing key*. The routing key is an "address" that the exchange may use to decide how to route
 the message (similar to, but more generic, than URL in HTTP). Most exchange types use routing key to implement routing logic, but some ignore
