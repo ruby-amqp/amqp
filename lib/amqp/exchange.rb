@@ -366,8 +366,10 @@ module AMQP
 
     # Publishes message to the exchange. The message will be routed to queues by the exchange
     # and distributed to any active consumers. Routing logic is determined by exchange type and
-    # configuration as well as message attributes (like :routing_key).
+    # configuration as well as message attributes (like :routing_key or message headers).
     #
+    # Published data is opaque and not modified by Ruby amqp gem in any way. Serialization of data with JSON, Thrift, BSON
+    # or similar libraries before publishing is very common.
     #
     #
     # h2. Data serialization
@@ -375,8 +377,32 @@ module AMQP
     # Note that this method calls #to_s on payload argument value. You are encouraged to take care of
     # data serialization before publishing (using JSON, Thrift, Protocol Buffers or other serialization library).
     # Note that because AMQP is a binary protocol, text formats like JSON lose lose their strong point of being easy
-    # to inspect data as it travels across network.
+    # to inspect data as it travels across network. For the same reason BSON may be a good fit.
     #
+    #
+    # h2. Publishing and message persistence
+    #
+    # In cases when you application cannot afford to lose a message, AMQP 0.9.1 has several features to offer:
+    #
+    # * Persistent messages
+    # * Messages acknowledgements
+    # * Transactions
+    # * (a RabbitMQ-specific extension) Publisher confirms
+    #
+    # This is a broad topic and we dedicate a separate guide, {file:docs/Durability.textile Durability and message persistence}, to it.
+    #
+    #
+    # h2. Publishing callback and guarantees it DOES NOT offer
+    #
+    # Exact moment when message is published is not determined and depends on many factors, including machine's networking stack configuration,
+    # so (optional) block this method takes is scheduled for next event loop tick, and data is staged for delivery for current event loop
+    # tick. For most applications, this is good enough. The only way to guarantee a message was delivered in a distributed system is to
+    # ask a peer to send you a message back. RabbitMQ
+    #
+    # @note Optional callback this method takes DOES NOT OFFER ANY GUARANTEES ABOUT DATA DELIVERY and must not be used as a "delivery callback".
+    #       The only way to guarantee delivery in distributed environment is to use an acknowledgement mechanism, such as AMQP transactions
+    #       or lightweight "publisher confirms" RabbitMQ extension supported by amqp gem. See {file:docs/Durability.textile Durability and message persistence}
+    #       and {file:docs/Exchanges.textile Working With Exchanges} guides for details.
     #
     #
     # h2. Event loop blocking
@@ -388,7 +414,7 @@ module AMQP
     # * Use EventMachine.next_tick.
     # * Use EventMachine.defer to offload operation to EventMachine thread pool.
     #
-    # TBD: this subject worth a separate guide
+    # TBD: this subject is worth a separate guide
     #
     #
     # h2. Sending one-off messages
@@ -402,21 +428,6 @@ module AMQP
     #     connection.disconnect { EventMachine.stop }
     #   end
     #
-    #
-    # h2. Publishing and persistence
-    #
-    # In cases when you application cannot afford to lose a message, AMQP 0.9.1 has several features to offer:
-    #
-    # * Persistent messages
-    # * Messages acknowledgements
-    # * Transactions
-    # * (a RabbitMQ-specific extension) Publisher confirms
-    #
-    # This is a broad topic and we dedicate a separate guide, {file:docs/Durability.textile Durability and message persistence}, to it.
-    #
-    # Exact moment when message is published is not determined and depends on many factors, including machine's networking stack configuration,
-    # so (optional) block this method takes is scheduled for next event loop tick, and data is staged for delivery for current event loop
-    # tick. For most applications, this is good enough. TBD: covering this requires finishing EventMachine documentation rewrite. MK.
     #
     #
     # @param  [#to_s] payload  Message payload (content). Note that this method calls #to_s on payload argument value.
@@ -459,7 +470,7 @@ module AMQP
     #
     # @return [Exchange] self
     #
-    # @note Please make sure you read {file:docs/Durability.textile Durability guide} that covers exchanges durability vs. messages
+    # @note Please make sure you read {file:docs/Durability.textile Durability an message persistence} guide that covers exchanges durability vs. messages
     #       persistence.
     # @api public
     def publish(payload, options = {}, &block)
@@ -477,28 +488,23 @@ module AMQP
     end
 
 
-    # This method deletes an exchange.  When an exchange is deleted all queue
-    # bindings on the exchange are cancelled.
+    # This method deletes an exchange. When an exchange is deleted all queue bindings on the exchange are deleted, too.
+    # Further attempts to publish messages to a deleted exchange will result in a channel-level exception.
     #
-    # Further attempts to publish messages to a deleted exchange will raise
-    # an AMQP::Channel::Error due to a channel close exception.
+    # @example Deleting an exchange
     #
-    #  exchange = AMQP::Channel.direct('name', :routing_key => 'foo.bar')
+    #  exchange = AMQP::Channel.direct("search.indexing")
     #  exchange.delete
     #
-    # == Options
-    # * :nowait => true | false (default true)
-    # If set, the server will not respond to the method. The client should
-    # not wait for a reply method.  If the server could not complete the
-    # method it will raise a channel or connection exception.
+    # @option opts [Boolean] :nowait (false) If set, the server will not respond to the method. The client should
+    #                                        not wait for a reply method.  If the server could not complete the
+    #                                        method it will raise a channel or connection exception.
     #
-    #  exchange.delete(:nowait => false)
+    # @option opts [Boolean] :if_unused (false) If set, the server will only delete the exchange if it has no queue
+    #                                           bindings. If the exchange has queue bindings the server does not
+    #                                           delete it but raises a channel exception instead.
     #
-    # * :if_unused => true | false (default false)
-    # If set, the server will only delete the exchange if it has no queue
-    # bindings. If the exchange has queue bindings the server does not
-    # delete it but raises a channel exception instead (AMQP::Error).
-    #
+    # @return [NilClass] nil
     # @api public
     def delete(opts = {}, &block)
       @channel.once_open do
