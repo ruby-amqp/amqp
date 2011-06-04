@@ -6,13 +6,12 @@ require "amqp"
 
 # Declaring a queue with explicitly given name using AMQP::Queue constructor
 AMQP.start("amqp://guest:guest@dev.rabbitmq.com") do |connection, open_ok|
-  AMQP::Channel.new do |channel, open_ok|
-    AMQP::Queue.new(channel, "images.resize", :auto_delete => true) do |queue, declare_ok|
-      puts "#{queue.name} is ready to go."
+  channel = AMQP::Channel.new(connection)
+  queue   = AMQP::Queue.new(channel, "images.resize", :auto_delete => true)
 
-      connection.close {
-        EventMachine.stop { exit }
-      }
-    end
-  end
+  puts "#{queue.name} is ready to go."
+
+  connection.close {
+    EventMachine.stop { exit }
+  }
 end
