@@ -138,6 +138,8 @@ module AMQP
 
       @connection = connection || AMQP.start
 
+      @queues_awaiting_declare_ok = Array.new
+
       conn.callback { |c|
         @channel = c.add_channel(self)
         send Protocol::Channel::Open.new
@@ -146,6 +148,10 @@ module AMQP
 
     attr_reader :channel, :connection, :status
     alias :conn :connection
+
+    attr_reader :queues_awaiting_declare_ok
+
+
 
     def closed?
       @status.eql?(:closed)
@@ -630,7 +636,10 @@ module AMQP
 
         queue
       else
-        self.queues << Queue.new(self, name, opts, &block)
+        q = Queue.new(self, name, opts, &block)
+        self.queues << q
+
+        q
       end
     end
 
@@ -760,6 +769,9 @@ module AMQP
     def reset
       @deferred_status = nil
       @channel = nil
+
+      @queues_awaiting_declare_ok = Array.new
+
       initialize @connection
 
       @consumers = {}
@@ -871,12 +883,9 @@ module AMQP
         exchange.receive_response method
 
       when Protocol::Queue::DeclareOk
-        # We can't use queues[method.queue] because if the name would
-        # be an empty string, then AMQP broker generated a random one.
-        queues = self.queues.select { |queue| queue.opts[:nowait].eql?(false) }
-        queue  = queues.reverse.find { |queue| queue.status.eql?(:unfinished) }
-        queue.receive_status method
+        queue = @queues_awaiting_declare_ok.shift
 
+        queue.receive_status method
       when Protocol::Queue::BindOk
         # We can't use queues[method.queue] because if the name would
         # be an empty string, then AMQP broker generated a random one.
