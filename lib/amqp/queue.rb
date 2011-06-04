@@ -66,6 +66,8 @@ module AMQP
     # method it will raise a channel or connection exception.
     #
     def initialize(mq, name, opts = {}, &block)
+      raise ArgumentError, "queue name must not be nil. Use '' (empty string) for server-named queues." if name.nil?
+
       @mq = mq
       @opts = self.class.add_default_options(name, opts, block)
       @bindings ||= {}

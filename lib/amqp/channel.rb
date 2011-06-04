@@ -621,7 +621,9 @@ module AMQP
     # method it will raise a channel or connection exception.
     #
     def queue(name, opts = {}, &block)
-      if queue = self.queues.find { |queue| queue.name == name }
+      raise ArgumentError, "queue name must not be nil. Use '' (empty string) for server-named queues." if name.nil?
+
+      if name && !name.empty? && (queue = self.queues.find { |queue| queue.name == name })
         extended_opts = Queue.add_default_options(name, opts, block)
 
         validate_parameters_match!(queue, extended_opts)
