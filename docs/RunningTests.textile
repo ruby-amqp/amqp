@@ -22,7 +22,6 @@ Since late 2010, the canonical amqp gem repository is at "github.com/ruby-amqp/a
 
 
 
-
 h2. Initial setup
 
 amqp gem currently uses recent releases of RabbitMQ for automated tests. Broker installation is described in the {file:docs/GettingStarted.textile Getting started} guide
@@ -96,3 +95,22 @@ what was unclear? what wasn't covered? maybe you don't like guide style or gramm
 key to making documentation better.
 
 If mailing list communication is not an option for you for some reason, you can "contact guides author directly":mailto:michael@novemberain.com?subject=amqp%20gem%20documentation
+
+
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = 'rubyamqpdocs'; // required: replace example with your forum shortname
+
+    var disqus_developer = 0; // set to 1 on local machine for testing comments
+    var disqus_identifier = 'amqp_running_tests_textile';
+    var disqus_url = 'http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/RunningTests.textile';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
