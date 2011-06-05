@@ -799,6 +799,8 @@ end
 Full example:
 <script src="https://gist.github.com/998743.js"> </script>
 
+Note that this example purges a newly declared queue with unique server-generated name. When queue is declared,
+it is empty, so for server-named queues, there is no need to purge them before application can use it.
 
 
 h2. Deleting queues
