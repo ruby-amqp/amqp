@@ -829,6 +829,150 @@ Full example:
 
 
 
+h2. Objects as message consumers. Unit testing consumers in isolation.
+
+Since Ruby is a genuine object-oriented language, it is important to demonstrate how Ruby amqp gem can be integrated
+into rich object-oriented code. This guide focuses on queues and problems/solutions consumer applications
+(apps that primarily receive and process messages, as opposed to producers that publish them).
+
+{AMQP::Queue#subscribe} callback doesn't have to be a block: it can be any Ruby object that responds to `call`.
+A common technique is to combine {http://rubydoc.info/stdlib/core/1.8.7/Object:method Object#method} and {http://rubydoc.info/stdlib/core/1.8.7/Method:to_proc Method#to_proc}
+and use object methods as message handlers.
+
+An example to demonstrate this technique:
+
+<pre>
+<code>
+class Consumer
+
+  #
+  # API
+  #
+
+  def initialize(channel, queue_name = AMQ::Protocol::EMPTY_STRING)
+    @queue_name = queue_name
+
+    @channel    = channel
+    # Consumer#handle_channel_exception will handle channel
+    # exceptions. Keep in mind that you can only register one error handler,
+    # so the last one registered "wins".
+    @channel.on_error(&method(:handle_channel_exception))
+  end # initialize
+
+  def start
+    @queue = @channel.queue(@queue_name, :exclusive => true)
+    # #handle_message method will be handling messages routed to @queue
+    @queue.subscribe(&method(:handle_message))
+  end # start
+
+
+
+  #
+  # Implementation
+  #
+
+  def handle_message(metadata, payload)
+    puts "Received a message: #{payload}, content_type = #{metadata.content_type}"
+  end # handle_message(metadata, payload)
+
+  def handle_channel_exception(channel, channel_close)
+    puts "Oops... a channel-level exception: code = #{channel_close.reply_code}, message = #{channel_close.reply_text}"
+  end # handle_channel_exception(channel, channel_close)
+end
+</code>
+</pre>
+
+Full example:
+
+<script src="https://gist.github.com/1009425.js"> </script>
+
+
+In this example, `Consumer` instances have to be instantiated with an {AMQP::Channel} instances. If message handling was done
+by an aggregated object, it would make handling logic completely separated from the rest and will be easy to unit test
+in isolation:
+
+<pre>
+<code>
+class Consumer
+
+  #
+  # API
+  #
+
+  def handle_message(metadata, payload)
+    puts "Received a message: #{payload}, content_type = #{metadata.content_type}"
+  end # handle_message(metadata, payload)
+end
+
+
+class Worker
+
+  #
+  # API
+  #
+
+
+  def initialize(channel, queue_name = AMQ::Protocol::EMPTY_STRING, consumer = Consumer.new)
+    @queue_name = queue_name
+
+    @channel    = channel
+    @channel.on_error(&method(:handle_channel_exception))
+
+    @consumer   = consumer
+  end # initialize
+
+  def start
+    @queue = @channel.queue(@queue_name, :exclusive => true)
+    @queue.subscribe(&@consumer.method(:handle_message))
+  end # start
+
+
+
+  #
+  # Implementation
+  #
+
+  def handle_channel_exception(channel, channel_close)
+    puts "Oops... a channel-level exception: code = #{channel_close.reply_code}, message = #{channel_close.reply_text}"
+  end # handle_channel_exception(channel, channel_close)
+end
+</code>
+</pre>
+
+Full example:
+<script src="https://gist.github.com/1009447.js"> </script>
+
+
+Note that `Consumer` class demonstrated above can be easily tested in isolation, without spinning up any AMQP connections:
+
+<pre>
+<code>
+require "ostruct"
+
+# RSpec example
+describe Consumer do
+  describe "when a new message arrives" do
+    subject { described_class.new }
+
+    let(:metadata) do
+      o = OpenStruct.new
+
+      o.content_type = "application/json"
+      o
+    end
+    let(:payload)  { JSON.encode({ :command => "reload_config" }) }
+
+    it "does some useful work" do
+      subject.handle_message(metadata, payload)
+
+      # add your code expectations here
+    end
+  end
+end
+</code>
+</pre>
+
+
 
 h2. Queue durability vs Message durability
 
