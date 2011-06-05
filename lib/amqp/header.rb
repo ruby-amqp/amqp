@@ -1,27 +1,31 @@
 # encoding: utf-8
 
 module AMQP
-  # We keep this class around for sake of API compatibility with 0.7.x series.
-  #
-  # @note This class is not part of the public API and may be removed in the future without any warning.
+  # Message metadata (aka envelope).
   class Header
 
     #
     # API
     #
 
+    # @api public
     # @return [AMQP::Channel]
     attr_reader :channel
-    # AMQP method frame this header is associated with. Carries additional information that varies between AMQP methods.
+
+    # AMQP method frame this header is associated with.
+    # Carries additional information that varies between AMQP methods.
+    #
+    # @api public
     # @return [AMQ::Protocol::Method]
     attr_reader :method
-    # AMQP message header as a hash
+
+    # AMQP message attributes
     # @return [Hash]
-    attr_reader :header
+    attr_reader :attributes
 
     # @api public
-    def initialize(channel, method, header)
-      @channel, @method, @header = channel, method, header
+    def initialize(channel, method, attributes)
+      @channel, @method, @attributes = channel, method, attributes
     end
 
     # Acknowledges the receipt of this message with the server.
@@ -41,18 +45,70 @@ module AMQP
     # @return [Hash] AMQP message header w/o method-specific information.
     # @api public
     def to_hash
-      @header
+      @attributes
     end # to_hash
 
+    def delivery_tag
+      @method.delivery_tag
+    end # delivery_tag
+
+    def consumer_tag
+      @method.consumer_tag
+    end # consumer_tag
+
+    def redelivered
+      @method.redelivered
+    end # redelivered
+
+    def redelivered?
+      @method.redelivered
+    end # redelivered?
+
+    def exchange
+      @method.exchange
+    end # exchange
+
+    # @deprecated
+    def header
+      @attributes
+    end # header
+
+    def headers
+      @attributes[:headers]
+    end # headers
+
+    def delivery_mode
+      @attributes[:delivery_mode]
+    end # delivery_mode
+
+    def content_type
+      @attributes[:content_type]
+    end # content_type
+
+    def timestamp
+      @attributes[:timestamp]
+    end # timestamp
+
+    def type
+      @attributes[:type]
+    end # type
+
+    def priority
+      @attributes[:priority]
+    end # priority
+
+
+
     def respond_to_missing?(meth, _)
-      (@header && args.empty? && blk.nil? && @header.has_key?(meth)) || @method.respond_to?(meth)
+      (@attributes && args.empty? && blk.nil? && @attributes.has_key?(meth)) || @method.respond_to?(meth)
     end
+
 
     # Returns AMQP message attributes.
     # @api public
     def method_missing(meth, *args, &blk)
-      if @header && args.empty? && blk.nil? && @header.has_key?(meth)
-        @header[meth]
+      if @attributes && args.empty? && blk.nil? && @attributes.has_key?(meth)
+        @attributes[meth]
       else
         @method.__send__(meth, *args, &blk)
       end
