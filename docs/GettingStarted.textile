@@ -13,6 +13,7 @@ It should take about 20 minutes to read and study provided code examples. This g
  * Running the "Hello, world" of messaging, a simple demonstration of 1:1 communication.
  * Creating a "Twitter like" publish/subscribe example with 1 publisher and 4 subscribers, a case of 1:n communication.
  * Creating a topic routing example with 2 publishers and 8 subscribers, a case of n:m communication when subscribers only receive messages they are interested in.
+ * Learning how amqp gem can be integrated with Ruby objects in a way that makes unit testing easy
 
 
 h2. Covered versions
@@ -439,6 +440,123 @@ callback: we *strongly recommend you always use a callback for server-named queu
 to "race conditions":http://en.wikipedia.org/wiki/Race_condition and even though amqp gem tries to be reasonably smart and protect you from most common problems, there
 is no way it can do so for every case. The only reason we support {AMQP::Channel#queue} usage w/o a callback for server-named queues is
 backwards compatibility with earlier versions.
+
+
+
+h2. Integration with objects.
+
+Since Ruby is a genuine object-oriented language, it is important to demonstrate how Ruby amqp gem can be integrated
+into rich object-oriented code.
+
+{AMQP::Queue#subscribe} callback doesn't have to be a block: it can be any Ruby object that responds to `call`.
+A common technique is to combine {http://rubydoc.info/stdlib/core/1.8.7/Object:method Object#method} and {http://rubydoc.info/stdlib/core/1.8.7/Method:to_proc Method#to_proc}
+and use object methods as message handlers.
+
+An example to demonstrate this technique:
+
+<pre>
+<code>
+class Consumer
+
+  #
+  # API
+  #
+
+  def handle_message(metadata, payload)
+    puts "Received a message: #{payload}, content_type = #{metadata.content_type}"
+  end # handle_message(metadata, payload)
+end
+
+
+class Worker
+
+  #
+  # API
+  #
+
+
+  def initialize(channel, queue_name = AMQ::Protocol::EMPTY_STRING, consumer = Consumer.new)
+    @queue_name = queue_name
+
+    @channel    = channel
+    @channel.on_error(&method(:handle_channel_exception))
+
+    @consumer   = consumer
+  end # initialize
+
+  def start
+    @queue = @channel.queue(@queue_name, :exclusive => true)
+    @queue.subscribe(&@consumer.method(:handle_message))
+  end # start
+
+
+
+  #
+  # Implementation
+  #
+
+  def handle_channel_exception(channel, channel_close)
+    puts "Oops... a channel-level exception: code = #{channel_close.reply_code}, message = #{channel_close.reply_text}"
+  end # handle_channel_exception(channel, channel_close)
+end
+</code>
+</pre>
+
+The "Hello, world" example can be ported to use this technique:
+<script src="https://gist.github.com/1009447.js"> </script>
+
+They key line in this example is
+
+<pre>
+<code>
+@queue.subscribe(&@consumer.method(:handle_message))
+</code>
+</pre>
+
+Ampersand (&) preceding an object is equivalent to calling #to_proc method on it: we obtain Consumer#handle_message method reference
+with
+
+<pre>
+<code>
+@consumer.method(:handle_message)
+</code>
+</pre>
+
+and then ampersand calls #to_proc on it. {AMQP::Queue#subscribe} then will be using this Proc instance to handle incoming messages.
+
+
+Note that `Consumer` class demonstrated above can be easily tested in isolation, without spinning up any AMQP connections.
+Here is one example, "RSpec":http://relishapp.com/rspec-style
+
+<pre>
+<code>
+require "ostruct"
+require "json"
+
+# RSpec example
+describe Consumer do
+  describe "when a new message arrives" do
+    subject { described_class.new }
+
+    let(:metadata) do
+      o = OpenStruct.new
+
+      o.content_type = "application/json"
+      o
+    end
+    let(:payload)  { JSON.encode({ :command => "reload_config" }) }
+
+    it "does some useful work" do
+      # check preconditions here if necessary
+
+      subject.handle_message(metadata, payload)
+
+      # add your code expectations here
+    end
+  end
+end
+</code>
+</pre>
 
 
 h2. Wrapping up
