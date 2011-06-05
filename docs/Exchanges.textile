@@ -213,6 +213,19 @@ Exchanges are be *auto-deleted*. An example that uses two auto-deleted exchanges
 TBD
 
 
+h2. Objects as message producers.
+
+Since Ruby is a genuine object-oriented language, it is important to demonstrate how Ruby amqp gem can be integrated
+into rich object-oriented code. This guide focuses on exchanges and problems/solutions producer applications
+(apps that primarily generate and publish messages, as opposed to consumers that receive and process them).
+
+Full example:
+
+<script src="https://gist.github.com/1009425.js"> </script>
+
+TBD
+
+
 
 h2. Exchange durability vs Message durability
 
