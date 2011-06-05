@@ -245,12 +245,28 @@ The following example demonstrates this:
 h2. Binding queues to exchanges
 
 In order to receive messages, a queue needs to be bound to at least one exchange. Most of the time binding is explcit (done by applications).
-To bind a queue to an exchange, use {AMQP::Queue#bind}. Argument can be either an {AMQP::Exchange} instance, as demonstrated in this example
+To bind a queue to an exchange, use {AMQP::Queue#bind}. Argument can be either an {AMQP::Exchange} instance or a string.
 
+<pre>
+<code>
+queue.bind(exchange) do |bind_ok|
+  puts "Just bound #{queue.name} to #{exchange.name}"
+end
+</code>
+</pre>
+
+Full example:
 <script src="https://gist.github.com/998727.js"> </script>
 
-or an exchange name given as a string:
+Same example using a string and without callback:
 
+<pre>
+<code>
+queue.bind("amq.fanout")
+</code>
+</pre>
+
+Full example:
 <script src="https://gist.github.com/998729.js"> </script>
 
 
@@ -259,8 +275,17 @@ or an exchange name given as a string:
 h2. Subscribing to receive messages ("push API")
 
 To subscribe to receive messages when they arrive to the queue ("start a queue consumer"), one uses {AMQP::Queue#subscribe} method.
-Then when a message arrives, message header and body (aka payload) are passed to the handler:
+Then when a message arrives, message metadata (aka header, aka envelope) and body (aka payload) are passed to the handler:
 
+<pre>
+<code>
+queue.subscribe do |metadata, payload|
+  puts "Received a message: #{payload.inspect}."
+end
+</code>
+</pre>
+
+Full example:
 <script src="https://gist.github.com/998731.js"> </script>
 
 Subscriptions for message delivery are usually referred to as "consumers" in the AMQP 0.9.1 spec, client libraries documentation and books.
@@ -286,6 +311,48 @@ h3. Accessing message metadata
 
 and so on. An example to demonstrate how to access some of those attributes:
 
+<pre>
+<code>
+# producer
+exchange.publish("Hello, world!",
+                 :app_id      => "amqpgem.example",
+                 :priority    => 8,
+                 :type        => "kinda.checkin",
+                 # headers table keys can be anything
+                 :headers     => {
+                   :coordinates => {
+                     :latitude  => 59.35,
+                     :longitude => 18.066667
+                   },
+                   :participants => 11,
+                   :venue        => "Stockholm"
+                 },
+                 :timestamp   => Time.now.to_i)
+</code>
+</pre>
+
+<pre>
+<code>
+# consumer
+queue.subscribe do |metadata, payload|
+  puts "metadata.routing_key : #{metadata.routing_key}"
+  puts "metadata.content_type: #{metadata.content_type}"
+  puts "metadata.priority    : #{metadata.priority}"
+  puts "metadata.headers     : #{metadata.headers.inspect}"
+  puts "metadata.timestamp   : #{metadata.timestamp.inspect}"
+  puts "metadata.type        : #{metadata.type}"
+  puts "metadata.delivery_tag: #{metadata.delivery_tag}"
+  puts "metadata.redelivered : #{metadata.redelivered?}"
+
+  puts "metadata.app_id      : #{metadata.app_id}"
+  puts "metadata.exchange    : #{metadata.exchange}"
+  puts
+  puts "Received a message: #{payload}."
+end
+</code>
+</pre>
+
+Full example:
 <script src="https://gist.github.com/998739.js"> </script>
 
 
@@ -638,26 +705,71 @@ h2. Fetching messages when needed ("pull API")
 AMQP 0.9.1 also provides a way for applications to fetch (pull) messages from the queue only when necessary. For that, use
 {AMQP::Queue#pop}:
 
+<pre>
+<code>
+queue.pop do |metadata, payload|
+  if payload
+    puts "Fetched a message: #{payload.inspect}, content_type: #{metadata.content_type}. Shutting down..."
+  else
+    puts "No messages in the queue"
+  end
+end
+</code>
+</pre>
+
+Full example:
 <script src="https://gist.github.com/998732.js"> </script>
 
-TBD
+If queue is empty, `payload` argument will be nil, otherwise arguments are identical to those of {AMQP::Queue#subscribe}
+callback.
 
 
 h2. Unsubscribing from messages
 
 Sometimes it is necessary to unsubscribe from messages without deleting a queue. To do that, use {AMQP::Queue#unsubscribe} method:
 
-<script src="https://gist.github.com/998734.js"> </script>
+<pre>
+<code>
+queue.unsubscribe
+</code>
+</pre>
 
 By default {AMQP::Queue#unsubscribe} uses :noack option to inform broker that there is no need to send a
 confirmation. In other words, it does not expect you to pass in a callback, because consumer tag on the queue instance and registered
 callback for messages are cleared immediately.
+
+If application needs to execute a piece of code after broker response arrives, {AMQP::Queue#unsubscribe} takes an
+optional callback:
+
+<pre>
+<code>
+queue.unsubscribe do |unbind_ok|
+  # server response arrived, handle it if necessary...
+end
+</code>
+</pre>
+
+Full example:
+<script src="https://gist.github.com/998734.js"> </script>
+
+In AMQP parlance, unsubscribing from messages is often referred to as "cancelling a consumer". Once consumer is cancelled,
+messages will no longer be delivered to it, however, due to the asynchronous nature of the protocol, it is possible for
+“in flight” messages to be received after this call completes.
+
+Fetching messages with {AMQP::Queue#pop} is still possible even after consumer is cancelled.
 
 
 h2. Unbinding queues from exchanges
 
 To unbind queue from exchange, use {AMQP::Queue#unbind}:
 
+<pre>
+<code>
+queue.unbind(exchange)
+</code>
+</pre>
+
+Full example:
 <script src="https://gist.github.com/998742.js"> </script>
 
 Note that unbinding an exchange queue was never bound to will result in a channel-level exception.
@@ -667,22 +779,52 @@ h2. Purging queues
 
 It is possible to purge a queue (remove all messages from it) using {AMQP::Queue#purge}:
 
-<script src="https://gist.github.com/998743.js"> </script>
-
+<pre>
+<code>
+queue.purge
+</code>
+</pre>
 
 This method takes a callback but it is optional. However, remember that this operation is performed asynchronously.
+To run a piece of code when AMQP broker confirms that queue has been purged, use a callback {AMQP::Queue#purge} takes:
+
+<pre>
+<code>
+queue.purge do |_|
+  puts "Purged #{queue.name}"
+end
+</code>
+</pre>
+
+Full example:
+<script src="https://gist.github.com/998743.js"> </script>
 
 
 
 h2. Deleting queues
 
-To delete a queue, use {AMQP::Queue#delete}:
+To delete a queue, use {AMQP::Queue#delete}. When queue is deleted, all the messages in it are deleted as well.
 
-<script src="https://gist.github.com/998744.js"> </script>
+<pre>
+<code>
+queue.delete
+</code>
+</pre>
 
 This method takes a callback but it is optional. However, remember that this operation is performed asynchronously.
+To run a piece of code when AMQP broker confirms that queue has been deleted, use a callback {AMQP::Queue#delete} takes:
 
-When queue is deleted, all the messages in it are deleted as well.
+<pre>
+<code>
+queue.delete do |_|
+  puts "Deleted #{queue.name}"
+end
+</code>
+</pre>
+
+Full example:
+<script src="https://gist.github.com/998744.js"> </script>
+
 
 
 

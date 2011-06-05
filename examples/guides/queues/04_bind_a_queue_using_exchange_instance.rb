@@ -6,17 +6,16 @@ require "amqp"
 
 # Binding a queue to an exchange
 AMQP.start("amqp://guest:guest@dev.rabbitmq.com") do |connection, open_ok|
-  AMQP::Channel.new do |channel, open_ok|
-    exchange = channel.fanout("amq.fanout")
+  channel  = AMQP::Channel.new(connection)
+  exchange = channel.fanout("amq.fanout")
 
-    channel.queue("", :auto_delete => true, :exclusive => true) do |queue, declare_ok|
-      queue.bind(exchange) do |bind_ok|
-        puts "Just bound #{queue.name} to #{exchange.name}"
-      end
-
-      connection.close {
-        EventMachine.stop { exit }
-      }
+  channel.queue("", :auto_delete => true, :exclusive => true) do |queue, declare_ok|
+    queue.bind(exchange) do |bind_ok|
+      puts "Just bound #{queue.name} to #{exchange.name}"
     end
+
+    connection.close {
+      EventMachine.stop { exit }
+    }
   end
 end

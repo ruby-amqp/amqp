@@ -31,7 +31,7 @@ EventMachine.run do
     puts "metadata.timestamp   : #{metadata.timestamp.inspect}"
     puts "metadata.type        : #{metadata.type}"
     puts "metadata.delivery_tag: #{metadata.delivery_tag}"
-    puts "metadata.redelivered : #{metadata.redelivered}"
+    puts "metadata.redelivered : #{metadata.redelivered?}"
 
     puts "metadata.app_id      : #{metadata.app_id}"
     puts "metadata.exchange    : #{metadata.exchange}"

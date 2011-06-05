@@ -5,21 +5,19 @@ require "rubygems"
 require "amqp"
 
 AMQP.start("amqp://guest:guest@dev.rabbitmq.com") do |connection, open_ok|
-  AMQP::Channel.new do |channel, open_ok|
-    exchange = channel.fanout("amq.fanout")
+  channel  = AMQP::Channel.new(connection)
+  exchange = channel.fanout("amq.fanout")
 
-    channel.queue("", :auto_delete => true, :exclusive => true) do |queue, declare_ok|
-      queue.bind(exchange).subscribe do |headers, payload|
-        puts "Received a message: #{payload.inspect}. Shutting down..."
+  channel.queue("", :auto_delete => true, :exclusive => true) do |queue|
+    queue.bind(exchange).subscribe do |metadata, payload|
+      puts "Received a message: #{payload.inspect}. Shutting down..."
 
-        connection.close {
-          EM.stop { exit }
-        }
-      end
+      connection.close { EventMachine.stop }
+    end
 
-      EventMachine.add_timer(0.2) do
-        exchange.publish("Ohai!")
-      end
+    EventMachine.add_timer(0.2) do
+      puts "=> Publishing..."
+      exchange.publish("Ohai!")
     end
   end
 end

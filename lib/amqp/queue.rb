@@ -390,44 +390,18 @@ module AMQP
     # application where synchronous functionality is more important than
     # performance.
     #
-    # If provided block takes one argument, it is passed message payload every time {Queue#pop} is called.
+    # If queue is empty, `payload` callback argument will be nil, otherwise arguments
+    # are identical to those of {AMQP::Queue#subscribe} callback.
     #
-    # @example Use of callback with a single argument
+    # @example Fetching messages off AMQP queue on demand
     #
-    #  EM.run do
-    #    exchange = AMQP::Channel.direct("foo queue")
-    #    EM.add_periodic_timer(1) do
-    #      exchange.publish("random number #{rand(1000)}")
-    #    end
-    #
-    #    # note that #bind is never called; it is implicit because
-    #    # the exchange and queue names match
-    #    queue = AMQP::Channel.queue('foo queue')
-    #    queue.pop { |body| puts "received payload [#{body}]" }
-    #
-    #    EM.add_periodic_timer(1) { queue.pop }
-    #  end
-    #
-    # If the block takes 2 parameters, both the header and the body will
-    # be passed in for processing. The header object is defined by
-    # AMQP::Protocol::Header.
-    #
-    # @example Use of callback with two arguments
-    #
-    #  EM.run do
-    #    exchange = AMQP::Channel.direct("foo queue")
-    #    EM.add_periodic_timer(1) do
-    #      exchange.publish("random number #{rand(1000)}")
-    #    end
-    #
-    #    queue = AMQP::Channel.queue('foo queue')
-    #    queue.pop do |header, body|
-    #      p header
-    #      puts "received payload [#{body}]"
-    #    end
-    #
-    #    EM.add_periodic_timer(1) { queue.pop }
-    #  end
+    #   queue.pop do |metadata, payload|
+    #     if payload
+    #       puts "Fetched a message: #{payload.inspect}, content_type: #{metadata.content_type}. Shutting down..."
+    #     else
+    #       puts "No messages in the queue"
+    #     end
+    #   end
     #
     # @option opts [Boolean] :ack (false)  If this field is set to false the server does not expect acknowledgments
     #                                      for messages.  That is, when a message is delivered to the client
@@ -617,13 +591,13 @@ module AMQP
     end
 
 
-    # Removes the subscription from the queue and cancels the consumer.
-    # New messages will not be received by this queue instance.
-    #
-    # Due to the asynchronous nature of the protocol, it is possible for
-    # "in flight" messages to be received after this call completes.
+    # Removes the subscription from the queue and cancels the consumer. Once consumer is cancelled,
+    # messages will no longer be delivered to it, however, due to the asynchronous nature of the protocol, it is possible for
+    # “in flight” messages to be received after this call completes.
     # Those messages will be serviced by the last block used in a
     # {Queue#subscribe} or {Queue#pop} call.
+    #
+    # Fetching messages with {AMQP::Queue#pop} is still possible even after consumer is cancelled.
     #
     # Additionally, if the queue was created with _autodelete_ set to
     # true, the server will delete the queue after its wait period
