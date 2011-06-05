@@ -448,9 +448,21 @@ call, namely:
  * Unintentional file descriptor sharing
  * The fact that "forked child process only inherits one thread":http://bit.ly/fork-and-threads (and EventMachine thread thus is not inherited)
 
-TBD: if you are a Passenger user, please help us write the rest of this section!
+h4. Using event handler to spawn one amqp connection per worker
 
+Passenger provides a hook that you should use for spawning AMQP connection: 
 
+```
+PhusionPassenger.on_event(:starting_worker_process) do |forked|
+  if forked
+    # We're in a smart spawning mode
+
+    # Do something useful here
+  end
+end
+```
+
+Basically, recommended default smart spawn mode works exactly the same as Unicorn (with all the same common pitfalls). An "example application":http://bit.ly/ruby-amqp-gem-example-with-ruby-on-rails-and-passenger is available on github.
 
 h3. Using Ruby amqp gem with Thin and Goliath
 
