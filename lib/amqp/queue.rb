@@ -610,6 +610,7 @@ module AMQP
     # @example Unit-testing objects that are used as consumers, RSpec style
     #
     #   require "ostruct"
+    #   require "json"
     #
     #   # RSpec example
     #   describe Consumer do

@@ -948,6 +948,7 @@ Note that `Consumer` class demonstrated above can be easily tested in isolation,
 <pre>
 <code>
 require "ostruct"
+require "json"
 
 # RSpec example
 describe Consumer do
