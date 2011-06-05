@@ -455,8 +455,8 @@ topics from {file:docs/Routing.textile routing} to {file:docs/ErrorHandling.text
 To learn more on what you have seen in this tutorial, check out
 
  * {file:docs/ConnectingToTheBroker.textile Connection to the broker}
- * {file:docs/Queues.textile Queues}
- * {file:docs/Exchanges.textile Exchanges}
+ * {file:docs/Queues.textile Working With Queues}. This guide focuses on features consumer applications use heavily.
+ * {file:docs/Exchanges.textile Working With Exchanges}. This guide focuses on features producer applications use heavily.
  * {file:docs/Bindings.textile Bindings}
 
 If you are migrating your application from earlier versions of amqp gem (0.6.x and 0.7.x), to 0.8.x and later, there is
