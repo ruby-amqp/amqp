@@ -6,14 +6,13 @@ require "amqp"
 
 # Declaring a temporary exclusive queue
 AMQP.start("amqp://guest:guest@dev.rabbitmq.com") do |connection, open_ok|
-  AMQP::Channel.new do |channel, open_ok|
-    AMQP::Queue.new(channel, "", :auto_delete => true, :exclusive => true) do |queue, declare_ok|
-      puts "#{queue.name} is ready to go."
+  channel = AMQP::Channel.new(connection)
 
-      connection.close {
-        EventMachine.stop { exit }
-      }
-    end
+  AMQP::Queue.new(channel, "", :auto_delete => true, :exclusive => true) do |queue, declare_ok|
+    puts "#{queue.name} is ready to go."
+
+    connection.close {
+      EventMachine.stop { exit }
+    }
   end
 end
-

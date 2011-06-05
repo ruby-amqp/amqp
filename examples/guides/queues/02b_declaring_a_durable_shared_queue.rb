@@ -6,13 +6,10 @@ require "amqp"
 
 # Declaring a durable shared queue using AMQP::Channel#queue method
 AMQP.start("amqp://guest:guest@dev.rabbitmq.com") do |connection, open_ok|
-  AMQP::Channel.new do |channel, open_ok|
-    channel.queue("images.resize", :durable => true) do |queue, declare_ok|
-      puts "#{queue.name} is ready to go."
+  channel = AMQP::Channel.new(connection)
+  queue   = channel.queue("images.resize", :durable => true)
 
-      connection.close {
-        EventMachine.stop { exit }
-      }
-    end
-  end
+  connection.close {
+    EventMachine.stop { exit }
+  }
 end

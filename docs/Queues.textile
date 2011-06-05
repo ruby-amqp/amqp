@@ -73,7 +73,7 @@ queue = AMQP::Queue.new(channel, "images.resize", :auto_delete => true)
 </code>
 </pre>
 
-The same example in context:
+Full example:
 <script src="https://gist.github.com/998721.js"> </script>
 
 
@@ -89,7 +89,7 @@ end
 </code>
 </pre>
 
-The same example in context:
+Full example:
 <script src="https://gist.github.com/998720.js"> </script>
 
 amqp gem allows server-named queues to be declared without callbacks:
@@ -179,16 +179,14 @@ To declare a durable shared queue, you pass queue name that is a non-blank strin
 
 <pre>
 <code>
-AMQP::Queue.new(channel, "images.resize", :durable => true) do |queue, declare_ok|
-  puts "#{queue.name} is ready to go."
-end
+queue = AMQP::Queue.new(channel, "images.resize", :durable => true)
 </code>
 </pre>
 
-The same example in context:
+Full example:
 <script src="https://gist.github.com/998723.js"> </script>
 
-the same piece of code that uses {AMQP::Channel#queue} for convenience:
+the same example rewritten to use {AMQP::Channel#queue}:
 
 <pre>
 <code>
@@ -207,11 +205,40 @@ h2. Declaring a temporary exclusive queue
 To declare a server-named, exclusive, auto-deleted queue, pass "" (empty string) as queue name and
 use :exclusive and :auto_delete options:
 
+<pre>
+<code>
+AMQP::Queue.new(channel, "", :auto_delete => true, :exclusive => true) do |queue, declare_ok|
+  puts "#{queue.name} is ready to go."
+end
+</code>
+</pre>
+
+Full example:
+
 <script src="https://gist.github.com/998725.js"> </script>
 
-the same piece of code that uses {AMQP::Channel#queue} for convenience:
+The same example can rewritten to use {AMQP::Channel#queue}:
+
+<pre>
+<code>
+channel.queue("", :auto_delete => true, :exclusive => true) do |queue, declare_ok|
+  puts "#{queue.name} is ready to go."
+end
+</code>
+</pre>
+
+Full example:
 
 <script src="https://gist.github.com/998726.js"> </script>
+
+Exclusive queues may only be accessed by the current connection, and are deleted when that connection closes.
+Declaration of an exclusive queue by other connections are not allowed and will result in a channel-level exception
+with the code 405 (RESOURCE_LOCKED) and reply message similar to
+
+<pre>RESOURCE_LOCKED - cannot obtain exclusive access to locked queue 'amqpgem.examples.queue' in vhost '/'</pre>
+
+The following example demonstrates this:
+<script src="https://gist.github.com/1008529.js"> </script>
 
 
 
