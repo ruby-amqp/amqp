@@ -452,7 +452,8 @@ h4. Using event handler to spawn one amqp connection per worker
 
 Passenger provides a hook that you should use for spawning AMQP connection: 
 
-```
+<pre>
+<code>
 PhusionPassenger.on_event(:starting_worker_process) do |forked|
   if forked
     # We're in a smart spawning mode
@@ -460,7 +461,8 @@ PhusionPassenger.on_event(:starting_worker_process) do |forked|
     # Do something useful here
   end
 end
-```
+</code>
+</pre>
 
 Basically, recommended default smart spawn mode works exactly the same as Unicorn (with all the same common pitfalls). An "example application":http://bit.ly/ruby-amqp-gem-example-with-ruby-on-rails-and-passenger is available on github.
 
