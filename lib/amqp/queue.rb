@@ -522,6 +522,119 @@ module AMQP
     #                     :timestamp   => Time.now.to_i)
     #  end
     #
+    # @example Using object as consumer (message handler), take one
+    #
+    #   class Consumer
+    #
+    #     #
+    #     # API
+    #     #
+    #
+    #     def initialize(channel, queue_name = AMQ::Protocol::EMPTY_STRING)
+    #       @queue_name = queue_name
+    #
+    #       @channel    = channel
+    #       # Consumer#handle_channel_exception will handle channel
+    #       # exceptions. Keep in mind that you can only register one error handler,
+    #       # so the last one registered "wins".
+    #       @channel.on_error(&method(:handle_channel_exception))
+    #     end # initialize
+    #
+    #     def start
+    #       @queue = @channel.queue(@queue_name, :exclusive => true)
+    #       # #handle_message method will be handling messages routed to @queue
+    #       @queue.subscribe(&method(:handle_message))
+    #     end # start
+    #
+    #
+    #
+    #     #
+    #     # Implementation
+    #     #
+    #
+    #     def handle_message(metadata, payload)
+    #       puts "Received a message: #{payload}, content_type = #{metadata.content_type}"
+    #     end # handle_message(metadata, payload)
+    #
+    #     def handle_channel_exception(channel, channel_close)
+    #       puts "Oops... a channel-level exception: code = #{channel_close.reply_code}, message = #{channel_close.reply_text}"
+    #     end # handle_channel_exception(channel, channel_close)
+    #   end
+    #
+    #
+    # @example Using object as consumer (message handler), take two: aggregatied handler
+    #   class Consumer
+    #
+    #     #
+    #     # API
+    #     #
+    #
+    #     def handle_message(metadata, payload)
+    #       puts "Received a message: #{payload}, content_type = #{metadata.content_type}"
+    #     end # handle_message(metadata, payload)
+    #   end
+    #
+    #
+    #   class Worker
+    #
+    #     #
+    #     # API
+    #     #
+    #
+    #
+    #     def initialize(channel, queue_name = AMQ::Protocol::EMPTY_STRING, consumer = Consumer.new)
+    #       @queue_name = queue_name
+    #
+    #       @channel    = channel
+    #       @channel.on_error(&method(:handle_channel_exception))
+    #
+    #       @consumer   = consumer
+    #     end # initialize
+    #
+    #     def start
+    #       @queue = @channel.queue(@queue_name, :exclusive => true)
+    #       @queue.subscribe(&@consumer.method(:handle_message))
+    #     end # start
+    #
+    #
+    #
+    #     #
+    #     # Implementation
+    #     #
+    #
+    #     def handle_channel_exception(channel, channel_close)
+    #       puts "Oops... a channel-level exception: code = #{channel_close.reply_code}, message = #{channel_close.reply_text}"
+    #     end # handle_channel_exception(channel, channel_close)
+    #   end
+    #
+    # @example Unit-testing objects that are used as consumers, RSpec style
+    #
+    #   require "ostruct"
+    #
+    #   # RSpec example
+    #   describe Consumer do
+    #     describe "when a new message arrives" do
+    #       subject { described_class.new }
+    #
+    #       let(:metadata) do
+    #         o = OpenStruct.new
+    #
+    #         o.content_type = "application/json"
+    #         o
+    #       end
+    #       let(:payload)  { JSON.encode({ :command => "reload_config" }) }
+    #
+    #       it "does some useful work" do
+    #         # check preconditions here if necessary
+    #
+    #         subject.handle_message(metadata, payload)
+    #
+    #         # add your code expectations here
+    #       end
+    #     end
+    #   end
+    #
+    #
     #
     # @option opts [Boolean ]:ack (false)   If this field is set to false the server does not expect acknowledgments
     #                                       for messages.  That is, when a message is delivered to the client

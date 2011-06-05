@@ -963,6 +963,8 @@ describe Consumer do
     let(:payload)  { JSON.encode({ :command => "reload_config" }) }
 
     it "does some useful work" do
+      # check preconditions here if necessary
+
       subject.handle_message(metadata, payload)
 
       # add your code expectations here
