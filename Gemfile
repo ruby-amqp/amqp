@@ -30,11 +30,13 @@ group(:development) do
   # To test event loop helper and various Rack apps
   gem "thin",    :platform => :ruby
   gem "unicorn", :platform => :ruby
+
   gem "changelog"
 end
 
-group(:test) do
-  gem "rspec", ">=2.5.0"
-  gem "rake", "~> 0.9.2"
+group :test do
+  gem "rspec", "~> 2.6.0"
+  gem "rake",  "~> 0.9.2"
+
   custom_gem "evented-spec", :git => "git://github.com/ruby-amqp/evented-spec.git", :branch => "master"
 end
