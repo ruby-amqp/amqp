@@ -22,13 +22,13 @@ group(:development) do
   gem "yard", ">= 0.7.1"
   # yard tags this buddy along
   gem "RedCloth"
-  gem "rdiscount"
+  gem "rdiscount", :platform => :ruby
 
   custom_gem "nake",         :platform => :ruby_19
   custom_gem "contributors", :platform => :ruby_19
 
   # To test event loop helper and various Rack apps
-  gem "thin"
+  gem "thin",    :platform => :ruby
   gem "unicorn", :platform => :ruby
   gem "changelog"
 end
