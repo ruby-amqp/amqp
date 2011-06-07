@@ -30,6 +30,7 @@ EventMachine.run do
     puts "metadata.headers     : #{metadata.headers.inspect}"
     puts "metadata.timestamp   : #{metadata.timestamp.inspect}"
     puts "metadata.type        : #{metadata.type}"
+    puts "metadata.consumer_tag: #{metadata.consumer_tag}"
     puts "metadata.delivery_tag: #{metadata.delivery_tag}"
     puts "metadata.redelivered : #{metadata.redelivered?}"
 
