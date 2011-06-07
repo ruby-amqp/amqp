@@ -16,7 +16,7 @@ EventMachine.run do
   queue    = channel.queue("amqpgem.examples.hello_world", :auto_delete => true)
   exchange = channel.direct("amq.direct")
 
-  queue.bind(exchange)
+  queue.bind(exchange, :routing_key => "amqpgem.key")
 
   channel.on_error do |ch, channel_close|
     puts channel_close.reply_text
@@ -57,5 +57,6 @@ EventMachine.run do
                      :participants => 11,
                      :venue        => "Stockholm"
                    },
-                   :timestamp   => Time.now.to_i)
+                   :timestamp   => Time.now.to_i,
+                   :routing_key => "amqpgem.key")
 end
