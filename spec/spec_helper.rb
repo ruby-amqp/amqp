@@ -9,62 +9,7 @@ Bundler.require :default, :test
 require "amqp"
 require "evented-spec"
 
-# See https://gist.github.com/892414
-RSpec::Core::Example.send(:include, Module.new {
-  def self.included(base)
-    base.class_eval do
-      alias_method :__finish__, :finish
-      remove_method :finish
-    end
-  end
 
-  attr_reader :not_implemented_error
-  def from_not_implemented_error?
-    !! @not_implemented_error
-  end
-
-  def finish(reporter)
-    if @exception.is_a?(NotImplementedError)
-      @not_implemented_error = @exception
-      message = "#{@exception.message} (from #{@exception.backtrace[0]})"
-      self.metadata[:pending] = true
-      @pending_declared_in_example = message
-      @exception = nil
-    end
-
-    __finish__(reporter)
-  end
-})
-
-RSpec::Core::Formatters::BaseTextFormatter.send(:include, Module.new {
-  def self.included(base)
-    base.class_eval do
-      remove_method :dump_pending
-      remove_method :dump_backtrace
-    end
-  end
-
-  def dump_pending
-    unless pending_examples.empty?
-      output.puts
-      output.puts "Pending:"
-      pending_examples.each do |pending_example|
-        output.puts yellow("  #{pending_example.full_description}")
-        output.puts grey("    # #{pending_example.execution_result[:pending_message]}")
-        output.puts grey("    # #{format_caller(pending_example.location)}")
-        if pending_example.from_not_implemented_error? && RSpec.configuration.backtrace_clean_patterns.empty?
-          dump_backtrace(pending_example, pending_example.not_implemented_error.backtrace)
-        end
-      end
-    end
-  end
-
-  def dump_backtrace(example, backtrace = example.execution_result[:exception].backtrace)
-    format_backtrace(backtrace, example).each do |backtrace_info|
-      output.puts grey("#{long_padding}# #{backtrace_info}")
-    end
-  end
-})
 
 def em_amqp_connect(&block)
   em do
