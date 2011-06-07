@@ -38,7 +38,7 @@ describe "Message attributes" do
       connection.close { EventMachine.stop }
     end
 
-    @now     = Time.now.to_i
+    @now     = Time.now
     @payload = "Hello, world!"
 
     queue.subscribe do |metadata, payload|
@@ -46,11 +46,19 @@ describe "Message attributes" do
       metadata.content_type.should == "application/octet-stream"
       metadata.priority.should     == 8
 
+      time = metadata.headers["time"]
+      time.year.should == @now.year
+      time.month.should == @now.month
+      time.day.should == @now.day
+      time.hour.should == @now.hour
+      time.min.should == @now.min
+      time.sec.should == @now.sec
+
       metadata.headers["coordinates"]["latitude"].should    == 59.35
       metadata.headers["participants"].should == 11
       metadata.headers["venue"].should == "Stockholm"
 
-      metadata.timestamp.should == Time.at(@now)
+      metadata.timestamp.should == Time.at(@now.to_i)
       metadata.type.should == "kinda.checkin"
       metadata.consumer_tag.should_not be_nil
       metadata.consumer_tag.should_not be_empty
@@ -74,10 +82,11 @@ describe "Message attributes" do
                          :latitude  => 59.35,
                          :longitude => 18.066667
                        },
+                       :time         => @now,
                        :participants => 11,
                        :venue        => "Stockholm"
                      },
-                     :timestamp   => @now,
+                     :timestamp   => @now.to_i,
                      :routing_key => "amqpgem.key")
   end
 end
