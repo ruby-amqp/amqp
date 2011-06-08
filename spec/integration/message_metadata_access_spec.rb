@@ -35,7 +35,7 @@ describe "Message attributes" do
 
     @channel.on_error do |ch, channel_close|
       puts channel_close.reply_text
-      connection.close { EventMachine.stop }
+      @connection.close { EventMachine.stop }
     end
 
     @now     = Time.now
