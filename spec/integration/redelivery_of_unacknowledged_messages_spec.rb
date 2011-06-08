@@ -44,7 +44,7 @@ describe "Unacknowledged messages" do
 
   it "are redelivered to alternate consumers when the 'primary' one disconnects" do
     number_of_messages_app2_received = 0
-    expected_number_of_deliveries    = 22
+    expected_number_of_deliveries    = 21
     redelivery_values                = Array.new
 
     exchange = @channel3.direct("amq.direct")
