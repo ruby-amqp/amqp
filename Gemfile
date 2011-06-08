@@ -14,14 +14,14 @@ def custom_gem(name, options = Hash.new)
 end
 
 custom_gem "eventmachine"
-gem "json", :platform => :ruby_18
+# gem "json", :platform => :ruby_18
 custom_gem "amq-client",   :git => "git://github.com/ruby-amqp/amq-client.git",   :branch => "master"
 custom_gem "amq-protocol", :git => "git://github.com/ruby-amqp/amq-protocol.git", :branch => "master"
 
 group(:development) do
   gem "yard", ">= 0.7.1"
   # yard tags this buddy along
-  gem "RedCloth"
+  gem "RedCloth",  :platform => :mri
   gem "rdiscount", :platform => :ruby
 
   custom_gem "nake",         :platform => :ruby_19
