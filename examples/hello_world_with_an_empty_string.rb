@@ -9,16 +9,17 @@ $:.unshift(File.expand_path("../../lib", __FILE__))
 require 'amqp'
 
 EventMachine.run do
-  connection = AMQP.connect(:host => '127.0.0.1', :port => 5672)
+  connection = AMQP.connect(:host => '127.0.0.1')
   puts "Connected to AMQP broker. Running #{AMQP::VERSION} version of the gem..."
 
 
   connection.on_error do |conn, connection_close|
     puts "Handling a connection-level exception: #{connection_close.reply_text}"
+    EventMachine.stop
   end
 
   channel  = AMQP::Channel.new(connection)
-  queue    = channel.queue("amqpgem.examples.hello_world", :auto_delete => false)
+  queue    = channel.queue("amqpgem.examples.hello_world", :auto_delete => true)
   exchange = channel.direct("")
 
   queue.subscribe do |payload|
@@ -29,5 +30,7 @@ EventMachine.run do
     }
   end
 
-  exchange.publish "1", :routing_key => queue.name, :app_id => "Hello world"
+  5.times do
+    exchange.publish "", :routing_key => queue.name, :app_id => "Hello world"
+  end
 end
