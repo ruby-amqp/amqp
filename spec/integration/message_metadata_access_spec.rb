@@ -28,7 +28,7 @@ describe "Message attributes" do
   #
 
   it "can be accessed in a unified manner (basic.delivery attributes + message attributes)" do
-    queue    = @channel.queue("amqpgem.examples.hello_world", :auto_delete => true)
+    queue    = @channel.queue("amqpgem.tests.metadata_access", :auto_delete => true)
     exchange = @channel.direct("amq.direct")
 
     queue.bind(exchange, :routing_key => "amqpgem.key")
