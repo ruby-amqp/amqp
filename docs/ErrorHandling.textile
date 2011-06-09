@@ -36,24 +36,6 @@ TCP connection failure, the first one is to catch an exception:
 
 <pre>
 <code>
-#!/usr/bin/env ruby
-# encoding: utf-8
-
-require "rubygems"
-require "amqp"
-
-
-puts "=> TCP connection failure handling with a rescue statement"
-puts
-
-connection_settings = {
-  :port     => 9689,
-  :vhost    => "/amq_client_testbed",
-  :user     => "amq_client_gem",
-  :password => "amq_client_gem_password",
-  :timeout        => 0.3
-}
-
 begin
   AMQP.start(connection_settings) do |connection, open_ok|
     raise "This should not be reachable"
@@ -64,6 +46,9 @@ end
 </code>
 </pre>
 
+Full example:
+<script src="https://gist.github.com/1016238.js"> </script>
+
 {AMQP.connect} (and {AMQP.start}) will raise {AMQP::TCPConnectionFailed} if connection fails. Code that catches it can write to log
 about the issue or use retry to execute begin block one more time. Because initial connection failures are due to misconfiguration or network outage, reconnection
 to the same endpoint (hostname, port, vhost combination) will result in the same issue over and over. TBD: failover, connection to the cluster.
@@ -72,16 +57,7 @@ Alternative way of handling connection failure is with an errback (a callback fo
 
 <pre>
 <code>
-#!/usr/bin/env ruby
-# encoding: utf-8
-
-require "rubygems"
-require "amqp"
-
-puts "=> TCP connection failure handling with a callback"
-puts
-
-handler             = Proc.new { |settings| puts "Failed to connect, as expected"; EM.stop }
+handler             = Proc.new { |settings| puts "Failed to connect, as expected"; EventMachine.stop }
 connection_settings = {
   :port     => 9689,
   :vhost    => "/amq_client_testbed",
@@ -90,13 +66,11 @@ connection_settings = {
   :timeout        => 0.3,
   :on_tcp_connection_failure => handler
 }
-
-
-AMQP.start(connection_settings) do |connection, open_ok|
-  raise "This should not be reachable"
-end
 </code>
 </pre>
+
+Full example:
+<script src="https://gist.github.com/1016235.js"> </script>
 
 :on_tcp_connection_failure option accepts any object that responds to #call.
 
@@ -111,72 +85,14 @@ h3. Authentication failures
 Another reason why connection may fail is authentication failure. Handling authentication failure is very similar to handling initial TCP
 connection failure:
 
-<pre>
-<code>
-#!/usr/bin/env ruby
-# encoding: utf-8
+<script src="https://gist.github.com/1016233.js"> </script>
 
-require "rubygems"
-require "amqp"
 
-puts "=> Authentication failure handling with a callback"
-puts
-
-handler             = Proc.new { |settings| puts "Failed to connect, as expected"; EM.stop }
-connection_settings = {
-  :port     => 5672,
-  :vhost    => "/amq_client_testbed",
-  :user     => "amq_client_gem",
-  :password => "amq_client_gem_password_that_is_incorrect #{Time.now.to_i}",
-  :timeout        => 0.3,
-  :on_tcp_connection_failure => handler,
-  :on_possible_authentication_failure => Proc.new { |settings|
-                                            puts "Authentication failed, as expected, settings are: #{settings.inspect}"
-
-                                            EM.stop
-                                          }
-}
-
-AMQP.start(connection_settings) do |connection, open_ok|
-  raise "This should not be reachable"
-end
-</code>
-</pre>
+h4. Default handler
 
 default handler raises {AMQP::PossibleAuthenticationFailureError}:
 
-<pre>
-<code>
-#!/usr/bin/env ruby
-# encoding: utf-8
-
-require "rubygems"
-require "amqp"
-
-puts "=> Authentication failure handling with a rescue block"
-puts
-
-handler             = Proc.new { |settings| puts "Failed to connect, as expected"; EM.stop }
-connection_settings = {
-  :port     => 5672,
-  :vhost    => "/amq_client_testbed",
-  :user     => "amq_client_gem",
-  :password => "amq_client_gem_password_that_is_incorrect #{Time.now.to_i}",
-  :timeout        => 0.3,
-  :on_tcp_connection_failure => handler
-}
-
-
-begin
-  AMQP.start(connection_settings) do |connection, open_ok|
-    raise "This should not be reachable"
-  end
-rescue AMQP::PossibleAuthenticationFailureError => afe
-  puts "Authentication failed, as expected, caught #{afe.inspect}"
-  EventMachine.stop if EventMachine.reactor_running?
-end
-</code>
-</pre>
+<script src="https://gist.github.com/1016234.js"> </script>
 
 In case you wonder why callback name has "possible" in it: {http://bit.ly/mTr1YN AMQP 0.9.1 spec} requires broker implementations to
 simply close TCP connection without sending any more data when an exception (such as authentication failure) occurs before AMQP connection
