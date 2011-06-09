@@ -5,8 +5,8 @@ h1. Working with exchanges
 
 h2. About this guide
 
-This guide covers everything related to exchanges in AMQP 0.9.1, common usage scenarios and how to accomplish typical operations using
-amqp gem.
+This guide covers exchanges in AMQP 0.9.1, message publishing, common usage scenarios and how to accomplish typical operations using
+Ruby amqp gem.
 
 
 h2. Covered versions
@@ -53,7 +53,8 @@ There are 4 built-in exchange types in AMQP 0.9.1:
  * Headers
 
 As stated previously, each exchange type has own routing semantics and new exchange types can be added by extending brokers with plugins.
-Custom exchange types begin with x-, much like custom HTTP headers, for example, "x-recent-history exchange":https://github.com/videlalvaro/rabbitmq-recent-history-exchange.
+Custom exchange types begin with x-, much like custom HTTP headers, for example, "x-recent-history exchange":https://github.com/videlalvaro/rabbitmq-recent-history-exchange
+or "x-random exchange":https://github.com/jbrisbin/random-exchange.
 
 
 
@@ -73,6 +74,8 @@ it and use other criteria (for example, message content).
 
 h2. Fanout exchanges
 
+h3. How fanout exchange routes messages
+
 Fanout exchanges route messages to all queues bound to it, the routing key is ignored. If N queues are bound to a fanout exchange,
 when a new message is published to that exchange, a *copy of the message* is delivered to all N queues, so fanout exchanges
 are ideal for "broadcast routing":http://en.wikipedia.org/wiki/Broadcasting_%28computing%29 of messages.
@@ -81,10 +84,46 @@ Graphically this can be represented as
 
 !http://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Broadcast.svg/500px-Broadcast.svg.png!
 
+
+h3. Declaring a fanout exchange
+
+There are two ways to declare a fanout exchange: using by instantiating {AMQP::Exchange} and specifying type as `:fanout`, or
+with {AMQP::Channel#fanout}. Two examples to demonstrate:
+
+<pre>
+<code>
+exchange = AMQP::Exchange.new(channel, :fanout, "nodes.metadata")
+</code>
+</pre>
+
+<pre>
+<code>
+exchange = channel.fanout("nodes.metadata")
+</code>
+</pre>
+
+Both methods asynchronously declare a queue. Because declaration takes a network roundtrip, publishing operations on {AMQP::Exchange} instances are
+delayed until broker reply (exchange.declare-ok) is received.
+
+
+Both methods let you pass a block to run a piece of code when broker responds with exchange.declare-ok (meaning exchange is successfully declared).
+
+<pre>
+<code>
+channel.fanout("nodes.metadata") do |exchange|
+  # exchange is declared and ready to be used.
+end
+</code>
+</pre>
+
+
+h3. Pre-declared fanout exchanges
+
 AMQP 0.9.1 brokers must implement fanout exchange type and pre-declare one instance with the name of "amq.fanout".
 This means that applications can rely on that exchange to always be available to them. Each vhost has a separate instance of that exchange,
 it is *not shared across vhosts* for obvious reasons.
 
+TBD
 
 
 h2. Direct exchanges
@@ -99,6 +138,41 @@ Here is how it works:
 Direct exchange is ideal for "unicast routing":http://en.wikipedia.org/wiki/Unicast of messages (although it can be used for "multicast routing":http://en.wikipedia.org/wiki/Multicast, too).
 
 !http://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Unicast.svg/500px-Unicast.svg.png!
+
+
+There are two ways to declare a direct exchange: using by instantiating {AMQP::Exchange} and specifying type as `:direct`, or
+with {AMQP::Channel#direct}. Two examples to demonstrate:
+
+<pre>
+<code>
+exchange = AMQP::Exchange.new(channel, :direct, "nodes.metadata")
+</code>
+</pre>
+
+<pre>
+<code>
+exchange = channel.direct("nodes.metadata")
+</code>
+</pre>
+
+Both methods asynchronously declare a queue. Because declaration takes a network roundtrip, publishing operations on {AMQP::Exchange} instances are
+delayed until broker reply (exchange.declare-ok) is received.
+
+
+Both methods let you pass a block to run a piece of code when broker responds with exchange.declare-ok (meaning exchange is successfully declared).
+
+<pre>
+<code>
+channel.direct("pages.content.extraction") do |exchange|
+  # exchange is declared and ready to be used.
+end
+</code>
+</pre>
+
+
+
+
+h3. Pre-declared direct exchanges
 
 AMQP 0.9.1 brokers must implement direct exchange type and pre-declare two instances
 
@@ -122,6 +196,26 @@ even though that is not technically correct.
 
 amqp gem offers two ways of obtaining of the default exchange: {AMQP::Channel#default_exchange} and {AMQP::Channel#direct} (use  empty string as exchange name).
 {AMQP::Exchange#initialize} can be used as well but requires more effort and for this particular case offers no benefits over instance methods on {AMQP::Channel}.
+
+<pre>
+<code>
+exchange = AMQP::Exchange.new(channel, :direct, "")
+</code>
+</pre>
+
+<pre>
+<code>
+exchange = channel.default_exchange
+</code>
+</pre>
+
+<pre>
+<code>
+exchange = channel.direct("")
+</code>
+</pre>
+
+
 
 The default exchange is what the "Hello, World" example uses:
 
