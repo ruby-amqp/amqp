@@ -185,12 +185,6 @@ it means that authentication has failed.
 
 
 
-h2. Network connection interruption
-
-TBD
-
-
-
 h2. TLS (SSL) related issues
 
 TBD
@@ -199,30 +193,232 @@ TBD
 
 h2. AMQP connection-level exceptions
 
+h3. Handling connection-level exceptions
+
+Connection-level exceptions are rare and may indicate a serious issue with client library or in-flight data corruption. They mandate
+that connection cannot be used any more and must be closed. In any case, your application should be prepared to handle this kind of errors.
+To define a handler, use {AMQP::Session#on_error} method that takes a callback and yields two arguments to it when connection-level exception happens:
+
+<pre>
+<code>
+connection.on_error do |conn, connection_close|
+  puts "Handling a connection-level exception."
+  puts
+  puts "AMQP class id : #{connection_close.class_id}"
+  puts "AMQP method id: #{connection_close.method_id}"
+  puts "Status code   : #{connection_close.reply_code}"
+  puts "Error message : #{connection_close.reply_text}"
+end
+</code>
+</pre>
+
+Status codes are similar to those of HTTP. For the full list of error codes and their meaning, consult {http://www.rabbitmq.com/amqp-0-9-1-reference.html#constants AMQP 0.9.1 constants reference}.
+
+<span class="note">
+Only one connection-level exception handler can be defined per connection instance (the one added last replaces previously added ones).
+</span>
+
+Full example:
+<script src="https://gist.github.com/1015966.js"> </script>
+
+
+
+h3. Integrating channel-level exceptions handling with object-oriented Ruby code
+
+Error handling can be easily integrated into object-oriented Ruby code (in fact, this is highly encouraged).
+A common technique is to combine {http://rubydoc.info/stdlib/core/1.8.7/Object:method Object#method} and {http://rubydoc.info/stdlib/core/1.8.7/Method:to_proc Method#to_proc}
+and use object methods as error handlers:
+
+<pre>
+<code>
+class ConnectionManager
+
+  #
+  # API
+  #
+
+  def connect(*args, &block)
+    @connection = AMQP.connect(*args, &block)
+
+    # combines Object#method and Method#to_proc to use object
+    # method as a callback
+    @connection.on_error(&method(:on_error))
+  end # connect(*args, &block)
+
+
+  def on_error(connection, connection_close)
+    puts "Handling a connection-level exception."
+    puts
+    puts "AMQP class id : #{connection_close.class_id}"
+    puts "AMQP method id: #{connection_close.method_id}"
+    puts "Status code   : #{connection_close.reply_code}"
+    puts "Error message : #{connection_close.reply_text}"
+  end # on_error(connection, connection_close)
+end
+</code>
+</pre>
+
+Full example that uses objects:
+<script src="https://gist.github.com/1016049.js"> </script>
+
 TBD
+
 
 
 
 h2. AMQP channel-level exceptions
 
+h3. Hanling channel-level exceptions
+
+Channel-level exceptions are more common than connection-level ones. They are handled in a similar manner, by defining a callback
+with {AMQP::Channel#on_error} method that takes a callback and yields two arguments to it when channel-level exception happens:
+
+<pre>
+<code>
+channel.on_error do |ch, channel_close|
+  puts "Handling a channel-level exception."
+  puts
+  puts "AMQP class id : #{channel_close.class_id}"
+  puts "AMQP method id: #{channel_close.method_id}"
+  puts "Status code   : #{channel_close.reply_code}"
+  puts "Error message : #{channel_close.reply_text}"
+end
+</code>
+</pre>
+
+Status codes are similar to those of HTTP. For the full list of error codes and their meaning, consult {http://www.rabbitmq.com/amqp-0-9-1-reference.html#constants AMQP 0.9.1 constants reference}.
+
+<span class="note">
+Only one channel-level exception handler can be defined per channel instance (the one added last replaces previously added ones).
+</span>
+
+Full example:
+<script src="https://gist.github.com/1016042.js"> </script>
+
+
+h3. Integrating channel-level exceptions handling with object-oriented Ruby code
+
+Error handling can be easily integrated into object-oriented Ruby code (in fact, this is highly encouraged).
+A common technique is to combine {http://rubydoc.info/stdlib/core/1.8.7/Object:method Object#method} and {http://rubydoc.info/stdlib/core/1.8.7/Method:to_proc Method#to_proc}
+and use object methods as error handlers. For example of this, see section on connection-level exceptions above.
+
+
+h3. Common channel-level exceptions and what they mean
+
+A few channel-level exceptions are common and deserve more attention.
+
+h4. 406 Precondition Failed
+
+<dl>
+  <dt>Description</dt>
+  <dd>The client requested a method that was not allowed because some precondition failed.</dd>
+
+  <dt>What might cause it</dt>
+  <dd>
+  AMQP entity (a queue or exchange) was re-declared with attributes different from original declaration. Maybe two applications or pieces of code
+  declare the same entity with different attributes. Note that different AMQP client libraries historically use slightly different defaults for
+  entities and this may cause attribute mismatches.
+  </dd>
+
+  <dt>Example RabbitMQ error message</dt>
+  <dd>PRECONDITION_FAILED - parameters for queue 'amqpgem.examples.channel_exception' in vhost '/' not equivalent</dd>
+</dl>
+
+h4. 405 Resource Locked
+
+<dl>
+  <dt>Description</dt>
+  <dd>The client attempted to work with a server entity to which it has no access because another client is working with it.</dd>
+
+  <dt>What might cause it</dt>
+  <dd>
+  Multiple applications (or different pieces of code/threads/processes/routines within a single application) might try to declare queues with the same name as exclusive.
+  Alternatively, multiple consumer across multiple or single app might be registered as exclusive for the same queue.
+  </dd>
+
+  <dt>Example RabbitMQ error message</dt>
+  <dd>RESOURCE_LOCKED - cannot obtain exclusive access to locked queue 'amqpgem.examples.queue' in vhost '/'</dd>
+</dl>
+
+
+h4. 403 Access Refused
+
+<dl>
+  <dt>Description</dt>
+  <dd>The client attempted to work with a server entity to which it has no access due to security settings. </dd>
+
+  <dt>What might cause it</dt>
+  <dd>Application tries to access a queue or exchange it has no permissions for (or right kind of permissions, for example, write permissions)</dd>
+
+  <dt>Example RabbitMQ error message</dt>
+  <dd>ACCESS_REFUSED - access to queue 'amqpgem.examples.channel_exception' in vhost 'amqp_gem_testbed' refused for user 'amqp_gem_reader'</dd>
+</dl>
+
+
+
+
+h2. Detecting network connection interruption
+
+Network connectivity issues are sad fact of life in modern software systems. Event small products and projects these days consist of multiple
+applications, often running on more than one machine. Ruby amqp gem detects TCP connection failures and lets you handle them by
+defining a callback using {AMQP::Session#on_tcp_connection_loss}. That callback will be run when TCP connection fails, and will be passed
+two parameters: connection object and settings of the last successful connection.
+
+<pre>
+<code>
+connection.on_tcp_connection_loss do |connection, settings|
+  connection.reconnect(false, 1)
+end
+</code>
+</pre>
+
+When connection is interrupted, AMQP connections and channels are reset and {AMQP::Exchange} and {AMQP::Queue} instances become orphaned.
+Well designed connection failure recovery must take care of opening channels application needs, as well as declaring AMQP entities it
+works with.
+
 TBD
 
 
 
-h2. Broker failure
+h2. Detecting broker failure
 
-TBD
+AMQP applications see broker failure as TCP connection loss. There is no reliable way to know whether there is a network split
+or network peer is down.
 
 
 
 
-h2. Recovery
+h2. Reconnection & recovery
 
 TBD
 
 
 
 h2. Conclusion
+
+Distributed applications introduce a whole new class of failres developers need to be aware of. Many of them come from
+unreliability of the network. The famous "Fallacies of Distributed Computing":http://en.wikipedia.org/wiki/Fallacies_of_Distributed_Computing list
+common assumptions software engineers must not make:
+
+ * The network is reliable.
+ * Latency is zero.
+ * Bandwidth is infinite.
+ * The network is secure.
+ * Topology doesn't change.
+ * There is one administrator.
+ * Transport cost is zero.
+ * The network is homogeneous.
+
+Unfortunately, applications that use Ruby and AMQP are not immune to these problems and developers need to always keep that
+in mind. This list is just as relevant in 2011 as it was in the 90s.
+
+Ruby amqp gem 0.8.x and later lets applications to define handlers that handle connection-level exceptions, channel-level
+exceptions and TCP connection failures. Handling AMQP exceptions and network connection failures is relatively easy.
+Re-declaring AMQP instances application works with is where the most of complexity comes from. By using Ruby objects as
+error handlers, declaration of AMQP entities can be done in one place, making it much easier to understand and maintain.
+
+amqp gem error handling and interruption is not a copy of RabbitMQ Java client's "Shutdown Protocol":http://www.rabbitmq.com/api-guide.html#shutdown,
+but they turn out to be similar with respect to network failures and connection-level exceptions.
 
 TBD
 

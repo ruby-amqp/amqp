@@ -14,7 +14,14 @@ EventMachine.run do
 
 
     connection.on_error do |conn, connection_close|
-      puts "Handling a connection-level exception: #{connection_close.reply_text}"
+      puts <<-ERR
+      Handling a connection-level exception.
+
+      AMQP class id : #{connection_close.class_id},
+      AMQP method id: #{connection_close.method_id},
+      Status code   : #{connection_close.reply_code}
+      Error message : #{connection_close.reply_text}
+      ERR
 
       EventMachine.stop
     end
