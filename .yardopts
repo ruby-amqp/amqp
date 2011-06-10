@@ -3,6 +3,7 @@
 --markup="textile" lib/**/*.rb
 --main README.md
 --asset docs:docs --asset examples:examples
+--hide-tag todo
 -
 LICENSE
 CHANGELOG

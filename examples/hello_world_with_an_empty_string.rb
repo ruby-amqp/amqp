@@ -30,7 +30,5 @@ EventMachine.run do
     }
   end
 
-  5.times do
-    exchange.publish "", :routing_key => queue.name, :app_id => "Hello world"
-  end
+  exchange.publish "", :routing_key => queue.name, :app_id => "Hello world"
 end
