@@ -19,9 +19,7 @@ EventMachine.run do
   queue.subscribe do |payload|
     puts "Received a message: #{payload}. Disconnecting..."
 
-    connection.close {
-      EM.stop { exit }
-    }
+    connection.close { EventMachine.stop }
   end
 
   exchange.publish "Hello, world!", :routing_key => queue.name, :app_id => "Hello world"
