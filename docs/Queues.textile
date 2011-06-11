@@ -1002,7 +1002,7 @@ h2.  What to read next
 Documentation is organized as several {file:docs/DocumentationGuidesIndex.textile documentation guides}, covering all kinds of
 topics. Guides related to this one are
 
- * {file:docs/Exchanges.textile Exchanges}
+ * {file:docs/Exchanges.textile Working With Exchanges}
  * {file:docs/Bindings.textile Bindings}
  * {file:docs/ErrorHandling.textile Error handling and recovery}
 

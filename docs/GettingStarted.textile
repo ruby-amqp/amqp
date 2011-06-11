@@ -350,7 +350,7 @@ exchange = channel.topic("pub/sub", :auto_delete => true)
 
 We use a _topic exchange_ here. Topic exchanges are used for "multicast":http://en.wikipedia.org/wiki/Multicast messaging
 where consumers indicate what topics they are interested in (think of it as of subscribing to a feed for individual tag
-of your favourite blog as opposed to full feed). They do it by specifying _routing pattern_ on binding, for example:
+of your favourite blog as opposed to full feed). They do it by specifying a _routing pattern_ on binding, for example:
 
 <pre>
 <code>

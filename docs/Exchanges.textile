@@ -116,6 +116,62 @@ end
 </code>
 </pre>
 
+h3. Routing example
+
+To demonstrate this routing behavior, we can declare 10 server-named exclusive queues and bind them all to one fanout exchange,
+then publish a message there:
+
+<pre>
+<code>
+exchange = channel.topic("amqpgem.examples.routing.fanout_routing", :auto_delete => true)
+
+10.times do
+  q = channel.queue("", :exclusive => true, :auto_delete => true).bind(exchange)
+  q.subscribe do |payload|
+    puts "Queue #{q.name} received #{payload}"
+  end
+end
+</code>
+</pre>
+
+<pre>
+<code>
+# Publish some test data in a bit, after all queues are declared & bound
+EventMachine.add_timer(1.2) { exchange.publish "Hello, fanout exchanges world!" }
+</code>
+</pre>
+
+When run, this example produces the following output:
+
+<pre>
+Queue amq.gen-0p/BjxGNCue42RcJhpUrdg== received Hello, fanout exchanges world!
+Queue amq.gen-3GXULvZuYh1KsOD83yvlNg== received Hello, fanout exchanges world!
+Queue amq.gen-4EcyydTfoZzXjNSSLsh09Q== received Hello, fanout exchanges world!
+Queue amq.gen-B1isyTpR5svB6ClQ2TQEBQ== received Hello, fanout exchanges world!
+Queue amq.gen-FwLLioB7Mk4LGA4yJ1Mo7A== received Hello, fanout exchanges world!
+Queue amq.gen-OtBQokiA/DmNkB5bPzaRig== received Hello, fanout exchanges world!
+Queue amq.gen-RYHQUrj3yihb0DRF7KVpRg== received Hello, fanout exchanges world!
+Queue amq.gen-SZJ40mGwbhdcbOGeHMhUkg== received Hello, fanout exchanges world!
+Queue amq.gen-sDeVZg9Vx1knq+n9EMi8tA== received Hello, fanout exchanges world!
+Queue amq.gen-uWOuVaosW4bWAHqKG6pZVw== received Hello, fanout exchanges world!
+</pre>
+
+All the queues bound to the exchange receives a *copy* of the message.
+
+
+Full example:
+<script src="https://gist.github.com/1020181.js"> </script>
+
+
+h3. Use cases
+
+Because fanout exchanges deliver a copy of a message to every queue bound to it, use cases for it are quite similar:
+
+ * MMO games can use it for leaderbard updates or other global events.
+ * Sport news sites can use fanout exchanges for distributing score updates to mobile clients in near real-time.
+ * Distributed systems can broadcast various state and configuration updates.
+ * Group chats can distribute messages between participants using a fanout exchange (although AMQP doesn't have built-in concept of presence, so "XMPP":http://xmpp.org may be a better choice)
+
 
 h3. Pre-declared fanout exchanges
 
@@ -124,6 +180,8 @@ This means that applications can rely on that exchange to always be available to
 it is *not shared across vhosts* for obvious reasons.
 
 TBD
+
+
 
 
 h2. Direct exchanges
@@ -170,6 +228,14 @@ end
 </pre>
 
 
+h3. Routing example
+
+TBD
+
+
+h3. Use cases
+
+TBD
 
 
 h3. Pre-declared direct exchanges
@@ -226,7 +292,7 @@ The default exchange is what the "Hello, World" example uses:
 h2. Topic exchanges
 
 Topic exchanges route messages to one or many queues based on matching between message routing key and pattern that was used for binding
-queue to the exchange.
+queue to the exchange. This exchange type is often used to implement various "publish/subscribe pattern":http://en.wikipedia.org/wiki/Publish/subscribe variations.
 
 
 Topic exchanges are commonly used for "multicast routing":http://en.wikipedia.org/wiki/Multicast of messages.
@@ -236,10 +302,53 @@ Topic exchanges are commonly used for "multicast routing":http://en.wikipedia.or
 Topic exchanges can be used for "broadcast routing":http://en.wikipedia.org/wiki/Broadcasting_%28computing%29 but usually fanout exchanges are more efficient at that.
 
 
+h3. Routing example
 
-Here is an example of topic exchange in action:
+Two classic examples of topic-based routing are stocks price updates and location-specific data (for instance, weather broadcasts).
+Consumers indicate what topics they are interested in (think of it as of subscribing to a feed for individual tag
+of your favourite blog as opposed to full feed). They do it by specifying a _routing pattern_ on binding, for example:
 
-{include:file:examples/routing/weather_updates.rb}
+<pre>
+<code>
+channel.queue("americas.south").bind(exchange, :routing_key => "americas.south.#").subscribe do |headers, payload|
+  puts "An update for South America: #{payload}, routing key is #{headers.routing_key}"
+end
+</code>
+</pre>
+
+In the example above we bind a queue with the name of "americas.south" to the topic exchange declared earlier using {AMQP::Queue#bind} method.
+This means that only messages with routing key matching americas.south.# will be routed to that queue. Routing pattern consists of several words
+separated by dots, similarly to URI path segments joined by slash. A few of examples:
+
+ * asia.southeast.thailand.bangkok
+ * sports.basketball
+ * usa.nasdaq.aapl
+ * tasks.search.indexing.accounts
+
+The following routing keys do match "americas.south.#" pattern:
+
+ * americas.south
+ * americas.south.*brazil*
+ * americas.south.*brazil.saopaolo*
+ * americas.south.*chile.santiago*
+
+In other words, # part of the pattern matches 0 or more words. For "americas.south.*", some of matching routing keys are
+
+ * americas.south.*brazil*
+ * americas.south.*chile*
+ * americas.south.*peru*
+
+but not
+
+ * americas.south
+ * americas.south.chile.santiago
+
+
+Full example:
+<script src="https://gist.github.com/1020308.js"> </script>
+
+
+h3. Use cases
 
 TBD
 
@@ -247,28 +356,60 @@ TBD
 
 h2. Headers exchanges
 
+Headers exchanges route messages based on message header matching. Header exchanges ignore routing key attribute. The best way
+to explain headers-based routing is with an example.
+
+
+h3. Routing example
 
 
 TBD
+
+
+h3. Use cases
+
+TBD
+
+
+h3. Pre-declared headers exchanges
+
+TBD
+
 
 
 
 h2. Custom exchange types
 
-TBD
+h3. x-random
 
+"x-random AMQP exchange type":https://github.com/jbrisbin/random-exchange is a custom exchange type developed as a
+RabbitMQ plugin by Jon Brisbin. To quote project README:
+
+bq. It is basically a direct exchange, with the exception that, instead of each consumer bound to that exchange with the
+    same routing key getting a copy of the message, the exchange type randomly selects a queue to route to.
+
+This plugin is licensed under "Mozilla Public License 1.1":http://www.mozilla.org/MPL/MPL-1.1.html, same as RabbitMQ.
+
+h3. x-recent-history
+
+"x-recent-history AMQP exchange type":https://github.com/videlalvaro/rabbitmq-recent-history-exchange is a customer exchange type
+implemented as a RabbitMQ plugin by Alvaro Videla, one of the authors of "RabbitMQ in action":http://bit.ly/rabbitmq.
+
+This plugin is licensed under the "MIT license":https://github.com/videlalvaro/rabbitmq-recent-history-exchange/blob/master/LICENSE.md.
 
 
 h2. Declaring/Instantiating exchanges
 
+With Ruby AMQP gem, exchanges can be declared two ways: using {AMQP::Exchange#initialize} method that takes an optional callback or
+with a number of convenience methods on {AMQP::Channel} instances:
 
+ * {AMQP::Channel#direct}
+ * {AMQP::Channel#default_exchange}
+ * {AMQP::Channel#topic}
+ * {AMQP::Channel#fanout}
+ * {AMQP::Channel#headers}
 
-Below is an example of {AMQP::Exchange#initialize} used with a callback:
-
-{include:file:examples/exchanges/declare_an_exchange_without_assignment.rb}
-
-
-TBD
+Sections on specific exchange types (direct, fanout, headers, etc) provide plenty of examples of how these methods can be used.
 
 
 
@@ -288,23 +429,60 @@ TBD
 
 h2. Binding queues to exchanges
 
-TBD
+Queues are bound to exchanges using {AMQP::Queue#bind} method. This topic is described in detail in the {file:docs/Queues.textile Working with queues}
+documentation guide.
 
 
 
 h2. Unbinding queues from exchanges
 
-TBD
+Queues are unbound from exchanges using {AMQP::Queue#unbind} method. This topic is described in detail in the {file:docs/Queues.textile Working with queues}
+documentation guide.
 
 
-h2. Deleting exchanges
+h2. Deleting exchange
+
+h3. Explicitly deleting an exchange
+
+Exchanges are deleted using {AMQP::Exchange#delete} method:
+
+<pre>
+<code>
+exchange.delete
+</code>
+</pre>
+
+{AMQP::Exchange#delete} takes an optional callback that is run when `exchange.delete-ok` arrives from the broker.
+
+<pre>
+<code>
+exchange.delete do |delete_ok|
+  # by now exchange is guaranteed to be deleted
+end
+</code>
+</pre>
+
+h3. Auto-deleted exchanges
+
+Exchanges are be *auto-deleted*. To declare an exchange as auto-deleted, use :auto_delete option on declaration:
+
+<pre>
+<code>
+exchange = AMQP::Exchange.new(channel, :direct, "nodes.metadata", :auto_delete => true)
+</code>
+</pre>
+
+<pre>
+<code>
+exchange = channel.direct("nodes.metadata", :auto_delete => true)
+</code>
+</pre>
 
 
-Exchanges are be *auto-deleted*. An example that uses two auto-deleted exchanges:
+Full example:
+<script src="https://gist.github.com/1020226.js"> </script>
 
-{include:file:examples/exchanges/autodeletion_of_exchanges.rb}
-
-TBD
+TBD: explain when exchange is considered to be "no longer in use"
 
 
 h2. Objects as message producers.
@@ -314,7 +492,6 @@ into rich object-oriented code. This guide focuses on exchanges and problems/sol
 (apps that primarily generate and publish messages, as opposed to consumers that receive and process them).
 
 Full example:
-
 <script src="https://gist.github.com/1009425.js"> </script>
 
 TBD
@@ -329,7 +506,7 @@ See {file:docs/Durability.textile Durability guide}
 
 h2. Error handling and recovery
 
-TBD
+See {file:docs/ErrorHandling.textile Error handling and recovery guide}
 
 
 
@@ -341,7 +518,16 @@ See {file:docs/VendorSpecificExtensions.textile Vendor-specific Extensions guide
 
 h2.  What to read next
 
-TBD
+Documentation is organized as several {file:docs/DocumentationGuidesIndex.textile documentation guides}, covering all kinds of
+topics. Guides related to this one are
+
+ * {file:docs/Durability.textile Durability and message persistence}
+ * {file:docs/Bindings.textile Bindings}
+ * {file:docs/Routing.textile Routing}
+ * {file:docs/Queues.textile Working With Queues}
+ * {file:docs/ErrorHandling.textile Error handling and recovery}
+
+
 
 
 h2. Tell us what you think!

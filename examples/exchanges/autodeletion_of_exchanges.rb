@@ -26,10 +26,7 @@ AMQP.start(:host => 'localhost', :port => 5673) do |connection|
 
   show_stopper = Proc.new do
     $stdout.puts "Stopping..."
-
-    connection.close {
-      EM.stop { exit }
-    }
+    connection.close { EventMachine.stop }
   end
 
   Signal.trap "INT", show_stopper
