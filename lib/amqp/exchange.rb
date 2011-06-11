@@ -374,10 +374,10 @@ module AMQP
     #
     # h2. Data serialization
     #
-    # Note that this method calls #to_s on payload argument value. You are encouraged to take care of
+    # Note that this method calls #to_s on payload argument value. Applications are encouraged of
     # data serialization before publishing (using JSON, Thrift, Protocol Buffers or other serialization library).
-    # Note that because AMQP is a binary protocol, text formats like JSON lose lose their strong point of being easy
-    # to inspect data as it travels across network. For the same reason BSON may be a good fit.
+    # Note that because AMQP is a binary protocol, text formats like JSON largely lose their strong point of being easy
+    # to inspect as data travels across network, so "BSON":http://bsonspec.org may be a good fit.
     #
     #
     # h2. Publishing and message persistence

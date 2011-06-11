@@ -34,22 +34,22 @@ EventMachine.run do
     puts "metadata.delivery_tag: #{metadata.delivery_tag}"
     puts "metadata.redelivered : #{metadata.redelivered?}"
 
-    puts "metadata.app_id      : #{metadata.app_id}"
-    puts "metadata.exchange    : #{metadata.exchange}"
+    puts "metadata.app_id        : #{metadata.app_id}"
+    puts "metadata.correlation_id: #{metadata.correlation_id}"
+    puts "metadata.exchange      : #{metadata.exchange}"
     puts
     puts "Received a message: #{payload}. Disconnecting..."
 
-    connection.close {
-      EventMachine.stop { exit }
-    }
+    connection.close { EventMachine.stop }
   end
 
-  exchange.publish("Hello, world!",
-                   :app_id      => "amqpgem.example",
-                   :priority    => 8,
-                   :type        => "kinda.checkin",
+  exchange.publish("Hey, what a great view!",
+                   :app_id         => "amqpgem.example",
+                   :priority       => 8,
+                   :type           => "kinda.checkin",
+                   :correlation_id => "b907b65a4876fc0d4b12fbdef1b41fb0a9876a94",
                    # headers table keys can be anything
-                   :headers     => {
+                   :headers        => {
                      :coordinates => {
                        :latitude  => 59.35,
                        :longitude => 18.066667

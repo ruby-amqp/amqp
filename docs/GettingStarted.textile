@@ -443,7 +443,7 @@ backwards compatibility with earlier versions.
 
 
 
-h2. Integration with objects.
+h2. Integration with objects
 
 Since Ruby is a genuine object-oriented language, it is important to demonstrate how Ruby amqp gem can be integrated
 into rich object-oriented code.
