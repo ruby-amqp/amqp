@@ -625,7 +625,7 @@ TBD
 
 h3. Using Publisher Confirms extension to AMQP 0.9.1
 
-TBD
+Please refer to {file:docs/VendorSpecificExtensions.textile Vendor-specific extensions to AMQP 0.9.1 spec}
 
 
 h3. Message acknowledgements. Their relation to transactions and publisher confirms.
