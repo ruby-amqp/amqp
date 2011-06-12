@@ -16,8 +16,6 @@ This guide covers "Ruby amqp gem":http://github.com/ruby-amqp/amqp v0.8.0 and la
 
 h2. TBD
 
-{include:file:examples/guides/queues/04_bind_a_queue_using_exchange_instance.rb}
-
 TBD
 
 
