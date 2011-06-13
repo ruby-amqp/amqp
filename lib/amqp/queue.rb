@@ -173,7 +173,6 @@ module AMQP
       raise ArgumentError.new("queue name must not be nil; if you want broker to generate queue name for you, pass an empty string") if name.nil?
 
       @channel  = channel
-      name      = AMQ::Protocol::EMPTY_STRING if name.nil?
       @name     = name unless name.empty?
       @server_named = name.empty?
       @opts         = self.class.add_default_options(name, opts, block)
