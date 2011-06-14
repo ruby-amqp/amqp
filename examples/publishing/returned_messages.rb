@@ -8,13 +8,7 @@ $:.unshift(File.expand_path("../../../lib", __FILE__))
 
 require 'amqp'
 
-if RUBY_VERSION == "1.8.7"
-  class Array
-    alias sample choice
-  end
-end
-
-puts "=> Handling message returns"
+puts "=> Handling returned messages"
 puts
 
 AMQP.start(:host => '127.0.0.1') do |connection|
@@ -33,8 +27,6 @@ AMQP.start(:host => '127.0.0.1') do |connection|
   }
 
   EventMachine.add_timer(2) {
-    connection.close {
-      EventMachine.stop
-    }
+    connection.close { EventMachine.stop }
   }
 end
