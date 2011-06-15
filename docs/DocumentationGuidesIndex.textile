@@ -2,22 +2,88 @@
 
 h1. Ruby AMQP gem documentation guides
 
-h2. Guide list
+h2. How documentation is structured. How to read these guides.
 
- * {file:docs/GettingStarted.textile Getting started}
- * {file:docs/ConnectingToTheBroker.textile Connecting to the broker}
- * {file:docs/Queues.textile Working with queues}
- * {file:docs/Exchanges.textile Working with exchanges}
+We recommend you read documentation guides in the order they are listed. Getting Started guide is written as a tutorial that
+describes several typical applications and their problem scope, then provides full code examples and finally breaks them down
+into smaller pieces that are explained in detail.
+
+Once you are done with the tutorial, reading other guides in order will gradually explain all of AMQP 0.9.1 features relevant to
+application developers, including application design concerns and common practices. At this moment, not all guides are written
+but *most of the content is concentrated in just 3-4 guides* that are about 80% finished and provide plenty of examples.
+
+Here is what some of the guide are about:
+
+<dl>
+  <dt>{file:docs/GettingStarted.textile Getting Started}</dt>
+  <dd>
+  Walks you through gem installation and 3 applications that demonstrate what AMQP has to offer. Explains how amqp gem should
+  be integrated into rich object-oriented Ruby programs.
+  </dd>
+
+  <dt>{file:docs/ConnectingToTheBroker.textile Connecting to the Broker}</dt>
+  <dd>
+  Connecting to AMQP broker. How to integrate with standalone applications as well as Ruby on Rails, Merb, Sinatra or Rack apps.
+  What difference application server (Unicorn, Passenger, Thin, etc) makes. How to handle authentication failures and network
+  connectivity issues. Closing AMQP connection gracefully.
+  </dd>
+
+  <dt>{file:docs/Queues.textile Working With Queues}</dt>
+  <dd>
+  What AMQP queues are. How to declare AMQP queues. When and how to use server-named and explicitly named queues. How to subscribe
+  for "push" message delivery. What message acknowledgements are. How to access AMQP message metadata. How to fetch ("pull") messages
+  from queues on demand. How to bind and unbind a queue to an exchange. How to delete a queue.
+  </dd>
+
+  <dt>{file:docs/Exchanges.textile Working With Exchanges}</dt>
+  <dd>
+  What AMQP exchanges are. Concept of binding. How to declare AMQP exchanges. How different exchange types route messages, when it is common
+  to use each one. How to publish messages, especially how to do it reliably. What AMQP transactions are. What are Publisher Confirms.
+  How to delete an exchange.
+  </dd>
+
+  <dt>{file:docs/Routing.textile Routing}</dt>
+  <dd>In depth look at how messages are routed. Typical topologies and patterns.</dd>
+
+  <dt>{file:docs/Durability.textile Durability and Message Persistence}</dt>
+  <dd>Exchange durability. Queue durability. Message persistence. Performance implications.</dd>
+
+  <dt>{file:docs/ErrorHandling.textile Error Handling and Recovery}</dt>
+  <dd>
+  Network failures. Connection-level exceptions. Channel-level exceptions. Why error handling is easy but
+  recovery is hard. How to survive typical problems. What other tools can help (e.g. HAProxy).
+  </dd>
+
+  <dt>{file:docs/RabbitMQVersions.textile RabbitMQ versions}</dt>
+  <dd>
+  RabbitMQ versions amqp gem supports. Popular Linux distributions and RabbitMQ versions they ship. How to obtain up-to-date official
+  packages of RabbitMQ.
+  </dd>
+
+  <dt>{file:docs/ConnectionEncryptionWithTLS.textile Using TLS (SSL)}</dt>
+  <dd>All things related to TLS-encrypted connections.</dd>
+</dl>
+
+
+When two guides describe the same concept, we make sure to use cross-references, however, only one guide really focuses on it.
+
+
+h2. Full guide list
+
+ * {file:docs/GettingStarted.textile Getting Started}
+ * {file:docs/ConnectingToTheBroker.textile Connecting to the Broker}
+ * {file:docs/Queues.textile Working With Queues}
+ * {file:docs/Exchanges.textile Working With Exchanges}
  * {file:docs/Bindings.textile Bindings}
  * {file:docs/Routing.textile Routing}
- * {file:docs/Durability.textile Durability and message persistence}
- * {file:docs/ErrorHandling.textile Error handling}
+ * {file:docs/Durability.textile Durability and Message Persistence}
+ * {file:docs/ErrorHandling.textile Error Handling and Recovery}
  * {file:docs/08Migration.textile Upgrading from version 0.6.x/0.7.x to 0.8.x and above}
  * {file:docs/Troubleshooting.textile Troubleshooting and debugging AMQP applications}
  * {file:docs/Clustering.textile Clustering}
  * {file:docs/RabbitMQVersions.textile RabbitMQ versions}
  * {file:docs/ConnectionEncryptionWithTLS.textile Using TLS (SSL)}
- * {file:docs/VendorSpecificExtensions.textile Vendor-specific extensions to AMQP 0.9.1 spec}
+ * {file:docs/VendorSpecificExtensions.textile Vendor-specific Extensions to AMQP 0.9.1 spec}
  * {file:docs/RunningTests.textile Running amqp gem test suite}
 
 
