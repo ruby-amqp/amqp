@@ -76,9 +76,9 @@ hooks.
 
 h3. Using #delayed in your specs
 
-AMQP gem uses EventMachine:"http://eventmachine.rubyforge.org/" under hood. If you don't know about eventmachine, you can read more about it on the official site.
-What's important for us is that you *cannot use <code>sleep</code> for delays*. Why? Because all the specs code is processed directly in the reactor thread, if you
-<code>sleep</code> in the reactor thread, it cannot send frames. What you need to use instead is <code>#delayed</code> method. It takes delay time in seconds and callback
+AMQP gem uses "EventMachine":http://eventmachine.rubyforge.org/ under hood. If you don't know about eventmachine, you can read more about it on the official site.
+What's important for us is that you *cannot use <code>sleep</code> for delays*. Why? Because all the specs code is processed directly in the "reactor":http://en.wikipedia.org/wiki/Reactor_pattern thread, if you
+<code>sleep</code> in that thread, reactor cannot send frames. What you need to use instead is <code>#delayed</code> method. It takes delay time in seconds and callback
 which it launches once that time passes. Basic usage is either <code>sleep</code> replacement or ensuring certain order of execution (though, the latter should not bother
 you too much). You can also use it to cleanup your environment after tests if any is needed.
 
