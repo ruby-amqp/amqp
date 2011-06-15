@@ -22,11 +22,11 @@ There are two different approaches to testing them:
 * Using the "real" environment
 
 First approach is risky because your application becomes divorced from reality and what *really* happens.
-Second approach is more "correct", but at the same time a lot more tedious, because there are a lot of things to wrap your head around: initial setup, error handling,
+Second approach is more "correct", but at the same time much more tedious, because there are a lot of things to wrap your head around: initial setup, error handling,
 in case of amqp, also connection starting.
 
 However, tediousness for most part can be easily fought with proper helpers and organization. evented-spec gem
-(based on arvicco's amqp-spec and tmmm1's em-spec) provides various helpers for your asynchronous applications.
+(based on arvicco's amqp-spec and tmmm1's em-spec) provides this kind of helpers for your asynchronous applications.
 
 This guide covers usage of that gem in context of amqp but there are all the parts for testing EM-based and Cool.io-based applications.
 
@@ -54,11 +54,6 @@ It is not uncommon to have custom options for your test environment. For example
 
 Options are the same as used in <code>AMQP.connect</code>.
 
-h3. What happens under hood
-
-When you include one of the evented-spec helper modules, some magic happens: everything is wrapped in a <code>EM.start</code> + <code>AMQP.connect</code>
-methods, so you can start writing your examples as if you're connected. You still need to initialize your own channel though.
-
 h3. Callbacks
 
 evented-spec provides various callbacks similar to rspec's <code>before(:each)</code> / <code>after(:each)</code>. They are called <code>amqp_before</code> and
@@ -82,12 +77,16 @@ What's important for us is that you *cannot use <code>sleep</code> for delays*. 
 which it launches once that time passes. Basic usage is either <code>sleep</code> replacement or ensuring certain order of execution (though, the latter should not bother
 you too much). You can also use it to cleanup your environment after tests if any is needed.
 
-In the following example, we declare two channels, then declare queue with the same name but different options (which raises a channel-level exception in AMQP):
+In the following example, we declare two channels, then declare the same queue twice with the same name but different options (which raises a channel-level exception in AMQP):
 
 <script src="https://gist.github.com/1027500.js"> </script>
 
 If you draw a timeline, various events happen at 0.0s, then at 0.1s, then at 0.3s and eventually at 0.4s.
 
+h3. What happens under hood
+
+When you include <code>EventedSpec::AMQPSpec</code> module, <code>#it</code> calls are wrapped in <code>EM.start</code> + <code>AMQP.connect</code>
+calls, so you can start writing your examples as if you're connected. You still need to initialize your own channel though.
 
 
 h2. What to read next
