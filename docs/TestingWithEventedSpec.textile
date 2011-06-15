@@ -1,0 +1,121 @@
+# @title Ruby AMQP gem: Testing with Evented spec
+
+h1. Testing you applications with evented-spec
+
+
+h2. About this guide
+
+This guide covers writing tests with evented-spec for amqp-based applications.
+
+
+h2. Covered versions
+
+This guide covers "Ruby amqp gem":http://github.com/ruby-amqp/amqp v0.8.0 and later.
+Also covered is the "evented-spec gem":http://github.com/ruby-amqp/evented-spec v0.4.1 and later.
+
+h2. Rationale
+
+Asynchronous environments are somewhat more difficult to test.
+There are two different approaches to testing them:
+
+* Stubbing out a big chunk of the environment
+* Using the "real" environment
+
+First approach is risky because your application becomes divorced from reality and what *really* happens.
+Second approach is more "correct", but at the same time much more tedious, because there are a lot of things to wrap your head around: initial setup, error handling,
+in case of amqp, also connection starting.
+
+However, tediousness for most part can be easily fought with proper helpers and organization. evented-spec gem
+(based on arvicco's amqp-spec and tmmm1's em-spec) provides this kind of helpers for your asynchronous applications.
+
+This guide covers usage of that gem in context of amqp but there are all the parts for testing EM-based and Cool.io-based applications.
+
+h2. Using evented-spec
+
+h3. Setting up
+
+To start using amqp all you need is to include <code>EventedSpec::AMQPSpec</code> module into your context and add <code>#done</code>
+calls to your examples:
+
+<script src="https://gist.github.com/1027377.js"></script>
+
+h3. Implications of asynchronous environment (or why we need #done)
+
+Since we are using callback mechanisms in order to provide asynchronicity, we have to deal with situation when we expect a response,
+and response never comes. Usual solution includes setting a timeout which makes the given tests fail if they aren't finished in a timely
+manner. When <code>#done</code> is called, your tests confirm successful ending of specs. Try removing <code>done</code> from the above
+example and see what happens. (spoiler: <code>EventedSpec::SpecHelper::SpecTimeoutExceededError: Example timed out</code>)
+
+h3. Changing default connection options and default timeout
+
+It is not uncommon to have custom options for your test environment. For example, setting up custom vhost and timeout:
+
+<script src="https://gist.github.com/1027410.js"> </script>
+
+Options are the same as used in <code>AMQP.connect</code>.
+
+h3. Callbacks
+
+evented-spec provides various callbacks similar to rspec's <code>before(:each)</code> / <code>after(:each)</code>. They are called <code>amqp_before</code> and
+<code>amqp_after</code> and happen right after connection is established or before connection is closed. It is a good place to put your channel initialization routines.
+
+h3. Example of a meaningful spec
+
+Now that you're filled on theory part, it's time to do something with all this knowledge. Below goes a slightly modified version of one of the integration specs from AMQP
+suite. It sets up default topic exchange and publishes various messages about sports events:
+
+<script src="https://gist.github.com/1027478.js"> </script>
+
+Couple of things to notice: <code>#done</code> is invoked using an optional callback and optional delay, also instance variables behavior in hooks is the same as in "normal" rspec
+hooks.
+
+h3. Using #delayed in your specs
+
+AMQP gem uses "EventMachine":http://eventmachine.rubyforge.org/ under hood. If you don't know about eventmachine, you can read more about it on the official site.
+What's important for us is that you *cannot use <code>sleep</code> for delays*. Why? Because all the specs code is processed directly in the "reactor":http://en.wikipedia.org/wiki/Reactor_pattern thread, if you
+<code>sleep</code> in that thread, reactor cannot send frames. What you need to use instead is <code>#delayed</code> method. It takes delay time in seconds and callback
+which it launches once that time passes. Basic usage is either <code>sleep</code> replacement or ensuring certain order of execution (though, the latter should not bother
+you too much). You can also use it to cleanup your environment after tests if any is needed.
+
+In the following example, we declare two channels, then declare the same queue twice with the same name but different options (which raises a channel-level exception in AMQP):
+
+<script src="https://gist.github.com/1027500.js"> </script>
+
+If you draw a timeline, various events happen at 0.0s, then at 0.1s, then at 0.3s and eventually at 0.4s.
+
+h3. What happens under hood
+
+When you include <code>EventedSpec::AMQPSpec</code> module, <code>#it</code> calls are wrapped in <code>EM.start</code> + <code>AMQP.connect</code>
+calls, so you can start writing your examples as if you're connected. You still need to initialize your own channel though.
+
+
+h2. What to read next
+
+There is a lot more to evented-spec than described in this guide. evented-spec has "rdocs":http://rdoc.info/github/ruby-amqp/evented-spec/master,
+which I strongly suggest to read in case you don't understand some parts of the gem.
+
+h2. Tell us what you think!
+
+Please take a moment and tell us what you think about this guide on "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp:
+what was unclear? what wasn't covered? maybe you don't like guide style or grammar and spelling are incorrect? Readers feedback is
+key to making documentation better.
+
+If mailing list communication is not an option for you for some reason, you can "contact guides author directly":mailto:michael@novemberain.com?subject=amqp%20gem%20documentation
+
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = 'rubyamqpdocs'; // required: replace example with your forum shortname
+
+    var disqus_developer = 0; // set to 1 on local machine for testing comments
+    var disqus_identifier = 'amqp_testing_with_evented_spec';
+    var disqus_url = 'http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/TestingWithEventedSpec.textile';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
