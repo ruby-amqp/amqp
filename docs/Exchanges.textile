@@ -591,7 +591,7 @@ this expectations can be met by the Ruby amqp gem alone. Message publishing happ
 
 <span class="note">
 As you can see, "when data is sent" is a complicated issue and while means to flush buffers certainly exist on various platforms, doing so in
-a cross-platform way that *includes JVM* (that EventMachine runs on) is rather non-trivial. In addition, even this does not guarantee that
+a cross-platform way that *includes JVM* (that EventMachine also runs on) is rather non-trivial. In addition, even this does not guarantee that
 data was received by the broker because it may crash while data was travelling down the wire. The only way to reliably know whether data was
 received by the broker or peer application is to use message acknowledgements. This is how TCP works and this approach is proven to work at
 enormous scale of the modern Internet. AMQP (the protocol) fully embraces this fact and amqp gem follows.
@@ -664,9 +664,32 @@ h3. Using Publisher Confirms extension to AMQP 0.9.1
 Please refer to {file:docs/VendorSpecificExtensions.textile Vendor-specific extensions to AMQP 0.9.1 spec}
 
 
+
 h3. Message acknowledgements. Their relation to transactions and publisher confirms.
 
-TBD
+Consumer applications (applications that receive and process messages) may (and will) occasionally fail to process individual messages, or will just
+crash. That's not to mention possible network issues. This raises a question: when should AMQP broker remove messages from queues? This
+topic is covered in depth in the {file:docs/Queues.textile Working With Queues} guide, including prefetching and examples.
+
+In this guide, we will only mention how message acknowledgements are related to AMQP transactions and Publisher Confirms extension.
+Lets consider a publisher application P that communications with a consumer C using AMQP 0.9.1. Their communication can be graphically
+represented like this:
+
+<pre>
+-----       -----       -----
+|   |   S1  |   |   S2  |   |
+| P | ====> | B | ====> | C | 
+|   |       |   |       |   |
+-----       -----       -----
+</pre>
+
+We have two network segments, S1 and S2. Each of them may fail. Application P is concerned with making sure that messages cross S1,
+while broker and application C are concerned with the fact that messages cross S2 and are only removed from the queue when
+they are processed successfully.
+
+Message acknowledgements cover reliable delivery over S2 and successful processing. For S1, P has to use transactions (a heavyweight solution) or
+lightweight Publisher Confirms, a RabbitMQ-specific extension.
+
 
 
 h3. Sending one-off messages
