@@ -154,7 +154,7 @@ channel  = AMQP::Channel.new(connection)
 </code>
 </pre>
 
-opens the channel. AMQP is a multi-channeled protocol. Channels is a way to multiplex a TCP connection.
+opens a new channel. AMQP is a multi-channeled protocol. Channels is a way to multiplex a TCP connection.
 Because channels are open on a connection, AMQP::Channel constructor takes connection object as a parameter.
 
 This line
