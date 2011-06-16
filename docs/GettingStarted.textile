@@ -253,7 +253,7 @@ is open. Finally, connection parameters maybe given as a Hash or as a connection
 method documentation has all the details.
 
 Opening a channel in this example is no different from opening a channel in the example before that,
-but exchange is instantiated differently:
+but exchange is declared differently:
 
 <pre>
 <code>
@@ -296,9 +296,7 @@ run a piece of code in 1 second from now:
 EventMachine.add_timer(1) do
   exchange.delete
 
-  connection.close {
-    EM.stop { exit }
-  }
+  connection.close { EventMachine.stop }
 end
 </code>
 </pre>
