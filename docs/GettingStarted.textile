@@ -186,10 +186,7 @@ into that, lets see how we define a handler for incoming messages:
 <code>
 queue.subscribe do |payload|
   puts "Received a message: #{payload}. Disconnecting..."
-
-  connection.close {
-    EM.stop { exit }
-  }
+  connection.close { EventMachine.stop }
 end
 </code>
 </pre>
