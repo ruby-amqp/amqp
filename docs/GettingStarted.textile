@@ -226,8 +226,6 @@ account on Blabbr to get updates about what is up in the world of basketball. He
 
 <script src="https://gist.github.com/998692.js"> </script>
 
-(if the example above isn't displayed, see this "gist":https://gist.github.com/998692)
-
 First line has a few difference from "Hello, world" example above:
 
  * We use {AMQP.start} instead of {AMQP.connect}
@@ -332,8 +330,6 @@ on North America updates list.
 Here is the code:
 
 <script src="https://gist.github.com/998694.js"> </script>
-
-(if the example above isn't displayed, see this "gist":https://gist.github.com/998694)
 
 First line that is different from Blabbr example is
 
