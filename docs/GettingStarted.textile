@@ -284,7 +284,7 @@ exchange.publish("BOS 101, NYK 89").publish("ORL 85, ALT 88")
 </code>
 </pre>
 
-demonstrates {AMQP::Exchange#publish} call chaining. Because Blabbr members use fanout exchange
+demonstrates {AMQP::Exchange#publish} call chaining. Because Blabbr members use a fanout exchange
 for publishing, there is no need to specify routing key: every queue that was bound to exchange receiving
 a message will get it's own message copy, regardless of queue name and routing key used.
 
