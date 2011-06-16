@@ -209,8 +209,6 @@ This first example can be modified to use method chaining technique:
 
 <script src="https://gist.github.com/998691.js"> </script>
 
-(if the example above isn't displayed, see this "gist":https://gist.github.com/998691)
-
 With classes and methods introduced in this example, lets move on to a little bit more
 sophisticated one.
 
