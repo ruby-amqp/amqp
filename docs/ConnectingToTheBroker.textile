@@ -457,8 +457,7 @@ Passenger provides a hook that you should use for spawning AMQP connection:
 PhusionPassenger.on_event(:starting_worker_process) do |forked|
   if forked
     # We're in a smart spawning mode
-
-    # Do something useful here
+    # Now is a good place to connect to the broker
   end
 end
 </code>
