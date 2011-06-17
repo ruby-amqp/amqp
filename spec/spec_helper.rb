@@ -38,7 +38,7 @@ else
   AMQP_OPTS = {:host => 'localhost', :port => 5672}
 end
 
-puts "AMQP_OPTS = #{AMQP_OPTS.inspect}"
+# puts "AMQP_OPTS = #{AMQP_OPTS.inspect}"
 
 #
 # Ruby version-specific
