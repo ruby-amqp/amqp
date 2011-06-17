@@ -231,13 +231,23 @@ h4. 406 Precondition Failed
 
   <dt>What might cause it</dt>
   <dd>
-  AMQP entity (a queue or exchange) was re-declared with attributes different from original declaration. Maybe two applications or pieces of code
-  declare the same entity with different attributes. Note that different AMQP client libraries historically use slightly different defaults for
-  entities and this may cause attribute mismatches.
+    <ul>
+      <li>
+        AMQP entity (a queue or exchange) was re-declared with attributes different from original declaration. Maybe two applications or pieces of code
+        declare the same entity with different attributes. Note that different AMQP client libraries historically use slightly different defaults for
+        entities and this may cause attribute mismatches.
+      </li>
+    <li>{AMQP::Channel#tx_commit} or {AMQP::Channel#tx_rollback} might be run on a channel that wasn't previously made transactional with {AMQP::Channel#tx_select}</li>
+    </ul>
   </dd>
 
   <dt>Example RabbitMQ error message</dt>
-  <dd>PRECONDITION_FAILED - parameters for queue 'amqpgem.examples.channel_exception' in vhost '/' not equivalent</dd>
+  <dd>
+    <ul>
+      <li>PRECONDITION_FAILED - parameters for queue 'amqpgem.examples.channel_exception' in vhost '/' not equivalent</li>
+      <li>PRECONDITION_FAILED - channel is not transactional</li>
+    </ul>
+  </dd>
 </dl>
 
 h4. 405 Resource Locked
@@ -248,8 +258,10 @@ h4. 405 Resource Locked
 
   <dt>What might cause it</dt>
   <dd>
-  Multiple applications (or different pieces of code/threads/processes/routines within a single application) might try to declare queues with the same name as exclusive.
-  Alternatively, multiple consumer across multiple or single app might be registered as exclusive for the same queue.
+    <ul>
+      <li>Multiple applications (or different pieces of code/threads/processes/routines within a single application) might try to declare queues with the same name as exclusive.</li>
+    <li>Multiple consumer across multiple or single app might be registered as exclusive for the same queue.</li>
+    </ul>
   </dd>
 
   <dt>Example RabbitMQ error message</dt>
