@@ -608,16 +608,12 @@ message will be routed to.
 
 In cases when not a single message may be lost, AMQP 0.9.1 applications can use one (or combination of) the following protocol features:
 
- * Transactions (noticeable overhead)
  * Publisher confirms (a RabbitMQ-specific extension to AMQP 0.9.1)
- * Publishing messages as immediate
+ * Publishing messages as immediate and/or mandatory
+ * Transactions (have noticeable overhead and relatively narrow set of use cases)
 
 More detailed overview of pros and cons of each option can be found in a "blog post that introduces Publisher Confirms extension":http://bit.ly/rabbitmq-publisher-confirms by the RabbitMQ team.
 Next sections of this guide will describe how those features can be used with the Ruby amqp gem.
-
-h3. Using AMQP transactions
-
-TBD
 
 
 h3. Publishing messages as immediate. Returned messages.
@@ -658,6 +654,11 @@ Full example:
 <script src="https://gist.github.com/1025700.js"></script>
 
 
+h3. Publishing messages as mandatory.
+
+TBD
+
+
 
 h3. Using Publisher Confirms extension to AMQP 0.9.1
 
@@ -689,6 +690,11 @@ they are processed successfully.
 
 Message acknowledgements cover reliable delivery over S2 and successful processing. For S1, P has to use transactions (a heavyweight solution) or
 lightweight Publisher Confirms, a RabbitMQ-specific extension.
+
+
+h3. Using AMQP transactions
+
+TBD
 
 
 
