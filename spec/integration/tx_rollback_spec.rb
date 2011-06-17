@@ -2,7 +2,7 @@
 require 'spec_helper'
 
 
-describe "Messages published before AMQP transaction commits" do
+describe "AMQP transaction rollback" do
 
   #
   # Environment
@@ -23,7 +23,7 @@ describe "Messages published before AMQP transaction commits" do
   # Examples
   #
 
-  it "are not accessible to AMQP consumers" do
+  it "voids messages published since the last tx.select" do
     exchange = @producer_channel.fanout("amq.fanout")
     queue    = @consumer_channel.queue("", :exclusive => true)
 
@@ -34,7 +34,7 @@ describe "Messages published before AMQP transaction commits" do
     @producer_channel.tx_select
     EventMachine.add_timer(0.5) do
       50.times { exchange.publish("before tx.commit") }
-      # @producer_channel.tx_commit
+      @producer_channel.tx_rollback
     end
 
     done(1.2)
@@ -44,7 +44,7 @@ end # describe
 
 
 
-describe "AMQP transaction commit" do
+describe "AMQP connection closure that follows tx.select" do
 
   #
   # Environment
@@ -65,16 +65,18 @@ describe "AMQP transaction commit" do
   # Examples
   #
 
-  it "causes messages published since the last tx.select to be delivered to AMQP consumers" do
+  it "voids messages published since the last tx.select" do
     exchange = @producer_channel.fanout("amq.fanout")
     queue    = @consumer_channel.queue("", :exclusive => true)
 
-    queue.bind(exchange).subscribe { |metadata, payload| done }
+    queue.bind(exchange).subscribe do |metadata, payload|
+      fail "Consumer received a message before transaction committed"
+    end
 
     @producer_channel.tx_select
     EventMachine.add_timer(0.5) do
-      50.times { exchange.publish("before tx.commit") }
-      @producer_channel.tx_commit
+      3.times { exchange.publish("before tx.commit") }
+      @producer_channel.connection.close
     end
 
     done(1.2)
@@ -84,7 +86,48 @@ end # describe
 
 
 
-describe "AMQP transaction commit attempt on a non-transactional channel" do
+describe "AMQP channel closure that follows tx.select" do
+
+  #
+  # Environment
+  #
+
+  include EventedSpec::AMQPSpec
+  default_timeout 1.5
+
+  amqp_before do
+    @producer_channel    = AMQP::Channel.new
+    @consumer_channel    = AMQP::Channel.new
+  end
+
+  # ...
+
+
+  #
+  # Examples
+  #
+
+  it "voids messages published since the last tx.select" do
+    exchange = @producer_channel.fanout("amq.fanout")
+    queue    = @consumer_channel.queue("", :exclusive => true)
+
+    queue.bind(exchange).subscribe do |metadata, payload|
+      fail "Consumer received a message before transaction committed"
+    end
+
+    @producer_channel.tx_select
+    EventMachine.add_timer(0.5) do
+      3.times { exchange.publish("before tx.commit") }
+      @producer_channel.close
+    end
+
+    done(1.2)
+  end # it
+end # describe
+
+
+
+describe "AMQP transaction rollback attempt on a non-transactional channel" do
 
   #
   # Environment
@@ -117,7 +160,7 @@ describe "AMQP transaction commit attempt on a non-transactional channel" do
       puts "#{channel_close.reply_text}"
       done
     end
-    EventMachine.add_timer(0.5) { @producer_channel.tx_commit }
+    EventMachine.add_timer(0.5) { @producer_channel.tx_rollback }
 
     done(1.2)
   end # it
