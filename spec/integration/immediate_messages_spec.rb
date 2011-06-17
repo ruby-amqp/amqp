@@ -50,7 +50,7 @@ describe "When queue has no consumers" do
       end
 
       queue.bind(exchange) do
-        exchange.publish "immediate message body", :immediate => false
+        exchange.publish "non-immediate message body", :immediate => false
       end
 
       done(1.0)
