@@ -18,13 +18,13 @@ AMQP.start do |connection|
 
   exchange = channel.headers("amq.match", :durable => true)
 
-  channel.queue("", :auto_delete => true).bind(exchange, :arguments => { 'x-match' => 'all', :arch => "x64", :os => 'linux' }).subscribe do |metadata, payload|
-    puts "[linux/x64] Got a message: #{payload}"
+  channel.queue("", :auto_delete => true).bind(exchange, :arguments => { 'x-match' => 'all', :arch => "ia64", :os => 'linux' }).subscribe do |metadata, payload|
+    puts "[linux/ia64] Got a message: #{payload}"
   end
-  channel.queue("", :auto_delete => true).bind(exchange, :arguments => { 'x-match' => 'all', :arch => "x32", :os => 'linux' }).subscribe do |metadata, payload|
-    puts "[linux/x32] Got a message: #{payload}"
+  channel.queue("", :auto_delete => true).bind(exchange, :arguments => { 'x-match' => 'all', :arch => "x86", :os => 'linux' }).subscribe do |metadata, payload|
+    puts "[linux/x86] Got a message: #{payload}"
   end
-  channel.queue("", :auto_delete => true).bind(exchange, :arguments => { 'x-match' => 'any', :os => 'linux', :arch => "__any__" }).subscribe do |metadata, payload|
+  channel.queue("", :auto_delete => true).bind(exchange, :arguments => { :os => 'linux'}).subscribe do |metadata, payload|
     puts "[linux] Got a message: #{payload}"
   end
   channel.queue("", :auto_delete => true).bind(exchange, :arguments => { 'x-match' => 'any', :os => 'macosx', :cores => 8 }).subscribe do |metadata, payload|
@@ -33,12 +33,12 @@ AMQP.start do |connection|
 
 
   EventMachine.add_timer(0.5) do
-    exchange.publish "For linux/x64",   :headers => { :arch => "x64", :os => 'linux' }
-    exchange.publish "For linux/x32",   :headers => { :arch => "x32", :os => 'linux' }
-    exchange.publish "For linux",       :headers => { :os => 'linux'  }
-    exchange.publish "For OS X",        :headers => { :os => 'macosx' }
-    exchange.publish "For solaris/x64", :headers => { :os => 'solaris', :arch => 'x64' }
-    exchange.publish "For ocotocore",   :headers => { :cores => 8  }
+    exchange.publish "For linux/ia64",   :headers => { :arch => "ia64", :os => 'linux' }
+    exchange.publish "For linux/x86",    :headers => { :arch => "x86", :os => 'linux'  }
+    exchange.publish "For linux",        :headers => { :os => 'linux'  }
+    exchange.publish "For OS X",         :headers => { :os => 'macosx' }
+    exchange.publish "For solaris/ia64", :headers => { :os => 'solaris', :arch => 'ia64' }
+    exchange.publish "For ocotocore",    :headers => { :cores => 8  }
   end
 
 
