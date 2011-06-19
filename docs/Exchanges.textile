@@ -368,59 +368,6 @@ pick what type of messages they want to receive, topic exchange should be evalua
 
 
 
-h2. Headers exchanges
-
-h3. How headers exchanges route messages
-
-Headers exchanges route messages based on message header matching. Header exchanges ignore routing key attribute. The best way
-to explain headers-based routing is with an example.
-
-
-h3. Declaring a direct exchange
-
-TBD
-
-
-h3. Routing example
-
-
-TBD
-
-
-h3. Use cases
-
-TBD
-
-
-h3. Pre-declared headers exchanges
-
-AMQP 0.9.1 brokers should (as defined by "IETF RFC 2119":http://www.ietf.org/rfc/rfc2119.txt) implement headers exchange type
-and pre-declare one instance with the name of "amq.match". RabbitMQ also pre-declares one instance with the name of "amq.headers".
-Applications can rely on that exchange to always be available to them. Each vhost has a separate instance of that exchange,
-it is *not shared across vhosts* for obvious reasons.
-
-
-
-
-h2. Custom exchange types
-
-h3. x-random
-
-"x-random AMQP exchange type":https://github.com/jbrisbin/random-exchange is a custom exchange type developed as a
-RabbitMQ plugin by Jon Brisbin. To quote project README:
-
-bq. It is basically a direct exchange, with the exception that, instead of each consumer bound to that exchange with the
-    same routing key getting a copy of the message, the exchange type randomly selects a queue to route to.
-
-This plugin is licensed under "Mozilla Public License 1.1":http://www.mozilla.org/MPL/MPL-1.1.html, same as RabbitMQ.
-
-h3. x-recent-history
-
-"x-recent-history AMQP exchange type":https://github.com/videlalvaro/rabbitmq-recent-history-exchange is a customer exchange type
-implemented as a RabbitMQ plugin by Alvaro Videla, one of the authors of "RabbitMQ in action":http://bit.ly/rabbitmq.
-
-This plugin is licensed under the "MIT license":https://github.com/videlalvaro/rabbitmq-recent-history-exchange/blob/master/LICENSE.md.
-
 
 h2. Declaring/Instantiating exchanges
 
@@ -659,8 +606,141 @@ h3. Publishing messages as mandatory.
 TBD
 
 
+h3. Sending one-off messages
 
-h3. Using Publisher Confirms extension to AMQP 0.9.1
+The following example publishes a message and *safely* closes AMQP connection after that by passing a block
+to {AMQP::Exchange#publish}:
+
+<script src="https://gist.github.com/1020425.js"> </script>
+
+
+
+h2. Headers exchanges
+
+Now that message attributes and publishing are introduced, time to take a look at one more core exchange type in AMQP 0.9.1. It is called
+headers exchange type and is quite powerful.
+
+h3. How headers exchanges route messages
+
+h4. An example problem definition
+
+The best way to explain headers-based routing is with an example. Imagine a distributed "continuous integration":http://martinfowler.com/articles/continuousIntegration.html system
+that distributes builds across multiple machines with different hardware architectures (x86, IA-64, AMD64, ARM family and so on) and operating systems.
+It strives to provide a way for community to contribute machines to run tests on and nice build matrix like "the one WebKit uses":http://build.webkit.org/waterfall?category=core.
+One key problem such system faces is build distribution. Wouldn't it be nice if messaging broker could figure out
+what machine has what OS, architecture or combination of the two and route build request messages there?
+
+Headers exchange is designed to help in situations like this one: routing on multiple attributes that are easier expressed as
+message metadata attributes (headers) than a routing key string.
+
+h4. Routing on multiple message attributes
+
+Headers exchanges route messages based on message header matching. Header exchanges ignore routing key attribute. Instead, attributes used for routing
+are taken from the `headers` attribute. When a queue is bound to a headers exchange, :arguments attribute is used to define matching rules:
+
+<pre>
+<code>
+# when binding to a headers exchange, :arguments parameter is used to specify matching rules
+@channel.queue("", :auto_delete => true).bind(exchange, :arguments => { :os => 'linux' })
+</code>
+</pre>
+
+When matching on one header, message is considered matching if value of the header equals value specified upon binding. Using the example above,
+some messages that are matching:
+
+<pre>
+<code>
+exchange.publish "For linux/IA64",   :headers => { :arch => "IA64", :os => 'linux' }
+exchange.publish "For linux/x86",    :headers => { :arch => "x86",  :os => 'linux' }
+exchange.publish "For any linux",    :headers => { :os => 'linux' }
+</code>
+</pre>
+
+The following example demonstrates matching on integer values:
+
+<pre>
+<code>
+# consumer part
+@channel.queue("", :auto_delete => true).bind(exchange, :arguments => { :cores => 8 })
+
+# ...
+
+# producer part
+exchange.publish "For ocotocore", :headers => { :cores => 8 }
+</code>
+</pre>
+
+Matching on hashes (in AMQP 0.9.1 parlance, attribute tables) is also supported:
+
+<pre>
+<code>
+# consumer part
+channel.queue("", :auto_delete => true).bind(exchange, :arguments => { :package => { :name => 'riak', :version => '0.14.2' } })
+
+# ...
+
+# producer part
+exchange.publish "For nodes with Riak 0.14.2", :headers => { :package => { :name => 'riak', :version => '0.14.2' } }
+</code>
+</pre>
+
+h4. Matching all vs. matching one
+
+TBD
+
+h4. More examples
+
+TBD
+
+
+h3. Declaring a headers exchange
+
+TBD
+
+
+h3. Routing example
+
+
+TBD
+
+
+h3. Use cases
+
+TBD
+
+
+h3. Pre-declared headers exchanges
+
+AMQP 0.9.1 brokers should (as defined by "IETF RFC 2119":http://www.ietf.org/rfc/rfc2119.txt) implement headers exchange type
+and pre-declare one instance with the name of "amq.match". RabbitMQ also pre-declares one instance with the name of "amq.headers".
+Applications can rely on that exchange to always be available to them. Each vhost has a separate instance of that exchange,
+it is *not shared across vhosts* for obvious reasons.
+
+
+
+
+h2. Custom exchange types
+
+h3. x-random
+
+"x-random AMQP exchange type":https://github.com/jbrisbin/random-exchange is a custom exchange type developed as a
+RabbitMQ plugin by Jon Brisbin. To quote project README:
+
+bq. It is basically a direct exchange, with the exception that, instead of each consumer bound to that exchange with the
+    same routing key getting a copy of the message, the exchange type randomly selects a queue to route to.
+
+This plugin is licensed under "Mozilla Public License 1.1":http://www.mozilla.org/MPL/MPL-1.1.html, same as RabbitMQ.
+
+h3. x-recent-history
+
+"x-recent-history AMQP exchange type":https://github.com/videlalvaro/rabbitmq-recent-history-exchange is a customer exchange type
+implemented as a RabbitMQ plugin by Alvaro Videla, one of the authors of "RabbitMQ in action":http://bit.ly/rabbitmq.
+
+This plugin is licensed under the "MIT license":https://github.com/videlalvaro/rabbitmq-recent-history-exchange/blob/master/LICENSE.md.
+
+
+
+h2. Using Publisher Confirms extension to AMQP 0.9.1
 
 Please refer to {file:docs/VendorSpecificExtensions.textile Vendor-specific extensions to AMQP 0.9.1 spec}
 
@@ -679,7 +759,7 @@ represented like this:
 <pre>
 -----       -----       -----
 |   |   S1  |   |   S2  |   |
-| P | ====> | B | ====> | C | 
+| P | ====> | B | ====> | C |
 |   |       |   |       |   |
 -----       -----       -----
 </pre>
@@ -692,19 +772,9 @@ Message acknowledgements cover reliable delivery over S2 and successful processi
 lightweight Publisher Confirms, a RabbitMQ-specific extension.
 
 
-h3. Using AMQP transactions
+h2. Using AMQP transactions
 
 TBD
-
-
-
-h3. Sending one-off messages
-
-The following example publishes a message and *safely* closes AMQP connection after that by passing a block
-to {AMQP::Exchange#publish}:
-
-<script src="https://gist.github.com/1020425.js"> </script>
-
 
 
 
