@@ -48,9 +48,7 @@ AMQP.start do |connection|
 
   show_stopper = Proc.new do
     $stdout.puts "Stopping..."
-    connection.close {
-      EventMachine.stop { exit }
-    }
+    connection.close { EventMachine.stop }
   end
 
   Signal.trap "INT", show_stopper
