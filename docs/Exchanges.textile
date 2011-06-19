@@ -686,6 +686,28 @@ exchange.publish "For nodes with Riak 0.14.2", :headers => { :package => { :name
 
 h4. Matching all vs. matching one
 
+It is possible to bind a queue to a headers exchange using more than one header for matching. In this case, broker needs one more piece of
+information from application developer: should it consider messages with any of the headers matching, or all of them? This is what `x-match`
+binding argument is for:
+
+<pre>
+<code>
+channel.queue("", :auto_delete => true).bind(exchange, :arguments => { 'x-match' => 'all', :arch => "ia64", :os => 'linux' })
+</code>
+</pre>
+
+In the example above, only messages that have `arch` header value equal to "ia64" and `os` header value equal to "linux" will
+be considered matching.
+
+<pre>
+<code>
+channel.queue("", :auto_delete => true).bind(exchange, :arguments => { 'x-match' => 'any', :os => 'macosx', :cores => 8 })
+</code>
+</pre>
+
+When "x-match" argument is set to "any", just one matching header value is sufficient. So in the example above, any message with
+`cores` header value equal to 8 will be considered matching.
+
 TBD
 
 h4. More examples
@@ -695,13 +717,40 @@ TBD
 
 h3. Declaring a headers exchange
 
-TBD
+There are two ways to declare a headers exchange: using by instantiating {AMQP::Exchange} and specifying type as `:headers`, or
+with {AMQP::Channel#headers}. Two examples to demonstrate:
+
+<pre>
+<code>
+exchange = AMQP::Exchange.new(channel, :headers, "builds")
+</code>
+</pre>
+
+<pre>
+<code>
+exchange = channel.headers("builds")
+</code>
+</pre>
+
+Both methods asynchronously declare a queue. Because declaration takes a network roundtrip, publishing operations on {AMQP::Exchange} instances are
+delayed until broker reply (exchange.declare-ok) is received.
+
+
+Both methods let you pass a block to run a piece of code when broker responds with exchange.declare-ok (meaning exchange is successfully declared).
+
+<pre>
+<code>
+channel.headers("builds") do |exchange|
+  # exchange is declared and ready to be used.
+end
+</code>
+</pre>
 
 
 h3. Routing example
 
-
-TBD
+Full example:
+<script src="https://gist.github.com/1034875.js"> </script>
 
 
 h3. Use cases
