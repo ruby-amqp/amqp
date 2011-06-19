@@ -49,7 +49,7 @@ describe "Headers exchange" do
     end
 
     any_linux_messages = []
-    @channel.queue("", :auto_delete => true).bind(exchange, :arguments => { 'x-match' => 'any', :os => 'linux', :arch => "__any__" }).subscribe do |metadata, payload|
+    @channel.queue("", :auto_delete => true).bind(exchange, :arguments => { :os => 'linux' }).subscribe do |metadata, payload|
       any_linux_messages << [metadata, payload]
     end
 
