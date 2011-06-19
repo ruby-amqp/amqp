@@ -30,7 +30,9 @@ AMQP.start do |connection|
   channel.queue("", :auto_delete => true).bind(exchange, :arguments => { 'x-match' => 'any', :os => 'macosx', :cores => 8 }).subscribe do |metadata, payload|
     puts "[macosx|octocore] Got a message: #{payload}"
   end
-
+  channel.queue("", :auto_delete => true).bind(exchange, :arguments => { :package => { :name => 'riak', :version => '0.14.2' } }).subscribe do |metadata, payload|
+    puts "[riak/0.14.2] Got a message: #{payload}"
+  end
 
   EventMachine.add_timer(0.5) do
     exchange.publish "For linux/ia64",   :headers => { :arch => "ia64", :os => 'linux' }
@@ -39,6 +41,8 @@ AMQP.start do |connection|
     exchange.publish "For OS X",         :headers => { :os => 'macosx' }
     exchange.publish "For solaris/ia64", :headers => { :os => 'solaris', :arch => 'ia64' }
     exchange.publish "For ocotocore",    :headers => { :cores => 8  }
+
+    exchange.publish "For nodes with Riak 0.14.2", :headers => { :package => { :name => 'riak', :version => '0.14.2' } }
   end
 
 
