@@ -58,6 +58,11 @@ describe "Headers exchange" do
       osx_or_octocore_messages << [metadata, payload]
     end
 
+    riak_messages = []
+    @channel.queue("", :auto_delete => true).bind(exchange, :arguments => { :package => { :name => 'riak', :version => '0.14.2' } }).subscribe do |metadata, payload|
+      riak_messages << [metadata, payload]
+    end
+
 
     EventMachine.add_timer(0.5) do
       exchange.publish "For linux/IA64",   :headers => { :arch => "IA64", :os => 'linux' }
@@ -65,7 +70,9 @@ describe "Headers exchange" do
       exchange.publish "For any linux",    :headers => { :os => 'linux' }
       exchange.publish "For OS X",         :headers => { :os => 'macosx' }
       exchange.publish "For solaris/IA64", :headers => { :os => 'solaris', :arch => 'IA64' }
-      exchange.publish "For ocotocore",    :headers => { :cores => 8  }
+      exchange.publish "For ocotocore",    :headers => { :cores => 8 }
+
+      exchange.publish "For nodes with Riak 0.14.2", :headers => { :package => { :name => 'riak', :version => '0.14.2' } }
     end
 
     done(1.0) {
@@ -73,6 +80,8 @@ describe "Headers exchange" do
       linux_and_x86_messages.size.should == 1
       any_linux_messages.size.should == 3
       osx_or_octocore_messages.size.should == 2
+
+      riak_messages.size.should == 1
     }
   end
 end
