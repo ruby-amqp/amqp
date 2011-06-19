@@ -61,11 +61,11 @@ describe "Headers exchange" do
 
     EventMachine.add_timer(0.5) do
       exchange.publish "For linux/IA64",   :headers => { :arch => "IA64", :os => 'linux' }
-      exchange.publish "For linux/x86",   :headers => { :arch => "x86", :os => 'linux' }
-      exchange.publish "For any linux",   :headers => { :os => 'linux'  }
-      exchange.publish "For OS X",        :headers => { :os => 'macosx' }
+      exchange.publish "For linux/x86",    :headers => { :arch => "x86",  :os => 'linux' }
+      exchange.publish "For any linux",    :headers => { :os => 'linux' }
+      exchange.publish "For OS X",         :headers => { :os => 'macosx' }
       exchange.publish "For solaris/IA64", :headers => { :os => 'solaris', :arch => 'IA64' }
-      exchange.publish "For ocotocore",   :headers => { :cores => 8  }
+      exchange.publish "For ocotocore",    :headers => { :cores => 8  }
     end
 
     done(1.0) {
