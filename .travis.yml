@@ -6,8 +6,8 @@ rvm:
   - rbx
   - 1.9.2
   - ree
-  - jruby
   - ruby-head
+  - jruby
 gemfile:
   - Gemfile
   - gemfiles/eventmachine-pre
