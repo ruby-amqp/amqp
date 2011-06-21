@@ -3,9 +3,9 @@ script: "bundle exec rake spec:ci"
 # before_script: ./bin/ci/before_build.sh
 rvm:
   - 1.8.7
+  - 1.9.2
   - 1.8.7-p174
   - rbx
-  - 1.9.2
   - ree
   - jruby
 gemfile:
