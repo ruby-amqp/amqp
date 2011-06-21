@@ -1,5 +1,6 @@
 # encoding: utf-8
 
+require "amqp/int_allocator"
 require "amqp/exchange"
 require "amqp/queue"
 
@@ -874,7 +875,10 @@ module AMQP
     #
     # @api public
     def close(reply_code = 200, reply_text = DEFAULT_REPLY_TEXT, class_id = 0, method_id = 0, &block)
-      super(reply_code, reply_text, class_id, method_id, &block)
+      r = super(reply_code, reply_text, class_id, method_id, &block)
+      self.class.release_channel_id(@id)
+
+      r
     end
 
     # @endgroup
@@ -1094,6 +1098,7 @@ module AMQP
     # @private
     def handle_connection_interruption(exception = nil)
       super(exception)
+      self.class.release_channel_id(@id)
       @channel_is_open_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
     end
 
@@ -1104,17 +1109,54 @@ module AMQP
       @channel_id_mutex ||= Mutex.new
     end
 
-    # Returns incrementing channel id. This method is thread safe.
+    # Returns next available channel id. This method is thread safe.
+    #
     # @return [Fixnum]
     # @api public
+    # @see Channel.release_channel_id
+    # @see Channel.reset_channel_id_allocator
     def self.next_channel_id
       channel_id_mutex.synchronize do
-        @last_channel_id ||= 0
-        @last_channel_id += 1
+        self.initialize_channel_id_allocator
 
-        @last_channel_id
+        @int_allocator.allocate
       end
     end
+
+    # Releases previously allocated channel id. This method is thread safe.
+    #
+    # @param [Fixnum] Channel id to release
+    # @api public
+    # @see Channel.next_channel_id
+    # @see Channel.reset_channel_id_allocator
+    def self.release_channel_id(i)
+      channel_id_mutex.synchronize do
+        self.initialize_channel_id_allocator
+
+        @int_allocator.release(i)
+      end
+    end # self.release_channel_id(i)
+
+    # Resets channel allocator. This method is thread safe.
+    # @api public
+    # @see Channel.next_channel_id
+    # @see Channel.release_channel_id
+    def self.reset_channel_id_allocator
+      channel_id_mutex.synchronize do
+        initialize_channel_id_allocator
+
+        @int_allocator.reset
+      end
+    end # self.reset_channel_id_allocator
+
+
+    # @private
+    def self.initialize_channel_id_allocator
+      # TODO: ideally, this should be in agreement with agreed max number of channels of the connection,
+      #       but it is possible that value either not yet available. MK.
+      max_channel     =  (1 << 16) - 1
+      @int_allocator ||= IntAllocator.new(1, max_channel)
+    end # self.initialize_channel_id_allocator
 
     # @private
     # @api plugin
