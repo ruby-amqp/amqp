@@ -70,7 +70,7 @@ describe AMQP, 'class object' do
 
           AMQP.connection.should be_connected
         end
-        done(0.1) { @block_fired.should be_true }
+        done(0.3) { @block_fired.should be_true }
       end
     end
 
@@ -90,7 +90,7 @@ describe AMQP, 'class object' do
         @block_fired_times = 0
         AMQP.start(AMQP_OPTS) { @block_fired_times += 1 }
         delayed(0.1) { AMQP.start(AMQP_OPTS) { @block_fired_times += 1 } }
-        done(0.2) { @block_fired_times.should == 1 }
+        done(0.3) { @block_fired_times.should == 1 }
       end
     end
   end # .start
