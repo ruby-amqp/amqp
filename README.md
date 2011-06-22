@@ -5,7 +5,7 @@ This library works with Ruby 1.8.7 (p174 and p334), Ruby 1.9.2, [JRuby](http://j
 
 Versions 0.8.0 and later of amqp gem implement [AMQP 0.9.1](http://bit.ly/hw2ELX) and supports [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq.com/extensions.html).
 
-[![Continuous Integration status](http://travis-ci.org/ruby-amqp/amqp.png)](http://travis-ci.org/ruby-amqp/amqp)
+[![Continuous Integration status](https://secure.travis-ci.org/ruby-amqp/amqp.png)](http://travis-ci.org/ruby-amqp/amqp)
 
 
 ## I know what AMQP is, how do I get started? ##
