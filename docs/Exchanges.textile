@@ -66,7 +66,7 @@ Every AMQP message has a number of *attributes*. Some attributes are important a
 they are similar in purpose to HTTP request and response headers.
 
 Every AMQP 0.9.1 message has an attribute called the *routing key*. The routing key is an "address" that the exchange may use to decide how to route
-the message (similar to, but more generic, than URL in HTTP). Most exchange types use routing key to implement routing logic, but some ignore
+the message (similar to, but more generic than, URL in HTTP). Most exchange types use routing key to implement routing logic, but some ignore
 it and use other criteria (for example, message content).
 
 
@@ -167,7 +167,7 @@ h3. Use cases
 
 Because fanout exchanges deliver a copy of a message to every queue bound to it, use cases for it are quite similar:
 
- * MMO games can use it for leaderbard updates or other global events.
+ * MMO games can use it for leaderboard updates or other global events.
  * Sport news sites can use fanout exchanges for distributing score updates to mobile clients in near real-time.
  * Distributed systems can broadcast various state and configuration updates.
  * Group chats can distribute messages between participants using a fanout exchange (although AMQP doesn't have built-in concept of presence, so "XMPP":http://xmpp.org may be a better choice)
