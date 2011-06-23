@@ -251,7 +251,7 @@ h3. Direct exchanges and load balancing of messages
 
 Direct exchanges are often used to distribute tasks between multiple workers (instances of the same application) in
 a round robin manner. When doing so, it is important to understand that in AMQP 0.9.1, *messages are load balanced between
-consumers, not between queues*. 
+consumers, not between queues*.
 
 Ruby amqp gem historically has a limitation that only one consumer (message handler) is allowed per one {AMQP::Queue} instance.
 This limitation will be addressed in the future, but with amqp gem 0.8.x, if you want to load balance messages between multiple
@@ -539,10 +539,21 @@ An example to demonstrate how message metadata attributes as passed to {AMQP::Ex
   <dd>Message expiration specification as a string</dd>
 
   <dt>:headers</dt>
-  <dd>A Ruby hash of any additional attributes application needs. Nesting is supported.</dd>
+  <dd>Ruby hash of any additional attributes application needs. Nested hashes are supported.</dd>
 </dl>
 
-TBD
+Application authors are recommended to use well-known message attributes when applicable instead of relying on custom headers or placing
+information into message body. For example, if your application messages have priority, publishing timestamp, type and content type,
+you should use respective AMQP message attributes instead of reinventing the wheel.
+
+
+
+h3. Validated user_id.
+
+In some scenarios it is useful for consumers to be able to know the identity of the user who published a message. RabbitMQ implements a feature known as
+"validated User ID":http://www.rabbitmq.com/extensions.html#validated-user-id. If this property is set by a publisher, its value must be equal to the name of the user used to open the connection.
+If the user-id property is not set, the publisher's identity is not validated and remains private.
+
 
 
 h3. Publishing callback. Reliable delivery in distributed environments
@@ -648,6 +659,26 @@ end
 Returned message handler has access to AMQP method (basic.return) information, message metadata and payload. Metadata and message body are returned exactly
 as is, without modifications, so application can store it for later redelivery.
 
+
+h3. Publishing messages as persistent.
+
+Messages potentially spend some time in queues where they were routed before they are consumed. During this period of time, broker may crash or
+experience a restart. To survive it, messages must be persisted to disk. This has negative effect on performance, especially with network attached
+storage like NAS devices and Amazon EBS. AMQP 0.9.1 lets applications trade off performance for durability or vice versa, on a message-by-message basis.
+
+To publish message as persistent, use :persistent option {AMQP::Exchange#publish} accepts:
+
+<pre>
+<code>
+exchange.publish(payload, :persistent => true)
+</code>
+</pre>
+
+<span class="note">
+Note that in order to survive a broker crash, both message and queue it was routed to must be persistent/durable.
+</span>
+
+{file:docs/Durability.textile Durability and Message Persistence} provides more information on the subject.
 
 
 h3. Sending one-off messages
