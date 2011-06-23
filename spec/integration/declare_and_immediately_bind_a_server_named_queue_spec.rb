@@ -10,7 +10,7 @@ describe "Server-named", AMQP::Queue do
 
   include EventedSpec::AMQPSpec
 
-  default_timeout 5
+  default_timeout 2
 
   amqp_before do
     @channel = AMQP::Channel.new
@@ -31,11 +31,11 @@ describe "Server-named", AMQP::Queue do
       mailbox << body
     end
 
-    delayed(0.3) {
+    delayed(0.5) {
       exchange.publish(input)
     }
 
-    done(0.5) {
+    done(1.0) {
       mailbox.size.should == 1
     }
   end

@@ -29,11 +29,8 @@ describe "Authentication attempt" do
       it "succeeds" do
         AMQP.connect do |connection|
           connection.should be_open
-
           connection.close { done }
         end
-
-        done(0.5)
       end # it
     end # context
   end # describe
@@ -52,7 +49,7 @@ describe "Authentication attempt" do
         it "succeeds" do
           connection = AMQP.connect(AMQP_OPTS.merge(:username => "amqp_gem", :password => "amqp_gem_password", :vhost => "amqp_gem_testbed"))
 
-          done(0.4) {
+          done(0.5) {
             connection.should be_connected
             connection.close
           }
