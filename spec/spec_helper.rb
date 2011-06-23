@@ -9,15 +9,7 @@ Bundler.require :default, :test
 require "amqp"
 require "evented-spec"
 
-
-
-def em_amqp_connect(&block)
-  em do
-    AMQ::Client::EventMachineClient.connect(:port => 5672, :vhost => "/amq_client_testbed", :frame_max => 65536, :heartbeat_interval => 1) do |client|
-      yield client
-    end
-  end
-end
+puts "Using amq-client #{AMQ::Client::VERSION} and amq-protocol #{AMQ::Protocol::VERSION}"
 
 
 amqp_config = File.dirname(__FILE__) + '/amqp.yml'
