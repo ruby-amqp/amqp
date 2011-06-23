@@ -597,15 +597,11 @@ More detailed overview of pros and cons of each option can be found in a "blog p
 Next sections of this guide will describe how those features can be used with the Ruby amqp gem.
 
 
-h3. Publishing messages as immediate. Returned messages.
+h3. Publishing messages as immediate.
 
 When publishing messages, it is possible to use :immediate option to publish message as "immediate". When an immediate message cannot be
-routed to any queue (it can be that there are no bindings for the exchange or none of the bindings matches), it is returned to the
-producer. Producer then can handle that message, for example:
-
- * Store it for later redelivery in a persistent store like Redis or Riak
- * Publish it to a different destination
- * Log the event and discard the message
+delivered to any consumer (one or more queues the message was routed to have no active consumers), it is returned to the
+producer.
 
 An example of {AMQP::Exchange#publish} being used to publish an immediate message:
 
@@ -615,6 +611,28 @@ exchange.publish("Message ##{i}", :immediate => true)
 </code>
 </pre>
 
+The following code example demonstrates a message that is published as immediate but cannot be immediately consumed (no consumers) and thus returned
+back to the producer:
+<script src="https://gist.github.com/1025700.js"></script>
+
+
+h3. Publishing messages as mandatory.
+
+When publishing messages, it is possible to use :mandatory option to publish message as "mandatory". When a mandatory message cannot be
+*routed* to any queue (for example, there are no bindings or none of the bindings match), it is returned to the producer.
+
+The following code example demonstrates a message that is published as mandatory but cannot be routed (no bindings) and thus returned
+back to the producer:
+<script src="https://gist.github.com/1041835.js"> </script>
+
+
+h3. Returned messages.
+
+When message is returned, the application that produced it then can handle that message, for example:
+
+ * Store it for later redelivery in a persistent store
+ * Publish it to a different destination
+ * Log the event and discard the message
 
 Returned messages have information about the exchange they were published to. For convenience, amqp gem associates returned messages callbacks with {AMQP::Exchange}
 instances. To handle returned messages, use {AMQP::Exchange#on_return}:
@@ -630,14 +648,6 @@ end
 Returned message handler has access to AMQP method (basic.return) information, message metadata and payload. Metadata and message body are returned exactly
 as is, without modifications, so application can store it for later redelivery.
 
-
-Full example:
-<script src="https://gist.github.com/1025700.js"></script>
-
-
-h3. Publishing messages as mandatory.
-
-TBD
 
 
 h3. Sending one-off messages
