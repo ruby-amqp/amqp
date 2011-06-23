@@ -213,7 +213,7 @@ module AMQP
 
       @rpcs                       = Hash.new
       # we need this deferrable to mimic what AMQP gem 0.7 does to enable
-      # the following (HIGHLY discouraged) style of programming some people use in their
+      # the following (pseudo-synchronous) style of programming some people use in their
       # existing codebases:
       #
       # connection = AMQP.connect
