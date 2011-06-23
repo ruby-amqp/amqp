@@ -179,9 +179,6 @@ AMQP 0.9.1 brokers must implement fanout exchange type and pre-declare one insta
 Applications can rely on that exchange to always be available to them. Each vhost has a separate instance of that exchange,
 it is *not shared across vhosts* for obvious reasons.
 
-TBD
-
-
 
 
 h2. Direct exchanges
@@ -232,14 +229,37 @@ end
 </pre>
 
 
+
 h3. Routing example
 
-TBD
+Since direct exchanges use *message routing key* for routing, message producers need to specify it:
+<pre>
+<code>
+exchange.publish("Hello, direct exchanges world!", :routing_key => "amqpgem.examples.queues.shared")
+</code>
+</pre>
+
+The routing key then will be compared [for equality] with routing keys on bindings and consumers that subscribed with
+the same routing key each get a copy of the message:
+
+Full example:
+<script src="https://gist.github.com/1041787.js"> </script>
 
 
-h3. Use cases
 
-TBD
+h3. Direct exchanges and load balancing of messages
+
+Direct exchanges are often used to distribute tasks between multiple workers (instances of the same application) in
+a round robin manner. When doing so, it is important to understand that in AMQP 0.9.1, *messages are load balanced between
+consumers, not between queues*. 
+
+Ruby amqp gem historically has a limitation that only one consumer (message handler) is allowed per one {AMQP::Queue} instance.
+This limitation will be addressed in the future, but with amqp gem 0.8.x, if you want to load balance messages between multiple
+consumers in the same application/OS process, you need to use a separate channel for each of them.
+
+{file:docs/Queues.textile Working With Queues} and  {file:docs/Routing.textile Routing} guides provide more information
+on this subject.
+
 
 
 h3. Pre-declared direct exchanges
@@ -288,8 +308,22 @@ exchange = channel.direct("")
 
 
 The default exchange is what the "Hello, World" example uses:
+<script src="https://gist.github.com/998691.js"> </script>
 
-{include:file:examples/hello_world.rb}
+Routing example above can be rewritten to use the default exchange:
+<script src="https://gist.github.com/1041778.js"> </script>
+
+
+h3. Use cases
+
+Direct exchanges can be used in a wide variety of cases:
+
+ * Direct (near real-time) messages to individual players in a MMO game.
+ * Delivering notifications to specific geographic locations (for example, points of sale).
+ * Distributing tasks between multiple instances of the same application all having the same function, for example, image processors.
+ * Passing data between workflow steps, each having an identifier.
+ * Delivering notifications to individual software services in the network.
+
 
 
 
