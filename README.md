@@ -45,8 +45,8 @@ Specific examples:
  * Companies may provide streaming/push APIs to their customers, partners
    or just general public.
 
- * A new shiny Ruby-based system may be integrated with an existing C++-based component
-   using AMQP.
+ * Continuous integration systems can distribute builds between multiple machines with various hardware and software
+   configurations using advanced routing features of AMQP.
 
  * An application that watches updates from a real-time stream (be it markets data
    or Twitter stream) can propagate updates to interested parties, including
