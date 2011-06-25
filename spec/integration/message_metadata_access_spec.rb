@@ -34,7 +34,7 @@ describe "Message attributes" do
     queue.bind(exchange, :routing_key => "amqpgem.key")
 
     @channel.on_error do |ch, channel_close|
-      puts channel_close.reply_text
+      fail(channel_close.reply_text)
       @connection.close { EventMachine.stop }
     end
 
