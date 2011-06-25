@@ -157,7 +157,7 @@ describe "AMQP transaction rollback attempt on a non-transactional channel" do
     end
 
     @producer_channel.on_error do |ch, channel_close|
-      puts "#{channel_close.reply_text}"
+      fail "#{channel_close.reply_text}"
       done
     end
     EventMachine.add_timer(0.5) { @producer_channel.tx_rollback }
