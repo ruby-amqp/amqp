@@ -35,8 +35,9 @@ Specific examples:
  * A Web application may route messages to a Java app that works
    with SMS delivery gateways.
 
- * Periodically run (Cron-driven) application may notify other systems that
-   there are some new results.
+ * MMO games can use flexible routing AMQP provides to propagate event notifications to players and locations.
+
+ * Price updates from public markets or other sources can be distributed between interested parties, from trading systems to points of sale in a specific geographic region.
 
  * Content aggregators may update full-text search and geospatial search indexes
    by delegating actual indexing work to other applications over AMQP.
