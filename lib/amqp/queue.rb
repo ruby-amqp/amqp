@@ -179,8 +179,6 @@ module AMQP
 
       raise ArgumentError.new("server-named queues (name = '') declaration with :nowait => true makes no sense. If you are not sure what that means, simply drop :nowait => true from opts.") if @server_named && @opts[:nowait]
 
-      @bindings     = Hash.new
-
       # a deferrable that we use to delay operations until this queue is actually declared.
       # one reason for this is to support a case when a server-named queue is immediately bound.
       # it's crazy, but 0.7.x supports it, so... MK.
@@ -277,7 +275,6 @@ module AMQP
       # amq-client's Queue already does exchange.respond_to?(:name) ? exchange.name : exchange
       # for us
       exchange            = exchange
-      @bindings[exchange] = opts
 
       if self.server_named?
         @channel.once_open do
@@ -697,8 +694,9 @@ module AMQP
         @consumer_tag = nil
         # consumer_tag is set by AMQ::Client::Queue once we receive consume-ok, this takes a while.
         self.consume(!opts[:ack], opts[:exclusive], (opts[:nowait] || block.nil?), opts[:no_local], nil, &opts[:confirm])
+
+        self.on_delivery(&delivery_shim)
       end
-      self.on_delivery(&delivery_shim)
 
       self
     end
