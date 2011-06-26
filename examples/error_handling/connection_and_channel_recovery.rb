@@ -9,6 +9,19 @@ $:.unshift(File.expand_path("../../../lib", __FILE__))
 require 'amqp'
 
 
+class ConnectionInterruptionHandler
+
+  #
+  # API
+  #
+
+  def handle(connection)
+    puts "Connection #{connection} detected connection interruption"
+  end
+
+end
+
+
 puts "=> Example of AMQP connection & channel recovery API in action"
 puts
 AMQP.start(:host => "localhost") do |connection, open_ok|
@@ -33,6 +46,10 @@ AMQP.start(:host => "localhost") do |connection, open_ok|
     puts "Trying to reconnect..."
     conn.reconnect(false, 2)
   end
+
+
+  handler = ConnectionInterruptionHandler.new
+  connection.on_connection_interruption(&handler.method(:handle))
 
   connection.on_recovery do |conn, settings|
     puts "Connection recovered"

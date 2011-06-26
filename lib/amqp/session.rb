@@ -42,7 +42,7 @@ module AMQP
     #
     # @param [Boolean] force Enforce immediate connection
     # @param [Fixnum] period If given, reconnection will be delayed by this period, in seconds.
-    # @api plugin
+    # @api public
     def reconnect(force = false, period = 2)
       # we do this to make sure this method shows up in our documentation
       # this method is too important to leave out and YARD currently does not
@@ -50,6 +50,21 @@ module AMQP
       super(force, period)
     end # reconnect(force = false)
 
+    # A version of #reconnect that allows connecting to different endpoints (hosts).
+    # @see #reconnect
+    # @api public
+    def reconnect_to(connection_string_or_options = {}, period = 2)
+      opts = case connection_string_or_options
+             when String then
+               AMQP::Client.parse_connection_uri(connection_string_or_options)
+             when Hash then
+               connection_string_or_options
+             else
+               Hash.new
+             end
+
+      super(opts, period)
+    end # reconnect_to(connection_string_or_options = {})
 
 
     # Properly close connection with AMQ broker, as described in
