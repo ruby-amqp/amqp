@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require "amq/client/queue"
+require "amqp/consumer"
 
 module AMQP
   # h2. What are AMQP queues?
@@ -290,6 +291,14 @@ module AMQP
 
       self
     end
+
+    # Used by automatic recovery machinery.
+    # @private
+    # @api plugin
+    def rebind(&block)
+      @bindings.each { |b| self.bind(b[:exchange], b) }
+    end
+
 
 
     # Remove the binding between the queue and exchange. The queue will
@@ -700,6 +709,12 @@ module AMQP
 
       self
     end
+
+    # @return [Class]
+    # @private
+    def self.consumer_class
+      AMQP::Consumer
+    end # self.consumer_class
 
 
     # Removes the subscription from the queue and cancels the consumer. Once consumer is cancelled,

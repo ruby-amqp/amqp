@@ -42,13 +42,42 @@ module AMQP
     #
     # @param [Boolean] force Enforce immediate connection
     # @param [Fixnum] period If given, reconnection will be delayed by this period, in seconds.
-    # @api plugin
+    # @api public
     def reconnect(force = false, period = 2)
       # we do this to make sure this method shows up in our documentation
       # this method is too important to leave out and YARD currently does not
       # support cross-referencing to dependencies. MK.
       super(force, period)
     end # reconnect(force = false)
+
+    # A version of #reconnect that allows connecting to different endpoints (hosts).
+    # @see #reconnect
+    # @api public
+    def reconnect_to(connection_string_or_options = {}, period = 2)
+      opts = case connection_string_or_options
+             when String then
+               AMQP::Client.parse_connection_uri(connection_string_or_options)
+             when Hash then
+               connection_string_or_options
+             else
+               Hash.new
+             end
+
+      super(opts, period)
+    end # reconnect_to(connection_string_or_options = {})
+
+
+    # Properly close connection with AMQ broker, as described in
+    # section 2.2.4 of the {http://bit.ly/hw2ELX AMQP 0.9.1 specification}.
+    #
+    # @api  plugin
+    # @see  #close_connection
+    def disconnect(reply_code = 200, reply_text = "Goodbye", &block)
+      # defined here to make this method appear in YARD documentation. MK.
+      super(reply_code, reply_text, &block)
+    end
+    alias close disconnect
+
 
 
     # Defines a callback that will be executed when AMQP connection is considered open:
@@ -61,6 +90,9 @@ module AMQP
       # defined here to make this method appear in YARD documentation. MK.
       super(&block)
     end # on_open(&block)
+
+
+    # @group Error Handling and Recovery
 
     # Defines a callback that will be run when broker confirms connection termination
     # (client receives connection.close-ok). You can define more than one callback.
@@ -99,17 +131,72 @@ module AMQP
       super(&block)
     end
 
-
-    # Properly close connection with AMQ broker, as described in
-    # section 2.2.4 of the {http://bit.ly/hw2ELX AMQP 0.9.1 specification}.
+    # Defines a callback that will be executed after TCP connection is interrupted (typically because of a network failure).
+    # Only one callback can be defined (the one defined last replaces previously added ones).
     #
-    # @api  plugin
-    # @see  #close_connection
-    def disconnect(reply_code = 200, reply_text = "Goodbye", &block)
-      # defined here to make this method appear in YARD documentation. MK.
-      super(reply_code, reply_text, &block)
+    # @api public
+    def on_connection_interruption(&block)
+      super(&block)
+    end # on_connection_interruption(&block)
+    alias after_connection_interruption on_connection_interruption
+
+
+    # @private
+    # @api plugin
+    def handle_connection_interruption
+      super
+    end # handle_connection_interruption
+
+
+    # Defines a callback that will be executed when connection is closed after
+    # connection-level exception. Only one callback can be defined (the one defined last
+    # replaces previously added ones).
+    #
+    # @api public
+    def on_error(&block)
+      super(&block)
     end
-    alias close disconnect
+
+
+    # Defines a callback that will be executed after TCP connection has recovered after a network failure
+    # but before AMQP connection is re-opened.
+    # Only one callback can be defined (the one defined last replaces previously added ones).
+    #
+    # @api public
+    def before_recovery(&block)
+      super(&block)
+    end # before_recovery(&block)
+
+
+    # Defines a callback that will be executed after AMQP connection has recovered after a network failure..
+    # Only one callback can be defined (the one defined last replaces previously added ones).
+    #
+    # @api public
+    def on_recovery(&block)
+      super(&block)
+    end # on_recovery(&block)
+    alias after_recovery on_recovery
+
+
+    # @return [Boolean] whether connection is in the automatic recovery mode
+    # @api public
+    def auto_recovering?
+      super
+    end # auto_recovering?
+    alias auto_recovery? auto_recovering?
+
+
+    # Performs recovery of channels that are in the automatic recovery mode.
+    #
+    # @see Channel#auto_recover
+    # @see Queue#auto_recover
+    # @see Exchange#auto_recover
+    # @api plugin
+    def auto_recover
+      super
+    end # auto_recover
+
+    # @endgroup
 
 
 
