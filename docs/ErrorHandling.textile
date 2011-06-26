@@ -28,7 +28,7 @@ There are several {https://github.com/ruby-amqp/amqp/tree/master/examples/error_
 free to contribute new examples.
 
 
-h3. Broker connection failures
+h3. Initial broker connection failures
 
 When applications connect to the broker, they need to handle connection failures. Networks are not 100% reliable, even with modern system configuration tools
 like Chef or Puppet misconfigurations happen and broker might be down, too. Error detection should happen as early as possible. There are two ways of detecting
@@ -101,9 +101,43 @@ it means that authentication has failed.
 
 
 
-h2. TLS (SSL) related issues
+h2. Handling network connection interruption
+
+Network connectivity issues are sad fact of life in modern software systems. Event small products and projects these days consist of multiple
+applications, often running on more than one machine. Ruby amqp gem detects TCP connection failures and lets you handle them by
+defining a callback using {AMQP::Session#on_tcp_connection_loss}. That callback will be run when TCP connection fails, and will be passed
+two parameters: connection object and settings of the last successful connection.
+
+<pre>
+<code>
+connection.on_tcp_connection_loss do |connection, settings|
+  connection.reconnect(false, 1)
+end
+</code>
+</pre>
+
+Well designed applications handle connection interruptions. amqp gem 0.8.0 and later provides a number event handlers to make this
+task easier for developers. This set of features is know as the "shutdown protocol" (the word "protocol" here means "API interface" or
+"behavior", not network protocol).
+
+{AMQP::Session}, {AMQP::Channel}, {AMQP::Exchange}, {AMQP::Queue} and {AMQP::Consumer all implement shutdown protocol and thus error
+handling API is identical for all classes.
 
 TBD
+
+
+
+
+h2. Recovering from network connection failures
+
+TBD
+
+
+
+h2. Detecting broker failure
+
+AMQP applications see broker failure as TCP connection loss. There is no reliable way to know whether there is a network split
+or network peer is down.
 
 
 
@@ -285,40 +319,11 @@ h4. 403 Access Refused
 
 
 
-h2. Detecting network connection interruption
-
-Network connectivity issues are sad fact of life in modern software systems. Event small products and projects these days consist of multiple
-applications, often running on more than one machine. Ruby amqp gem detects TCP connection failures and lets you handle them by
-defining a callback using {AMQP::Session#on_tcp_connection_loss}. That callback will be run when TCP connection fails, and will be passed
-two parameters: connection object and settings of the last successful connection.
-
-<pre>
-<code>
-connection.on_tcp_connection_loss do |connection, settings|
-  connection.reconnect(false, 1)
-end
-</code>
-</pre>
-
-When connection is interrupted, AMQP connections and channels are reset and {AMQP::Exchange} and {AMQP::Queue} instances become orphaned.
-Well designed connection failure recovery must take care of opening channels application needs, as well as declaring AMQP entities it
-works with.
+h2. TLS (SSL) related issues
 
 TBD
 
 
-
-h2. Detecting broker failure
-
-AMQP applications see broker failure as TCP connection loss. There is no reliable way to know whether there is a network split
-or network peer is down.
-
-
-
-
-h2. Reconnection & recovery
-
-TBD
 
 
 
