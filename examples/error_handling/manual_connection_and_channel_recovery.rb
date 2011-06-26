@@ -16,7 +16,7 @@ class ConnectionInterruptionHandler
   #
 
   def handle(connection)
-    puts "Connection #{connection} detected connection interruption"
+    puts "[network failure] Connection #{connection} detected connection interruption"
   end
 
 end
@@ -38,12 +38,15 @@ AMQP.start(:host => "localhost") do |connection, open_ok|
     puts "Channel #{ch1.id} IS NOT auto-recovering"
   end
   ch1.on_connection_interruption do |c|
-    puts "Channel #{c.id} reacted to connection interruption"
+    puts "[network failure] Channel #{c.id} reacted to connection interruption"
+  end
+  ch1.on_recovery do |c|
+    puts "[recovery] Channel #{c.id} has recovered"
   end
 
 
   connection.on_tcp_connection_loss do |conn, settings|
-    puts "Trying to reconnect..."
+    puts "[network failure] Trying to reconnect..."
     conn.reconnect(false, 2)
   end
 
@@ -52,7 +55,7 @@ AMQP.start(:host => "localhost") do |connection, open_ok|
   connection.on_connection_interruption(&handler.method(:handle))
 
   connection.on_recovery do |conn, settings|
-    puts "Connection recovered"
+    puts "[recovery] Connection has recovered"
   end
 
   show_stopper = Proc.new {
