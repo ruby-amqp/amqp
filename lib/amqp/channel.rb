@@ -157,9 +157,6 @@ module AMQP
     attr_reader :status
 
 
-    # @note We encourage you to not rely on default AMQP connection and pass connection parameter
-    #       explicitly.
-    #
     # @param [AMQP::Session] connection Connection to open this channel on. If not given, default AMQP
     #                                   connection (accessible via {AMQP.connection}) will be used.
     # @param [Integer]       id         Channel id. Must not be greater than max channel id client and broker
@@ -195,6 +192,7 @@ module AMQP
     #
     #
     # @option options [Boolean] :prefetch (nil)  Specifies number of messages to prefetch. Channel-specific. See {AMQP::Channel#prefetch}.
+    # @option options [Boolean] :auto_recovery (nil)  Turns on automatic network failure recovery mode for this channel.
     #
     # @yield [channel, open_ok] Yields open channel instance and AMQP method (channel.open-ok) instance. The latter is optional.
     # @yieldparam [Channel] channel Channel that is successfully open
@@ -207,6 +205,12 @@ module AMQP
       raise 'AMQP can only be used from within EM.run {}' unless EM.reactor_running?
 
       @connection = connection || AMQP.connection || AMQP.start
+      # this means 2nd argument is options
+      if id.kind_of?(Hash)
+        options = options.merge(id)
+        id      = self.class.next_channel_id
+      end
+
       super(@connection, id, options)
 
       @rpcs                       = Hash.new
@@ -240,6 +244,15 @@ module AMQP
         end # self.open
       end # @connection.on_open
     end
+
+    # @return [Boolean] true if this channel is in automatic recovery mode
+    # @see #auto_recovering?
+    attr_accessor :auto_recovery
+
+    # @return [Boolean] true if this channel uses automatic recovery mode
+    def auto_recovering?
+      @auto_recovery
+    end # auto_recovering?
 
 
 

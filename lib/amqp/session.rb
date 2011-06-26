@@ -148,6 +148,15 @@ module AMQP
     end # handle_connection_interruption
 
 
+    # Defines a callback that will be executed when connection is closed after
+    # connection-level exception. Only one callback can be defined (the one defined last
+    # replaces previously added ones).
+    #
+    # @api public
+    def on_error(&block)
+      super(&block)
+    end
+
 
     # Defines a callback that will be executed after TCP connection has recovered after a network failure
     # but before AMQP connection is re-opened.
