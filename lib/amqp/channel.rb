@@ -206,10 +206,8 @@ module AMQP
     def initialize(connection = nil, id = self.class.next_channel_id, options = {}, &block)
       raise 'AMQP can only be used from within EM.run {}' unless EM.reactor_running?
 
-      @options    = options
       @connection = connection || AMQP.connection || AMQP.start
-
-      super(@connection, id)
+      super(@connection, id, options)
 
       @rpcs                       = Hash.new
       # we need this deferrable to mimic what AMQP gem 0.7 does to enable
@@ -1096,8 +1094,9 @@ module AMQP
     #
     # @api plugin
     # @private
-    def handle_connection_interruption(exception = nil)
-      super(exception)
+    def handle_connection_interruption(reason = nil)
+      super(reason)
+
       self.class.release_channel_id(@id)
       @channel_is_open_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
     end
