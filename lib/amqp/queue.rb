@@ -291,6 +291,14 @@ module AMQP
       self
     end
 
+    # Used by automatic recovery machinery.
+    # @private
+    # @api plugin
+    def rebind(&block)
+      @bindings.each { |b| self.bind(b[:exchange], b) }
+    end
+
+
 
     # Remove the binding between the queue and exchange. The queue will
     # not receive any more messages until it is bound to another
