@@ -51,6 +51,20 @@ module AMQP
     end # reconnect(force = false)
 
 
+
+    # Properly close connection with AMQ broker, as described in
+    # section 2.2.4 of the {http://bit.ly/hw2ELX AMQP 0.9.1 specification}.
+    #
+    # @api  plugin
+    # @see  #close_connection
+    def disconnect(reply_code = 200, reply_text = "Goodbye", &block)
+      # defined here to make this method appear in YARD documentation. MK.
+      super(reply_code, reply_text, &block)
+    end
+    alias close disconnect
+
+
+
     # Defines a callback that will be executed when AMQP connection is considered open:
     # after client and broker has agreed on max channel identifier and maximum allowed frame
     # size and authentication succeeds. You can define more than one callback.
@@ -61,6 +75,9 @@ module AMQP
       # defined here to make this method appear in YARD documentation. MK.
       super(&block)
     end # on_open(&block)
+
+
+    # @group Error Handling and Recovery
 
     # Defines a callback that will be run when broker confirms connection termination
     # (client receives connection.close-ok). You can define more than one callback.
@@ -99,17 +116,63 @@ module AMQP
       super(&block)
     end
 
-
-    # Properly close connection with AMQ broker, as described in
-    # section 2.2.4 of the {http://bit.ly/hw2ELX AMQP 0.9.1 specification}.
+    # Defines a callback that will be executed after TCP connection is interrupted (typically because of a network failure).
+    # Only one callback can be defined (the one defined last replaces previously added ones).
     #
-    # @api  plugin
-    # @see  #close_connection
-    def disconnect(reply_code = 200, reply_text = "Goodbye", &block)
-      # defined here to make this method appear in YARD documentation. MK.
-      super(reply_code, reply_text, &block)
-    end
-    alias close disconnect
+    # @api public
+    def on_connection_interruption(&block)
+      super(&block)
+    end # on_connection_interruption(&block)
+    alias after_connection_interruption on_connection_interruption
+
+
+    # @private
+    # @api plugin
+    def handle_connection_interruption
+      super
+    end # handle_connection_interruption
+
+
+
+    # Defines a callback that will be executed after TCP connection has recovered after a network failure
+    # but before AMQP connection is re-opened.
+    # Only one callback can be defined (the one defined last replaces previously added ones).
+    #
+    # @api public
+    def before_recovery(&block)
+      super(&block)
+    end # before_recovery(&block)
+
+
+    # Defines a callback that will be executed after AMQP connection has recovered after a network failure..
+    # Only one callback can be defined (the one defined last replaces previously added ones).
+    #
+    # @api public
+    def on_recovery(&block)
+      super(&block)
+    end # on_recovery(&block)
+    alias after_recovery on_recovery
+
+
+    # @return [Boolean] whether connection is in the automatic recovery mode
+    # @api public
+    def auto_recovering?
+      super
+    end # auto_recovering?
+    alias auto_recovery? auto_recovering?
+
+
+    # Performs recovery of channels that are in the automatic recovery mode.
+    #
+    # @see Channel#auto_recover
+    # @see Queue#auto_recover
+    # @see Exchange#auto_recover
+    # @api plugin
+    def auto_recover
+      super
+    end # auto_recover
+
+    # @endgroup
 
 
 
