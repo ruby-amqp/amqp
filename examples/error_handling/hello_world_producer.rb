@@ -37,4 +37,7 @@ AMQP.start(:host => "localhost") do |connection, open_ok|
   Signal.trap "TERM", show_stopper
   Signal.trap "INT",  show_stopper
   EM.add_timer(15, show_stopper)
+
+  puts "This example a helper that publishes messages to amq.fanout. Use together with examples/error_handling/automatically_recovering_hello_world_consumer.rb."
+  puts "This example terminates in 15 seconds and needs MANUAL RESTART when connection fails"
 end

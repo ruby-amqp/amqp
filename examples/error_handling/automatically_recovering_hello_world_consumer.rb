@@ -44,5 +44,6 @@ AMQP.start(:host => "localhost") do |connection, open_ok|
   EM.add_timer(45, show_stopper)
 
 
+  puts "This example needs another script/app to publish messages to amq.fanout. See examples/error_handling/hello_world_producer.rb for example"
   puts "Connected, authenticated. To really exercise this example, shut AMQP broker down for a few seconds. If you don't it will exit gracefully in 45 seconds."
 end
