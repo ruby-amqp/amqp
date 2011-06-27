@@ -678,28 +678,12 @@ module AMQP
 
       opts[:nowait] = false if (@on_confirm_subscribe = opts[:confirm])
 
-      # We have to maintain this multiple arities jazz
-      # because older versions this gem are used in examples in at least 3
-      # books published by O'Reilly :(. MK.
-      delivery_shim = Proc.new { |method, headers, payload|
-        case block.arity
-        when 1 then
-          block.call(payload)
-        when 2 then
-          h = Header.new(@channel, method, headers.decode_payload)
-          block.call(h, payload)
-        else
-          h = Header.new(@channel, method, headers.decode_payload)
-          block.call(h, payload, method.consumer_tag, method.delivery_tag, method.redelivered, method.exchange, method.routing_key)
-        end
-      }
-
       @channel.once_open do
         @consumer_tag = nil
         # consumer_tag is set by AMQ::Client::Queue once we receive consume-ok, this takes a while.
         self.consume(!opts[:ack], opts[:exclusive], (opts[:nowait] || block.nil?), opts[:no_local], nil, &opts[:confirm])
 
-        self.on_delivery(&delivery_shim)
+        self.on_delivery(&block)
       end
 
       self

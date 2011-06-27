@@ -69,7 +69,23 @@ module AMQP
     # @return [AMQP::Consumer] self
     # @see AMQP::Queue#subscribe
     def on_delivery(&block)
-      super(&block)
+      # We have to maintain this multiple arities jazz
+      # because older versions this gem are used in examples in at least 3
+      # books published by O'Reilly :(. MK.
+      delivery_shim = Proc.new { |basic_deliver, headers, payload|
+        case block.arity
+        when 1 then
+          block.call(payload)
+        when 2 then
+          h = Header.new(@channel, basic_deliver, headers.decode_payload)
+          block.call(h, payload)
+        else
+          h = Header.new(@channel, basic_deliver, headers.decode_payload)
+          block.call(h, payload, basic_deliver.consumer_tag, basic_deliver.delivery_tag, basic_deliver.redelivered, basic_deliver.exchange, basic_deliver.routing_key)
+        end
+      }
+
+      super(&delivery_shim)
     end # on_delivery(&block)
 
 

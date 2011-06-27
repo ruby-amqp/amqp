@@ -39,7 +39,7 @@ describe "Multiple non-exclusive consumers per queue" do
           @consumer1_mailbox << payload
         end
 
-        consumer2.consume(true).on_delivery do |basic_deliver, metadata, payload|
+        consumer2.consume(true).on_delivery do |metadata, payload|
           @consumer2_mailbox << payload
         end
 
