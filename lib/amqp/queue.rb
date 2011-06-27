@@ -458,6 +458,10 @@ module AMQP
     # exchange matches a message to this queue.
     #
     #
+    # Attempts to {Queue#subscribe} multiple times to the same exchange will raise an
+    # Exception. If you need more than one consumer per queue, use {AMQP::Consumer} instead.
+    #
+    #
     # @example Use of callback with a single argument
     #
     #  EventMachine.run do
@@ -471,8 +475,7 @@ module AMQP
     #  end
     #
     # If the block takes 2 parameters, both the header and the body will
-    # be passed in for processing. The header object is defined by
-    # AMQP::Protocol::Header.
+    # be passed in for processing.
     #
     # @example Use of callback with two arguments
     #
@@ -720,7 +723,7 @@ module AMQP
     # @api public
     def unsubscribe(opts = {}, &block)
       if @default_consumer
-        @channel.once_open { @default_consumer.cancel(opts.fetch(:nowait, true), &block) }
+        @channel.once_open { @default_consumer.cancel(opts.fetch(:nowait, true), &block); @default_consumer = nil }
       end
     end
 
@@ -747,16 +750,16 @@ module AMQP
 
 
     # Boolean check to see if the current queue has already subscribed
-    # to messages delivery.
+    # to messages delivery (has default consumer).
     #
     # Attempts to {Queue#subscribe} multiple times to the same exchange will raise an
-    # Exception. Only a single block at a time can be associated with any
-    # queue instance for processing incoming messages.
+    # Exception. If you need more than one consumer per queue, use {AMQP::Consumer} instead.
     #
     # @return [Boolean] true if there is a consumer tag associated with this Queue instance
     # @api public
+    # @deprecated
     def subscribed?
-      !!@consumer_tag
+      @default_consumer && @default_consumer.subscribed?
     end
 
 
@@ -765,7 +768,9 @@ module AMQP
     # @api public
     # @deprecated
     def callback
-      @on_declare
+      return nil if !subscribed?
+
+      @default_consumer.callbacks[:delivery].first
     end
 
 

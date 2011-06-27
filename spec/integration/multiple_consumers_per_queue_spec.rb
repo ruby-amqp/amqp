@@ -192,10 +192,21 @@ describe "Multiple non-exclusive consumers per queue" do
         queue.subscribe do |metadata, payload|
           @consumer3_mailbox << payload
         end
+        queue.should be_subscribed
         queue.unsubscribe
+        queue.should_not be_subscribed
 
+        consumer2.should be_subscribed
+        consumer2.callback.should_not be_nil
         consumer2.cancel
+        consumer2.should_not be_subscribed
+        consumer2.callback.should be_nil
+
+        consumer1.should be_subscribed
+        consumer1.callback.should_not be_nil
         consumer1.cancel
+        consumer1.should_not be_subscribed
+        consumer1.callback.should be_nil
       end
 
       exchange = channel.default_exchange

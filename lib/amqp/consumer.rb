@@ -24,6 +24,7 @@ module AMQP
     # @return [Hash] Custom subscription metadata
     attr_reader :arguments
 
+
     # @return [AMQ::Client::ConsumerTagGenerator] Consumer tag generator
     def self.tag_generator
       @tag_generator ||= AMQ::Client::ConsumerTagGenerator.new
@@ -45,6 +46,8 @@ module AMQP
       super
     end # exclusive?
 
+
+
     # Begin consuming messages from the queue
     # @return [AMQP::Consumer] self
     def consume(nowait = false, &block)
@@ -62,6 +65,23 @@ module AMQP
     def cancel(nowait = false, &block)
       super(nowait, &block)
     end # cancel(nowait = false, &block)
+
+    # {AMQP::Queue} API compatibility.
+    #
+    # @return [Boolean] true if this consumer is active (subscribed for message delivery)
+    # @api public
+    def subscribed?
+      !@callbacks[:delivery].empty?
+    end # subscribed?
+
+    # Legacy {AMQP::Queue} API compatibility.
+    # @private
+    # @deprecated
+    def callback
+      if @callbacks[:delivery]
+        @callbacks[:delivery].first
+      end
+    end # callback
 
 
     # Register a block that will be used to handle delivered messages.
