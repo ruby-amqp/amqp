@@ -33,18 +33,17 @@ describe "Multiple non-exclusive consumers per queue" do
 
       queue   = channel.queue("amqpgem.integration.roundrobin.queue1", :auto_delete => true) do
         consumer1 = AMQP::Consumer.new(channel, queue)
-        consumer2 = AMQP::Consumer.new(channel, queue)
-        consumer3 = AMQP::Consumer.new(channel, queue, "#{queue.name}-consumer-#{rand}-#{Time.now}", false, true)
+        consumer2 = AMQP::Consumer.new(channel, queue, "#{queue.name}-consumer-#{rand}-#{Time.now}", false, true)
 
-        consumer1.consume.on_delivery do |method, header, payload|
+        consumer1.consume.on_delivery do |basic_deliver, metadata, payload|
           @consumer1_mailbox << payload
         end
 
-        consumer2.consume(true).on_delivery do |method, header, payload|
+        consumer2.consume(true).on_delivery do |basic_deliver, metadata, payload|
           @consumer2_mailbox << payload
         end
 
-        consumer3.consume(false).on_delivery do |method, header, payload|
+        queue.subscribe do |metadata, payload|
           @consumer3_mailbox << payload
         end
       end
