@@ -674,12 +674,7 @@ module AMQP
     # @see file:docs/Queues.textile Documentation guide on queues
     # @see #unsubscribe
     def subscribe(opts = {}, &block)
-      raise Error, 'already subscribed to the queue' if @consumer_tag
-
-      # having initial value for @consumer_tag makes a lot of obscure issues
-      # go away. It is set to real value once we receive consume-ok (it is handled by
-      # AMQ::Client::Queue we inherit from).
-      @consumer_tag = "for now"
+      raise RuntimeError.new("This queue already has default consumer. Please instantiate AMQP::Consumer directly to register additional consumers.") if @default_consumer
 
       opts[:nowait] = false if (@on_confirm_subscribe = opts[:confirm])
 
