@@ -33,6 +33,8 @@ module AMQP
     # API
     #
 
+    # @group Connecting, reconnecting, disconnecting
+
     # @api plugin
     def connected?
       self.opened?
@@ -77,6 +79,49 @@ module AMQP
       super(reply_code, reply_text, &block)
     end
     alias close disconnect
+
+    # @endgroup
+
+
+
+    # @group Broker information
+
+    RABBITMQ_PRODUCT = "RabbitMQ".freeze
+
+    # Server properties (product information, platform, et cetera)
+    #
+    # @return [Hash]
+    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.4.2.1.3)
+    attr_reader :server_properties
+
+    # Server capabilities (usually used to detect AMQP 0.9.1 extensions like basic.nack, publisher
+    # confirms and so on)
+    #
+    # @return [Hash]
+    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.4.2.1.3)
+    attr_reader :server_capabilities
+
+    # Locales server supports
+    #
+    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.4.2.1.3)
+    attr_reader :server_locales
+
+    # @return [Boolean] true if broker is RabbitMQ
+    def with_rabbitmq?
+      self.broker_product == RABBITMQ_PRODUCT
+    end # with_rabbitmq?
+
+    # @return [String] Broker product information
+    def broker_product
+      @broker_product ||= @server_properties["product"]
+    end # broker_product
+
+    # @return [String] Broker version
+    def broker_version
+      @broker_version ||= @server_properties["version"]
+    end # broker_version
+
+    # @endgroup
 
 
 
