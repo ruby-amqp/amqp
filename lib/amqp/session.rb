@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require "amq/client/adapters/event_machine"
+require "amqp/broker"
 
 module AMQP
   # AMQP session represents connection to the broker. Session objects let you define callbacks for
@@ -34,6 +35,17 @@ module AMQP
     #
 
     # @group Connecting, reconnecting, disconnecting
+
+    def initialize(*args, &block)
+      super(*args, &block)
+
+      @client_properties = {
+        :platform    => ::RUBY_DESCRIPTION,
+        :product     => "AMQP gem",
+        :information => "http://github.com/ruby-amqp/amqp",
+        :version     => AMQP::VERSION
+      }
+    end # initialize(*args, &block)
 
     # @api plugin
     def connected?
@@ -86,8 +98,6 @@ module AMQP
 
     # @group Broker information
 
-    RABBITMQ_PRODUCT = "RabbitMQ".freeze
-
     # Server properties (product information, platform, et cetera)
     #
     # @return [Hash]
@@ -106,20 +116,10 @@ module AMQP
     # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.4.2.1.3)
     attr_reader :server_locales
 
-    # @return [Boolean] true if broker is RabbitMQ
-    def with_rabbitmq?
-      self.broker_product == RABBITMQ_PRODUCT
-    end # with_rabbitmq?
-
-    # @return [String] Broker product information
-    def broker_product
-      @broker_product ||= @server_properties["product"]
-    end # broker_product
-
-    # @return [String] Broker version
-    def broker_version
-      @broker_version ||= @server_properties["version"]
-    end # broker_version
+    # @return [AMQP::Broker] Broker this connection is established with
+    def broker
+      @broker ||= AMQP::Broker.new(@server_properties)
+    end # broker
 
     # @endgroup
 
