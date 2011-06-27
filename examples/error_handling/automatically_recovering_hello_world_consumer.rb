@@ -26,8 +26,12 @@ AMQP.start(:host => "localhost") do |connection, open_ok|
     conn.reconnect(false, 2)
   end
 
-  ch1.queue("amqpgem.examples.queue3", :auto_delete => false, :durable => true).bind("amq.fanout").subscribe do |metadata, payload|
-    puts " => #{payload}"
+  queue = ch1.queue("amqpgem.examples.queue3", :auto_delete => false, :durable => true).bind("amq.fanout").subscribe do |metadata, payload|
+    puts "[consumer1] => #{payload}"
+  end
+  consumer2 = AMQP::Consumer.new(ch1, queue)
+  consumer2.consume.on_delivery do |metadata, payload|
+    puts "[conusmer2] => #{payload}"
   end
 
 
