@@ -454,10 +454,12 @@ Passenger provides a hook that you should use for spawning AMQP connection:
 
 <pre>
 <code>
-PhusionPassenger.on_event(:starting_worker_process) do |forked|
-  if forked
-    # We're in a smart spawning mode
-    # Now is a good place to connect to the broker
+if defined?(PhusionPassenger) # otherwise it breaks rake commands if you put this in an initializer
+  PhusionPassenger.on_event(:starting_worker_process) do |forked|
+    if forked
+      # We're in a smart spawning mode
+      # Now is a good place to connect to the broker
+    end
   end
 end
 </code>
