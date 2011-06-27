@@ -679,8 +679,6 @@ module AMQP
       opts[:nowait] = false if (@on_confirm_subscribe = opts[:confirm])
 
       @channel.once_open do
-        @consumer_tag = nil
-        # consumer_tag is set by AMQ::Client::Queue once we receive consume-ok, this takes a while.
         self.consume(!opts[:ack], opts[:exclusive], (opts[:nowait] || block.nil?), opts[:no_local], nil, &opts[:confirm])
 
         self.on_delivery(&block)
@@ -721,9 +719,9 @@ module AMQP
     #
     # @api public
     def unsubscribe(opts = {}, &block)
-      # @consumer_tag is nillified for us by AMQ::Client::Queue, that is,
-      # our superclass. MK.
-      @channel.once_open { self.cancel(opts.fetch(:nowait, true), &block) }
+      if @default_consumer
+        @channel.once_open { @default_consumer.cancel(opts.fetch(:nowait, true), &block) }
+      end
     end
 
     # Get the number of messages and active consumers (with active channel flow) on a queue.
