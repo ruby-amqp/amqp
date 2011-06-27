@@ -65,6 +65,6 @@ describe "Multiple non-exclusive consumers per queue" do
         @consumer2_mailbox.size.should == 33
         @consumer3_mailbox.size.should == 33
       }
-    end
-  end # it
-end # context
+    end # it
+  end # context
+end # describe
