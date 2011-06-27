@@ -770,7 +770,7 @@ module AMQP
     def callback
       return nil if !subscribed?
 
-      @default_consumer.callbacks[:delivery].first
+      @default_consumer.callback
     end
 
 
