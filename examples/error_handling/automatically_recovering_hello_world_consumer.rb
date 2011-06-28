@@ -26,15 +26,12 @@ AMQP.start(:host => "localhost") do |connection, open_ok|
     conn.reconnect(false, 2)
   end
 
-  fanout = ch1.fanout("amqpgem.examples.fanout", :durable => true)
-  queue = ch1.queue("", :auto_delete => true).bind(fanout).subscribe do |metadata, payload|
+  queue = ch1.queue("amqpgem.examples.queue3", :auto_delete => false, :durable => true).bind("amq.fanout").subscribe do |metadata, payload|
     puts "[consumer1] => #{payload}"
-    metadata.ack
   end
   consumer2 = AMQP::Consumer.new(ch1, queue)
   consumer2.consume.on_delivery do |metadata, payload|
     puts "[conusmer2] => #{payload}"
-    metadata.ack
   end
 
 
@@ -47,6 +44,6 @@ AMQP.start(:host => "localhost") do |connection, open_ok|
   EM.add_timer(45, show_stopper)
 
 
-  puts "This example needs another script/app to publish messages to amqpgem.examples.fanout exchange. See examples/error_handling/hello_world_producer.rb for example"
+  puts "This example needs another script/app to publish messages to amq.fanout. See examples/error_handling/hello_world_producer.rb for example"
   puts "Connected, authenticated. To really exercise this example, shut AMQP broker down for a few seconds. If you don't it will exit gracefully in 45 seconds."
 end
