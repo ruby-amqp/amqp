@@ -68,11 +68,11 @@ with are outdated even in recent (10.10) releases. Learn more in the [RabbitMQ v
 On Microsoft Windows 7
 
     gem install eventmachine --pre
-    gem install amqp --pre --version "~> 0.8.0.RC12"
+    gem install amqp --pre --version "~> 0.8.0.RC13"
 
 On other OSes or [JRuby](http://jruby.org):
 
-    gem install amqp --pre --version "~> 0.8.0.RC12"
+    gem install amqp --pre --version "~> 0.8.0.RC13"
 
 
 ### "Hello, World" example ###
