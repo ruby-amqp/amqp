@@ -8,7 +8,6 @@ $:.unshift(File.expand_path("../../../lib", __FILE__))
 
 require 'amqp'
 
-
 puts "=> Example of automatic AMQP channel and queues recovery"
 puts
 AMQP.start(:host => "localhost") do |connection, open_ok|
@@ -26,12 +25,15 @@ AMQP.start(:host => "localhost") do |connection, open_ok|
     conn.reconnect(false, 2)
   end
 
-  queue = ch1.queue("amqpgem.examples.queue3", :auto_delete => false, :durable => true).bind("amq.fanout").subscribe do |metadata, payload|
+  queue = ch1.queue("amqpgem.examples.autorecovery.queue", :auto_delete => false, :durable => true).bind("amq.fanout")
+  queue.subscribe(:ack => true) do |metadata, payload|
     puts "[consumer1] => #{payload}"
+    metadata.ack
   end
   consumer2 = AMQP::Consumer.new(ch1, queue)
   consumer2.consume.on_delivery do |metadata, payload|
     puts "[conusmer2] => #{payload}"
+    metadata.ack
   end
 
 
