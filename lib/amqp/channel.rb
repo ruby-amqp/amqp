@@ -1110,7 +1110,7 @@ module AMQP
     def handle_connection_interruption(reason = nil)
       super(reason)
 
-      self.class.release_channel_id(@id)
+      self.class.release_channel_id(@id) unless auto_recovering?
       @channel_is_open_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
     end
 
