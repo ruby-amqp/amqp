@@ -51,19 +51,37 @@ module AMQP
     # Begin consuming messages from the queue
     # @return [AMQP::Consumer] self
     def consume(nowait = false, &block)
-      super(nowait, &block)
+      @channel.once_open do
+        @queue.once_declared do
+          super(nowait, &block)
+        end
+      end
+
+      self
     end # consume(nowait = false, &block)
 
     # Used by automatic recovery code.
     # @api plugin
     # @return [AMQP::Consumer] self
     def resubscribe(&block)
-      super(&block)
+      @channel.once_open do
+        @queue.once_declared do
+          super(&block)
+        end
+      end
+
+      self
     end # resubscribe(&block)
 
     # @return [AMQP::Consumer] self
     def cancel(nowait = false, &block)
-      super(nowait, &block)
+      @channel.once_open do
+        @queue.once_declared do
+          super(nowait, &block)
+        end
+      end
+
+      self
     end # cancel(nowait = false, &block)
 
     # {AMQP::Queue} API compatibility.

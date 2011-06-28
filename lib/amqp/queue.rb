@@ -686,9 +686,11 @@ module AMQP
       opts[:nowait] = false if (@on_confirm_subscribe = opts[:confirm])
 
       @channel.once_open do
-        self.consume(!opts[:ack], opts[:exclusive], (opts[:nowait] || block.nil?), opts[:no_local], nil, &opts[:confirm])
+        self.once_declared do
+          self.consume(!opts[:ack], opts[:exclusive], (opts[:nowait] || block.nil?), opts[:no_local], nil, &opts[:confirm])
 
-        self.on_delivery(&block)
+          self.on_delivery(&block)
+        end
       end
 
       self
@@ -726,8 +728,12 @@ module AMQP
     #
     # @api public
     def unsubscribe(opts = {}, &block)
-      if @default_consumer
-        @channel.once_open { @default_consumer.cancel(opts.fetch(:nowait, true), &block); @default_consumer = nil }
+      @channel.once_open do
+        self.once_declared do
+          if @default_consumer
+            @default_consumer.cancel(opts.fetch(:nowait, true), &block); @default_consumer = nil
+          end
+        end
       end
     end
 
