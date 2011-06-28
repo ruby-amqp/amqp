@@ -281,11 +281,6 @@ module AMQP
     # @api public
     # @see Queue#unbind
     def bind(exchange, opts = {}, &block)
-      @status             = :unbound
-      # amq-client's Queue already does exchange.respond_to?(:name) ? exchange.name : exchange
-      # for us
-      exchange            = exchange
-
       if self.server_named?
         @channel.once_open do
           @declaration_deferrable.callback do
