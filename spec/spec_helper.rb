@@ -47,3 +47,7 @@ when /^1.9/ then
   Encoding.default_internal = Encoding::UTF_8
   Encoding.default_external = Encoding::UTF_8
 end
+
+
+EventMachine.kqueue = true if EventMachine.kqueue?
+EventMachine.epoll  = true if EventMachine.epoll?
