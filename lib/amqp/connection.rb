@@ -13,9 +13,8 @@ module AMQP
 
   # Starts EventMachine event loop unless it is already running and connects
   # to AMQP broker using {AMQP.connect}. It is generally a good idea to
-  # start EventMachine event loop in a separate thread and use {AMQP.connect}.
-  # That said, for applications that do not publish or handle large volumes of
-  # data {AMQP.start} works very well and its use is not discouraged.
+  # start EventMachine event loop in a separate thread and use {AMQP.connect}
+  # (for Web applications that do not use Thin or Goliath, it is the only option).
   #
   # See {AMQP.connect} for information about arguments this method takes and
   # information about relevant topics such as authentication failure handling.
