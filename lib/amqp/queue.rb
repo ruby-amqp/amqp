@@ -216,6 +216,15 @@ module AMQP
       end
     end
 
+    # Defines a callback that will be executed once queue is declared. More than one callback can be defined.
+    # if queue is already declared, given callback is executed immediately.
+    #
+    # @api public
+    def once_declared(&block)
+      @declaration_deferrable.callback(&block)
+    end # once_declared(&block)
+
+
     # @return [Boolean] true if this queue is server-named
     def server_named?
       @server_named
@@ -792,6 +801,14 @@ module AMQP
       initialize(@channel, @name, @opts)
     end
 
+
+    # @private
+    # @api plugin
+    def handle_connection_interruption(method = nil)
+      super(method)
+
+      @declaration_deferrable = EventMachine::DefaultDeferrable.new
+    end
 
     protected
 
