@@ -14,6 +14,22 @@ client_private_key_file_path = File.join(examples_dir, "tls_certificates", "clie
 
 require 'amqp'
 
+# This example assumes you have configured RabbitMQ to listen on port 5671
+# for TLS connections (using RabbitMQ configuration file), for example:
+#
+# [
+#   {rabbit, [
+#      {ssl_listeners, [5671]},
+#      {ssl_options, [{cacertfile, "/usr/local/etc/rabbitmq/tls/testca/cacert.pem"},
+#                     {certfile,   "/usr/local/etc/rabbitmq/tls/server/cert.pem"},
+#                     {keyfile,    "/usr/local/etc/rabbitmq/tls/server/key.pem"},
+#                     {verify,     verify_peer},
+#                     {fail_if_no_peer_cert, true}]}
+#    ]}
+# ].
+#
+# See TLS certificates under ./examples/tls_certificates
+
 AMQP.start(:port     => 5671,
            :ssl => {
              :cert_chain_file  => certificate_chain_file_path,
