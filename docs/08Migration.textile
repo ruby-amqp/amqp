@@ -127,6 +127,11 @@ MQ class and class methods that use implicit connection (MQ.queue and so on) wil
 </span>
 
 
+h2. MQ class is now AMQP::Channel
+
+TBD
+
+
 h2. MQ::Queue is now AMQP::Queue
 
 TBD
