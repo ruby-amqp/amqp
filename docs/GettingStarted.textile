@@ -550,18 +550,30 @@ end
 
 h2. Wrapping up
 
-This tutorial ends here. Congratulations! You have learned quite a bit about both AMQP 0.9.1 and amqp gem.
+This tutorial ends here. Congratulations! You have learned quite a bit about both AMQP 0.9.1 and amqp gem. This is only
+the tip of the iceberg. AMQP has many more features built into the protocol:
+
+ * Reliable delivery of messages
+ * Message confirmations (a way to tell broker that message was or wasn't processed successfully)
+ * Message redelivery when consumer apps fail or crash
+ * Load balancing of messages between multiple consumers
+ * Message metadata attributes
+
+and so on. Other guides explain these features as well as use cases for them in depth. To stay up to date with amqp gem
+development, "follow @rubyamqp on Twitter":twitter.com/rubyamqp and "join our mailing list":http://groups.google.com/group/ruby-amqp.
+
+
 
 
 h2. What to read next
 
 Documentation is organized as a number of {file:docs/DocumentationGuidesIndex.textile documentation guides}, covering all kinds of
-topics from {file:docs/Routing.textile routing} to {file:docs/ErrorHandling.textile error handling} to
+topics from {file:docs/Exchanges.textile use cases for various exchange types} to {file:docs/ErrorHandling.textile error handling} to
 {file:docs/VendorSpecificExchanges.textile Broker-specific AMQP 0.9.1 extensions}.
 
-To learn more on what you have seen in this tutorial, check out
+We recommend that you read the following guides next, if possible, in this order:
 
- * {file:docs/ConnectingToTheBroker.textile Connection to the broker}
+ * {file:docs/ConnectingToTheBroker.textile Connection to the broker}. This guide explains how to connect to AMQP broker & integrate amqp gem into standalone & Web applications.
  * {file:docs/Queues.textile Working With Queues}. This guide focuses on features consumer applications use heavily.
  * {file:docs/Exchanges.textile Working With Exchanges}. This guide focuses on features producer applications use heavily.
  * {file:docs/ErrorHandling.textile Error Handling & Recovery} guide explains how to handle protocol errors, network failures and other things that may go wrong in real world projects.
