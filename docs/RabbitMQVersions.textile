@@ -10,7 +10,7 @@ This guide covers compatibility of the "Ruby amqp gem":http://github.com/ruby-am
 
 h2. Covered versions
 
-This guide covers "Ruby amqp gem":http://github.com/ruby-amqp/amqp v0.6.0 and later.
+This guide covers "Ruby amqp gem":http://github.com/ruby-amqp/amqp v0.8.0 and later.
 
 
 
@@ -20,6 +20,21 @@ Ubuntu (even 10.10) and Debian both "ship with an old RabbitMQ version":http://p
 that only supports AMQP protocol 0.8. Ruby amqp gem 0.8.0 and later *will not work with RabbitMQ versions before 2.0.0*.
 
 We strongly recommend that you use "RabbitMQ apt repository":http://www.rabbitmq.com/debian.html#apt that has recent versions of RabbitMQ.
+
+
+h3. Chef cookbook for RabbitMQ
+
+There is a "Chef cookbook for RabbitMQ":https://github.com/opscode/cookbooks/tree/master/rabbitmq that installs recent versions from
+the rabbitmq.com apt repository. It also has LWPRs (providers) for managing users and vhosts.
+
+
+h3. RabbitMQ Puppet module
+
+There is a "RabbitMQ Puppet module":https://github.com/puppetlabs/puppetlabs-rabbitmq by the Puppet Labs team. It uses .deb packages from
+Debian testing and unstable repositories. Note that it has two dependencies:
+
+ * "puppet-stdlib":https://github.com/puppetlabs/puppetlabs-stdlib
+ * "puppet-apt":https://github.com/puppetlabs/puppet-apt
 
 
 
