@@ -37,7 +37,7 @@ RabbitMQ extensions documentation is part of "amq-client gem documentation":http
 
 h2. Tell us what you think!
 
-Please take a moment and tell us what you think about this guide "on Twitter":twitter.com/rubyamqp or "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp:
+Please take a moment and tell us what you think about this guide "on Twitter":http://twitter.com/rubyamqp or "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp:
 what was unclear? what wasn't covered? maybe you don't like guide style or grammar and spelling are incorrect? Readers feedback is
 key to making documentation better.
 
