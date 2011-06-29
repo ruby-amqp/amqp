@@ -560,7 +560,7 @@ the tip of the iceberg. AMQP has many more features built into the protocol:
  * Message metadata attributes
 
 and so on. Other guides explain these features as well as use cases for them in depth. To stay up to date with amqp gem
-development, "follow @rubyamqp on Twitter":twitter.com/rubyamqp and "join our mailing list":http://groups.google.com/group/ruby-amqp.
+development, "follow @rubyamqp on Twitter":http://twitter.com/rubyamqp and "join our mailing list":http://groups.google.com/group/ruby-amqp.
 
 
 
