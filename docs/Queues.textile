@@ -122,7 +122,7 @@ h3. Reserved queue name prefix.
 Queue names starting with 'amq.' are reserved for internal use by the broker. Attempts to declare queue with a name that violates this
 rule will result in a channel-level exception with reply code 403 (ACCESS_REFUSED) and reply message similar to this:
 
-<pre>ACCESS_REFUSED - queue name 'amq.queue' contains reserved prefix 'amq.*'</pre>
+<pre><samp>ACCESS_REFUSED - queue name 'amq.queue' contains reserved prefix 'amq.*'</samp></pre>
 
 
 h3. Queue re-declaration with different attributes.
@@ -130,7 +130,7 @@ h3. Queue re-declaration with different attributes.
 When attributes are different from what queue already has, channel-level exception with code 406
 (PRECONDITION_FAILED) will be raised. Reply text will be similar to this:
 
-<pre>PRECONDITION_FAILED - parameters for queue 'amqpgem.examples.channel_exception' in vhost '/' not equivalent</pre>
+<pre><samp>PRECONDITION_FAILED - parameters for queue 'amqpgem.examples.channel_exception' in vhost '/' not equivalent</samp></pre>
 
 
 
@@ -235,7 +235,7 @@ Exclusive queues may only be accessed by the current connection, and are deleted
 Declaration of an exclusive queue by other connections are not allowed and will result in a channel-level exception
 with the code 405 (RESOURCE_LOCKED) and reply message similar to
 
-<pre>RESOURCE_LOCKED - cannot obtain exclusive access to locked queue 'amqpgem.examples.queue' in vhost '/'</pre>
+<pre><samp>RESOURCE_LOCKED - cannot obtain exclusive access to locked queue 'amqpgem.examples.queue' in vhost '/'</samp></pre>
 
 The following example demonstrates this:
 <script src="https://gist.github.com/1008529.js"> </script>
@@ -525,10 +525,12 @@ An example output produced by this example:
 As we can see, consumer #1 did not acknowledge 3 messages (labelled 1, 2 and 5):
 
 <pre>
+<samp>
 [consumer1] Got message #1, SKIPPPED
 [consumer1] Got message #2, SKIPPPED
 ...
 [consumer1] Got message #5, SKIPPPED
+</samp>
 </pre>
 
 and then, once consumer #1 had "crashed", those messages were immediately redelivered to the consumer #2:
@@ -676,6 +678,7 @@ In that example, one consumer prefetches 3 messages and another consumer prefetc
 we will see that `consumer1` fetched 4 messages and acknowledged 1. After that, all subsequent messages were delivered to the `consumer2`:
 
 <pre>
+<samp>
 [consumer2] Received Message #0, redelivered = false, ack-ed
 [consumer1] Got message #1, SKIPPPED
 [consumer1] Got message #2, SKIPPPED
@@ -692,6 +695,7 @@ we will see that `consumer1` fetched 4 messages and acknowledged 1. After that, 
 [consumer2] Received Message #9, redelivered = false, ack-ed
 [consumer2] Received Message #10, redelivered = false, ack-ed
 [consumer2] Received Message #11, redelivered = false, ack-ed
+</samp>
 </pre>
 
 <span class="note">

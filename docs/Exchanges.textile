@@ -144,6 +144,7 @@ EventMachine.add_timer(1.2) { exchange.publish "Hello, fanout exchanges world!" 
 When run, this example produces the following output:
 
 <pre>
+<samp>
 Queue amq.gen-0p/BjxGNCue42RcJhpUrdg== received Hello, fanout exchanges world!
 Queue amq.gen-3GXULvZuYh1KsOD83yvlNg== received Hello, fanout exchanges world!
 Queue amq.gen-4EcyydTfoZzXjNSSLsh09Q== received Hello, fanout exchanges world!
@@ -154,6 +155,7 @@ Queue amq.gen-RYHQUrj3yihb0DRF7KVpRg== received Hello, fanout exchanges world!
 Queue amq.gen-SZJ40mGwbhdcbOGeHMhUkg== received Hello, fanout exchanges world!
 Queue amq.gen-sDeVZg9Vx1knq+n9EMi8tA== received Hello, fanout exchanges world!
 Queue amq.gen-uWOuVaosW4bWAHqKG6pZVw== received Hello, fanout exchanges world!
+</samp>
 </pre>
 
 All the queues bound to the exchange receives a *copy* of the message.
