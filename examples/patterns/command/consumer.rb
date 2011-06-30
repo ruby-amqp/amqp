@@ -4,24 +4,33 @@ $LOAD_PATH.unshift File.expand_path("../../../../lib", __FILE__)
 
 require "amqp"
 
-# Imagine we have for example 10 servers, on each of them runs this
-# script, just the server_name variable will be different on each of them.
-server_name = "server - 1"
+t = Thread.new { EventMachine.run }
+sleep(0.5)
 
-AMQP.start do
-  amq = AMQP::Channel.new
 
-  # Tasks distribution has to be based on load on each clients rather
-  # than on the number of distributed messages. (The default behaviour
-  # is to dispatches every n - th message to the n - th consumer.
-  amq.prefetch(1)
+connection = AMQP.connect
+channel    = AMQP::Channel.new(connection, :auto_recovery => true)
 
-  # Acknowledgements are good for letting the server know
-  # that the task is finished. If the consumer doesn't send
-  # the acknowledgement, then the task is considered to be unfinished.
-  amq.queue(server_name).subscribe(:ack => true) do |h, message|
-    puts message
-    puts system(message)
-    h.ack
-  end
+channel.prefetch(1)
+
+# Acknowledgements are good for letting the server know
+# that the task is finished. If the consumer doesn't send
+# the acknowledgement, then the task is considered to be unfinished
+# and will be requeued when consumer closes AMQP connection (because of a crash, for example).
+channel.queue("amqpgem.examples.tasks", :durable => true, :auto_delete => false).subscribe(:ack => true) do |metadata, payload|
+  puts payload
+  puts system(payload)
+
+  puts
+  puts "[done] Done with #{payload}"
+  puts
+
+  # message is processed, acknowledge it so that broker
+  # removes it
+  metadata.ack
 end
+
+
+Signal.trap("INT") { connection.close { EventMachine.stop } }
+t.join
+
