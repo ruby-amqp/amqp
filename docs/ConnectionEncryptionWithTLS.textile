@@ -62,7 +62,6 @@ Note that TLS connection may take a bit of time to establish (up to several seco
 broker connection actually uses TLS, refer to RabbitMQ log file:
 
 <pre>
-<samp>
 =INFO REPORT==== 28-Jun-2011::08:41:24 ===
 accepted TCP connection on 0.0.0.0:5671 from 127.0.0.1:53444
 
@@ -71,7 +70,6 @@ starting TCP connection <0.9904.0> from 127.0.0.1:53444
 
 =INFO REPORT==== 28-Jun-2011::08:41:24 ===
 upgraded TCP connection <0.9904.0> to SSL
-</samp>
 </pre>
 
 
