@@ -257,8 +257,7 @@ Ruby amqp gem historically has a limitation that only one consumer (message hand
 This limitation will be addressed in the future, but with amqp gem 0.8.x, if you want to load balance messages between multiple
 consumers in the same application/OS process, you need to use a separate channel for each of them.
 
-{file:docs/Queues.textile Working With Queues} and  {file:docs/Routing.textile Routing} guides provide more information
-on this subject.
+{file:docs/Queues.textile Working With Queues} and {file:docs/PatternsAndUseCases.textile Patterns and Use Cases} guides provide more information on this subject.
 
 
 
@@ -498,28 +497,31 @@ An example to demonstrate how message metadata attributes as passed to {AMQP::Ex
   </dd>
 
   <dt>:content_type</dt>
-  <dd>MIME content type of message payload. Has the same purpose/semantics as HTTP Content-Type header</dd>
+  <dd>MIME content type of message payload. Has the same purpose/semantics as HTTP Content-Type header.</dd>
 
   <dt>:content_encoding</dt>
-  <dd>MIME content encoding of message payload. Has the same purpose/semantics as HTTP Content-Encoding header</dd>
+  <dd>MIME content encoding of message payload. Has the same purpose/semantics as HTTP Content-Encoding header.</dd>
 
   <dt>:priority</dt>
-  <dd>Message priority, from 0 to 9</dd>
+  <dd>Message priority, from 0 to 9.</dd>
 
   <dt>:message_id</dt>
   <dd>
     Message identifier as a string. If applications need to identify messages, it is recommended that they use this attribute instead of putting it
-    into message payload
+    into message payload.
   </dd>
 
   <dt>:reply_to</dt>
   <dd>
-    ID of the message this message is a reply to. Applications are encouraged to use this attribute instead of putting this information
-    into message payload
+    Commonly used to name a reply queue (or any other identifier that helps consumer application to direct its response).
+    Applications are encouraged to use this attribute instead of putting this information into message payload.
   </dd>
 
   <dt>:correlation_id</dt>
-  <dd>TBD: spec description raises more questions than provides answers, we need to check with broker implementers. MK.</dd>
+  <dd>
+    ID of the message this message is a reply to. Applications are encouraged to use this attribute instead of putting this information
+    into message payload.
+  </dd>
 
   <dt>:type</dt>
   <dd>Message type as a string. Recommended to be used by applications instead of including this information into message payload.</dd>
@@ -998,7 +1000,7 @@ topics. Guides related to this one are
 
  * {file:docs/Durability.textile Durability and message persistence}
  * {file:docs/Bindings.textile Bindings}
- * {file:docs/Routing.textile Routing}
+ * {file:docs/PatternsAndUseCases.textile Patterns and Use Cases}
  * {file:docs/Queues.textile Working With Queues}
  * {file:docs/ErrorHandling.textile Error handling and recovery}
 
