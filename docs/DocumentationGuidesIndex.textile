@@ -48,8 +48,8 @@ Here is what some of the guide are about:
   How to delete an exchange.
   </dd>
 
-  <dt>{file:docs/Routing.textile Routing}</dt>
-  <dd>In depth look at how messages are routed. Typical topologies and patterns.</dd>
+  <dt>{file:docs/PatternsAndUseCases.textile Patterns and Use Cases}</dt>
+  <dd>Typical use cases, patterns and routing topologies.</dd>
 
   <dt>{file:docs/Durability.textile Durability and Message Persistence}</dt>
   <dd>Exchange durability. Queue durability. Message persistence. Performance implications.</dd>
@@ -81,7 +81,7 @@ h2. Full guide list
  * {file:docs/Queues.textile Working With Queues}
  * {file:docs/Exchanges.textile Working With Exchanges}
  * {file:docs/Bindings.textile Bindings}
- * {file:docs/Routing.textile Routing}
+ * {file:docs/PatternsAndUseCases.textile Patterns and Use Cases}
  * {file:docs/Durability.textile Durability and Message Persistence}
  * {file:docs/ErrorHandling.textile Error Handling and Recovery}
  * {file:docs/08Migration.textile Upgrading from version 0.6.x/0.7.x to 0.8.x and above}
