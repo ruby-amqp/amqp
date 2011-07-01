@@ -128,7 +128,8 @@ EventMachine.run do
     channel.default_exchange.publish(Time.now.to_s,
                                      :routing_key    => metadata.reply_to,
                                      :correlation_id => metadata.message_id,
-                                     :immediate      => true)
+                                     :immediate      => true,
+                                     :mandatory      => true)
 
     metadata.ack
   end
@@ -139,7 +140,10 @@ end
 </code>
 </pre>
 
-
+In the examples above messages are published with the :immediate attribute set. This is not necessary in all
+cases: sometimes it is OK for requests to sit in the queue without active consumers. Replies, on the other hand,
+assume an active consumer and existing replies queue, so if routing or immediate delivery do not succeed,
+server application will log returned messages.
 
 
 h2. Command pattern

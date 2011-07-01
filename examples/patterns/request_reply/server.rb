@@ -14,7 +14,8 @@ EventMachine.run do
     channel.default_exchange.publish(Time.now.to_s,
                                      :routing_key    => metadata.reply_to,
                                      :correlation_id => metadata.message_id,
-                                     :immediate      => true)
+                                     :immediate      => true,
+                                     :mandatory      => true)
 
     metadata.ack
   end
