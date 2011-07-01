@@ -222,7 +222,7 @@ TBD
 
 
 
-h2. Multistep Processing (Routing Slip) pattern
+h2. Smart Proxy pattern
 
 h3. Description & Use cases
 
@@ -237,7 +237,9 @@ h3. Code example
 TBD
 
 
-h2.  pattern
+
+
+h2. Multistep Processing (Routing Slip) pattern
 
 h3. Description & Use cases
 
