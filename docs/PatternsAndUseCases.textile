@@ -149,6 +149,15 @@ server application will log returned messages. More on this in the {file:docs/Ex
 
 
 
+h3. Related patterns
+
+ * Request/Reply
+ * Event
+ * Scatter/Gather
+ * Smart Proxy
+
+
+
 
 
 h2. Command pattern
@@ -181,7 +190,7 @@ h4. Request message attributes
 
 h3. Code example
 
-Consumer:
+h4. Producer (Sender)
 
 <pre>
 <code>
@@ -228,7 +237,7 @@ t.join
 </pre>
 
 
-Producer:
+h4. Consumer (Recipient)
 
 <pre>
 <code>
@@ -258,6 +267,13 @@ t.join
 </pre>
 
 
+h3. Related patterns
+
+ * Event
+ * Request/Reply
+
+
+
 
 
 h2. Event pattern
@@ -276,6 +292,24 @@ Some specific use cases of Event pattern are
 
 
 h3. AMQP-based implementation
+
+Because Event pattern is a 1:N communication pattern, it typically uses a fanout exchange. Event listeners
+then use server-named exclusive queues and all bind to that exchange. Event messages use :type message
+attribute to indicate event type and message body (plus, possibly, message headers) to pass event
+context information.
+
+More on fanout exchange type in the {file:docs/Exchanges.textile Working With Exchanges} guide.
+
+
+h3. Code example
+
+TBD
+
+
+h3. Related patterns
+
+ * Command
+ * Publish/Subscribe
 
 
 
