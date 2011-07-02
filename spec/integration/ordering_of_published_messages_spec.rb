@@ -10,7 +10,7 @@ describe "1000 AMQP messages" do
 
   include EventedSpec::AMQPSpec
   default_options AMQP_OPTS
-  default_timeout 3
+  default_timeout 5
 
 
   before :all do
@@ -43,7 +43,7 @@ describe "1000 AMQP messages" do
         @list.each { |i| @channel.default_exchange.publish(i.to_s, :routing_key => @queue.name) }
       end
 
-      done(1.0) {
+      done(2.5) {
         received.size.should == 1000
         received.first.should == 0
         received.last.should == 999
@@ -84,7 +84,7 @@ describe "1000 AMQP messages" do
         @list.each { |i| @channel2.default_exchange.publish(i.to_s, :routing_key => @queue.name) }
       end
 
-      done(1.0) {
+      done(2.5) {
         received.size.should == 1000
         received.first.should == 0
         received.last.should == 999
