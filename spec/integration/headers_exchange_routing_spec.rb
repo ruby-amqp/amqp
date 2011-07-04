@@ -85,3 +85,60 @@ describe "Headers exchange" do
     }
   end
 end
+
+
+
+
+
+
+describe "Multiple consumers bound to a queue with the same headers" do
+
+  #
+  # Environment
+  #
+
+  include EventedSpec::AMQPSpec
+  default_options AMQP_OPTS
+  default_timeout 5
+
+  amqp_before do
+    @channel   = AMQP::Channel.new
+    @channel.on_error do |ch, close|
+      raise "Channel-level error!: #{close.inspect}"
+    end
+
+    @queue    = @channel.queue("", :auto_delete => true)
+    @exchange = @channel.headers("amqpgem.tests.integration.headers.exchange1", :auto_delete => true)
+
+    @queue.bind(@exchange, :arguments => { :slug => "all" })
+  end
+
+
+
+  it "get messages distributed to them in a round-robin manner" do
+    mailbox1  = Array.new
+    mailbox2  = Array.new
+
+    consumer1 = AMQP::Consumer.new(@channel, @queue).consume
+    consumer2 = AMQP::Consumer.new(@channel, @queue).consume
+
+
+    consumer1.on_delivery do |metadata, payload|
+      mailbox1 << payload
+    end
+    consumer2.on_delivery do |metadata, payload|
+      mailbox2 << payload
+    end
+
+
+    EventMachine.add_timer(0.5) do
+      12.times { @exchange.publish(".", :headers => { :slug => "all" }) }
+      12.times { @exchange.publish(".", :headers => { :slug => "rspec" }) }
+    end
+
+    done(1.5) {
+      mailbox1.size.should == 6
+      mailbox2.size.should == 6
+    }
+  end
+end
