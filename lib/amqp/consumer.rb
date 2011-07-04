@@ -37,8 +37,8 @@ module AMQP
     end
 
 
-    def initialize(channel, queue, consumer_tag = self.class.tag_generator.generate_for(queue), exclusive = false, no_ack = false, arguments = {}, no_local = false)
-      super(channel, queue, consumer_tag, exclusive, no_ack, arguments, no_local)
+    def initialize(channel, queue, consumer_tag = nil, exclusive = false, no_ack = false, arguments = {}, no_local = false)
+      super(channel, queue, (consumer_tag || self.class.tag_generator.generate_for(queue)), exclusive, no_ack, arguments, no_local)
     end # initialize
 
     # @return [Boolean] true if this consumer is exclusive (other consumers for the same queue are not allowed)
