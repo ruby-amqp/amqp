@@ -1,3 +1,4 @@
+# https://github.com/travis-ci/travis-ci/wiki/.travis.yml-options
 bundler_args: --without development
 script: "bundle exec rake spec:ci"
 before_script: ./bin/ci/before_build.sh
@@ -13,3 +14,6 @@ rvm:
 gemfile:
   - Gemfile
   - gemfiles/eventmachine-pre
+notifications:
+  recipients:
+    - michael@novemberain.com
