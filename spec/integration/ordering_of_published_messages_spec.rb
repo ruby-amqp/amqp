@@ -43,7 +43,7 @@ describe "1000 AMQP messages" do
         @list.each { |i| @channel.default_exchange.publish(i.to_s, :routing_key => @queue.name) }
       end
 
-      done(2.5) {
+      done(3.5) {
         received.size.should == 1000
         received.first.should == 0
         received.last.should == 999
@@ -84,7 +84,7 @@ describe "1000 AMQP messages" do
         @list.each { |i| @channel2.default_exchange.publish(i.to_s, :routing_key => @queue.name) }
       end
 
-      done(2.5) {
+      done(3.5) {
         received.size.should == 1000
         received.first.should == 0
         received.last.should == 999
