@@ -16,4 +16,4 @@ gemfile:
   - gemfiles/eventmachine-pre
 notifications:
   recipients:
-    - michael@novemberain.com
+    - michaelklishin@me.com
