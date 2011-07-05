@@ -37,7 +37,7 @@ module AMQP
     end
 
 
-    def initialize(channel, queue, consumer_tag = nili, exclusive = false, no_ack = false, arguments = {}, no_local = false)
+    def initialize(channel, queue, consumer_tag = nil, exclusive = false, no_ack = false, arguments = {}, no_local = false)
       super(channel, queue, (consumer_tag || self.class.tag_generator.generate_for(queue)), exclusive, no_ack, arguments, no_local)
     end # initialize
 
