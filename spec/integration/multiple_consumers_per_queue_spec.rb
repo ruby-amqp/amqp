@@ -93,6 +93,7 @@ describe "Multiple non-exclusive consumers per queue" do
         queue.subscribe do |metadata, payload|
           @consumer3_mailbox << payload
         end
+        queue.consumer_tag.should == queue.default_consumer.consumer_tag
       end
 
       exchange = channel.default_exchange

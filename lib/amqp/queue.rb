@@ -696,6 +696,25 @@ module AMQP
       self
     end
 
+    # @return [String] Consumer tag of the default consumer associated with this queue (if any), or nil
+    # @see Queue#subscribe
+    # @see AMQP::Consumer
+    def consumer_tag
+      if @default_consumer
+        @default_consumer.consumer_tag
+      else
+        nil
+      end
+    end # consumer_tag
+
+    # @return [AMQP::Consumer] Default consumer associated with this queue (if any), or nil
+    # @see Queue#subscribe
+    # @see AMQP::Consumer
+    def default_consumer
+      @default_consumer
+    end
+
+
     # @return [Class]
     # @private
     def self.consumer_class
