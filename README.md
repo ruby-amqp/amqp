@@ -32,6 +32,9 @@ dozens or hundreds of applications built with all kinds of technologies.
 
 Specific examples:
 
+ * Events collectors, metrics & analytics applications can aggregate events produced by various applications
+   (Web and not) in the company network.
+
  * A Web application may route messages to a Java app that works
    with SMS delivery gateways.
 
