@@ -11,36 +11,33 @@ require 'amqp'
 puts "=> Queue#status example"
 puts
 AMQP.start(:host => 'localhost') do |connection|
-  channel   = AMQP::Channel.new
+  channel   = AMQP::Channel.new(connection)
 
   queue_name = "amqpgem.integration.queue.status.queue"
+  exchange   = channel.fanout("amqpgem.integration.queue.status.fanout", :auto_delete => true)
+  queue      = channel.queue(queue_name, :auto_delete => true).bind(exchange)
 
-  exchange = channel.fanout("amqpgem.integration.queue.status.fanout", :auto_delete => true)
-  queue    = channel.queue(queue_name, :auto_delete => true)
-
-  queue.bind(exchange) do
-    puts "Bound #{exchange.name} => #{queue.name}"
-  end
   100.times do |i|
     print "."
     exchange.publish(Time.now.to_i.to_s + "_#{i}", :key => queue_name)
   end
   $stdout.flush
 
-  sleep 1
-
-  queue.status do |number_of_messages, number_of_consumers|
-    puts "# of messages on status = #{number_of_messages}"
+  EventMachine.add_timer(0.5) do
+    queue.status do |number_of_messages, number_of_consumers|
+      puts
+      puts "# of messages on status = #{number_of_messages}"
+      puts
+      queue.purge
+    end
   end
 
 
   show_stopper = Proc.new do
     $stdout.puts "Stopping..."
-    connection.close {
-      EM.stop { exit }
-    }
+    connection.close { EventMachine.stop }
   end
 
   Signal.trap "INT", show_stopper
-  EM.add_timer(2, show_stopper)
+  EventMachine.add_timer(2, show_stopper)
 end
