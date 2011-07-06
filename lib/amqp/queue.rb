@@ -464,6 +464,8 @@ module AMQP
     #
     # Attempts to {Queue#subscribe} multiple times to the same exchange will raise an
     # Exception. If you need more than one consumer per queue, use {AMQP::Consumer} instead.
+    # {file:docs/Queues.textile Documentation guide on queues} explains this and other topics
+    # in great detail.
     #
     #
     # @example Use of callback with a single argument
@@ -680,6 +682,7 @@ module AMQP
     #
     # @see file:docs/Queues.textile Documentation guide on queues
     # @see #unsubscribe
+    # @see AMQP::Consumer
     def subscribe(opts = {}, &block)
       raise RuntimeError.new("This queue already has default consumer. Please instantiate AMQP::Consumer directly to register additional consumers.") if @default_consumer
 

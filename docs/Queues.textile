@@ -375,6 +375,56 @@ end
 TBD: describe what happens when exclusivity property is violated and how to handle it.
 
 
+h3. Using multiple consumers per queue
+
+Historically, amqp gem versions before 0.8.0.RC14 (currently master branch in the repository) have had a "one consumer per Queue instance"
+limitation. Previously to work around this problem, application developers had to open multiple channels and work with multiple queue
+instances on different channels. This is not very convenient and is surprising for developers familiar with AMQP clients for
+other languages.
+
+With more and more Ruby implementations dropping the "GIL":http://en.wikipedia.org/wiki/Global_Interpreter_Lock,
+load balancing between multiple consumers in the same queue in the same OS process becomes more and more common. In certain cases,
+even applications that do not need any concurrency benefit from having multiple consumers on the same queue in the same process.
+
+Starting from amqp gem version 0.8.0.RC14, it is possible to add any number of consumers by instantiating {AMQP::Consumer} directly:
+
+<pre>
+<code>
+# non-exclusive consumer, consumer tag is generated
+consumer1 = AMQP::Consumer.new(channel, queue)
+
+# non-exclusive consumer, consumer tag is explicitly given
+consumer2 = AMQP::Consumer.new(channel, queue, "#{queue.name}-consumer-#{rand}-#{Time.now}")
+
+# exclusive consumer, consumer tag is generated
+consumer3 = AMQP::Consumer.new(channel, queue, nil, true)
+</code>
+</pre>
+
+Instantiated consumers do not begin consuming messages immediately. This is because in certain cases, it is useful to add a consumer but
+make it active at a later time. To consume messages, use {AMQP::Consumer#consume} method in combination with {AMQP::Consumer#on_delivery}:
+
+<pre>
+<code>
+consumer1.consume.on_delivery do |metadata, payload|
+  @consumer1_mailbox << payload
+end
+</code>
+</pre>
+
+{AMQP::Consumer#on_delivery} takes a block that is used exactly as {AMQP::Queue#subscribe}. In fact, {AMQP::Queue#subscribe} uses
+{AMQP::Consumer} under the hood, adding _default consumer_ to the queue. Default consumers do not have any special properties, they
+are just a way to provide application developers a way to register multiple consumers when necessary, while providing a convenient
+method that {AMQP::Queue#subscribe} is and preserving backwards compatibility.
+
+<span class="note">
+Default consumers do not have any special properties, they are just a mean of convenience and preserving backwards compatibility.
+Application developers are free to always use AMQP::Consumer instances directly, or intermixing it with AMQP::Queue#subscribe
+</span>
+
+To cancel a particular consumer, use {AMQP::Consumer#cancel} method. To cancel default queue consumer, use {AMQP::Queue#unsubscribe}.
+
+
 h3. Message acknowledgements
 
 Consumer applications (applications that receive and process messages) may (and will) occasionally fail to process individual messages, or will just
@@ -703,9 +753,9 @@ h2. Relation of message acknowledgements to transactions and Publisher Confirms.
 
 In cases when not a single message may be lost, AMQP 0.9.1 applications can use one (or combination of) the following protocol features:
 
- * Transactions (noticeable overhead)
  * Publisher confirms (a RabbitMQ-specific extension to AMQP 0.9.1)
  * Publishing messages as immediate
+ * Transactions (noticeable overhead)
 
 This topic is covered in depth in the {file:docs/Exchanges.textile Working With Exchanges} guide.
 In this guide, we will only mention how message acknowledgements are related to AMQP transactions and Publisher Confirms extension.
@@ -715,7 +765,7 @@ represented like this:
 <pre>
 -----       -----       -----
 |   |   S1  |   |   S2  |   |
-| P | ====> | B | ====> | C | 
+| P | ====> | B | ====> | C |
 |   |       |   |       |   |
 -----       -----       -----
 </pre>
@@ -803,6 +853,48 @@ Full example:
 <script src="https://gist.github.com/998742.js"> </script>
 
 Note that unbinding an exchange queue was never bound to will result in a channel-level exception.
+
+
+h2. Getting number of messages in the queue
+
+It is possible to get number of messages sitting in the queue by declaring it with :passive attribute set.
+The response (queue.declare-ok AMQP method) will carry number of messages among other attributes. However,
+amqp gem provides a convenience method, {AMQP::Queue#status}:
+
+<pre>
+<code>
+queue.status do |number_of_messages, number_of_consumers|
+  puts
+  puts "# of messages in the queue #{queue.name} = #{number_of_messages}"
+  puts
+end
+</code>
+</pre>
+
+Full example:
+<script src="https://gist.github.com/1068363.js"> </script>
+
+
+
+h2. Getting number of consumers on the queue
+
+It is possible to get number of consumers on the queue by declaring it with :passive attribute set.
+The response (queue.declare-ok AMQP method) will carry number of messages among other attributes. However,
+amqp gem provides a convenience method, {AMQP::Queue#status}:
+
+<pre>
+<code>
+queue.status do |number_of_messages, number_of_consumers|
+  puts
+  puts "# of consumers on the queue #{queue.name} = #{number_of_consumers}"
+  puts
+end
+</code>
+</pre>
+
+Full example:
+<script src="https://gist.github.com/1068377.js"> </script>
+
 
 
 h2. Purging queues
