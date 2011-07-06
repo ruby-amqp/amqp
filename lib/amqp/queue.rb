@@ -697,8 +697,10 @@ module AMQP
     end
 
     # @return [String] Consumer tag of the default consumer associated with this queue (if any), or nil
+    # @note Default consumer is the one registered with the convenience {AMQP::Queue#subscribe} method. It has no special properties of any kind.
     # @see Queue#subscribe
     # @see AMQP::Consumer
+    # @api public
     def consumer_tag
       if @default_consumer
         @default_consumer.consumer_tag
@@ -708,8 +710,10 @@ module AMQP
     end # consumer_tag
 
     # @return [AMQP::Consumer] Default consumer associated with this queue (if any), or nil
+    # @note Default consumer is the one registered with the convenience {AMQP::Queue#subscribe} method. It has no special properties of any kind.
     # @see Queue#subscribe
     # @see AMQP::Consumer
+    # @api public
     def default_consumer
       @default_consumer
     end
