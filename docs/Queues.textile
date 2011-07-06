@@ -419,7 +419,7 @@ method that {AMQP::Queue#subscribe} is and preserving backwards compatibility.
 
 <span class="note">
 Default consumers do not have any special properties, they are just a mean of convenience and preserving backwards compatibility.
-Application developers are free to always use AMQP::Consumer instances directly, or intermixing it with AMQP::Queue#subscribe
+Application developers are free to always use AMQP::Consumer instances directly, or intermix it with AMQP::Queue#subscribe
 </span>
 
 To cancel a particular consumer, use {AMQP::Consumer#cancel} method. To cancel default queue consumer, use {AMQP::Queue#unsubscribe}.
