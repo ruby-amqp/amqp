@@ -61,7 +61,7 @@ describe "Multiple non-exclusive consumers per queue" do
         end
       end
 
-      done(1.5) {
+      done(2.5) {
         @consumer1_mailbox.size.should == 34
         @consumer2_mailbox.size.should == 33
         @consumer3_mailbox.size.should == 33
@@ -107,7 +107,7 @@ describe "Multiple non-exclusive consumers per queue" do
         end
       end
 
-      done(1.5) {
+      done(2.5) {
         @consumer1_mailbox.size.should == 34
         @consumer2_mailbox.size.should == 33
         @consumer3_mailbox.size.should == 33
@@ -153,7 +153,7 @@ describe "Multiple non-exclusive consumers per queue" do
         end
       end
 
-      done(1.5) {
+      done(2.5) {
         @consumer1_mailbox.size.should == 50
         @consumer2_mailbox.size.should == 0
         @consumer3_mailbox.size.should == 50
@@ -202,7 +202,7 @@ describe "Multiple non-exclusive consumers per queue" do
         end
       end
 
-      done(1.5) {
+      done(2.5) {
         @consumer1_mailbox.size.should == 100
         @consumer2_mailbox.size.should == 0
         @consumer3_mailbox.size.should == 0
@@ -248,7 +248,7 @@ describe "Multiple non-exclusive consumers per queue" do
         end
       end
 
-      done(1.5) {
+      done(2.5) {
         @consumer1_mailbox.size.should == 100
         @consumer2_mailbox.size.should == 0
         @consumer3_mailbox.size.should == 0
@@ -310,7 +310,7 @@ describe "Multiple non-exclusive consumers per queue" do
         end
       end
 
-      done(1.5) {
+      done(2.5) {
         @returned_messages.size.should == 100
       }
     end # it
