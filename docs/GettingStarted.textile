@@ -86,7 +86,7 @@ h3. With Bundler
 <code>
 source :rubygems
 
-gem "amqp", "~> 0.8.0.RC13" # optionally: :git => "git://github.com/ruby-amqp/amqp.git", :branch => "master"
+gem "amqp", "~> 0.8.0.RC13g" # optionally: :git => "git://github.com/ruby-amqp/amqp.git", :branch => "master"
 </code>
 </pre>
 
@@ -387,6 +387,11 @@ but not
 
 so * matches a single word, whatever it is. AMQP 0.9.1 spec says that topic segments (words) may contain the letters A-Z and a-z
 and digits 0-9.
+
+A (very simplistic) diagram to demonstarte topic exchange in action:
+
+!https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/003_weathr_example_routing.png!
+
 
 One more thing that is different from previous examples is that the block we pass to {AMQP::Queue#subscribe} now takes two arguments:
 header and body (aka payload). Long story short, the _header_ parameter lets you access metadata associated with the message. Some

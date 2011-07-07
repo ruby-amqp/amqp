@@ -82,7 +82,7 @@ are ideal for "broadcast routing":http://en.wikipedia.org/wiki/Broadcasting_%28c
 
 Graphically this can be represented as
 
-!http://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Broadcast.svg/500px-Broadcast.svg.png!
+!https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/004_fanout_exchange.png!
 
 
 h3. Declaring a fanout exchange
@@ -194,7 +194,7 @@ Here is how it works:
 
 Direct exchange is ideal for "unicast routing":http://en.wikipedia.org/wiki/Unicast of messages (although it can be used for "multicast routing":http://en.wikipedia.org/wiki/Multicast, too).
 
-!http://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Unicast.svg/500px-Unicast.svg.png!
+!https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/005_direct_exchange.png!
 
 
 h3. Declaring a direct exchange
