@@ -1,29 +1,29 @@
-# @title Ruby AMQP gem: Getting Started with AMQP and Ruby
+# @title Ruby amqp gem: Getting Started with AMQP and Ruby
 
-h1. Getting started with AMQP Ruby gem
+h1. Getting started with the Ruby amqp gem
 
 
 h2. About this guide
 
-This guide is a quick tutorial that helps you to get started with AMQP 0.9.1 in general and amqp gem in particular.
-It should take about 20 minutes to read and study provided code examples. This guide covers
+This guide is a quick tutorial that helps you to get started with v0.9.1 of the AMQP specification in general and the "Ruby amqp gem":http://github.com/ruby-amqp/amqp in particular.
+It should take about 20 minutes to read and study the provided code examples. This guide covers:
 
- * Installing RabbitMQ, a mature popular implementation of multiple versions of AMQP protocol.
- * Installing amqp gem via "Rubygems":http://rubygems.org and "Bundler":http://gembundler.com.
- * Running the "Hello, world" of messaging, a simple demonstration of 1:1 communication.
- * Creating a "Twitter like" publish/subscribe example with 1 publisher and 4 subscribers, a case of 1:n communication.
- * Creating a topic routing example with 2 publishers and 8 subscribers, a case of n:m communication when subscribers only receive messages they are interested in.
- * Learning how amqp gem can be integrated with Ruby objects in a way that makes unit testing easy
+ * Installing RabbitMQ, a mature popular server implementation of the AMQP protocol.
+ * Installing the amqp gem via "Rubygems":http://rubygems.org and "Bundler":http://gembundler.com.
+ * Running a "Hello, world" messaging example that is a simple demonstration of 1:1 communication.
+ * Creating a "Twitter-like" publish/subscribe example with 1 publisher and 4 subscribers that demonstrates 1:n communication.
+ * Creating a topic routing example with 2 publishers and 8 subscribers showcasing n:m communication when subscribers only receive messages that they are interested in.
+ * Learning how the amqp gem can be integrated with Ruby objects in a way that makes unit testing easy.
 
 
-h2. Covered versions
+h2. Which versions of the amqp gem does this guide cover?
 
-This guide covers "Ruby amqp gem":http://github.com/ruby-amqp/amqp v0.8.0 and later.
+This guide covers v0.8.0 and later of the Ruby amqp gem.
 
 
 h2. Installing RabbitMQ
 
-"RabbitMQ site":http://rabbitmq.com has a good "installation guide":http://www.rabbitmq.com/install.html that covers many operating systems.
+The "RabbitMQ site":http://rabbitmq.com has a good "installation guide":http://www.rabbitmq.com/install.html that addresses many operating systems.
 On Mac OS X, the fastest way to install RabbitMQ is with "Homebrew":http://mxcl.github.com/homebrew/:
 
 <pre>
@@ -40,34 +40,31 @@ rabbitmq-server
 </code>
 </pre>
 
-On Debian and Ubuntu, you can either "download RabbitMQ .deb package":http://www.rabbitmq.com/server.html and install it with
-"dpkg":http://www.debian.org/doc/FAQ/ch-pkgtools.en.html or use "apt repository RabbitMQ team provides":http://www.rabbitmq.com/debian.html#apt.
-For RPM-based distributions like RedHat or CentOS RabbitMQ team provides an "RPM package":http://www.rabbitmq.com/install.html#rpm.
+On Debian and Ubuntu, you can either "download the RabbitMQ .deb package":http://www.rabbitmq.com/server.html and install it with
+"dpkg":http://www.debian.org/doc/FAQ/ch-pkgtools.en.html or make use of the "apt repository that the RabbitMQ team provides":http://www.rabbitmq.com/debian.html#apt.
+For RPM-based distributions like RedHat or CentOS, the RabbitMQ team provides an "RPM package":http://www.rabbitmq.com/install.html#rpm.
 
 <span class="note">
-RabbitMQ package in even recent (10.10) versions of Ubuntu are outdated and *won't work with amqp gem 0.8.0 and later* (we need at least version 2.0).
+The RabbitMQ package that ships with recent Ubuntu 10.10 versions is outdated and *will not work with v0.8.0 and later of the amqp gem* (we need at least RabbitMQ v2.0 for use with this guide).
 </span>
 
 
 
-h2. Installing Ruby amqp gem
+h2. Installing the Ruby amqp gem
 
-h3. Make sure you have Ruby installed
+h3. Make sure that you have Ruby and "Rubygems":http://docs.rubygems.org/read/chapter/3 installed
 
-This guides assumes you have one of the supported Ruby implementations installed:
+This guide assumes that you have installed one of the following supported Ruby implementations:
 
- * Ruby 1.8.7
- * Ruby 1.9.2
- * JRuby (we recommend 1.6)
- * Rubinius 1.2 or higher
+ * Ruby v1.8.7
+ * Ruby v1.9.2
+ * JRuby (we recommend v1.6)
+ * Rubinius v1.2 or higher
  * Ruby Enterprise Edition
 
+h3. You can use Rubygems to install the amqp gem
 
-h3. With Rubygems
-
-To get amqp gem 0.8.0
-
-h4. On Microsoft Windows 7
+h4. On Microsoft Windows 7:
 
 <pre>
 gem install eventmachine --pre
@@ -80,7 +77,7 @@ h4. On other OSes or JRuby:
 gem install amqp --pre --version "~> 0.8.0.RC12"
 </pre>
 
-h3. With Bundler
+h3. You can also use Bundler to install the gem 
 
 <pre>
 <code>
@@ -92,7 +89,7 @@ gem "amqp", "~> 0.8.0.RC12" # optionally: :git => "git://github.com/ruby-amqp/am
 
 h3. Verifying your installation
 
-Lets verify your installation with this quick irb session:
+Let us verify your installation with this quick irb session:
 
 <pre>
 <code>
@@ -108,14 +105,14 @@ irb -rubygems
 
 h2. "Hello, world" example
 
-Lets begin with the classic "Hello, world" example. First, here's the code:
+Let us begin with the classic "Hello, world" example. First, here is the code:
 
 <script src="https://gist.github.com/998690.js"> </script>
 
 (if the example above isn't displayed, see this "gist":https://gist.github.com/998690)
 
-This example demonstrates a very common communication scenario: app A wants to publish a message that will end up in
-a queue that app B listens on. In this example, queue name is "amqpgem.examples.hello". Lets go through this example
+This example demonstrates a very common communication scenario: *application A* wants to publish a message that will end up in
+a queue that *application B* listens on. In this case, the queue name is "amqpgem.examples.hello". Let us go through the code
 step by step:
 
 <pre>
@@ -125,7 +122,7 @@ require "amqp"
 </code>
 </pre>
 
-is the simplest way to load amqp gem if you have installed it with RubyGems. The following piece of code
+is the simplest way to load the amqp gem if you have installed it with RubyGems. The following piece of code
 
 <pre>
 <code>
@@ -135,10 +132,10 @@ end
 </code>
 </pre>
 
-runs what is called EventMachine reactor. Without paying much attention to what exactly does reactor mean in this case,
-let us say that amqp gem is asynchronous and is based on an asynchronous network I/O library called "EventMachine":http://rubyeventmachine.com.
+runs what is called the "EventMachine":http://rubyeventmachine.com reactor. We will not go into what the term 'reactor' means here, but suffice it to say
+that the amqp gem is asynchronous and is based on an asynchronous network I/O library called _EventMachine_.
 
-Next line
+The next line
 
 <pre>
 <code>
@@ -146,7 +143,9 @@ connection = AMQP.connect(:host => '127.0.0.1')
 </code>
 </pre>
 
-connects to the server running on localhost, with default port, username, password and virtual host.
+connects to the server running on localhost, with the default port (5672), username (guest), password (guest) and virtual host ('/').
+
+The next line
 
 <pre>
 <code>
@@ -154,8 +153,8 @@ channel  = AMQP::Channel.new(connection)
 </code>
 </pre>
 
-opens a new channel. AMQP is a multi-channeled protocol. Channels is a way to multiplex a TCP connection.
-Because channels are open on a connection, AMQP::Channel constructor takes connection object as a parameter.
+opens a new _channel_. AMQP is a multi-channeled protocol that uses channels to multiplex a TCP connection.
+Channels are opened on a connection, therefore the AMQP::Channel constructor takes a connection object as a parameter.
 
 This line
 
@@ -165,11 +164,11 @@ queue    = channel.queue("amqpgem.examples.helloworld", :auto_delete => true)
 </code>
 </pre>
 
-declares a queue on the channel we've just opened. Queues are where consumer applications get messages from.
-We declare this queue with "auto-delete" parameter. Basically, that means "when there is no one left
-consuming messages from this queue, delete it".
+declares a _queue_ on the channel that we have just opened. Consumer applications get messages from queues.
+We declared this queue with the "auto-delete" parameter. Basically, this means that the queue will be deleted when there are no more processes
+consuming messages from it.
 
-The next line,
+The next line
 
 <pre>
 <code>
@@ -177,10 +176,10 @@ exchange = channel.direct("")
 </code>
 </pre>
 
-instantiates an exchange. Exchange is where messages are sent by producers. Exchanges route messages to queues
-according to rules called bindings. In this particular example, there are no explicitly defined bindings.
-Exchange we defined is known as default exchange and it has implied binding to all queues. Before we get
-into that, lets see how we define a handler for incoming messages:
+instantiates an _exchange_. Exchanges receive messages that are sent by producers. Exchanges route messages to queues
+according to rules called _bindings_. In this particular example, there are no explicitly defined bindings.
+The exchange that we defined is known as the _default exchange_ and it has implied bindings to all queues. Before we get
+into that, let us see how we define a handler for incoming messages
 
 <pre>
 <code>
@@ -191,10 +190,10 @@ end
 </code>
 </pre>
 
-{AMQP::Queue#subscribe} takes a block that will be called every time a message arrives. {AMQP::Session#close} closes
-AMQP connection and runs a callback that stops EventMachine reactor.
+{AMQP::Queue#subscribe} takes a block that will be called every time a message arrives. {AMQP::Session#close} closes the 
+AMQP connection and runs a callback that stops the EventMachine reactor.
 
-Finally, we publish our message:
+Finally, we publish our message
 
 <pre>
 <code>
@@ -202,10 +201,10 @@ exchange.publish "Hello, world!", :routing_key => queue.name
 </code>
 </pre>
 
-Routing key is one of _message attributes_. Default exchange will route message to a queue that has the same name
-as message's routing key. This is how our message ends up in amqpgem.examples.helloworld queue.
+Routing key is one of the _message attributes_. The default exchange will route the message to a queue that has the same name
+as the message's routing key. This is how our message ends up in the "amqpgem.examples.helloworld" queue.
 
-This first example can be modified to use method chaining technique:
+This first example can be modified to use the method chaining technique:
 
 <script src="https://gist.github.com/998691.js"> </script>
 
@@ -213,29 +212,29 @@ This diagram demonstrates the "Hello, world" example data flow:
 
 !https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/001_hello_world_example_routing.png!
 
-For the sake of simplicity, both message producer (App I) and consumer (App II) are running in the same Ruby process.
-Now lets move on to a little bit more sophisticated example.
+For the sake of simplicity, both the message producer (App I) and the consumer (App II) are running in the same Ruby process.
+Now let us move on to a little bit more sophisticated example.
 
 
-h2. Blabblr: one-to-many publish/subscribe example
+h2. Blabblr: one-to-many publish/subscribe (pubsub) example
 
-Previous example demonstrated how connection to the broker is made and how to do 1:1 communication
-using default exchange. Now lets take a look at another common scenario: broadcast, or multiple consumers
+The previous example demonstrated how a connection to a broker is made and how to do 1:1 communication
+using the default exchange. Now let us take a look at another common scenario: broadcast, or multiple consumers
 and one producer.
 
-A very well know example of broadcast is Twitter: every time a person tweets, followers receive a notification.
+A very well-known broadcast example is Twitter: every time a person tweets, followers receive a notification.
 Blabbr, our imaginary information network, models this scenario: every network member has a separate
-queue and publishes blabs to a separate exchange. 3 Blabbr members, Joe, Aaron and Bob, follow official NBA
-account on Blabbr to get updates about what is up in the world of basketball. Here is the code:
+queue and publishes blabs to a separate exchange. 3 Blabbr members, Joe, Aaron and Bob, follow the official NBA
+account on Blabbr to get updates about what is happening in the world of basketball. Here is the code:
 
 <script src="https://gist.github.com/998692.js"> </script>
 
-First line has a few difference from "Hello, world" example above:
+The first line has a few differences from the "Hello, world" example above:
 
  * We use {AMQP.start} instead of {AMQP.connect}
- * Instead of return values, we pass connection method a block and it yields connection
-   object back as soon as connection is established.
- * Instead of passing connection parameters as a hash, we used a URI string.
+ * Instead of return values, we pass a block to the connection method and it yields a connection
+   object back as soon as the connection is established.
+ * Instead of passing connection parameters as a hash, we use a URI string.
 
 {AMQP.start} is just a convenient way to do
 
@@ -249,15 +248,15 @@ end
 </code>
 </pre>
 
-{AMQP.start} call blocks current thread so it's use is limited to scripts and small command
+The {AMQP.start} call blocks the current thread which means that its use is limited to scripts and small command
 line applications. Blabbr is just that.
 
-{AMQP.connect}, when invoked with a block, will yield connection object to it as soon as AMQP connection
-is open. Finally, connection parameters maybe given as a Hash or as a connection string. {AMQP.connect}
-method documentation has all the details.
+{AMQP.connect}, when invoked with a block, will yield a connection object as soon as the AMQP connection
+is open. Finally, connection parameters may be supplied as a Hash or as a connection string. The {AMQP.connect}
+method documentation contains all of the details.
 
-Opening a channel in this example is no different from opening a channel in the example before that,
-but exchange is declared differently:
+In this example, opening a channel is no different to opening a channel in the previous example,
+however, the exchange is declared differently
 
 <pre>
 <code>
@@ -265,8 +264,8 @@ exchange = channel.fanout("nba.scores")
 </code>
 </pre>
 
-Exchange we declare above using {AMQP::Channel#fanout} is a _fanout exchange_. Fanout exchanges deliver messages to every queue that
-was bound to it: exactly what we want in case of Blabbr!
+The exchange that we declare above using {AMQP::Channel#fanout} is a _fanout exchange_. A fanout exchange delivers messages to all of the queues that
+ are bound to it: exactly what we want in the case of Blabbr!
 
 This piece of code
 
@@ -278,9 +277,9 @@ end
 </code>
 </pre>
 
-is similar to how we subscribed for message delivery before, but what does that {AMQP::Queue#bind}
-method do? It sets up a _binding_ between the queue and an exchange you pass to it. We need to do this
-to make sure that our fanout exchange routes messages to follower queues.
+is similar to the subscription code that we used for message delivery previously, but what does that {AMQP::Queue#bind}
+method do? It sets up a binding between the queue and the exchange that you pass to it. We need to do this
+to make sure that our fanout exchange routes messages to the queues of any subscribed followers.
 
 <pre>
 <code>
@@ -288,9 +287,8 @@ exchange.publish("BOS 101, NYK 89").publish("ORL 85, ALT 88")
 </code>
 </pre>
 
-demonstrates {AMQP::Exchange#publish} call chaining. Because Blabbr members use a fanout exchange
-for publishing, there is no need to specify message routing key: every queue that was bound to exchange receiving
-a message will get it's own message copy, regardless of queue name and routing key used.
+demonstrates {AMQP::Exchange#publish} call chaining. Blabbr members use a fanout exchange
+for publishing, so there is no need to specify a message routing key because every queue that is bound to the exchange will get its own copy of all messages, regardless of the queue name and routing key used.
 
 Next we use EventMachine's {http://eventmachine.rubyforge.org/EventMachine.html#M000466 add_timer} method to
 run a piece of code in 1 second from now:
@@ -305,35 +303,35 @@ end
 </code>
 </pre>
 
-The code we want to run deletes exchange we declared earlier using {AMQP::Exchange#delete} and closes AMQP
-connection with {AMQP::Session#close}. Finally, we stop EventMachine event loop and exit.
+The code that we want to run deletes the exchange that we declared earlier using {AMQP::Exchange#delete} and closes the AMQP
+connection with {AMQP::Session#close}. Finally, we stop the EventMachine event loop and exit.
 
-Blabbr is pretty unlikely to secure hundreds of millions in funding but it does a pretty good job of
+Blabbr is pretty unlikely to secure hundreds of millions of dollars in funding, but it does a pretty good job of
 demonstrating how one can use AMQP fanout exchanges to do broadcasting.
 
 
 
 h2. Weathr: many-to-many topic routing example
 
-So far we have seen point-to-point communication and broadcast. These two are possible with many protocols:
-HTTP handles these scenarios just fine. What differentiates AMQP? Next we are going to introduce you to topic
-exchanges and routing with patterns, one of the features that makes AMQP very powerful.
+So far, we have seen point-to-point communication and broadcasting. Those two communication styles are possible with many protocols, for instance,
+HTTP handles these scenarios just fine. You may ask "what differentiates AMQP?" Well, next we are going to introduce you to _topic
+exchanges_ and routing with patterns, one of the features that makes AMQP very powerful.
 
-Our third example is weather condition updates. What makes it different from the previous two is that
-not all consumers are interested in all messages: people who live in Portland usually don't care about
-weather in Hong Kong very much (unless they are going there soon). They are certainly interested in
+Our third example involves weather condition updates. What makes it different from the previous two examples is that
+not all of the consumers are interested in all of the messages. People who live in Portland usually do not care about
+the weather in Hong Kong (unless they are visiting soon). They are much more interested in
 weather conditions around Portland, possibly all of Oregon and sometimes a few neighbouring states.
 
 Our example features multiple consumer applications monitoring updates for different regions. Some are
-interested in updates for a specific city, others for a specific state and so on all the way up to continents.
-Updates may overlap: an update for San Diego, CA _is_ an update for California, and should certainly show up
-on North America updates list.
+interested in updates for a specific city, others for a specific state and so on, all the way up to continents.
+Updates may overlap so that an update for San Diego, CA appears as an update for California, but also should show up
+on the North America updates list.
 
 Here is the code:
 
 <script src="https://gist.github.com/998694.js"> </script>
 
-First line that is different from Blabbr example is
+The first line that is different from the Blabbr example is
 
 <pre>
 <code>
@@ -341,9 +339,9 @@ exchange = channel.topic("pub/sub", :auto_delete => true)
 </code>
 </pre>
 
-We use a _topic exchange_ here. Topic exchanges are used for "multicast":http://en.wikipedia.org/wiki/Multicast messaging
-where consumers indicate what topics they are interested in (think of it as of subscribing to a feed for individual tag
-of your favourite blog as opposed to full feed). They do it by specifying a _routing pattern_ on binding, for example:
+We use a topic exchange here. Topic exchanges are used for "multicast":http://en.wikipedia.org/wiki/Multicast messaging
+where consumers indicate which topics they are interested in (think of it as subscribing to a feed for an individual tag
+in your favourite blog as opposed to the full feed). Routing with a topic exchange is done by specifying a _routing pattern_ on binding, for example:
 
 <pre>
 <code>
@@ -353,23 +351,25 @@ end
 </code>
 </pre>
 
-Here we bind a queue with the name of "americas.south" to the topic exchange declared earlier using {AMQP::Queue#bind} method.
-This means that only messages with routing key matching americas.south.# will be routed to that queue. Routing pattern consists of several words
-separated by dots, similarly to URI path segments joined by slash. A few of examples:
+Here we bind a queue with the name of "americas.south" to the topic exchange declared earlier using the {AMQP::Queue#bind} method.
+This means that only messages with a routing key matching "americas.south.#" will be routed to that queue. A routing pattern consists of several words
+separated by dots, in a similar way to URI path segments joined by slashes. Here are a few examples:
 
  * asia.southeast.thailand.bangkok
  * sports.basketball
  * usa.nasdaq.aapl
  * tasks.search.indexing.accounts
 
-Now lets take a look at a few routing keys that do match "americas.south.#" pattern:
+Now let us take a look at a few routing keys that match the "americas.south.#" pattern:
 
  * americas.south
  * americas.south.*brazil*
  * americas.south.*brazil.saopaolo*
  * americas.south.*chile.santiago*
 
-In other words, # part of the pattern matches 0 or more words. For "americas.south.*", some of matching routing keys are
+In other words, the "#" part of the pattern matches 0 or more words.
+
+For a pattern like "americas.south.*", some matching routing keys would be:
 
  * americas.south.*brazil*
  * americas.south.*chile*
@@ -380,24 +380,24 @@ but not
  * americas.south
  * americas.south.chile.santiago
 
-so * matches a single word, whatever it is. AMQP 0.9.1 spec says that topic segments (words) may contain the letters A-Z and a-z
+so "*" only matches a single word. The AMQP v0.9.1 specification says that topic segments (words) may contain the letters A-Z and a-z
 and digits 0-9.
 
 One more thing that is different from previous examples is that the block we pass to {AMQP::Queue#subscribe} now takes two arguments:
-header and body (aka payload). Long story short, the _header_ parameter lets you access metadata associated with the message. Some
-examples of message metadata attributes are
+a _header_ and a _body_ (often called the _payload_). Long story short, the header parameter lets you access metadata associated with the message. Some
+examples of message metadata attributes are:
 
  * message content type
  * message content encoding
  * message priority
  * message expiration time
  * message identifier
- * reply to, to what message this message is a reply to
- * application id, identifier of application that produced the message
+ * reply to (specifies which message this is a reply to)
+ * application id (identifier of the application that produced the message)
 
 and so on.
 
-As this binding demonstrates, # (and *) can appear in the beginning of routing patterns, too:
+As the following binding demonstrates, "#" and "*" can also appear at the beginning of routing patterns:
 
 <pre>
 <code>
@@ -407,9 +407,9 @@ end
 </code>
 </pre>
 
-Publishing of messages is not different from previous examples. Running this example demonstrates that, for example,
-message published with routing key of "americas.north.us.ca.berkeley" is routed to several queues: us.california and
-_server-named queue_ we declared by passing blank string as the name:
+For this example the publishing of messages is no different from that of previous examples. If we were to run the program,
+a message published with a routing key of "americas.north.us.ca.berkeley" would be routed to several queues: "us.california" and the
+_server-named queue_ that we declared by passing a blank string as the name:
 
 <pre>
 <code>
@@ -421,27 +421,27 @@ end
 </code>
 </pre>
 
-Name of server-named queue is generated by the broker and sent back to the client with queue declaration confirmation.
-Because of queue name is not known before reply arrives, we passed {AMQP::Channel#queue} a callback and it yielded us back
+The name of server-named queue is generated by the broker and sent back to the client with a queue declaration confirmation.
+Because the queue name is not known before the reply arrives, we pass {AMQP::Channel#queue} a callback and it yields us back
 a queue object once confirmation has arrived.
 
 
 h3. Avoid race conditions
 
 A word of warning: you may find examples on the Web of {AMQP::Channel#queue} usage that do not use
-callback: we *strongly recommend you always use a callback for server-named queues*. Otherwise your code may be a subject
-to "race conditions":http://en.wikipedia.org/wiki/Race_condition and even though amqp gem tries to be reasonably smart and protect you from most common problems, there
-is no way it can do so for every case. The only reason we support {AMQP::Channel#queue} usage w/o a callback for server-named queues is
+callbacks. We *strongly recommend that you always use a callback for server-named queues*, otherwise your code may be subject
+to "race conditions":http://en.wikipedia.org/wiki/Race_condition. Even though the amqp gem tries to be reasonably smart and protect you from most common problems, there
+is no way it can do so for every case. The only reason we support {AMQP::Channel#queue} usage without a callback for server-named queues is for
 backwards compatibility with earlier versions.
 
 
 
 h2. Integration with objects
 
-Since Ruby is a genuine object-oriented language, it is important to demonstrate how Ruby amqp gem can be integrated
+Since Ruby is a genuine object-oriented language, it is important to demonstrate how the Ruby amqp gem can be integrated
 into rich object-oriented code.
 
-{AMQP::Queue#subscribe} callback doesn't have to be a block: it can be any Ruby object that responds to `call`.
+The {AMQP::Queue#subscribe} callback does not have to be a block. It can be any Ruby object that responds to `call`.
 A common technique is to combine {http://rubydoc.info/stdlib/core/1.8.7/Object:method Object#method} and {http://rubydoc.info/stdlib/core/1.8.7/Method:to_proc Method#to_proc}
 and use object methods as message handlers.
 
@@ -498,7 +498,7 @@ end
 The "Hello, world" example can be ported to use this technique:
 <script src="https://gist.github.com/1009447.js"> </script>
 
-They key line in this example is
+They most important line in this example is
 
 <pre>
 <code>
@@ -506,7 +506,7 @@ They key line in this example is
 </code>
 </pre>
 
-Ampersand (&) preceding an object is equivalent to calling #to_proc method on it: we obtain Consumer#handle_message method reference
+Ampersand (&) preceding an object is equivalent to calling the #to_proc method on it. We obtain a Consumer#handle_message method reference
 with
 
 <pre>
@@ -515,11 +515,11 @@ with
 </code>
 </pre>
 
-and then ampersand calls #to_proc on it. {AMQP::Queue#subscribe} then will be using this Proc instance to handle incoming messages.
+and then the ampersand calls #to_proc on it. {AMQP::Queue#subscribe} then will be using this Proc instance to handle incoming messages.
 
 
-Note that `Consumer` class demonstrated above can be easily tested in isolation, without spinning up any AMQP connections.
-Here is one example, "RSpec":http://relishapp.com/rspec-style
+Note that the `Consumer` class above can be easily tested in isolation, without spinning up any AMQP connections.
+Here is one example using "RSpec":http://relishapp.com/rspec-style
 
 <pre>
 <code>
@@ -554,16 +554,16 @@ end
 
 h2. Wrapping up
 
-This tutorial ends here. Congratulations! You have learned quite a bit about both AMQP 0.9.1 and amqp gem. This is only
+This is the end of the tutorial. Congratulations! You have learned quite a bit about both AMQP v0.9.1 and the amqp gem. This is only
 the tip of the iceberg. AMQP has many more features built into the protocol:
 
  * Reliable delivery of messages
- * Message confirmations (a way to tell broker that message was or wasn't processed successfully)
- * Message redelivery when consumer apps fail or crash
+ * Message confirmations (a way to tell broker that a message was or was not processed successfully)
+ * Message redelivery when consumer applications fail or crash
  * Load balancing of messages between multiple consumers
  * Message metadata attributes
 
-and so on. Other guides explain these features as well as use cases for them in depth. To stay up to date with amqp gem
+and so on. Other guides explain these features in depth, as well as use cases for them. To stay up to date with amqp gem
 development, "follow @rubyamqp on Twitter":http://twitter.com/rubyamqp and "join our mailing list":http://groups.google.com/group/ruby-amqp.
 
 
@@ -572,27 +572,27 @@ development, "follow @rubyamqp on Twitter":http://twitter.com/rubyamqp and "join
 h2. What to read next
 
 Documentation is organized as a number of {file:docs/DocumentationGuidesIndex.textile documentation guides}, covering all kinds of
-topics from {file:docs/Exchanges.textile use cases for various exchange types} to {file:docs/ErrorHandling.textile error handling} to
+topics from {file:docs/Exchanges.textile use cases for various exchange types} to {file:docs/ErrorHandling.textile error handling} and
 {file:docs/VendorSpecificExchanges.textile Broker-specific AMQP 0.9.1 extensions}.
 
 We recommend that you read the following guides next, if possible, in this order:
 
- * {file:docs/ConnectingToTheBroker.textile Connection to the broker}. This guide explains how to connect to AMQP broker & integrate amqp gem into standalone & Web applications.
- * {file:docs/Queues.textile Working With Queues}. This guide focuses on features consumer applications use heavily.
- * {file:docs/Exchanges.textile Working With Exchanges}. This guide focuses on features producer applications use heavily.
- * {file:docs/ErrorHandling.textile Error Handling & Recovery} guide explains how to handle protocol errors, network failures and other things that may go wrong in real world projects.
+ * {file:docs/ConnectingToTheBroker.textile Connection to the broker}. This guide explains how to connect to an AMQP broker and how to integrate the amqp gem into standalone and Web applications.
+ * {file:docs/Queues.textile Working With Queues}. This guide focuses on features that consumer applications use heavily.
+ * {file:docs/Exchanges.textile Working With Exchanges}. This guide focuses on features that producer applications use heavily.
+ * {file:docs/ErrorHandling.textile Error Handling & Recovery}. This guide explains how to handle protocol errors, network failures and other things that may go wrong in real world projects.
 
-If you are migrating your application from earlier versions of amqp gem (0.6.x and 0.7.x), to 0.8.x and later, there is
+If you are migrating your application from earlier versions of the amqp gem (0.6.x and 0.7.x), to 0.8.x and later, there is the
 {file:docs/08Migration.textile amqp gem 0.8 migration guide}.
 
 
 h2. Tell us what you think!
 
-Please take a moment and tell us what you think about this guide "on Twitter":http://twitter.com/rubyamqp or "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp:
-what was unclear? what wasn't covered? maybe you don't like guide style or grammar and spelling are incorrect? Readers feedback is
-key to making documentation better.
+Please take a moment to tell us what you think about this guide "on Twitter":http://twitter.com/rubyamqp or the "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp.
+ Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar and discover spelling mistakes. Reader feedback is
+key to making the documentation better.
 
-If mailing list communication is not an option for you for some reason, you can "contact guides author directly":mailto:michael@novemberain.com?subject=amqp%20gem%20documentation
+If, for some reason, you cannot use the communication channels mentioned above, you can "contact the author of the guides directly":mailto:michael@novemberain.com?subject=amqp%20gem%20documentation
 
 
 <div id="disqus_thread"></div>
