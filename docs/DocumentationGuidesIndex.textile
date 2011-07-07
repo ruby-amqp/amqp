@@ -14,8 +14,8 @@ We recommend that you read the documentation guides in the order that they are l
 describes several typical applications and their problem scope, then provides full code examples and finally breaks them down
 into smaller pieces that are explained in detail.
 
-Once you are finished with the tutorial, reading other guides in order will gradually explain all of the AMQP 0.9.1 features that are relevant to
-application developers, including application design concerns and common practices. At present, not all guides are written
+Once you are finished with the tutorial, reading the other guides in sequence will gradually explain all of the AMQP 0.9.1 features that are relevant to
+application developers, including application design concerns and common practices. At present, some guides are yet to be written
 but *most of the content is concentrated in just 3-4 guides* that are about 80% finished and provide plenty of examples.
 
 Here is a summary of guides and their content:
