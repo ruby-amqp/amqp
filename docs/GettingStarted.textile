@@ -41,7 +41,7 @@ rabbitmq-server
 </pre>
 
 On Debian and Ubuntu, you can either "download the RabbitMQ .deb package":http://www.rabbitmq.com/server.html and install it with
-"dpkg":http://www.debian.org/doc/FAQ/ch-pkgtools.en.html or make use of the "apt repository that the RabbitMQ team provides":http://www.rabbitmq.com/debian.html#apt.
+"dpkg":http://www.debian.org/doc/FAQ/ch-pkgtools.en.html or make use of the "apt repository":http://www.rabbitmq.com/debian.html#apt that the RabbitMQ team provides.
 For RPM-based distributions like RedHat or CentOS, the RabbitMQ team provides an "RPM package":http://www.rabbitmq.com/install.html#rpm.
 
 <span class="note">
