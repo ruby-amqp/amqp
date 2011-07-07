@@ -68,13 +68,13 @@ h4. On Microsoft Windows 7:
 
 <pre>
 gem install eventmachine --pre
-gem install amqp --pre --version "~> 0.8.0.RC12"
+gem install amqp --pre --version "~> 0.8.0.RC13"
 </pre>
 
 h4. On other OSes or JRuby:
 
 <pre>
-gem install amqp --pre --version "~> 0.8.0.RC12"
+gem install amqp --pre --version "~> 0.8.0.RC13"
 </pre>
 
 h3. You can also use Bundler to install the gem 
@@ -83,7 +83,7 @@ h3. You can also use Bundler to install the gem
 <code>
 source :rubygems
 
-gem "amqp", "~> 0.8.0.RC12" # optionally: :git => "git://github.com/ruby-amqp/amqp.git", :branch => "master"
+gem "amqp", "~> 0.8.0.RC13g" # optionally: :git => "git://github.com/ruby-amqp/amqp.git", :branch => "master"
 </code>
 </pre>
 
@@ -98,7 +98,7 @@ irb -rubygems
 :001 > require "amqp"
 => true
 :002 > AMQP::VERSION
-=> "0.8.0.rc12"
+=> "0.8.0.rc13"
 </code>
 </pre>
 
@@ -290,6 +290,11 @@ exchange.publish("BOS 101, NYK 89").publish("ORL 85, ALT 88")
 demonstrates {AMQP::Exchange#publish} call chaining. Blabbr members use a fanout exchange
 for publishing, so there is no need to specify a message routing key because every queue that is bound to the exchange will get its own copy of all messages, regardless of the queue name and routing key used.
 
+A diagram for Blabbr looks like this:
+
+!https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/002_blabbr_example_routing.png!
+
+
 Next we use EventMachine's {http://eventmachine.rubyforge.org/EventMachine.html#M000466 add_timer} method to
 run a piece of code in 1 second from now:
 
@@ -382,6 +387,11 @@ but not
 
 so "*" only matches a single word. The AMQP v0.9.1 specification says that topic segments (words) may contain the letters A-Z and a-z
 and digits 0-9.
+
+A (very simplistic) diagram to demonstarte topic exchange in action:
+
+!https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/003_weathr_example_routing.png!
+
 
 One more thing that is different from previous examples is that the block we pass to {AMQP::Queue#subscribe} now takes two arguments:
 a _header_ and a _body_ (often called the _payload_). Long story short, the header parameter lets you access metadata associated with the message. Some
