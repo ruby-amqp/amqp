@@ -388,7 +388,7 @@ but not
 so "*" only matches a single word. The AMQP v0.9.1 specification says that topic segments (words) may contain the letters A-Z and a-z
 and digits 0-9.
 
-A (very simplistic) diagram to demonstarte topic exchange in action:
+A (very simplistic) diagram to demonstrate topic exchange in action:
 
 !https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/003_weathr_example_routing.png!
 
