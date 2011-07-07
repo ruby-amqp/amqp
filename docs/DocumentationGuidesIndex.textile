@@ -8,17 +8,17 @@ h2. Covered versions
 These guides cover "Ruby amqp gem":http://github.com/ruby-amqp/amqp *v0.8.0.RC13 and later*.
 
 
-h2. How documentation is structured. How to read these guides.
+h2. Documentation structure and how to read these guides
 
-We recommend you read documentation guides in the order they are listed. Getting Started guide is written as a tutorial that
+We recommend that you read the documentation guides in the order that they are listed. The *Getting Started* guide is written as a tutorial that
 describes several typical applications and their problem scope, then provides full code examples and finally breaks them down
 into smaller pieces that are explained in detail.
 
-Once you are done with the tutorial, reading other guides in order will gradually explain all of AMQP 0.9.1 features relevant to
-application developers, including application design concerns and common practices. At this moment, not all guides are written
+Once you are finished with the tutorial, reading other guides in order will gradually explain all of the AMQP 0.9.1 features that are relevant to
+application developers, including application design concerns and common practices. At present, not all guides are written
 but *most of the content is concentrated in just 3-4 guides* that are about 80% finished and provide plenty of examples.
 
-Here is what some of the guide are about:
+Here is a summary of guides and their content:
 
 <dl>
   <dt>{file:docs/GettingStarted.textile Getting Started}</dt>
@@ -43,8 +43,8 @@ Here is what some of the guide are about:
 
   <dt>{file:docs/Exchanges.textile Working With Exchanges}</dt>
   <dd>
-  What AMQP exchanges are. Concept of binding. How to declare AMQP exchanges. How different exchange types route messages, when it is common
-  to use each one. How to publish messages, especially how to do it reliably. What AMQP transactions are. What are Publisher Confirms.
+  What AMQP exchanges are. Concept of binding. How to declare AMQP exchanges. How different exchange types route messages and common
+  use cases. How to publish messages, especially how to do it reliably. What AMQP transactions are. What Publisher Confirms are.
   How to delete an exchange.
   </dd>
 
@@ -62,7 +62,7 @@ Here is what some of the guide are about:
 
   <dt>{file:docs/RabbitMQVersions.textile RabbitMQ versions}</dt>
   <dd>
-  RabbitMQ versions amqp gem supports. Popular Linux distributions and RabbitMQ versions they ship. How to obtain up-to-date official
+  RabbitMQ versions that amqp gem supports. Popular Linux distributions and RabbitMQ versions they ship. How to obtain up-to-date official
   packages of RabbitMQ.
   </dd>
 
@@ -71,7 +71,7 @@ Here is what some of the guide are about:
 </dl>
 
 
-When two guides describe the same concept, we make sure to use cross-references, however, only one guide really focuses on it.
+When more than one guide describes the same concept, we make sure to use cross-references, however, only one guide discusses the concept in detail.
 
 
 h2. Full guide list
@@ -95,11 +95,11 @@ h2. Full guide list
 
 h2. Tell us what you think!
 
-Please take a moment and tell us what you think about this guide "on Twitter":http://twitter.com/rubyamqp or "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp:
-what was unclear? what wasn't covered? maybe you don't like guide style or grammar and spelling are incorrect? Readers feedback is
-key to making documentation better.
+Please take a moment to tell us what you think about this guide "on Twitter":http://twitter.com/rubyamqp or the "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp.
+ Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar and discover spelling mistakes. Reader feedback is
+key to making the documentation better.
 
-If mailing list communication is not an option for you for some reason, you can "contact guides author directly":mailto:michael@novemberain.com?subject=amqp%20gem%20documentation
+If, for some reason, you cannot use the communication channels mentioned above, you can "contact the author of the guides directly":mailto:michael@novemberain.com?subject=amqp%20gem%20documentation
 
 
 <div id="disqus_thread"></div>
