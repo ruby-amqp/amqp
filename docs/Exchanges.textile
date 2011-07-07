@@ -320,7 +320,7 @@ Direct exchanges can be used in a wide variety of cases:
  * Direct (near real-time) messages to individual players in a MMO game.
  * Delivering notifications to specific geographic locations (for example, points of sale).
  * Distributing tasks between multiple instances of the same application all having the same function, for example, image processors.
- * Passing data between workflow steps, each having an identifier.
+ * Passing data between workflow steps, each having an identifier (also consider using headers exchange for that).
  * Delivering notifications to individual software services in the network.
 
 
@@ -785,8 +785,6 @@ channel.queue("", :auto_delete => true).bind(exchange, :arguments => { 'x-match'
 When "x-match" argument is set to "any", just one matching header value is sufficient. So in the example above, any message with
 `cores` header value equal to 8 will be considered matching.
 
-TBD
-
 h4. More examples
 
 TBD
@@ -826,13 +824,25 @@ end
 
 h3. Routing example
 
+When there is just one queue bound to a headers exchange, messages are routed to it if one or all headers of the message match those specified
+upon binding. Whether it is "any header" or "all of them" depends on 'x-match' header value.
+In case of multiple queues, headers exchange will deliver a copy to each queue, just like direct exchanges do. Distribution rules between consumers
+on a particular queue are the same as for direct exchange.
+
 Full example:
 <script src="https://gist.github.com/1034875.js"> </script>
 
 
 h3. Use cases
 
-TBD
+Headers exchanges can be looked at as "direct exchanges on steroids". Because they route based on header values, they can be used as
+direct exchanges where routing key doesn't have to be a string: it can be an integer or a hash (dictionary), for example.
+
+Some specific use cases:
+
+ * Transfer of work between stages in a multi-step workflow ("routing slip pattern":http://eaipatterns.com/RoutingTable.html)
+ * Distributed build/continuous integration systems can distribute builds based on multiple parameters (OS, CPU architecture, availability
+   of a particular package).
 
 
 h3. Pre-declared headers exchanges

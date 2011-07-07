@@ -422,6 +422,16 @@ Default consumers do not have any special properties, they are just a mean of co
 Application developers are free to always use AMQP::Consumer instances directly, or intermix it with AMQP::Queue#subscribe
 </span>
 
+Most of public API methods on {AMQP::Consumer} return self so it is possible to use method chaining heavily. An example from
+"amqp gem spec suite":https://github.com/ruby-amqp/amqp/tree/master/spec:
+
+<pre>
+<code>
+consumer1 = AMQP::Consumer.new(@channel, @queue).consume.on_delivery { |metadata, payload| mailbox1 << payload }
+consumer2 = AMQP::Consumer.new(@channel, @queue).consume.on_delivery { |metadata, payload| mailbox2 << payload }
+</code>
+</pre>
+
 To cancel a particular consumer, use {AMQP::Consumer#cancel} method. To cancel default queue consumer, use {AMQP::Queue#unsubscribe}.
 
 
