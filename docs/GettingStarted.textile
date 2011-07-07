@@ -71,13 +71,13 @@ h4. On Microsoft Windows 7
 
 <pre>
 gem install eventmachine --pre
-gem install amqp --pre --version "~> 0.8.0.RC12"
+gem install amqp --pre --version "~> 0.8.0.RC13"
 </pre>
 
 h4. On other OSes or JRuby:
 
 <pre>
-gem install amqp --pre --version "~> 0.8.0.RC12"
+gem install amqp --pre --version "~> 0.8.0.RC13"
 </pre>
 
 h3. With Bundler
@@ -291,6 +291,11 @@ exchange.publish("BOS 101, NYK 89").publish("ORL 85, ALT 88")
 demonstrates {AMQP::Exchange#publish} call chaining. Because Blabbr members use a fanout exchange
 for publishing, there is no need to specify message routing key: every queue that was bound to exchange receiving
 a message will get it's own message copy, regardless of queue name and routing key used.
+
+A diagram for Blabbr looks like this:
+
+!https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/002_blabbr_example_routing.png!
+
 
 Next we use EventMachine's {http://eventmachine.rubyforge.org/EventMachine.html#M000466 add_timer} method to
 run a piece of code in 1 second from now:
