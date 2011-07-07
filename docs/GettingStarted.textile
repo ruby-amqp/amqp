@@ -209,6 +209,11 @@ This first example can be modified to use method chaining technique:
 
 <script src="https://gist.github.com/998691.js"> </script>
 
+This diagram demonstrates the "Hello, world" example data flow:
+
+!https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/001_hello_world_example_routing.png!
+
+
 With classes and methods introduced in this example, lets move on to a little bit more
 sophisticated one.
 
