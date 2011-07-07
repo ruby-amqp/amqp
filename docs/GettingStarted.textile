@@ -213,9 +213,8 @@ This diagram demonstrates the "Hello, world" example data flow:
 
 !https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/001_hello_world_example_routing.png!
 
-
-With classes and methods introduced in this example, lets move on to a little bit more
-sophisticated one.
+For the sake of simplicity, both message producer (App I) and consumer (App II) are running in the same Ruby process.
+Now lets move on to a little bit more sophisticated example.
 
 
 h2. Blabblr: one-to-many publish/subscribe example
