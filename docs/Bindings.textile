@@ -2,10 +2,10 @@
 
 h1. TBD
 
-
 h2. About this guide
 
-TBD
+This guide covers bindings in AMQP 0.9.1, what they are, what role do they play and how to accomplish typical operations using
+Ruby amqp gem.
 
 
 h2. Covered versions
@@ -14,7 +14,27 @@ This guide covers "Ruby amqp gem":http://github.com/ruby-amqp/amqp v0.8.0 and la
 
 
 
-h2. TBD
+h2. Bindings in AMQP 0.9.1
+
+TBD
+
+
+h2. One day in life of an AMQP 0.9.1 message
+
+TBD
+
+
+h2. Binding queues to exchanges
+
+TBD
+
+
+h2. Unbinding queues from exchanges
+
+TBD
+
+
+h2. Binding attributes
 
 TBD
 
