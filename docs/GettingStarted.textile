@@ -86,7 +86,7 @@ h3. With Bundler
 <code>
 source :rubygems
 
-gem "amqp", "~> 0.8.0.RC12" # optionally: :git => "git://github.com/ruby-amqp/amqp.git", :branch => "master"
+gem "amqp", "~> 0.8.0.RC13" # optionally: :git => "git://github.com/ruby-amqp/amqp.git", :branch => "master"
 </code>
 </pre>
 
@@ -101,7 +101,7 @@ irb -rubygems
 :001 > require "amqp"
 => true
 :002 > AMQP::VERSION
-=> "0.8.0.rc12"
+=> "0.8.0.rc13"
 </code>
 </pre>
 
