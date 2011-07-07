@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe "1000 AMQP messages" do
+describe "100 AMQP messages" do
 
   #
   # Environment
@@ -14,7 +14,7 @@ describe "1000 AMQP messages" do
 
 
   before :all do
-    @list = Range.new(0, 1000, true).to_a
+    @list = Range.new(0, 100, true).to_a
   end
 
 
@@ -44,9 +44,9 @@ describe "1000 AMQP messages" do
       end
 
       done(3.5) {
-        received.size.should == 1000
+        received.size.should == 100
         received.first.should == 0
-        received.last.should == 999
+        received.last.should == 99
 
         received.should == @list
       }
@@ -85,9 +85,9 @@ describe "1000 AMQP messages" do
       end
 
       done(3.5) {
-        received.size.should == 1000
+        received.size.should == 100
         received.first.should == 0
-        received.last.should == 999
+        received.last.should == 99
 
         received.should == @list
       }
