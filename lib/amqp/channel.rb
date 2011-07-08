@@ -254,6 +254,22 @@ module AMQP
       @auto_recovery
     end # auto_recovering?
 
+    # Called by associated connection object when AMQP connection has been re-established
+    # (for example, after a network failure).
+    #
+    # @api plugin
+    def auto_recover
+      return unless auto_recovering?
+
+      self.open do
+        @channel_is_open_deferrable.succeed
+
+        @exchanges.each { |name, e| e.auto_recover }
+        @queues.each    { |name, q| q.auto_recover }
+      end
+    end # auto_recover
+
+
 
 
     # @group Declaring exchanges
