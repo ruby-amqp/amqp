@@ -33,11 +33,16 @@ module AMQP
                Hash.new
              end
 
-      if block
-        AMQP.client.connect(opts.merge(options), &block)
-      else
-        AMQP.client.connect(opts.merge(options))
+      connection = if block
+                     AMQP.client.connect(opts.merge(options), &block)
+                   else
+                     AMQP.client.connect(opts.merge(options))
+                   end
+
+      connection.on_open do
+        require "amqp/extensions/rabbitmq" if connection.broker.rabbitmq?
       end
+      connection
     end
 
     # Parses AMQP connection URI and returns its components as a hash.
