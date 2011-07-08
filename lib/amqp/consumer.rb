@@ -66,6 +66,10 @@ module AMQP
     def resubscribe(&block)
       @channel.once_open do
         @queue.once_declared do
+          self.unregister_with_channel
+          @consumer_tag = self.class.tag_generator.generate_for(@queue)
+          self.register_with_channel
+
           super(&block)
         end
       end
