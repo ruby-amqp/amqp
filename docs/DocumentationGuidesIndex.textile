@@ -96,7 +96,7 @@ h2. Full guide list
 h2. Tell us what you think!
 
 Please take a moment to tell us what you think about this guide "on Twitter":http://twitter.com/rubyamqp or the "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp.
- Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar and discover spelling mistakes. Reader feedback is
+ Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is
 key to making the documentation better.
 
 If, for some reason, you cannot use the communication channels mentioned above, you can "contact the author of the guides directly":mailto:michael@novemberain.com?subject=amqp%20gem%20documentation
