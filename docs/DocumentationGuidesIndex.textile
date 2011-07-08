@@ -2,10 +2,9 @@
 
 h1. Ruby AMQP gem documentation guides
 
+h2. Which versions of the amqp gem do the guides cover?
 
-h2. Covered versions
-
-These guides cover "Ruby amqp gem":http://github.com/ruby-amqp/amqp *v0.8.0.RC13 and later*.
+These guides cover v0.8.0.RC13 and later of the "Ruby amqp gem":http://github.com/ruby-amqp/amqp.
 
 
 h2. Documentation structure and how to read these guides
