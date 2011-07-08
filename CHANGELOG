@@ -1,5 +1,11 @@
 = Version 0.8.0
 
+  * [FEATURE] When connected to RabbitMQ, RabbitMQ-specific extensions are required automatically
+  * [FEATURE] AMQP::Session#broker and AMQP::Broker allow for broker capabilities inspection
+  * [FEATURE] New bitset-based channel id allocator
+  * [FEATURE] Multiple consumers per queue with AMQP::Consumer
+  * [FEATURE] Automatic recovery mode for channels
+  * [FEATURE] Network connection recovery callbacks for channels, exchanges, queues, consumers
   * [API] Connection URI (string) format for vhosts no longer assumes that vhosts begin with a slash (/), learn more at http://bit.ly/mfzwcB
   * [FEATURE] Returned messages, including header & content via AMQP::Exchange#on_publish. Callback accepts 3 args: basic_return, header, body
   * [BUG] Ruby 1.8.7-p249 is not supported because of this (p249-specific) Ruby bug: http://bit.ly/iONBmH
