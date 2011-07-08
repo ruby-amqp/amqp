@@ -519,19 +519,48 @@ describe AMQP::Channel do
     end # context
 
 
-    context "when exchange is re-declared with parameters different from original declaration" do
+    context "when exchange is re-declared with parameters different from original declaration on the same channel" do
       amqp_after do
         done
       end
 
       it "raises an exception" do
-        @channel.headers("previously.declared.durable.topic.exchange", :durable => true)
+        @channel.headers("previously.declared.durable.headers.exchange", :durable => true)
 
         expect {
-          @channel.headers("previously.declared.durable.topic.exchange", :durable => false)
+          @channel.headers("previously.declared.durable.headers.exchange", :durable => false)
         }.to raise_error(AMQP::IncompatibleOptionsError)
 
         done(0.3)
+      end # it
+    end # context
+
+
+    context "when exchange is re-declared with parameters different from original declaration on two separate channels" do
+      it "raises an exception" do
+        channel2 = AMQP::Channel.new
+        @channel.headers("previously.declared.durable.headers.exchange", :durable => true)
+
+        channel2.on_error do |ch, channel_close|
+          puts "reply_text: #{channel_close.reply_text}, reply_code: #{channel_close.reply_code}"
+          done
+        end
+        channel2.headers("previously.declared.durable.headers.exchange", :durable => false)
+      end # it
+    end # context
+
+
+
+    context "when exchange is re-declared with type different from original declaration on two separate channels" do
+      it "raises an exception" do
+        channel2 = AMQP::Channel.new
+        @channel.topic("previously.declared.durable.topic.exchange", :durable => true)
+
+        channel2.on_error do |ch, channel_close|
+          puts "reply_text: #{channel_close.reply_text}, reply_code: #{channel_close.reply_code}"
+          done
+        end
+        channel2.headers("previously.declared.durable.topic.exchange", :durable => true)
       end # it
     end # context
   end # describe
