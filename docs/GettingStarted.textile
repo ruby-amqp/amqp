@@ -529,7 +529,7 @@ and then the ampersand calls #to_proc on it. {AMQP::Queue#subscribe} then will b
 
 
 Note that the `Consumer` class above can be easily tested in isolation, without spinning up any AMQP connections.
-Here is one example using "RSpec":http://relishapp.com/rspec-style
+Here is one example using "RSpec":http://relishapp.com/rspec
 
 <pre>
 <code>
