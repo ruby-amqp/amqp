@@ -439,9 +439,10 @@ a queue object once confirmation has arrived.
 h3. Avoid race conditions
 
 A word of warning: you may find examples on the Web of {AMQP::Channel#queue} usage that do not use
-callbacks. We *strongly recommend that you always use a callback for server-named queues*, otherwise your code may be subject
-to "race conditions":http://en.wikipedia.org/wiki/Race_condition. Even though the amqp gem tries to be reasonably smart and protect you from most common problems, there
-is no way it can do so for every case. The only reason we support {AMQP::Channel#queue} usage without a callback for server-named queues is for
+callbacks. We *recommend that you use a callback for server-named queues*, otherwise your code may be subject
+to "race conditions":http://en.wikipedia.org/wiki/Race_condition. Even though the amqp gem tries to be reasonably smart and protect you from most common problems
+(for example, binding operations will be delayed until after queue name is received from the broker), there
+is no way it can do so for every case. The primary reason for supporting {AMQP::Channel#queue} usage without a callback for server-named queues is
 backwards compatibility with earlier versions.
 
 
