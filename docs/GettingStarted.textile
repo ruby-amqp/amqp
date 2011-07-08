@@ -83,7 +83,7 @@ h3. You can also use Bundler to install the gem
 <code>
 source :rubygems
 
-gem "amqp", "~> 0.8.0.RC13g" # optionally: :git => "git://github.com/ruby-amqp/amqp.git", :branch => "master"
+gem "amqp", "~> 0.8.0.RC13" # optionally: :git => "git://github.com/ruby-amqp/amqp.git", :branch => "master"
 </code>
 </pre>
 
