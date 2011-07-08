@@ -5,23 +5,23 @@ h1. Connecting to the broker, integrating with Ruby on Rails, Merb and Sinatra
 
 h2. About this guide
 
-This guide covers connection to AMQP broker from standalone and Web applications,
+This guide covers connection to an AMQP broker from standalone and Web applications,
 connection error handling, authentication failure handling and related issues.
 
 
-h2. Covered versions
+h2. Which versions of the amqp gem does this guide cover?
 
-This guide covers "Ruby amqp gem":http://github.com/ruby-amqp/amqp v0.8.0 and later.
+This guide covers v0.8.0 and later of the "Ruby amqp gem":http://github.com/ruby-amqp/amqp.
 
 
 
 h2. Terminology
 
-In this guide we define standalone application as application that does not run on
+In this guide we define a standalone application as an application that does not run on
 a Web server like Unicorn or Passenger. The key difference is that these applications
-control main Ruby VM thread and often use it to run EventMachine event loop. When
-amqp gem is used inside of a Web applications, main thread is occupied by Web application
-server and code required to establish connection to AMQP broker needs to be a little
+control the main Ruby VM thread and often use it to run the EventMachine event loop. When
+the amqp gem is used in a Web application, the main thread is occupied by the Web application
+server and the code required to establish a connection to an AMQP broker needs to be a little
 bit different.
 
 
@@ -35,7 +35,7 @@ Connection parameters (host, port, username, vhost and so on) can be passed in t
 
 h3. Using a hash
 
-Hash options amqp gem will recognize are
+Hash options that the amqp gem will recognize are
 
  * :host
  * :port
@@ -70,7 +70,7 @@ h3. Using connection strings
 It is convenient to be able to specify the AMQP connection
 parameters as a URI string, and various "amqp" URI schemes
 exist.  Unfortunately, there is no standard for these URIs, so
-while the schemes share the basic idea, they differ in some
+while the schemes share the same basic idea, they differ in some
 details.  This implementation aims to encourage URIs that work
 as widely as possible.
 
@@ -99,23 +99,23 @@ connection URIs:
 
 <pre>
 <code>
-AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com")            # => vhost is nil, so default (/) will be used
+AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com")            # => vhost is nil, so default ("/") will be used
 AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/")           # => vhost is an empty string
-AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/%2Fvault")   # => vhost is /vault
-AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/production") # => vhost is production
-AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/a.b.c")      # => vhost is a.b.c
+AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/%2Fvault")   # => vhost is "/vault"
+AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/production") # => vhost is "production"
+AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/a.b.c")      # => vhost is "a.b.c"
 AMQP::Client.parse_connection_uri("amqp://dev.rabbitmq.com/foo/bar")  # => ArgumentError
 </code>
 </pre>
 
 
-h2. Starting event loop & connecting in standalone applications
+h2. Starting the event loop and connecting in standalone applications
 
 h3. EventMachine event loop
 
-amqp gem uses "EventMachine":http://rubyeventmachine.com under the hood and needs EventMachine
-event loop to be running in order to connect to AMQP broker or send any data. This means that
-before connecting to AMQP broker, we need to _start EventMachine reactor_ (get the event loop
+The amqp gem uses "EventMachine":http://rubyeventmachine.com under the hood and needs an EventMachine
+event loop to be running in order to connect to an AMQP broker or to send any data. This means that
+before connecting to an AMQP broker, we need to _start the EventMachine reactor_ (get the event loop
 going). Here is how to do it:
 
 <pre>
@@ -128,14 +128,14 @@ end
 </code>
 </pre>
 
-"EventMachine.run":http://eventmachine.rubyforge.org/EventMachine.html#M000461 will block current thread until event loop is stopped.
-Standalone applications often can afford starting event loop on the main thread. If you have no experience with threading, this is a
-recommended way.
+"EventMachine.run":http://eventmachine.rubyforge.org/EventMachine.html#M000461 will block the current thread until the event loop is stopped.
+Standalone applications often can afford to start the event loop on the main thread. If you have no experience with threading, this is a
+recommended way to proceed.
 
 
 h3. Using AMQP.connect with a block
 
-Once event loop is running, {AMQP.connect} method will attempt to connect to the broker. It can be used in two ways. Here is the
+Once the event loop is running, the {AMQP.connect} method will attempt to connect to the broker. It can be used in two ways. Here is the
 first one:
 
 <pre>
@@ -151,13 +151,13 @@ end
 </code>
 </pre>
 
-{AMQP.connect} takes a block that will be executed as soon as AMQP connection is open (TCP connection was set up,
-authentication succeeded, broker and client finished negotiating connection parameters like max frame size).
+{AMQP.connect} takes a block that will be executed as soon as the AMQP connection is open. In order for a connection to be opened a TCP connection has to be set up,
+authentication has to succeed, and the broker and client need to complete negotiation of connection parameters like max frame size.
 
 
 h3. Using AMQP.connect without a callback
 
-Alternative way of connecting is this:
+An alternative way of connecting is this:
 
 <pre>
 <code>
@@ -166,14 +166,14 @@ require "amqp"
 EventMachine.run do
   # using AMQP.connect with a block
   client = AMQP.connect(:host => "hub.megacorp.internal", :username => "hedgehog", :password => "t0ps3kr3t")
-  # connection is not yet open, however, amqp gem will delay
-  # channel operations until after connection is open. However,
+  # connection is not yet open, however, amqp gem will delay channel
+  # operations until after the connection is open. Bear in mind that
   # amqp gem cannot solve every possible race condition so be careful
 end
 </code>
 </pre>
 
-If you do not need to assign returned value to a variable, "block version" is recommended because it eliminates issues that may
+If you do not need to assign the returned value to a variable, then the "block version" is recommended because it eliminates issues that may
 arise from attempts to use a connection object that is not fully opened yet. For example, handling of authentication failures is simpler
 with the block version, as we will see in the following sections.
 
@@ -181,7 +181,7 @@ with the block version, as we will see in the following sections.
 
 h3. Using AMQP.start
 
-EventMachine.run and {AMQP.connect} with a block is such a common combination that amqp gem provides a shortcut:
+EventMachine.run and {AMQP.connect} with a block is such a common combination that the amqp gem provides a shortcut:
 
 <pre>
 <code>
@@ -194,20 +194,20 @@ end
 </pre>
 
 As these examples demonstrate, {AMQP.connect} and {AMQP.start} accept either a Hash of connection options or a connection URI string.
-See reference documentation for each method to learn all the options they accept and what the default values are.
+See the reference documentation for each method to learn all of the options that they accept and what the default values are.
 
 
 h3. On Thread#sleep use
 
-When not passing a block to {AMQP.connect}, it is tempting to "give connection some time to get through" by using Thread#sleep. Unless you are
-running event loop in a separate thread, don't do this. Thread#sleep blocks current thread so if event loop is running the very same current thread,
-blocking it _will also block the event loop_. *When event loop is blocked, no data is sent or received, so connection does not proceed.*
+When not passing a block to {AMQP.connect}, it is tempting to "give the connection some time to become established" by using Thread#sleep. Unless you are
+running the event loop in a separate thread, please do not do this. Thread#sleep blocks the current thread so that if the event loop is running in the current thread,
+blocking the thread _will also block the event loop_. *When the event loop is blocked, no data is sent or received, so the connection does not proceed.*
 
 
 h3. Detecting TCP connection failures
 
-When applications connect to the broker, they need to handle connection failures. Networks are not 100% reliable, even with modern system configuration tools
-like Chef or Puppet misconfigurations happen and broker might be down, too. Error detection should happen as early as possible. There are two ways of detecting
+When applications connect to the broker, they need to handle connection failures. Networks are not 100% reliable and even with modern system configuration tools,
+like Chef or Puppet, misconfigurations can happen. Also, the broker might be down for some reason. Ideally, error detection should happen as early as possible. There are two ways of detecting
 TCP connection failure, the first one is to catch an exception:
 
 <pre>
@@ -240,11 +240,11 @@ end
 </code>
 </pre>
 
-{AMQP.connect} (and {AMQP.start}) will raise {AMQP::TCPConnectionFailed} if connection fails. Code that catches it can write to log
-about the issue or use retry to execute begin block one more time. Because initial connection failures are due to misconfiguration or network outage, reconnection
-to the same endpoint (hostname, port, vhost combination) will result in the same issue over and over. TBD: failover, connection to the cluster.
+{AMQP.connect} (and {AMQP.start}) will raise {AMQP::TCPConnectionFailed} if the connection fails. Code that catches the error can write to a log
+about the issue or use retry to execute the begin block one more time. Because initial connection failures are due to misconfiguration or network outage, reconnection
+to the same endpoint (hostname, port, vhost combination) will result in the same error over and over again. TBD: failover, connection to the cluster.
 
-Alternative way of handling connection failure is with an errback (a callback for specific kind of error):
+An alternative way of handling connection failure is with an _errback_ (a callback for a specific kind of error):
 
 <pre>
 <code>
@@ -274,9 +274,9 @@ end
 </code>
 </pre>
 
-:on_tcp_connection_failure option accepts any object that responds to #call.
+the ":on_tcp_connection_failure" option accepts any object that responds to #call.
 
-If you connect to the broker from a code in a class (as opposed to top-level scope in a script), Object#method can be used to pass object method as a handler
+If you connect to the broker from code in a class (as opposed to top-level scope in a script), Object#method can be used to pass an object method as a handler
 instead of a Proc.
 
 TBD: provide an example
@@ -284,7 +284,7 @@ TBD: provide an example
 
 h3. Detecting authentication failures
 
-Another reason why connection may fail is authentication failure. Handling authentication failure is very similar to handling initial TCP
+A connection may also fail due to authentication failure. Handling authentication failure is very similar to handling an initial TCP
 connection failure:
 
 <pre>
@@ -354,21 +354,21 @@ end
 </code>
 </pre>
 
-In case you wonder why callback name has "possible" in it: {http://bit.ly/mTr1YN AMQP 0.9.1 spec} requires broker implementations to
-simply close TCP connection without sending any more data when an exception (such as authentication failure) occurs before AMQP connection
-is open. In practice, however, when broker closes TCP connection between successful TCP connection and before AMQP connection is open,
+In case you are wondering why the callback name has "possible" in it, {http://bit.ly/mTr1YN AMQP 0.9.1 spec} requires broker implementations to
+simply close the TCP connection without sending any more data when an exception, such as authentication failure, occurs before the AMQP connection
+is open. In practice, however, when a broker closes a TCP connection after a successful TCP connection has been established but before an AMQP connection is open,
 it means that authentication has failed.
 
 
 
-h2. Starting event loop & connecting in Web applications (Ruby on Rails, Sinatra, Merb, Rack)
+h2. Starting the event loop and connecting in Web applications (Ruby on Rails, Sinatra, Merb, Rack)
 
-Web applications are different from standalone applications in that main thread is occupied by Web/application server like Unicorn
-or Thin, so you need to start EventMachine reactor before you attempt to use {AMQP.connect}.
-In a Ruby on Rails app, probably the best place for this is in initializer (like config/initializers/amqp.rb). For Merb apps, it is config/init.rb.
-For Sinatra and pure Rack applications, place it next to other configuration code.
+Web applications are different from standalone applications in that the main thread is occupied by a Web/application server like Unicorn
+or Thin, so you need to start the EventMachine reactor before you attempt to use {AMQP.connect}.
+In a Ruby on Rails application, probably the best place for this is in the initializer (like config/initializers/amqp.rb). For Merb applications it is config/init.rb.
+For Sinatra and pure Rack applications, place it next to the other configuration code.
 
-Next we are going to discuss issues specific to particular Web servers.
+Next, we are going to discuss issues specific to particular Web servers.
 
 
 
@@ -377,18 +377,18 @@ h3. Using Ruby amqp gem with Unicorn
 h4. Unicorn is a pre-forking server
 
 "Unicorn":http://unicorn.bogomips.org is a pre-forking server. That means it forks worker processes that serve HTTP requests. The "fork(2)":http://en.wikipedia.org/wiki/Fork_(operating_system) system call
-has several gotchas associated with it, two of which affect EventMachine and "Ruby amqp gem":http://github.com/ruby-amqp/amqp:
+has several gotchas associated with it, two of which affect EventMachine and the "Ruby amqp gem":http://github.com/ruby-amqp/amqp:
 
  * Unintentional file descriptor sharing
- * The fact that "forked child process only inherits one thread":http://bit.ly/fork-and-threads (and EventMachine thread thus is not inherited)
+ * The fact that a "forked child process only inherits one thread":http://bit.ly/fork-and-threads and therefore the EventMachine thread is not inherited)
 
-To avoid both problems, start EventMachine reactor and AMQP connection *after* master process forks workers. Master Unicorn process never serves HTTP requests and usually
-doesn't need to hold an AMQP connection. Next lets see how to spin up EventMachine reactor and connect to the broker after Unicorn forks a worker.
+To avoid both problems, start the EventMachine reactor and AMQP connection *after* the master process forks workers. The master Unicorn process never serves HTTP requests and usually
+does not need to hold an AMQP connection. Next, let us see how to spin up the EventMachine reactor and connect to the broker after Unicorn forks a worker.
 
 
-h4. Starting EventMachine reactor and connecting to the broker after Unicorn forks worker processes
+h4. Starting the EventMachine reactor and connecting to the broker after Unicorn forks worker processes
 
-Unicorn lets you specify a configuration file to use. In that file, you define a callback Unicorn runs after it forks worker process(es):
+Unicorn lets you specify a configuration file to use. In that file you define a callback that Unicorn runs after it forks worker process(es):
 
 <pre>
 <code>
@@ -427,30 +427,30 @@ end
 </code>
 </pre>
 
-In the example above we start EventMachine reactor in a separate thread, block current thread for 1 second to let event loop spin up and then
-connect to AMQP broker on the next event loop tick. Publishing several warmup messages on boot is a good idea because it
-lets you detect issues that forking may cause earlier.
+In the example above we start the EventMachine reactor in a separate thread, block the current thread for 1 second to let the event loop spin up and then
+connect to the AMQP broker on the next event loop tick. Publishing several warmup messages on boot is a good idea because it
+allows the early detection of issues that forking may cause.
 
-Note that configuration file can easily be used in development environments: other than the fact that Unicorn runs in the foreground,
-it gives you exactly the same application boot behavior as in QA and production environments, which is a good thing.
+Note that a configuration file can easily be used in development environments because, other than the fact that Unicorn runs in the foreground,
+it gives you exactly the same application boot behavior as in QA and production environments.
 
-An "example Ruby on Rails application that uses Ruby amqp gem and Unicorn":http://bit.ly/ruby-amqp-gem-example-with-ruby-on-rails-and-unicorn is available on GitHub.
-
-
+An "example Ruby on Rails application that uses the Ruby amqp gem and Unicorn":http://bit.ly/ruby-amqp-gem-example-with-ruby-on-rails-and-unicorn is available on GitHub.
 
 
-h3. Using Ruby amqp gem with Passenger
 
-Phusion Passenger is a pre-forking server, much like Unicorn. Just like with Unicorn, EventMachine reactor and AMQP connection should be started *after* it forks worker
-processes. Passenger documentation has "a section":http://bit.ly/passenger-forking-gotchas that explains how to avoid problems related to the behavior of fork(2) system
+
+h3. Using the Ruby amqp gem with Passenger
+
+Phusion Passenger is also a pre-forking server, and just as with Unicorn, the EventMachine reactor and AMQP connection should be started *after* it forks worker
+processes. Passenger documentation has "a section":http://bit.ly/passenger-forking-gotchas that explains how to avoid problems related to the behavior of the fork(2) system
 call, namely:
 
  * Unintentional file descriptor sharing
- * The fact that "forked child process only inherits one thread":http://bit.ly/fork-and-threads (and EventMachine thread thus is not inherited)
+ * The fact that a "forked child process only inherits one thread":http://bit.ly/fork-and-threads and therefore the EventMachine thread is not inherited
 
-h4. Using event handler to spawn one amqp connection per worker
+h4. Using an event handler to spawn one amqp connection per worker
 
-Passenger provides a hook that you should use for spawning AMQP connection: 
+Passenger provides a hook that you should use for spawning AMQP connections: 
 
 <pre>
 <code>
@@ -465,15 +465,15 @@ end
 </code>
 </pre>
 
-Basically, recommended default smart spawn mode works exactly the same as Unicorn (with all the same common pitfalls). An "example application":http://bit.ly/ruby-amqp-gem-example-with-ruby-on-rails-and-passenger is available on github.
+Basically, the recommended default smart spawn mode works exactly the same as in Unicorn (with all the same common pitfalls). An "example application":http://bit.ly/ruby-amqp-gem-example-with-ruby-on-rails-and-passenger is available on github.
 
-h3. Using Ruby amqp gem with Thin and Goliath
+h3. Using the Ruby amqp gem with Thin and Goliath
 
-h4. Thin and Goliath start EventMachine reactor for you, but there is a little nuance
+h4. Thin and Goliath start the EventMachine reactor for you, but there is a little nuance
 
-If you use "Thin":http://code.macournoyer.com/thin/ or "Goliath":https://github.com/postrank-labs/goliath/, you are all set: those two servers use EventMachine under the hood.
-There is no need to start EventMachine reactor. However, depending on app server, it's version, version of the framework and Rack middleware being used,
-EventMachine reactor start may be slightly delayed. To not depend on this factor, use EventMachine.next_tick to delay connection until after reactor is actually running:
+If you use "Thin":http://code.macournoyer.com/thin/ or "Goliath":https://github.com/postrank-labs/goliath/, you are all set because those two servers use EventMachine under the hood.
+There is no need to start the EventMachine reactor. However, depending on application server, its version, the version of the framework and Rack middleware being used,
+EventMachine reactor start may be slightly delayed. To overcome this potential difficulty, use EventMachine.next_tick to delay connection until after the reactor is actually running:
 
 <pre>
 <code>
@@ -481,15 +481,15 @@ EventMachine.next_tick { AMQP.connect(...) }
 </code>
 </pre>
 
-So in case EventMachine reactor isn't running yet on server/application boot, connection won't fail but instead wait for reactor to start.
-Thin and Goliath are not pre-forking servers so there is no need to re-establish connection the way you do it with Unicorn and Passenger.
+So, in case the EventMachine reactor is not running yet on server/application boot, the connection will not fail but will instead wait for the reactor to start.
+Thin and Goliath are not pre-forking servers so there is no need to re-establish the connection as you do with Unicorn and Passenger.
 
 
 
 
-h2. If it just doesn't work: troubleshooting
+h2. If it just does not work: troubleshooting
 
-If you read this guide yet your issue is still unresolved, check our {file:docs/Troubleshooting.textile Troubleshooting guide} before asking on the mailing list
+If you have read this guide and your issue is still unresolved, check our {file:docs/Troubleshooting.textile Troubleshooting guide} before asking on the mailing list.
 
 
 
@@ -499,16 +499,16 @@ h2. What to read next
  * {file:docs/Queues.textile Working With Queues}. This guide focuses on features consumer applications use heavily.
  * {file:docs/Exchanges.textile Working With Exchanges}. This guide focuses on features producer applications use heavily.
  * {file:docs/ErrorHandling.textile Error handling}
- * {file:docs/ConnectionEncryptionWithTLS.textile Using TLS (SSL)} (if you want to use SSL encrypted connection to the broker)
+ * {file:docs/ConnectionEncryptionWithTLS.textile Using TLS (SSL)} (if you want to use an SSL encrypted connection to the broker)
 
 
 h2. Tell us what you think!
 
-Please take a moment and tell us what you think about this guide "on Twitter":http://twitter.com/rubyamqp or "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp:
-what was unclear? what wasn't covered? maybe you don't like guide style or grammar and spelling are incorrect? Readers feedback is
-key to making documentation better.
+Please take a moment to tell us what you think about this guide "on Twitter":http://twitter.com/rubyamqp or the "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp.
+ Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is
+key to making the documentation better.
 
-If mailing list communication is not an option for you for some reason, you can "contact guides author directly":mailto:michael@novemberain.com?subject=amqp%20gem%20documentation
+If, for some reason, you cannot use the communication channels mentioned above, you can "contact the author of the guides directly":mailto:michael@novemberain.com?subject=amqp%20gem%20documentation
 
 
 
