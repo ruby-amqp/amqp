@@ -22,9 +22,6 @@ group(:development) do
   gem "yard"
   # yard tags this buddy along
   gem "RedCloth", :platform => :mri
-
-  custom_gem "nake",         :platform => :ruby_19
-  custom_gem "contributors", :platform => :ruby_19
 end
 
 group(:test) do
