@@ -196,6 +196,7 @@ module AMQP
     # @endgroup
 
 
+    # @return [String] Readable representation of relevant object state.
     def inspect
       "#<AMQP::Consumer:#{@consumer_tag}> queue=#{@queue.name} channel=#{@channel.id} callbacks=#{@callbacks.inspect}"
     end # inspect

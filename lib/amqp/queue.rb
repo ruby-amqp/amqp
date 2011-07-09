@@ -312,6 +312,14 @@ module AMQP
     # @api plugin
     def auto_recover
       self.exec_callback_yielding_self(:before_recovery)
+
+      if self.server_named?
+        old_name = @name.dup
+        @name    = AMQ::Protocol::EMPTY_STRING
+
+        @channel.queues.delete(old_name)
+      end
+
       self.redeclare do
         @declaration_deferrable.succeed
         self.rebind

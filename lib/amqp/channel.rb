@@ -822,6 +822,13 @@ module AMQP
       register_queue(queue)
     end
 
+    # @return [Array<AMQP::Queue>] Queues cache for this channel
+    # @api plugin
+    # @private
+    def queues
+      @queues
+    end # queues
+
     # @endgroup
 
 
