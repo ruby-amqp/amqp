@@ -47,10 +47,38 @@ module AMQP
       }
     end # initialize(*args, &block)
 
+    # @return [Boolean] true if this AMQP connection is currently open
     # @api plugin
     def connected?
       self.opened?
     end
+
+    # @return [String] Broker hostname this connection uses
+    # @api public
+    def hostname
+      @settings[:host]
+    end
+    alias host hostname
+
+    # @return [String] Broker port this connection uses
+    # @api public
+    def port
+      @settings[:port]
+    end
+
+    # @return [String] Broker endpoint in the form of HOST:PORT/VHOST
+    # @api public
+    def broker_endpoint
+      "#{self.hostname}:#{self.port}/#{self.vhost}"
+    end
+
+    # @return [String] Username used by this connection
+    # @api public
+    def username
+      @settings[:user]
+    end # username
+    alias user username
+
 
     # Reconnect to the broker using current connection settings.
     #
