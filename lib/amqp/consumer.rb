@@ -196,5 +196,10 @@ module AMQP
     # @endgroup
 
 
+    def inspect
+      "#<AMQP::Consumer:#{@consumer_tag}> queue=#{@queue.name} channel=#{@channel.id} callbacks=#{@callbacks.inspect}"
+    end # inspect
+
+
   end # Consumer
 end # AMQP
