@@ -10,6 +10,9 @@ require 'amqp'
 
 EventMachine.run do
   AMQP.connect(:host => '127.0.0.1') do |connection|
+    puts
+    puts "Connected to #{connection.hostname}:#{connection.port}/#{connection.vhost}"
+    puts
     puts "Client properties:"
     puts
     puts connection.client_properties.inspect
