@@ -20,8 +20,7 @@ MQ should have been called Channel all along). No other AMQP client library we k
 of invents it's own terminology when it comes to AMQP entities, and amqp gem shouldn't,
 too.
 
-If you disagree with this really strongly, let us know by opening an issue at
-https://github.com/ruby-amqp/amqp/issues
+Learn more at http://bit.ly/amqp-gem-080-migration.
 
 Thank you for understanding. AMQP gem maintainers team.
 
