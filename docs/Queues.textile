@@ -14,7 +14,6 @@ h2. Which versions of the amqp gem does this guide cover?
 This guide covers v0.8.0 and later of the "Ruby amqp gem":http://github.com/ruby-amqp/amqp.
 
 
-
 h2. Queues in AMQP v0.9.1 - overview
 
 h3. What are AMQP queues?
@@ -25,7 +24,7 @@ to queues and finally queues deliver the messages to consumer applications (or c
 
 Note that unlike some other messaging protocols/systems, messages are not delivered directly
 to queues. They are delivered to exchanges that route messages to queues using rules
-knows as _bindings_.
+known as _bindings_.
 
 AMQP is a programmable protocol, so queues and bindings alike are declared by applications.
 
@@ -781,7 +780,7 @@ The prefetching setting is ignored for consumers that do not use explicit acknow
 
 h2. How message acknowledgements relate to transactions and Publisher Confirms
 
-In cases when you cannot afford to lose a single message, AMQP v0.9.1 applications can use one or a combination of
+In cases where you cannot afford to lose a single message, AMQP v0.9.1 applications can use one or a combination of
 the following protocol features:
 
  * Publisher confirms (a RabbitMQ-specific extension to AMQP v0.9.1)
@@ -908,7 +907,6 @@ Full example:
 <script src="https://gist.github.com/1068363.js"> </script>
 
 
-
 h2. Querying the number of consumers on a queue
 
 It is possible to query the number of consumers on a queue by declaring the queue with the ":passive" attribute set.
@@ -927,7 +925,6 @@ end
 
 Full example:
 <script src="https://gist.github.com/1068377.js"> </script>
-
 
 
 h2. Purging queues
@@ -985,19 +982,12 @@ Full example:
 <script src="https://gist.github.com/998744.js"> </script>
 
 
-
 h2. Objects as message consumers and unit testing consumers in isolation
 
 Since Ruby is a genuine object-oriented language, it is important to demonstrate how the Ruby amqp gem can be
 integrated into rich object-oriented code. This part of the guide focuses on queues and the problems/solutions
-concerning consumer applications (applications that primarily receive and process messages, as opposed to
-h2. Tell us what you think!
-
-Please take a moment to tell us what you think about this guide "on Twitter":http://twitter.com/rubyamqp or the "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp.
- Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is
-key to making the documentation better.
-
-If, for some reason, you cannot use the communication channels mentioned above, you can "contact the author of the guides directly":mailto:michael@novemberain.com?subject=amqp%20gem%20documentationproducers that publish them).
+concerning consumer applications (applications that primarily receive and process messages, as opposed to producers
+that publish them).
 
 An {AMQP::Queue#subscribe} callback does not have to be a block. It can be any Ruby object that responds to the
 `call` method. A common technique is to combine {http://rubydoc.info/stdlib/core/1.8.7/Object:method Object#method}
@@ -1091,7 +1081,6 @@ class Worker
   end # start
 
 
-
   #
   # Implementation
   #
@@ -1143,7 +1132,6 @@ end
 TBD
 
 
-
 h2. Queue durability vs message durability
 
 See {file:docs/Durability.textile Durability guide}
@@ -1175,11 +1163,11 @@ per-queue messages time-to-live (TTL), is related to this guide and can be used 
 
 h2. Tell us what you think!
 
-Please take a moment and tell us what you think about this guide "on Twitter":http://twitter.com/rubyamqp or "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp:
-what was unclear? what wasn't covered? maybe you don't like guide style or grammar and spelling are incorrect? Readers feedback is
-key to making documentation better.
+Please take a moment to tell us what you think about this guide "on Twitter":http://twitter.com/rubyamqp or the "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp.
+ Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is
+key to making the documentation better.
 
-If mailing list communication is not an option for you for some reason, you can "contact guides author directly":mailto:michael@novemberain.com?subject=amqp%20gem%20documentation
+If, for some reason, you cannot use the communication channels mentioned above, you can "contact the author of the guides directly":mailto:michael@novemberain.com?subject=amqp%20gem%20documentation
 
 
 <div id="disqus_thread"></div>
