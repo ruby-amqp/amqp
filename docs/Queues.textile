@@ -482,7 +482,7 @@ consumers. Each AMQP connection opens a single channel:
 
 <pre>
 <code>
-# open two connections to imitate two apps
+# open three connections to imitate three apps
 connection1 = AMQP.connect
 connection2 = AMQP.connect
 connection3 = AMQP.connect
