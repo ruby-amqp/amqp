@@ -66,6 +66,10 @@ module AMQP
     def resubscribe(&block)
       @channel.once_open do
         @queue.once_declared do
+          self.unregister_with_channel
+          @consumer_tag = self.class.tag_generator.generate_for(@queue)
+          self.register_with_channel
+
           super(&block)
         end
       end
@@ -190,6 +194,12 @@ module AMQP
     end # auto_recover
 
     # @endgroup
+
+
+    # @return [String] Readable representation of relevant object state.
+    def inspect
+      "#<AMQP::Consumer:#{@consumer_tag}> queue=#{@queue.name} channel=#{@channel.id} callbacks=#{@callbacks.inspect}"
+    end # inspect
 
 
   end # Consumer

@@ -24,9 +24,6 @@ group(:development) do
   gem "RedCloth",  :platform => :mri
   gem "rdiscount", :platform => :ruby
 
-  custom_gem "nake",         :platform => :ruby_19
-  custom_gem "contributors", :platform => :ruby_19
-
   # To test event loop helper and various Rack apps
   gem "thin",    :platform => :ruby
   gem "unicorn", :platform => :ruby

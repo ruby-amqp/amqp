@@ -51,6 +51,15 @@ describe "Authentication attempt" do
 
           done(0.5) {
             connection.should be_connected
+
+            connection.username.should        == "amqp_gem"
+            connection.user.should            == "amqp_gem"
+            connection.hostname.should        == "localhost"
+            connection.host.should            == "localhost"
+            connection.port.should            == 5672
+            connection.vhost.should           == "amqp_gem_testbed"
+            connection.broker_endpoint.should == "localhost:5672/amqp_gem_testbed"
+
             connection.close
           }
         end # it

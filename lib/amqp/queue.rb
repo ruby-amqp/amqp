@@ -296,12 +296,42 @@ module AMQP
       self
     end
 
+
+    # @group Error Handling and Recovery
+
     # Used by automatic recovery machinery.
     # @private
     # @api plugin
     def rebind(&block)
       @bindings.each { |b| self.bind(b[:exchange], b) }
     end
+
+    # Called by associated connection object when AMQP connection has been re-established
+    # (for example, after a network failure).
+    #
+    # @api plugin
+    def auto_recover
+      self.exec_callback_yielding_self(:before_recovery)
+
+      if self.server_named?
+        old_name = @name.dup
+        @name    = AMQ::Protocol::EMPTY_STRING
+
+        @channel.queues.delete(old_name)
+      end
+
+      self.redeclare do
+        @declaration_deferrable.succeed
+        self.rebind
+
+        @consumers.each { |tag, consumer| consumer.auto_recover }
+
+        self.exec_callback_yielding_self(:after_recovery)
+      end
+    end # auto_recover
+
+    # @endgroup
+
 
 
 
