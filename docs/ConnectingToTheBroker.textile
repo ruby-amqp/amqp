@@ -207,7 +207,7 @@ blocking the thread _will also block the event loop_. *When the event loop is bl
 h3. Detecting TCP connection failures
 
 When applications connect to the broker, they need to handle connection failures. Networks are not 100% reliable and even with modern system configuration tools,
-like Chef or Puppet, misconfigurations can happen. Also, the broker might be down for some reason. Ideally, error detection should happen as early as possible. There are two ways of detecting
+like "Chef":http://http://www.opscode.com/chef or "Puppet":http://http://www.puppetlabs.com, misconfigurations can happen. Also, the broker might be down for some reason. Ideally, error detection should happen as early as possible. There are two ways of detecting
 TCP connection failure, the first one is to catch an exception:
 
 <pre>
@@ -380,7 +380,7 @@ h4. Unicorn is a pre-forking server
 has several gotchas associated with it, two of which affect EventMachine and the "Ruby amqp gem":http://github.com/ruby-amqp/amqp:
 
  * Unintentional file descriptor sharing
- * The fact that a "forked child process only inherits one thread":http://bit.ly/fork-and-threads and therefore the EventMachine thread is not inherited)
+ * The fact that a "forked child process only inherits one thread":http://bit.ly/fork-and-threads and therefore the EventMachine thread is not inherited
 
 To avoid both problems, start the EventMachine reactor and AMQP connection *after* the master process forks workers. The master Unicorn process never serves HTTP requests and usually
 does not need to hold an AMQP connection. Next, let us see how to spin up the EventMachine reactor and connect to the broker after Unicorn forks a worker.
@@ -441,8 +441,8 @@ An "example Ruby on Rails application that uses the Ruby amqp gem and Unicorn":h
 
 h3. Using the Ruby amqp gem with Passenger
 
-Phusion Passenger is also a pre-forking server, and just as with Unicorn, the EventMachine reactor and AMQP connection should be started *after* it forks worker
-processes. Passenger documentation has "a section":http://bit.ly/passenger-forking-gotchas that explains how to avoid problems related to the behavior of the fork(2) system
+"Phusion Passenger":http://www.modrails.com is also a pre-forking server, and just as with Unicorn, the EventMachine reactor and AMQP connection should be started *after* it forks worker
+processes. The Passenger documentation has "a section":http://bit.ly/passenger-forking-gotchas that explains how to avoid problems related to the behavior of the fork(2) system
 call, namely:
 
  * Unintentional file descriptor sharing
@@ -465,14 +465,14 @@ end
 </code>
 </pre>
 
-Basically, the recommended default smart spawn mode works exactly the same as in Unicorn (with all the same common pitfalls). An "example application":http://bit.ly/ruby-amqp-gem-example-with-ruby-on-rails-and-passenger is available on github.
+Basically, the recommended default smart spawn mode works exactly the same as in Unicorn (with all of the same common pitfalls). An "example application":http://bit.ly/ruby-amqp-gem-example-with-ruby-on-rails-and-passenger is available on github.
 
 h3. Using the Ruby amqp gem with Thin and Goliath
 
 h4. Thin and Goliath start the EventMachine reactor for you, but there is a little nuance
 
 If you use "Thin":http://code.macournoyer.com/thin/ or "Goliath":https://github.com/postrank-labs/goliath/, you are all set because those two servers use EventMachine under the hood.
-There is no need to start the EventMachine reactor. However, depending on application server, its version, the version of the framework and Rack middleware being used,
+There is no need to start the EventMachine reactor. However, depending on the application server, its version, the version of the framework and Rack middleware being used,
 EventMachine reactor start may be slightly delayed. To overcome this potential difficulty, use EventMachine.next_tick to delay connection until after the reactor is actually running:
 
 <pre>
@@ -481,7 +481,7 @@ EventMachine.next_tick { AMQP.connect(...) }
 </code>
 </pre>
 
-So, in case the EventMachine reactor is not running yet on server/application boot, the connection will not fail but will instead wait for the reactor to start.
+So, in case the EventMachine reactor is not yet running on server/application boot, the connection will not fail but will instead wait for the reactor to start.
 Thin and Goliath are not pre-forking servers so there is no need to re-establish the connection as you do with Unicorn and Passenger.
 
 
