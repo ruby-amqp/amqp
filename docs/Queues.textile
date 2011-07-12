@@ -276,7 +276,7 @@ Full example:
 
 h2. Subscribing to receive messages ("push API")
 
-To setup a queue subscription to enable an application to receive messages as they arrive in a queue, one uses the
+To set up a queue subscription to enable an application to receive messages as they arrive in a queue, one uses the
 {AMQP::Queue#subscribe} method. Then when a message arrives, the message header (metadata) and body (payload) are
 passed to the handler:
 
@@ -304,7 +304,7 @@ h3. Accessing message metadata
 The `header` object in the example above provides access to message metadata and delivery information:
 
  * Message content type
- * Message content­encoding
+ * Message content­ encoding
  * Message routing key
  * Message delivery mode (persistent or not)
  * Consumer tag this delivery is for
@@ -457,7 +457,7 @@ It can be right after receiving a message, or after persisting it to a data stor
 processing the message (for example, successfully fetching a Web page, processing and storing it into some persistent
 data store).
 
-If a consumer dies without sending an acknowlegement, the AMQP broker will redeliver it to another consumer, or, if
+If a consumer dies without sending an acknowledgement, the AMQP broker will redeliver it to another consumer, or, if
 none are available at the time, the broker will wait until at least one consumer is registered for the same queue
 before attempting redelivery.
 
@@ -482,7 +482,7 @@ consumers. Each AMQP connection opens a single channel:
 
 <pre>
 <code>
-# open two connections to imitate two apps
+# open three connections to imitate three apps
 connection1 = AMQP.connect
 connection2 = AMQP.connect
 connection3 = AMQP.connect
@@ -516,7 +516,7 @@ exchange = channel3.direct("amq.direct")
 # ...
 
 queue1    = channel1.queue("amqpgem.examples.acknowledgements.explicit", :auto_delete => false)
-# purge the queue so that we don't get any redeliveries from previous runs
+# purge the queue so that we do not get any redeliveries from previous runs
 queue1.purge
 queue1.bind(exchange).subscribe(:ack => true) do |metadata, payload|
   # do some work
@@ -530,7 +530,7 @@ queue1.bind(exchange).subscribe(:ack => true) do |metadata, payload|
   else
     # odd messages are not ack-ed and will remain in the queue for redelivery
     # when app #1 connection is closed (either properly or due to a crash)
-    puts "[consumer1] Got message ##{metadata.headers['i']}, SKIPPPED"
+    puts "[consumer1] Got message ##{metadata.headers['i']}, SKIPPED"
   end
 end
 
@@ -554,11 +554,11 @@ An extract of output produced by this example:
 => Subscribing for messages using explicit acknowledgements model
 
 [consumer2] Received Message #0, redelivered = false, ack-ed
-[consumer1] Got message #1, SKIPPPED
-[consumer1] Got message #2, SKIPPPED
+[consumer1] Got message #1, SKIPPED
+[consumer1] Got message #2, SKIPPED
 [consumer1] Got message #3, ack-ed
 [consumer2] Received Message #4, redelivered = false, ack-ed
-[consumer1] Got message #5, SKIPPPED
+[consumer1] Got message #5, SKIPPED
 [consumer2] Received Message #6, redelivered = false, ack-ed
 [consumer2] Received Message #7, redelivered = false, ack-ed
 [consumer2] Received Message #8, redelivered = false, ack-ed
@@ -598,10 +598,10 @@ An extract of output produced by this example:
 As we can see, consumer #1 did not acknowledge 3 messages (labelled 1, 2 and 5):
 
 <pre>
-[consumer1] Got message #1, SKIPPPED
-[consumer1] Got message #2, SKIPPPED
+[consumer1] Got message #1, SKIPPED
+[consumer1] Got message #2, SKIPPED
 ...
-[consumer1] Got message #5, SKIPPPED
+[consumer1] Got message #5, SKIPPED
 </pre>
 
 and then, once consumer #1 had "crashed", those messages were immediately redelivered to the consumer #2:
@@ -661,7 +661,7 @@ To reject a message use the {AMQP::Channel#reject} method:
 <pre>
 <code>
 queue.bind(exchange).subscribe do |metadata, payload|
-  # reject but don't requeue (simply discard)
+  # reject but do not requeue (simply discard)
   channel.reject(metadata.delivery_tag)
 end
 </code>
@@ -673,7 +673,7 @@ rejected message, use the second argument that {AMQP::Channel#reject} takes:
 <pre>
 <code>
 queue.bind(exchange).subscribe do |metadata, payload|
-  # reject & requeue
+  # reject and requeue
   channel.reject(metadata.delivery_tag, true)
 end
 </code>
@@ -756,11 +756,11 @@ all subsequent messages were delivered to `consumer2`:
 
 <pre>
 [consumer2] Received Message #0, redelivered = false, ack-ed
-[consumer1] Got message #1, SKIPPPED
-[consumer1] Got message #2, SKIPPPED
+[consumer1] Got message #1, SKIPPED
+[consumer1] Got message #2, SKIPPED
 [consumer1] Got message #3, ack-ed
 [consumer2] Received Message #4, redelivered = false, ack-ed
-[consumer1] Got message #5, SKIPPPED
+[consumer1] Got message #5, SKIPPED
 ---
   by now consumer 1 has received 3 messages it did not acknowledge.
   With prefetch = 3, AMQP broker will not send it any more messages until consumer 1 sends an ack
