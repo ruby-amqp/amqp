@@ -5,90 +5,96 @@ h1. Working with exchanges
 
 h2. About this guide
 
-This guide covers exchanges in AMQP 0.9.1, message publishing, common usage scenarios and how to accomplish typical operations using
-Ruby amqp gem.
+This guide covers the use of exchanges according to the AMQP v0.9.1 specification including message publishing,
+common usage scenarios and how to accomplish typical operations using the Ruby amqp gem.
 
 
-h2. Covered versions
+h2. Which versions of the amqp gem does this guide cover?
 
-This guide covers "Ruby amqp gem":http://github.com/ruby-amqp/amqp v0.8.0 and later.
+This guide covers v0.8.0 and later of the "Ruby amqp gem":http://github.com/ruby-amqp/amqp.
 
 
-h2. Exchanges in AMQP 0.9.1, briefly
+h2. Exchanges in AMQP v0.9.1 - overview
 
 h3. What are AMQP exchanges?
 
-An exchange accepts messages from a producer application and routes these to message queues. They can be thought of as "mailboxes" of AMQP
-world. Unlike some other messaging middleware products and protocols, in AMQP messages are *not* published directly to queues: they
-are published to exchanges that route them to queue(s) using pre-arranged criteria (called bindings).
+An _exchange_ accepts messages from a producer application and routes them to message queues. They can be thought of
+as the "mailboxes" of the AMQP world. Unlike some other messaging middleware products and protocols, in AMQP,
+messages are *not* published directly to queues. Messages are published to exchanges that route them to queue(s)
+using pre-arranged criteria called _bindings_.
 
-There are multiple exchange types in AMQP 0.9.1, each with its own routing semantics. Custom exchange types can be created to cover
-sophisticated routing scenarios (for example, routing based on geolocation data), edge cases or just for convenience.
+There are multiple exchange types in the AMQP v0.9.1 specification, each with its own routing semantics. Custom
+exchange types can be created to deal with sophisticated routing scenarios (e.g. routing based on geolocation data
+or edge cases) or just for convenience.
 
 
 h3. Concept of bindings
 
-Binding is an association between a queue and an exchange. Queues must be bound to at least one exchange in order to receive messages from publishers.
-Learn more about bindings in {file:docs/Bindings.textile Bindings guide}.
+A _binding_ is an association between a queue and an exchange. A queue must be bound to at least one exchange in
+order to receive messages from publishers. Learn more about bindings in the {file:docs/Bindings.textile Bindings guide}.
 
 
-h3. Attributes
+h3. Exchange attributes
 
 Exchanges have several attributes associated with them:
 
  * Name
  * Type (direct, fanout, topic, headers or some custom type)
  * Durability
- * Whether exchange is auto-deleted when no longer used
- * Other metadata (aka X-arguments)
+ * Whether the exchange is auto-deleted when no longer used
+ * Other metadata (sometimes known as _X-arguments_)
 
 
 h2. Exchange types
 
-There are 4 built-in exchange types in AMQP 0.9.1:
+There are 4 built-in exchange types in AMQP v0.9.1:
 
  * Direct
  * Fanout
  * Topic
  * Headers
 
-As stated previously, each exchange type has own routing semantics and new exchange types can be added by extending brokers with plugins.
-Custom exchange types begin with x-, much like custom HTTP headers, for example, "x-recent-history exchange":https://github.com/videlalvaro/rabbitmq-recent-history-exchange
-or "x-random exchange":https://github.com/jbrisbin/random-exchange.
-
-
+As stated previously, each exchange type has its own routing semantics and new exchange types can be added by
+extending brokers with plugins. Custom exchange types begin with "x-", much like custom HTTP headers, e.g.
+"x-recent-history exchange":https://github.com/videlalvaro/rabbitmq-recent-history-exchange or
+"x-random exchange":https://github.com/jbrisbin/random-exchange.
 
 
 h2. Message attributes
 
-Before we start looking at various exchange types and their routing semantics, we need to introduce idea of message attributes.
-Every AMQP message has a number of *attributes*. Some attributes are important and used very often, other are used rarely. AMQP message attributes are metadata:
-they are similar in purpose to HTTP request and response headers.
+Before we start looking at various exchange types and their routing semantics, we need to introduce message
+attributes. Every AMQP message has a number of *attributes*. Some attributes are important and used very often,
+others are rarely used. AMQP message attributes are metadata and are similar in purpose to HTTP request and
+response headers.
 
-Every AMQP 0.9.1 message has an attribute called the *routing key*. The routing key is an "address" that the exchange may use to decide how to route
-the message (similar to, but more generic than, URL in HTTP). Most exchange types use routing key to implement routing logic, but some ignore
-it and use other criteria (for example, message content).
-
-
+Every AMQP v0.9.1 message has an attribute called *routing key*. The routing key is an "address" that the exchange
+may use to decide how to route the message . This is similar to, but more generic than, a URL in HTTP. Most exchange
+types use the routing key to implement routing logic, but some ignore it and use other criteria (e.g. message
+content).
 
 
 h2. Fanout exchanges
 
 h3. How fanout exchanges route messages
 
-Fanout exchanges route messages to all queues bound to it, the routing key is ignored. If N queues are bound to a fanout exchange,
-when a new message is published to that exchange, a *copy of the message* is delivered to all N queues, so fanout exchanges
-are ideal for "broadcast routing":http://en.wikipedia.org/wiki/Broadcasting_%28computing%29 of messages.
+A fanout exchange routes messages to all of the queues that are bound to it and the routing key is ignored. If N
+queues are bound to a fanout exchange, when a new message is published to that exchange a *copy of the message* is
+delivered to all N queues. Fanout exchanges are ideal for the
+"broadcast routing":http://en.wikipedia.org/wiki/Broadcasting_%28computing%29 of messages.
 
-Graphically this can be represented as
+Graphically this can be represented as:
 
 !https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/004_fanout_exchange.png!
 
 
 h3. Declaring a fanout exchange
 
-There are two ways to declare a fanout exchange: using by instantiating {AMQP::Exchange} and specifying type as `:fanout`, or
-with {AMQP::Channel#fanout}. Two examples to demonstrate:
+There are two ways to declare a fanout exchange:
+
+ * By instantiating an {AMQP::Exchange} and specifying the type as ":fanout"
+ * By using the {AMQP::Channel#fanout} method
+ 
+Here are two examples to demonstrate:
 
 <pre>
 <code>
@@ -102,11 +108,11 @@ exchange = channel.fanout("nodes.metadata")
 </code>
 </pre>
 
-Both methods asynchronously declare a queue. Because declaration takes a network roundtrip, publishing operations on {AMQP::Exchange} instances are
-delayed until broker reply (exchange.declare-ok) is received.
+Both methods asynchronously declare a queue. Because the declaration necessitates a network round-trip, publishing
+operations on {AMQP::Exchange} instances are delayed until the broker reply (`exchange.declare-ok`) is received.
 
-
-Both methods let you pass a block to run a piece of code when broker responds with exchange.declare-ok (meaning exchange is successfully declared).
+Also, both methods let you pass a block to run a piece of code when the broker responds with an `exchange.declare-ok`
+(meaning that the exchange has been successfully declared).
 
 <pre>
 <code>
@@ -116,10 +122,10 @@ end
 </code>
 </pre>
 
-h3. Routing example
+h3. Fanout routing example
 
-To demonstrate this routing behavior, we can declare 10 server-named exclusive queues and bind them all to one fanout exchange,
-then publish a message there:
+To demonstrate fanout routing behavior we can declare 10 server-named exclusive queues, bind them all to one
+fanout exchange and then publish a message to the exchange:
 
 <pre>
 <code>
@@ -136,7 +142,7 @@ end
 
 <pre>
 <code>
-# Publish some test data in a bit, after all queues are declared & bound
+# Publish some test data after all queues are declared and bound
 EventMachine.add_timer(1.2) { exchange.publish "Hello, fanout exchanges world!" }
 </code>
 </pre>
@@ -156,51 +162,57 @@ Queue amq.gen-sDeVZg9Vx1knq+n9EMi8tA== received Hello, fanout exchanges world!
 Queue amq.gen-uWOuVaosW4bWAHqKG6pZVw== received Hello, fanout exchanges world!
 </pre>
 
-All the queues bound to the exchange receives a *copy* of the message.
+Each of the queues bound to the exchange receives a *copy* of the message.
 
 
 Full example:
 <script src="https://gist.github.com/1020181.js"> </script>
 
 
-h3. Use cases
+h3. Fanout use cases
 
-Because fanout exchanges deliver a copy of a message to every queue bound to it, use cases for it are quite similar:
+Because a fanout exchange delivers a copy of a message to every queue bound to it, its use cases are quite similar:
 
- * MMO games can use it for leaderboard updates or other global events.
- * Sport news sites can use fanout exchanges for distributing score updates to mobile clients in near real-time.
- * Distributed systems can broadcast various state and configuration updates.
- * Group chats can distribute messages between participants using a fanout exchange (although AMQP doesn't have built-in concept of presence, so "XMPP":http://xmpp.org may be a better choice)
+ * Massively multiplayer online (MMO) games can use it for leaderboard updates or other global events
+ * Sport news sites can use fanout exchanges for distributing score updates to mobile clients in near real-time
+ * Distributed systems can broadcast various state and configuration updates
+ * Group chats can distribute messages between participants using a fanout exchange (although AMQP does not have a built-in concept of presence, so "XMPP":http://xmpp.org may be a better choice)
 
 
 h3. Pre-declared fanout exchanges
 
-AMQP 0.9.1 brokers must implement fanout exchange type and pre-declare one instance with the name of "amq.fanout".
-Applications can rely on that exchange to always be available to them. Each vhost has a separate instance of that exchange,
-it is *not shared across vhosts* for obvious reasons.
-
+AMQP v0.9.1 brokers must implement a fanout exchange type and pre-declare one instance with the name of "amq.fanout".
+Applications can rely on that exchange always being available to them. Each vhost has a separate instance of that exchange, it is *not shared across vhosts* for obvious reasons.
 
 
 h2. Direct exchanges
 
 h3. How direct exchanges route messages
 
-Direct exchange delivers messages to queues based on *message routing key*, an attribute every AMQP 0.9.1 message has.
+A direct exchange delivers messages to queues based on a *message routing key*, an attribute that every AMQP v0.9.1
+message contains.
 
 Here is how it works:
 
- * A queue binds to the exchange with a routing key, K.
- * When a new message with routing key R arrives to direct exchange, the exchange routes it to the queue if K = R.
+ * A queue binds to the exchange with a routing key K
+ * When a new message with routing key R arrives at the direct exchange, the exchange routes it to the queue if K = R
 
-Direct exchange is ideal for "unicast routing":http://en.wikipedia.org/wiki/Unicast of messages (although it can be used for "multicast routing":http://en.wikipedia.org/wiki/Multicast, too).
+A direct exchange is ideal for the "unicast routing":http://en.wikipedia.org/wiki/Unicast of messages (although they
+can be used for "multicast routing":http://en.wikipedia.org/wiki/Multicast as well).
+
+Here is a graphical representation:
 
 !https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/005_direct_exchange.png!
 
 
 h3. Declaring a direct exchange
 
-There are two ways to declare a direct exchange: using by instantiating {AMQP::Exchange} and specifying type as `:direct`, or
-with {AMQP::Channel#direct}. Two examples to demonstrate:
+There are two ways to declare a direct exchange:
+
+ * By instantiating a {AMQP::Exchange} and specifying its type as ":direct"
+ * By using the {AMQP::Channel#direct} method
+ 
+Here are two examples to demonstrate:
 
 <pre>
 <code>
@@ -214,11 +226,11 @@ exchange = channel.direct("nodes.metadata")
 </code>
 </pre>
 
-Both methods asynchronously declare a queue. Because declaration takes a network roundtrip, publishing operations on {AMQP::Exchange} instances are
-delayed until broker reply (exchange.declare-ok) is received.
+Both methods asynchronously declare a queue. Because the declaration necessitates a network round trip, publishing
+operations on {AMQP::Exchange} instances are delayed until a broker reply (`exchange.declare-ok`) is received.
 
-
-Both methods let you pass a block to run a piece of code when broker responds with exchange.declare-ok (meaning exchange is successfully declared).
+Also, both methods let you pass a block to run a piece of code when the broker responds with `exchange.declare-ok`
+(meaning that the exchange has been successfully declared).
 
 <pre>
 <code>
@@ -229,62 +241,71 @@ end
 </pre>
 
 
+h3. Direct routing example
 
-h3. Routing example
+Since direct exchanges use the *message routing key* for routing, message producers need to specify it:
 
-Since direct exchanges use *message routing key* for routing, message producers need to specify it:
 <pre>
 <code>
 exchange.publish("Hello, direct exchanges world!", :routing_key => "amqpgem.examples.queues.shared")
 </code>
 </pre>
 
-The routing key then will be compared [for equality] with routing keys on bindings and consumers that subscribed with
+The routing key will then be compared for equality with routing keys on bindings, and consumers that subscribed with
 the same routing key each get a copy of the message:
 
 Full example:
 <script src="https://gist.github.com/1041787.js"> </script>
 
 
-
 h3. Direct exchanges and load balancing of messages
 
 Direct exchanges are often used to distribute tasks between multiple workers (instances of the same application) in
-a round robin manner. When doing so, it is important to understand that in AMQP 0.9.1, *messages are load balanced between
-consumers, not between queues*.
+a round robin manner. When doing so, it is important to understand that, in AMQP v0.9.1, *messages are load balanced
+between consumers and not between queues*.
 
-Ruby amqp gem historically has a limitation that only one consumer (message handler) is allowed per one {AMQP::Queue} instance.
-This limitation will be addressed in the future, but with amqp gem 0.8.x, if you want to load balance messages between multiple
-consumers in the same application/OS process, you need to use a separate channel for each of them.
+The Ruby amqp gem historically has a limitation that only one consumer (message handler) is allowed per {AMQP::Queue}
+instance, however, this limitation will be addressed in the future. With the amqp gem v0.8.x, if you want to load
+balance messages between multiple consumers in the same application/OS process, then you need to use a separate
+channel for each of the consumers.
 
-{file:docs/Queues.textile Working With Queues} and {file:docs/PatternsAndUseCases.textile Patterns and Use Cases} guides provide more information on this subject.
-
+The {file:docs/Queues.textile Working With Queues} and {file:docs/PatternsAndUseCases.textile Patterns and Use Cases}
+guides provide more information on this subject.
 
 
 h3. Pre-declared direct exchanges
 
-AMQP 0.9.1 brokers must implement direct exchange type and pre-declare two instances
+AMQP v0.9.1 brokers must implement a direct exchange type and pre-declare two instances:
 
- * *amq.direct*.
- * *""* (unnamed, referred to as an empty string by many clients including amqp Ruby gem) exchange known as *default exchange*.
+ * *amq.direct*
+ * *""* exchange known as *default exchange* (unnamed, referred to as an empty string by many clients including amqp Ruby gem)
 
-Applications can rely on those exchanges to always be available to them. Each vhost has separate instances of those exchanges,
-they are *not shared across vhosts* for obvious reasons.
+Applications can rely on those exchanges always being available to them. Each vhost has separate instances of those
+exchanges, they are *not shared across vhosts* for obvious reasons.
 
 
 h3. Default exchange
 
-Default exchange is a direct exchange with no name (amqp gem refers to it using an empty string) pre-declared by the broker. It has one key special
-property that makes it very useful for simple applications: *every queue is automatically bound to it with a routing key the same as queue name".
+The default exchange is a direct exchange with no name (the amqp gem refers to it using an empty string) pre-declared
+by the broker. It has one special property that makes it very useful for simple applications, namely that *every
+queue is automatically bound to it with a routing key which is the same as the queue name*.
 
-For example, when you declare a queue with the name of "search.indexing.online", AMQP broker will bind it to the default exchange using
-"search.indexing.online" as routing key. So a message publishes to the default exchange with routing key = "search.indexing.online"
-will be routed to the queue "search.indexing.online". In other words, default exchange makes it possible to "deliver messages directly to queues",
-even though that is not technically correct.
+For example, when you declare a queue with the name of "search.indexing.online", the AMQP broker will bind it to the
+default exchange using "search.indexing.online" as the routing key. Therefore a message published to the default
+exchange with routing key = "search.indexing.online" will be routed to the queue "search.indexing.online". In other
+words, the default exchange makes it *seem like it is possible to deliver messages directly to queues*, even though
+that is not technically what is happening.
 
 
-amqp gem offers two ways of obtaining of the default exchange: {AMQP::Channel#default_exchange} and {AMQP::Channel#direct} (use  empty string as exchange name).
-{AMQP::Exchange#initialize} can be used as well but requires more effort and for this particular case offers no benefits over instance methods on {AMQP::Channel}.
+The amqp gem offers two ways of obtaining a reference to the default exchange:
+
+ * Using the {AMQP::Channel#default_exchange} method
+ * Using the {AMQP::Channel#direct} method with an empty string as the exchange name
+ 
+{AMQP::Exchange#initialize} can also be used, but requires more coding effort and it offers no benefits over instance
+methods on {AMQP::Channel} in this particular case.
+
+Some examples of usage:
 
 <pre>
 <code>
@@ -305,47 +326,46 @@ exchange = channel.direct("")
 </pre>
 
 
-
-The default exchange is what the "Hello, World" example uses:
+The default exchange is used by the "Hello, World" example:
 <script src="https://gist.github.com/998691.js"> </script>
 
-Routing example above can be rewritten to use the default exchange:
+Additionally, the routing example above can be rewritten to use the default exchange:
 <script src="https://gist.github.com/1041778.js"> </script>
 
 
-h3. Use cases
+h3. Direct exchange use cases
 
 Direct exchanges can be used in a wide variety of cases:
 
- * Direct (near real-time) messages to individual players in a MMO game.
- * Delivering notifications to specific geographic locations (for example, points of sale).
- * Distributing tasks between multiple instances of the same application all having the same function, for example, image processors.
- * Passing data between workflow steps, each having an identifier (also consider using headers exchange for that).
- * Delivering notifications to individual software services in the network.
-
-
+ * Direct (near real-time) messages to individual players in an MMO game
+ * Delivering notifications to specific geographic locations (for example, points of sale)
+ * Distributing tasks between multiple instances of the same application all having the same function, for example, image processors
+ * Passing data between workflow steps, each having an identifier (also consider using headers exchange)
+ * Delivering notifications to individual software services in the network
 
 
 h2. Topic exchanges
 
 h3. How topic exchanges route messages
 
-Topic exchanges route messages to one or many queues based on matching between message routing key and pattern that was used for binding
-queue to the exchange. This exchange type is often used to implement various "publish/subscribe pattern":http://en.wikipedia.org/wiki/Publish/subscribe variations.
+Topic exchanges route messages to one or many queues based on matching between a message routing key and the pattern
+that was used to bind a queue to an exchange. The topic exchange type is often used to implement various
+"publish/subscribe pattern":http://en.wikipedia.org/wiki/Publish/subscribe variations.
 
-
-Topic exchanges are commonly used for "multicast routing":http://en.wikipedia.org/wiki/Multicast of messages.
+Topic exchanges are commonly used for the "multicast routing":http://en.wikipedia.org/wiki/Multicast of messages.
 
 !http://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Multicast.svg/500px-Multicast.svg.png!
 
-Topic exchanges can be used for "broadcast routing":http://en.wikipedia.org/wiki/Broadcasting_%28computing%29 but usually fanout exchanges are more efficient at that.
+Topic exchanges can be used for "broadcast routing":http://en.wikipedia.org/wiki/Broadcasting_%28computing%29, but
+fanout exchanges are usually more efficient for this use case.
 
 
-h3. Routing example
+h3. Topic exchange routing example
 
-Two classic examples of topic-based routing are stocks price updates and location-specific data (for instance, weather broadcasts).
-Consumers indicate what topics they are interested in (think of it as of subscribing to a feed for individual tag
-of your favourite blog as opposed to full feed). They do it by specifying a _routing pattern_ to {AMQP::Queue#bind} method, for example:
+Two classic examples of topic-based routing are stock price updates and location-specific data (for instance, weather
+broadcasts). Consumers indicate which topics they are interested in (think of it like subscribing to a feed for an
+individual tag of your favourite blog as opposed to the full feed). The routing is enabled by specifying a _routing
+pattern_ to the {AMQP::Queue#bind} method, for example:
 
 <pre>
 <code>
@@ -355,23 +375,28 @@ end
 </code>
 </pre>
 
-In the example above we bind a queue with the name of "americas.south" to the topic exchange declared earlier using {AMQP::Queue#bind} method.
-This means that only messages with routing key matching americas.south.# will be routed to that queue. Routing pattern consists of several words
-separated by dots, similarly to URI path segments joined by slash. A few of examples:
+In the example above we bind a queue with the name of "americas.south" to the topic exchange declared earlier using
+the {AMQP::Queue#bind} method. This means that only messages with a routing key matching "americas.south.#" will be
+routed to the "americas.south" queue.
+
+A routing pattern consists of several words separated by dots, in a similar way to URI path segments being joined by
+slash. A few of examples:
 
  * asia.southeast.thailand.bangkok
  * sports.basketball
  * usa.nasdaq.aapl
  * tasks.search.indexing.accounts
 
-The following routing keys do match "americas.south.#" pattern:
+The following routing keys match the "americas.south.#" pattern:
 
  * americas.south
  * americas.south.*brazil*
  * americas.south.*brazil.saopaolo*
  * americas.south.*chile.santiago*
 
-In other words, # part of the pattern matches 0 or more words. For "americas.south.*", some of matching routing keys are
+In other words, the "#" part of the pattern matches 0 or more words.
+
+For the pattern "americas.south.*", some matching routing keys are:
 
  * americas.south.*brazil*
  * americas.south.*chile*
@@ -381,45 +406,49 @@ but not
 
  * americas.south
  * americas.south.chile.santiago
+ 
+As you can see, the "*" part of the pattern matches 1 word only.
 
 
 Full example:
 <script src="https://gist.github.com/1020308.js"> </script>
 
 
-h3. Use cases
+h3. Topic exchange use cases
 
-Topic exchanges have very broad set of use cases. Whenever a problem invovles multiple consumers/applications that selectively
-pick what type of messages they want to receive, topic exchange should be evaluated. To name a few examples:
+Topic exchanges have a very broad set of use cases. Whenever a problem involves multiple consumers/applications that
+selectively choose which type of messages they want to receive, the use of topic exchanges should be considered.
+To name a few examples:
 
  * Distributing data relevant to specific geographic location, for example, points of sale
  * Background task processing done by multiple workers, each capable of handling specific set of tasks
  * Stocks price updates (and updates on other kinds of financial data)
- * News updates that involve categorization or tagging (for example, only for a particular sport or a  basketball team)
+ * News updates that involve categorization or tagging (for example, only for a particular sport or team)
  * Orchestration of services of different kinds in the cloud
  * Distributed architecture/OS-specific software builds or packaging where each builder can handle only one architecture or OS
 
 
-
-
 h2. Declaring/Instantiating exchanges
 
-With Ruby AMQP gem, exchanges can be declared two ways: using {AMQP::Exchange#initialize} method that takes an optional callback or
-with a number of convenience methods on {AMQP::Channel} instances:
+With the Ruby amqp gem, exchanges can be declared in two ways:
 
- * {AMQP::Channel#direct}
- * {AMQP::Channel#default_exchange}
- * {AMQP::Channel#topic}
- * {AMQP::Channel#fanout}
- * {AMQP::Channel#headers}
+ * By using the {AMQP::Exchange#initialize} method that takes an optional callback
+ * By using a number of convenience methods on {AMQP::Channel} instances:
 
-Sections on specific exchange types (direct, fanout, headers, etc) provide plenty of examples of how these methods can be used.
+  ** {AMQP::Channel#direct}
+  ** {AMQP::Channel#default_exchange}
+  ** {AMQP::Channel#topic}
+  ** {AMQP::Channel#fanout}
+  ** {AMQP::Channel#headers}
 
+The previous sections on specific exchange types (direct, fanout, headers, etc.) provide plenty of examples of how
+these methods can be used.
 
 
 h2. Publishing messages
 
 To publish a message to an AMQP exchange, use {AMQP::Exchange#publish}:
+
 <pre>
 <code>
 exchange.publish("Some payload")
@@ -427,24 +456,25 @@ exchange.publish("Some payload")
 </pre>
 
 
-{AMQP::Exchange#publish} can accept any object that responds to `to_s`, not just string instances:
+{AMQP::Exchange#publish} can accept any object that responds to the `to_s` method, not just string instances:
 <script src="https://gist.github.com/1020336.js"> </script>
 
-Payload is completely opaque to the library and is not modified in any way.
+The message payload is completely opaque to the library and is not modified in any way.
 
 
 h3. Data serialization
 
-You are encouraged to take care of data serialization before publishing (using JSON, Thrift, Protocol Buffers or other serialization library).
-Note that because AMQP is a binary protocol, text formats like JSON largely lose their strong point of being easy to inspect as data travels across network,
-so "BSON":http://bsonspec.org may be a good fit.
+You are encouraged to take care of data serialization before publishing (i.e. by using JSON, Thrift, Protocol Buffers
+or some other serialization library). Note that because AMQP is a binary protocol, text formats like JSON largely
+lose their advantage of being easy to inspect as data travels across the network, so consider using
+"BSON":http://bsonspec.org instead.
 
-A few popular options for data serialization are
+A few popular options for data serialization are:
 
  * JSON: "json gem":https://rubygems.org/gems/json (part of standard Ruby library on Ruby 1.9) or "yajl-ruby":https://rubygems.org/gems/yajl-ruby (Ruby bindings to YAJL)
- * BSON: "bson gem":https://rubygems.org/gems/bson for JRuby (implemented as a Java extension) and "bson_ext":https://rubygems.org/bson_ext (C extension) for C-based Rubies.
+ * BSON: "bson gem":https://rubygems.org/gems/bson for JRuby (implemented as a Java extension) and "bson_ext":https://rubygems.org/bson_ext (C extension) for C-based Rubies
  * "Message Pack":http://msgpack.org has Ruby bindings but currently does not provide Java implementation for JRuby
- * XML: "Nokogiri":https://nokogiri.org is a swiss army knife for XML processing with Ruby, built on top of libxml2.
+ * XML: "Nokogiri":https://nokogiri.org is a swiss army knife for XML processing with Ruby, built on top of libxml2
  * Protocol Buffers: "beefcake":https://github.com/bmizerany/beefcake
  * Thrift: "thrift-client":https://github.com/fauna/thrift_client
 
@@ -452,8 +482,8 @@ A few popular options for data serialization are
 h3. Message metadata
 
 AMQP messages have various metadata attributes that can be set when a message is published. Some of the attributes are
-well-known and mentioned in the AMQP 0.9.1 spec, others are specific to a particular application. Well-known attributes
-(listed here as options {AMQP::Exchange#publish takes}) are:
+well-known and mentioned in the AMQP v0.9.1 specification, others are specific to a particular application.
+Well-known attributes are listed here as options that {AMQP::Exchange#publish} takes:
 
  * :routing_key
  * :persistent
@@ -471,29 +501,30 @@ well-known and mentioned in the AMQP 0.9.1 spec, others are specific to a partic
  * :timestamp
  * :expiration
 
-All other attributes can be added to a *headers table* (in Ruby parlance, headers hash) that {AMQP::Exchange#publish} accepts as :headers.
+All other attributes can be added to a _headers table_ (in Ruby parlance, headers hash) that {AMQP::Exchange#publish}
+accepts as the ":headers" argument.
 
-An example to demonstrate how message metadata attributes as passed to {AMQP::Exchange#publish}:
+An example to show how message metadata attributes are passed to {AMQP::Exchange#publish}:
 <script src="https://gist.github.com/1020424.js"> </script>
 
 <dl>
   <dt>:routing_key</dt>
-  <dd>Used for routing messages depending on the exchange type and configuration</dd>
+  <dd>Used for routing messages depending on the exchange type and configuration.</dd>
 
   <dt>:persistent</dt>
-  <dd>When set (true), AMQP broker will persist message to disk. When off (false) </dd>
+  <dd>When set to true, AMQP broker will persist message to disk.</dd>
 
   <dt>:immediate</dt>
   <dd>
-  This flag tells the server how to react if the message cannot be routed to a queue consumer immediately. If this flag is set (true), the server will return
-  to the producer an undeliverable message with a basic.return AMQP method. If this flag is off (false), the server will queue the message, but with no guarantee
+  This flag tells the server how to react if the message cannot be routed to a queue consumer immediately. If this flag is set to true, the server will return
+  an undeliverable message to the producer with a basic.return AMQP method. If this flag is set to false, the server will queue the message, but with no guarantee
   that it will ever be consumed.
   </dd>
 
   <dt>:mandatory</dt>
   <dd>
-  This flag tells the server how to react if the message cannot be routed to a queue. If this flag is set (true), the server will return an unroutable message
-  to the producer with a basic.return AMQP method. If this flag is off (false), the server silently drops the message.
+  This flag tells the server how to react if the message cannot be routed to a queue. If this flag is set to true, the server will return an unroutable message
+  to the producer with a basic.return AMQP method. If this flag is set to false, the server silently drops the message.
   </dd>
 
   <dt>:content_type</dt>
@@ -508,27 +539,27 @@ An example to demonstrate how message metadata attributes as passed to {AMQP::Ex
   <dt>:message_id</dt>
   <dd>
     Message identifier as a string. If applications need to identify messages, it is recommended that they use this attribute instead of putting it
-    into message payload.
+    into the message payload.
   </dd>
 
   <dt>:reply_to</dt>
   <dd>
-    Commonly used to name a reply queue (or any other identifier that helps consumer application to direct its response).
-    Applications are encouraged to use this attribute instead of putting this information into message payload.
+    Commonly used to name a reply queue (or any other identifier that helps a consumer application to direct its response).
+    Applications are encouraged to use this attribute instead of putting this information into the message payload.
   </dd>
 
   <dt>:correlation_id</dt>
   <dd>
-    ID of the message this message is a reply to. Applications are encouraged to use this attribute instead of putting this information
-    into message payload.
+    ID of the message that this message is a reply to. Applications are encouraged to use this attribute instead of putting this information
+    into the message payload.
   </dd>
 
   <dt>:type</dt>
-  <dd>Message type as a string. Recommended to be used by applications instead of including this information into message payload.</dd>
+  <dd>Message type as a string. Recommended to be used by applications instead of including this information into the message payload.</dd>
 
   <dt>:user_id</dt>
   <dd>
-  Sender's identifier. Note that RabbitMQ will check that "value of this attribute is the same as username AMQP connection was authenticated with":http://www.rabbitmq.com/extensions.html#validated-user-id, it SHOULD NOT be used to transfer, for example, other application user ids or be used as a basis for some kind of Single Sign-On solution..
+  Sender's identifier. Note that RabbitMQ will check that the "value of this attribute is the same as username AMQP connection was authenticated with":http://www.rabbitmq.com/extensions.html#validated-user-id, it SHOULD NOT be used to transfer, for example, other application user ids or be used as a basis for some kind of Single Sign-On solution.
   </dd>
 
   <dt>:app_id</dt>
@@ -541,24 +572,22 @@ An example to demonstrate how message metadata attributes as passed to {AMQP::Ex
   <dd>Message expiration specification as a string</dd>
 
   <dt>:headers</dt>
-  <dd>Ruby hash of any additional attributes application needs. Nested hashes are supported.</dd>
+  <dd>Ruby hash of any additional attributes that the application needs. Nested hashes are supported.</dd>
 </dl>
 
-Application authors are recommended to use well-known message attributes when applicable instead of relying on custom headers or placing
-information into message body. For example, if your application messages have priority, publishing timestamp, type and content type,
-you should use respective AMQP message attributes instead of reinventing the wheel.
+It is recommended that application authors use well-known message attributes when applicable instead of relying on custom headers or placing
+information into the message body. For example, if your application messages have priority, publishing timestamp, type and content type,
+you should use the respective AMQP message attributes instead of reinventing the wheel.
 
 
-
-h3. Validated user_id.
+h3. Validated user_id
 
 In some scenarios it is useful for consumers to be able to know the identity of the user who published a message. RabbitMQ implements a feature known as
-"validated User ID":http://www.rabbitmq.com/extensions.html#validated-user-id. If this property is set by a publisher, its value must be equal to the name of the user used to open the connection.
+"validated User ID":http://www.rabbitmq.com/extensions.html#validated-user-id. If this property is set by a publisher, its value must be the same as the name of the user used to open the connection.
 If the user-id property is not set, the publisher's identity is not validated and remains private.
 
 
-
-h3. Publishing callback. Reliable delivery in distributed environments
+h3. Publishing callback and reliable delivery in distributed environments
 
 Sometimes it is convenient to execute an operation after publishing a message. For this, {AMQP::Exchange#publish} provides an optional
 callback. It is important to clear up some expectations of when exactly it is run and how it is related to topics of message persistence,
@@ -572,48 +601,48 @@ end
 </code>
 </pre>
 
-A common expectation of the code above is that it is run after message "has been sent", or even "has been delivered". Unfortunately, neither of
-this expectations can be met by the Ruby amqp gem alone. Message publishing happens in several steps:
+A common expectation of the code above is that it is run after the message "has been sent", or even "has been delivered". Unfortunately, neither of
+these expectations can be met by the Ruby amqp gem alone. Message publishing happens in several steps:
 
  * {AMQP::Exchange#publish} takes a message and various metadata attributes
  * {AMQP::Exchange#publish} internally calls #to_s on the message argument to get message payload
  * Resulting payload is staged for writing
- * On the next event loop tick, data is transferred to the OS kernel using one of underlying system calls ("epoll":http://en.wikipedia.org/wiki/Epoll, "kqueue":http://en.wikipedia.org/wiki/Kqueue and so on)
-   or NIO channels (in case of JRuby)
+ * On the next event loop tick, data is transferred to the OS kernel using one of the underlying system calls ("epoll":http://en.wikipedia.org/wiki/Epoll, "kqueue":http://en.wikipedia.org/wiki/Kqueue and so on)
+   or NIO channels (in the case of JRuby)
  * OS kernel buffers data before sending it
  * Network driver may also employ buffering
 
 <span class="note">
-As you can see, "when data is sent" is a complicated issue and while means to flush buffers certainly exist on various platforms, doing so in
-a cross-platform way that *includes JVM* (that EventMachine also runs on) is rather non-trivial. In addition, even this does not guarantee that
-data was received by the broker because it may crash while data was travelling down the wire. The only way to reliably know whether data was
-received by the broker or peer application is to use message acknowledgements. This is how TCP works and this approach is proven to work at
-enormous scale of the modern Internet. AMQP (the protocol) fully embraces this fact and amqp gem follows.
+As you can see, "when data is sent" is a complicated issue and while methods to flush buffers certainly exist on various platforms, doing so in
+a cross-platform way that *includes the JVM* (that EventMachine also runs on) is non-trivial. In addition, even flushing buffers does not guarantee that the
+data was received by the broker because it might have crashed while data was travelling down the wire. The only way to reliably know whether data was
+received by the broker or a peer application is to use message acknowledgements. This is how TCP works and this approach is proven to work at the
+enormous scale of the modern Internet. AMQP (the protocol) fully embraces this fact and the amqp gem follows.
 </span>
 
-Given all this, when does {AMQP::Exchange#publish} callback fire? The answer is on the next event loop tick. By then data is pushed down to
-the OS kernel. As far as Ruby library is concerned, it is a reasonably safe behavior.
+Given all of this, you may ask "when does the {AMQP::Exchange#publish} callback fire?" The answer is on the next event loop tick. By then the data is pushed down to
+the OS kernel. As far as the Ruby library is concerned, it is reasonably safe behavior.
 
 <span class="note">
-AMQP::Exchange#publish callback is fired on the next event loop tick. Data is staged for delivery immediately. Applications MUST NOT assume that
-by the time the callback had fired, data is guaranteed to leave local machine networking stack or reach AMQP broker, leave alone peer(s)
-message will be routed to.
+The AMQP::Exchange#publish callback is fired on the next event loop tick. Data is staged for delivery immediately. Applications MUST NOT assume that
+by the time the callback has fired, the data is guaranteed to leave the local machine networking stack, reach the AMQP broker or any peer applications that the
+message needs to be routed to.
 </span>
 
-In cases when not a single message may be lost, AMQP 0.9.1 applications can use one (or combination of) the following protocol features:
+In cases when you cannot afford to lose a single message, AMQP v0.9.1 applications can use one (or a combination of) the following protocol features:
 
- * Publisher confirms (a RabbitMQ-specific extension to AMQP 0.9.1)
+ * Publisher confirms (a RabbitMQ-specific extension to AMQP v0.9.1)
  * Publishing messages as immediate and/or mandatory
- * Transactions (have noticeable overhead and relatively narrow set of use cases)
+ * Transactions (these introduce noticeable overhead and have a relatively narrow set of use cases)
 
-More detailed overview of pros and cons of each option can be found in a "blog post that introduces Publisher Confirms extension":http://bit.ly/rabbitmq-publisher-confirms by the RabbitMQ team.
-Next sections of this guide will describe how those features can be used with the Ruby amqp gem.
+A more detailed overview of the pros and cons of each option can be found in a "blog post that introduces Publisher Confirms extension":http://bit.ly/rabbitmq-publisher-confirms by the RabbitMQ team.
+The next sections of this guide will describe how the features above can be used with the Ruby amqp gem.
 
 
-h3. Publishing messages as immediate.
+h3. Publishing messages as immediate
 
-When publishing messages, it is possible to use :immediate option to publish message as "immediate". When an immediate message cannot be
-delivered to any consumer (one or more queues the message was routed to have no active consumers), it is returned to the
+When publishing messages, it is possible to use the ":immediate" option to publish a message as "immediate". When an immediate message cannot be
+delivered to any consumer (meaning that one or more queues to which the message was routed have no active consumers), then the message is returned to the
 producer.
 
 An example of {AMQP::Exchange#publish} being used to publish an immediate message:
@@ -624,30 +653,30 @@ exchange.publish("Message ##{i}", :immediate => true)
 </code>
 </pre>
 
-The following code example demonstrates a message that is published as immediate but cannot be immediately consumed (no consumers) and thus returned
+The following code example demonstrates a message that is published as immediate but cannot be immediately consumed (no consumers) and thus is returned
 back to the producer:
 <script src="https://gist.github.com/1025700.js"></script>
 
 
-h3. Publishing messages as mandatory.
+h3. Publishing messages as mandatory
 
-When publishing messages, it is possible to use :mandatory option to publish message as "mandatory". When a mandatory message cannot be
-*routed* to any queue (for example, there are no bindings or none of the bindings match), it is returned to the producer.
+When publishing messages, it is possible to use the ":mandatory" option to publish a message as "mandatory". When a mandatory message cannot be
+*routed* to any queue (for example, there are no bindings or none of the bindings match), the message is returned to the producer.
 
-The following code example demonstrates a message that is published as mandatory but cannot be routed (no bindings) and thus returned
+The following code example demonstrates a message that is published as mandatory but cannot be routed (no bindings) and thus is returned
 back to the producer:
 <script src="https://gist.github.com/1041835.js"> </script>
 
 
-h3. Returned messages.
+h3. Returned messages
 
-When message is returned, the application that produced it then can handle that message, for example:
+When a message is returned, the application that produced it can handle that message in different ways:
 
  * Store it for later redelivery in a persistent store
  * Publish it to a different destination
  * Log the event and discard the message
 
-Returned messages have information about the exchange they were published to. For convenience, amqp gem associates returned messages callbacks with {AMQP::Exchange}
+Returned messages contain information about the exchange they were published to. For convenience, the amqp gem associates returned message callbacks with {AMQP::Exchange}
 instances. To handle returned messages, use {AMQP::Exchange#on_return}:
 
 <pre>
@@ -658,17 +687,16 @@ end
 </code>
 </pre>
 
-Returned message handler has access to AMQP method (basic.return) information, message metadata and payload. Metadata and message body are returned exactly
-as is, without modifications, so application can store it for later redelivery.
+A returned message handler has access to AMQP method (basic.return) information, message metadata and payload. The metadata and message body are returned without modifications so that the application can store the message for later redelivery.
 
 
-h3. Publishing messages as persistent.
+h3. Publishing persistent messages
 
-Messages potentially spend some time in queues where they were routed before they are consumed. During this period of time, broker may crash or
-experience a restart. To survive it, messages must be persisted to disk. This has negative effect on performance, especially with network attached
-storage like NAS devices and Amazon EBS. AMQP 0.9.1 lets applications trade off performance for durability or vice versa, on a message-by-message basis.
+Messages potentially spend some time in the queues to which they were routed before they are consumed. During this period of time, the broker may crash or
+experience a restart. To survive it, messages must be persisted to disk. This has a negative effect on performance, especially with network attached
+storage like NAS devices and Amazon EBS. AMQP v0.9.1 lets applications trade off performance for durability, or vice versa, on a message-by-message basis.
 
-To publish message as persistent, use :persistent option {AMQP::Exchange#publish} accepts:
+To publish a persistent message, use the ":persistent" option that {AMQP::Exchange#publish} accepts:
 
 <pre>
 <code>
@@ -677,7 +705,7 @@ exchange.publish(payload, :persistent => true)
 </pre>
 
 <span class="note">
-Note that in order to survive a broker crash, both message and queue it was routed to must be persistent/durable.
+Note that in order to survive a broker crash, both the message and the queue that it was routed to must be persistent/durable.
 </span>
 
 {file:docs/Durability.textile Durability and Message Persistence} provides more information on the subject.
@@ -685,17 +713,16 @@ Note that in order to survive a broker crash, both message and queue it was rout
 
 h3. Sending one-off messages
 
-The following example publishes a message and *safely* closes AMQP connection after that by passing a block
+The following example publishes a message and *safely* closes the AMQP connection afterwards by passing a block
 to {AMQP::Exchange#publish}:
 
 <script src="https://gist.github.com/1020425.js"> </script>
 
 
-
 h2. Headers exchanges
 
-Now that message attributes and publishing are introduced, time to take a look at one more core exchange type in AMQP 0.9.1. It is called
-headers exchange type and is quite powerful.
+Now that message attributes and publishing have been introduced, it is time to take a look at one more core exchange type in AMQP v0.9.1. It is called the
+_headers_ exchange type and is quite powerful.
 
 h3. How headers exchanges route messages
 
@@ -703,17 +730,17 @@ h4. An example problem definition
 
 The best way to explain headers-based routing is with an example. Imagine a distributed "continuous integration":http://martinfowler.com/articles/continuousIntegration.html system
 that distributes builds across multiple machines with different hardware architectures (x86, IA-64, AMD64, ARM family and so on) and operating systems.
-It strives to provide a way for community to contribute machines to run tests on and nice build matrix like "the one WebKit uses":http://build.webkit.org/waterfall?category=core.
-One key problem such system faces is build distribution. Wouldn't it be nice if messaging broker could figure out
-what machine has what OS, architecture or combination of the two and route build request messages there?
+It strives to provide a way for a community to contribute machines to run tests on and a nice build matrix like "the one WebKit uses":http://build.webkit.org/waterfall?category=core.
+One key problem such systems face is build distribution. It would be nice if a messaging broker could figure out
+which machine has which OS, architecture or combination of the two and route build request messages accordingly.
 
-Headers exchange is designed to help in situations like this one: routing on multiple attributes that are easier expressed as
-message metadata attributes (headers) than a routing key string.
+A headers exchange is designed to help in situations like this by routing on multiple attributes that are more easily expressed as
+message metadata attributes (headers) rather than a routing key string.
 
 h4. Routing on multiple message attributes
 
-Headers exchanges route messages based on message header matching. Header exchanges ignore routing key attribute. Instead, attributes used for routing
-are taken from the `headers` attribute. When a queue is bound to a headers exchange, :arguments attribute is used to define matching rules:
+Headers exchanges route messages based on message header matching. Headers exchanges ignore the routing key attribute. Instead, the attributes used for routing
+are taken from the "headers" attribute. When a queue is bound to a headers exchange, the ":arguments" attribute is used to define matching rules:
 
 <pre>
 <code>
@@ -722,8 +749,8 @@ are taken from the `headers` attribute. When a queue is bound to a headers excha
 </code>
 </pre>
 
-When matching on one header, message is considered matching if value of the header equals value specified upon binding. Using the example above,
-some messages that are matching:
+When matching on one header, a message is considered matching if the value of the header equals the value specified upon binding. Using the example above,
+some messages that match would be:
 
 <pre>
 <code>
@@ -747,7 +774,7 @@ exchange.publish "For ocotocore", :headers => { :cores => 8 }
 </code>
 </pre>
 
-Matching on hashes (in AMQP 0.9.1 parlance, attribute tables) is also supported:
+Matching on hashes (in AMQP v0.9.1 parlance - _attribute tables_) is also supported:
 
 <pre>
 <code>
@@ -761,10 +788,10 @@ exchange.publish "For nodes with Riak 0.14.2", :headers => { :package => { :name
 </code>
 </pre>
 
-h4. Matching all vs. matching one
+h4. Matching all vs matching one
 
-It is possible to bind a queue to a headers exchange using more than one header for matching. In this case, broker needs one more piece of
-information from application developer: should it consider messages with any of the headers matching, or all of them? This is what `x-match`
+It is possible to bind a queue to a headers exchange using more than one header for matching. In this case, the broker needs one more piece of
+information from the application developer, namely, should it consider messages with any of the headers matching, or all of them? This is what the "x-match"
 binding argument is for:
 
 <pre>
@@ -773,7 +800,7 @@ channel.queue("", :auto_delete => true).bind(exchange, :arguments => { 'x-match'
 </code>
 </pre>
 
-In the example above, only messages that have `arch` header value equal to "ia64" and `os` header value equal to "linux" will
+In the example above, only messages that have an "arch" header value equal to "ia64" and an "os" header value equal to "linux" will
 be considered matching.
 
 <pre>
@@ -782,8 +809,8 @@ channel.queue("", :auto_delete => true).bind(exchange, :arguments => { 'x-match'
 </code>
 </pre>
 
-When "x-match" argument is set to "any", just one matching header value is sufficient. So in the example above, any message with
-`cores` header value equal to 8 will be considered matching.
+When the "x-match" argument is set to "any", just one matching header value is sufficient. So in the example above, any message with a
+"cores" header value equal to 8 will be considered matching.
 
 h4. More examples
 
@@ -792,8 +819,12 @@ TBD
 
 h3. Declaring a headers exchange
 
-There are two ways to declare a headers exchange: using by instantiating {AMQP::Exchange} and specifying type as `:headers`, or
-with {AMQP::Channel#headers}. Two examples to demonstrate:
+There are two ways to declare a headers exchange:
+
+ * By instantiating {AMQP::Exchange} and specifying type as ":headers"
+ * By using the {AMQP::Channel#headers} method
+ 
+Here are two examples to demonstrate:
 
 <pre>
 <code>
@@ -807,11 +838,10 @@ exchange = channel.headers("builds")
 </code>
 </pre>
 
-Both methods asynchronously declare a queue. Because declaration takes a network roundtrip, publishing operations on {AMQP::Exchange} instances are
-delayed until broker reply (exchange.declare-ok) is received.
+Both methods asynchronously declare a queue. Because declaration necessitates a network round trip, publishing operations on {AMQP::Exchange} instances are
+delayed until the broker reply (`exchange.declare-ok`) is received.
 
-
-Both methods let you pass a block to run a piece of code when broker responds with exchange.declare-ok (meaning exchange is successfully declared).
+Both methods let you pass a block to run a piece of code when the broker responds with `exchange.declare-ok` (meaning that the exchange has been successfully declared).
 
 <pre>
 <code>
@@ -822,21 +852,21 @@ end
 </pre>
 
 
-h3. Routing example
+h3. Headers exchange routing example
 
 When there is just one queue bound to a headers exchange, messages are routed to it if one or all headers of the message match those specified
-upon binding. Whether it is "any header" or "all of them" depends on 'x-match' header value.
-In case of multiple queues, headers exchange will deliver a copy to each queue, just like direct exchanges do. Distribution rules between consumers
-on a particular queue are the same as for direct exchange.
+upon binding. Whether it is "any header" or "all of them" depends on the "x-match" header value.
+In the case of multiple queues, a headers exchange will deliver a copy of a message to each queue, just like direct exchanges do. Distribution rules between consumers
+on a particular queue are the same as for a direct exchange.
 
 Full example:
 <script src="https://gist.github.com/1034875.js"> </script>
 
 
-h3. Use cases
+h3. Headers exchange use cases
 
-Headers exchanges can be looked at as "direct exchanges on steroids". Because they route based on header values, they can be used as
-direct exchanges where routing key doesn't have to be a string: it can be an integer or a hash (dictionary), for example.
+Headers exchanges can be looked upon as "direct exchanges on steroids". Because they route based on header values, they can be used as
+direct exchanges where the routing key does not have to be a string; it could be an integer or a hash (dictionary) for example.
 
 Some specific use cases:
 
@@ -847,20 +877,18 @@ Some specific use cases:
 
 h3. Pre-declared headers exchanges
 
-AMQP 0.9.1 brokers should (as defined by "IETF RFC 2119":http://www.ietf.org/rfc/rfc2119.txt) implement headers exchange type
+AMQP v0.9.1 brokers should (as defined by "IETF RFC 2119":http://www.ietf.org/rfc/rfc2119.txt) implement a headers exchange type
 and pre-declare one instance with the name of "amq.match". RabbitMQ also pre-declares one instance with the name of "amq.headers".
-Applications can rely on that exchange to always be available to them. Each vhost has a separate instance of that exchange,
-it is *not shared across vhosts* for obvious reasons.
-
-
+Applications can rely on that exchange always being available to them. Each vhost has a separate instance of those exchanges and
+they are *not shared across vhosts* for obvious reasons.
 
 
 h2. Custom exchange types
 
 h3. x-random
 
-"x-random AMQP exchange type":https://github.com/jbrisbin/random-exchange is a custom exchange type developed as a
-RabbitMQ plugin by Jon Brisbin. To quote project README:
+The "x-random AMQP exchange type":https://github.com/jbrisbin/random-exchange is a custom exchange type developed as a
+RabbitMQ plugin by Jon Brisbin. To quote from the project README:
 
 bq. It is basically a direct exchange, with the exception that, instead of each consumer bound to that exchange with the
     same routing key getting a copy of the message, the exchange type randomly selects a queue to route to.
@@ -869,27 +897,25 @@ This plugin is licensed under "Mozilla Public License 1.1":http://www.mozilla.or
 
 h3. x-recent-history
 
-"x-recent-history AMQP exchange type":https://github.com/videlalvaro/rabbitmq-recent-history-exchange is a customer exchange type
+The "x-recent-history AMQP exchange type":https://github.com/videlalvaro/rabbitmq-recent-history-exchange is a customer exchange type
 implemented as a RabbitMQ plugin by Alvaro Videla, one of the authors of "RabbitMQ in action":http://bit.ly/rabbitmq.
 
 This plugin is licensed under the "MIT license":https://github.com/videlalvaro/rabbitmq-recent-history-exchange/blob/master/LICENSE.md.
 
 
-
-h2. Using Publisher Confirms extension to AMQP 0.9.1
+h2. Using the Publisher Confirms extension to AMQP v0.9.1
 
 Please refer to {file:docs/VendorSpecificExtensions.textile Vendor-specific extensions to AMQP 0.9.1 spec}
 
 
+h3. Message acknowledgements and their relationship to transactions and publisher confirms
 
-h3. Message acknowledgements. Their relation to transactions and publisher confirms.
-
-Consumer applications (applications that receive and process messages) may (and will) occasionally fail to process individual messages, or will just
-crash. That's not to mention possible network issues. This raises a question: when should AMQP broker remove messages from queues? This
+Consumer applications (applications that receive and process messages) may occasionally fail to process individual messages, or might just
+crash. Additionally, network issues might be experienced. This raises a question - "when should the AMQP broker remove messages from queues?" This
 topic is covered in depth in the {file:docs/Queues.textile Working With Queues} guide, including prefetching and examples.
 
-In this guide, we will only mention how message acknowledgements are related to AMQP transactions and Publisher Confirms extension.
-Lets consider a publisher application P that communications with a consumer C using AMQP 0.9.1. Their communication can be graphically
+In this guide, we will only mention how message acknowledgements are related to AMQP transactions and the Publisher Confirms extension.
+Let us consider a publisher application (P) that communications with a consumer (C) using AMQP v0.9.1. Their communication can be graphically
 represented like this:
 
 <pre>
@@ -900,11 +926,11 @@ represented like this:
 -----       -----       -----
 </pre>
 
-We have two network segments, S1 and S2. Each of them may fail. Application P is concerned with making sure that messages cross S1,
-while broker and application C are concerned with the fact that messages cross S2 and are only removed from the queue when
+We have two network segments, S1 and S2. Each of them may fail. P is concerned with making sure that messages cross S1,
+while the broker (B) and C are concerned with ensuring that messages cross S2 and are only removed from the queue when
 they are processed successfully.
 
-Message acknowledgements cover reliable delivery over S2 and successful processing. For S1, P has to use transactions (a heavyweight solution) or
+Message acknowledgements cover reliable delivery over S2 as well as successful processing. For S1, P has to use transactions (a heavyweight solution) or the more
 lightweight Publisher Confirms, a RabbitMQ-specific extension.
 
 
@@ -913,17 +939,15 @@ h2. Using AMQP transactions
 TBD
 
 
-
 h2. Binding queues to exchanges
 
-Queues are bound to exchanges using {AMQP::Queue#bind} method. This topic is described in detail in the {file:docs/Queues.textile Working with queues}
+Queues are bound to exchanges using the {AMQP::Queue#bind} method. This topic is described in detail in the {file:docs/Queues.textile Working with queues}
 documentation guide.
-
 
 
 h2. Unbinding queues from exchanges
 
-Queues are unbound from exchanges using {AMQP::Queue#unbind} method. This topic is described in detail in the {file:docs/Queues.textile Working with queues}
+Queues are unbound from exchanges using the {AMQP::Queue#unbind} method. This topic is described in detail in the {file:docs/Queues.textile Working with queues}
 documentation guide.
 
 
@@ -931,7 +955,7 @@ h2. Deleting exchange
 
 h3. Explicitly deleting an exchange
 
-Exchanges are deleted using {AMQP::Exchange#delete} method:
+Exchanges are deleted using the {AMQP::Exchange#delete} method:
 
 <pre>
 <code>
@@ -939,7 +963,7 @@ exchange.delete
 </code>
 </pre>
 
-{AMQP::Exchange#delete} takes an optional callback that is run when `exchange.delete-ok` arrives from the broker.
+{AMQP::Exchange#delete} takes an optional callback that is run when a `exchange.delete-ok` reply arrives from the broker.
 
 <pre>
 <code>
@@ -951,7 +975,7 @@ end
 
 h3. Auto-deleted exchanges
 
-Exchanges are be *auto-deleted*. To declare an exchange as auto-deleted, use :auto_delete option on declaration:
+Exchanges can be *auto-deleted*. To declare an exchange as auto-deleted, use the ":auto_delete" option on declaration:
 
 <pre>
 <code>
@@ -974,9 +998,9 @@ TBD: explain when exchange is considered to be "no longer in use"
 
 h2. Objects as message producers.
 
-Since Ruby is a genuine object-oriented language, it is important to demonstrate how Ruby amqp gem can be integrated
-into rich object-oriented code. This guide focuses on exchanges and problems/solutions producer applications
-(apps that primarily generate and publish messages, as opposed to consumers that receive and process them).
+Since Ruby is a genuine object-oriented language, it is important to demonstrate how the Ruby amqp gem can be integrated
+into rich object-oriented code. This part of the guide focuses on exchanges and the problems/solutions concerning producer applications
+(applications that primarily generate and publish messages, as opposed to consumers that receive and process them).
 
 Full example:
 <script src="https://gist.github.com/1009425.js"> </script>
@@ -984,11 +1008,9 @@ Full example:
 TBD
 
 
-
 h2. Exchange durability vs Message durability
 
 See {file:docs/Durability.textile Durability guide}
-
 
 
 h2. Error handling and recovery
@@ -996,16 +1018,14 @@ h2. Error handling and recovery
 See {file:docs/ErrorHandling.textile Error handling and recovery guide}
 
 
-
 h2. Vendor-specific extensions related to exchanges
 
 See {file:docs/VendorSpecificExtensions.textile Vendor-specific Extensions guide}
 
 
-
 h2.  What to read next
 
-Documentation is organized as several {file:docs/DocumentationGuidesIndex.textile documentation guides}, covering all kinds of
+Documentation is organized as several {file:docs/DocumentationGuidesIndex.textile documentation guides} that cover all kinds of
 topics. Guides related to this one are
 
  * {file:docs/Durability.textile Durability and message persistence}
@@ -1015,15 +1035,13 @@ topics. Guides related to this one are
  * {file:docs/ErrorHandling.textile Error handling and recovery}
 
 
-
-
 h2. Tell us what you think!
 
-Please take a moment and tell us what you think about this guide "on Twitter":http://twitter.com/rubyamqp or "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp:
-what was unclear? what wasn't covered? maybe you don't like guide style or grammar and spelling are incorrect? Readers feedback is
-key to making documentation better.
+Please take a moment to tell us what you think about this guide "on Twitter":http://twitter.com/rubyamqp or the "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp.
+ Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is
+key to making the documentation better.
 
-If mailing list communication is not an option for you for some reason, you can "contact guides author directly":mailto:michael@novemberain.com?subject=amqp%20gem%20documentation
+If, for some reason, you cannot use the communication channels mentioned above, you can "contact the author of the guides directly":mailto:michael@novemberain.com?subject=amqp%20gem%20documentation
 
 
 <div id="disqus_thread"></div>
