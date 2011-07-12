@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-require "uri"
+require 'amq/client/settings'
 require "amqp/session"
 
 module AMQP
@@ -85,23 +85,7 @@ module AMQP
     # @see http://bit.ly/ks8MXK Connecting to The Broker documentation guide
     # @api public
     def self.parse_connection_uri(connection_string)
-      uri = URI.parse(connection_string)
-      raise ArgumentError.new("Connection URI must use amqp or amqps schema (example: amqp://bus.megacorp.internal:5766), learn more at http://bit.ly/ks8MXK") unless %w{amqp amqps}.include?(uri.scheme)
-
-      opts = {}
-
-      opts[:scheme] = uri.scheme
-      opts[:user]   = URI.unescape(uri.user) if uri.user
-      opts[:pass]   = URI.unescape(uri.password) if uri.password
-      opts[:host]   = uri.host if uri.host
-      opts[:port]   = uri.port || AMQP_PORTS[uri.scheme]
-      opts[:ssl]    = uri.scheme == AMQPS
-      if uri.path =~ %r{^/(.*)}
-        raise ArgumentError.new("#{uri} has multiple-segment path; please percent-encode any slashes in the vhost name (e.g. /production => %2Fproduction). Learn more at http://bit.ly/amqp-gem-and-connection-uris") if $1.index('/')
-        opts[:vhost] = URI.unescape($1)
-      end
-
-      opts
+      AMQ::Client::Settings.parse_amqp_url(connection_string)
     end
   end # Client
 
