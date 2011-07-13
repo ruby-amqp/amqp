@@ -24,11 +24,11 @@ EventMachine.run do
     connection.close { EventMachine.stop }
   end
 
-  queue    = channel.queue("some_topic", :auto_delete => true)
-  exchange = channel.topic("foo", :durable => true, :auto_delete => true)
+  exchange = channel.topic("a.topic", :durable => true, :auto_delete => true)
+  queue    = channel.queue("a.queue", :auto_delete => true).bind(exchange, :routing_key => "events.#")
 
-  exchange.publish('hello world', :routing_key => "some_topic", :persistent => true, :nowait => false ) do
-    puts 'About to disconnect'
+  exchange.publish('hello world', :routing_key => "events.hits.homepage", :persistent => true, :nowait => false) do
+    puts "About to unsubscribe..."
     connection.close { EventMachine.stop }
   end
 end
