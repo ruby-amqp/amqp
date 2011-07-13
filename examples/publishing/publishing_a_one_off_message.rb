@@ -30,7 +30,7 @@ EventMachine.run do
   queue    = channel.queue("a.queue", :auto_delete => true).bind(exchange, :routing_key => "events.#")
 
   exchange.publish('hello world', :routing_key => "events.hits.homepage", :persistent => true, :nowait => false) do
-    puts "About to unsubscribe..."
+    puts "About to disconnect..."
     connection.close { EventMachine.stop }
   end
 end
