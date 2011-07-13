@@ -24,6 +24,8 @@ EventMachine.run do
     connection.close { EventMachine.stop }
   end
 
+  # topic exchange is used just as example. Often it is more convenient to use default exchange,
+  # see http://bit.ly/amqp-gem-default-exchange
   exchange = channel.topic("a.topic", :durable => true, :auto_delete => true)
   queue    = channel.queue("a.queue", :auto_delete => true).bind(exchange, :routing_key => "events.#")
 
