@@ -57,6 +57,8 @@ describe "Message attributes" do
       metadata.headers["coordinates"]["latitude"].should    == 59.35
       metadata.headers["participants"].should == 11
       metadata.headers["venue"].should == "Stockholm"
+      metadata.headers["true_field"].should == true
+      metadata.headers["false_field"].should == false
 
       metadata.timestamp.should == Time.at(@now.to_i)
       metadata.type.should == "kinda.checkin"
@@ -84,7 +86,9 @@ describe "Message attributes" do
                        },
                        :time         => @now,
                        :participants => 11,
-                       :venue        => "Stockholm"
+                       :venue        => "Stockholm",
+                       :true_field   => true,
+                       :false_field  => false
                      },
                      :timestamp   => @now.to_i,
                      :routing_key => "amqpgem.key")
