@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 module AMQP
   # Very minimalistic, pure Ruby implementation of bit set. Inspired by java.util.BitSet,
   # although significantly smaller in scope.

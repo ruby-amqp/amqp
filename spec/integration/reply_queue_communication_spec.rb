@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+# encoding: utf-8
+
 require "spec_helper"
 
 describe "Exclusive server-named queue" do

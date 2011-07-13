@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 # Alias for AMQP::Channel.
 #
 # @note This class will be removed before 1.0 release.

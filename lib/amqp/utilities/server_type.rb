@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 # Original version is from Qusion project by Daniel DeLeo.
 #
 # Copyright (c) 2009 Daniel DeLeo

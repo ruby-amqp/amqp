@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 module AMQP
   # A utility class that makes inspection of broker capabilities easier.
   class Broker
