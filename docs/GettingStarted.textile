@@ -68,13 +68,13 @@ h4. On Microsoft Windows 7:
 
 <pre>
 gem install eventmachine --pre
-gem install amqp --pre --version "~> 0.8.0.RC13"
+gem install amqp --pre
 </pre>
 
 h4. On other OSes or JRuby:
 
 <pre>
-gem install amqp --pre --version "~> 0.8.0.RC13"
+gem install amqp --pre
 </pre>
 
 h3. You can also use Bundler to install the gem 
