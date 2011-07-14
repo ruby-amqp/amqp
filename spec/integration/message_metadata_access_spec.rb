@@ -88,7 +88,8 @@ describe "Message attributes" do
                        :participants => 11,
                        :venue        => "Stockholm",
                        :true_field   => true,
-                       :false_field  => false
+                       :false_field  => false,
+                       :nil_field    => nil
                      },
                      :timestamp   => @now.to_i,
                      :routing_key => "amqpgem.key")
