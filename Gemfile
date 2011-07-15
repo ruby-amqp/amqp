@@ -36,4 +36,5 @@ group :test do
   gem "rake",  "~> 0.9.2"
 
   custom_gem "evented-spec", :git => "git://github.com/ruby-amqp/evented-spec.git", :branch => "master"
+  gem "effin_utf8"
 end

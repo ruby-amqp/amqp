@@ -8,6 +8,7 @@ Bundler.require :default, :test
 
 require "amqp"
 require "evented-spec"
+require "effin_utf8"
 
 puts "Using amq-client #{AMQ::Client::VERSION} and amq-protocol #{AMQ::Protocol::VERSION}"
 
@@ -43,9 +44,6 @@ when "1.8.7" then
   end
 when "1.8.6" then
   raise "Ruby 1.8.6 is not supported. Sorry, pal. Time to move on beyond One True Ruby. Yes, time flies by."
-when /^1.9/ then
-  Encoding.default_internal = Encoding::UTF_8
-  Encoding.default_external = Encoding::UTF_8
 end
 
 
