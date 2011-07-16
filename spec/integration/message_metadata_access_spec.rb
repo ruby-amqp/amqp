@@ -59,6 +59,8 @@ describe "Message attributes" do
       metadata.headers["venue"].should == "Stockholm"
       metadata.headers["true_field"].should == true
       metadata.headers["false_field"].should == false
+      metadata.headers["nil_field"].should be_nil
+      metadata.headers["ary_field"].should == ["one", 2.0, 3, [{ "abc" => 123 }]]
 
       metadata.timestamp.should == Time.at(@now.to_i)
       metadata.type.should == "kinda.checkin"
@@ -89,7 +91,8 @@ describe "Message attributes" do
                        :venue        => "Stockholm",
                        :true_field   => true,
                        :false_field  => false,
-                       :nil_field    => nil
+                       :nil_field    => nil,
+                       :ary_field    => ["one", 2.0, 3, [{ "abc" => 123 }]]
                      },
                      :timestamp   => @now.to_i,
                      :routing_key => "amqpgem.key")
