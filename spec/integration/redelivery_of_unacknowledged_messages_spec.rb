@@ -10,7 +10,7 @@ describe "Unacknowledged messages" do
 
   include EventedSpec::AMQPSpec
 
-  default_timeout 4
+  default_timeout 5
 
   amqp_before do
     @connection1 = AMQP.connect
@@ -87,7 +87,7 @@ describe "Unacknowledged messages" do
     }
 
 
-    done(3.6) {
+    done(4.8) {
       number_of_messages_app2_received.should be >= expected_number_of_deliveries
       # 3 last messages are redeliveries
       redelivery_values.last(7).should == [false, false, false, false, true, true, true]
