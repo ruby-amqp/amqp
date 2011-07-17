@@ -54,7 +54,7 @@ EventMachine.epoll  = true if EventMachine.epoll?
 module RabbitMQ
   module Control
     def rabbitmq_pid
-      $1.to_i if `rabbitmqctl status` =~ /{pid,(\d+)}/
+      $1.to_i if `rabbitmqctl status` =~ /\{pid,(\d+)\}/
     end
 
     def start_rabbitmq(delay = 1.0)
