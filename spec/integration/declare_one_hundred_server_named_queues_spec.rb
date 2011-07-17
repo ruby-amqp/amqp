@@ -30,7 +30,7 @@ describe "Server-named", AMQP::Queue do
       queues << @channel.queue("", :auto_delete => true)
     end
 
-    done(0.5) {
+    done(2.5) {
       queues.size.should == n
       # this is RabbitMQ-specific. But it is OK for now. MK.
       queues.all? { |q| q.name =~ /^amq.*/ }.should be_true
