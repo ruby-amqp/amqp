@@ -10,7 +10,7 @@ describe "Headers exchange" do
 
   include EventedSpec::AMQPSpec
 
-  default_timeout 2
+  default_timeout 5
 
   amqp_before do
     @connection = AMQP.connect
@@ -75,7 +75,7 @@ describe "Headers exchange" do
       exchange.publish "For nodes with Riak 0.14.2", :headers => { :package => { :name => 'riak', :version => '0.14.2' } }
     end
 
-    done(1.0) {
+    done(4.5) {
       linux_and_ia64_messages.size.should == 1
       linux_and_x86_messages.size.should == 1
       any_linux_messages.size.should == 3
@@ -128,7 +128,7 @@ describe "Multiple consumers" do
         12.times { @exchange.publish(".", :headers => { :slug => "rspec" }) }
       end
 
-      done(1.5) {
+      done(3.5) {
         mailbox1.size.should == 6
         mailbox2.size.should == 6
       }
@@ -168,7 +168,7 @@ describe "Multiple consumers" do
         12.times { @exchange.publish(".", :headers => { :slug => "rspec", :arch => "ia64" }) }
       end
 
-      done(1.5) {
+      done(3.5) {
         mailbox1.size.should == 6
         mailbox2.size.should == 6
       }
@@ -214,7 +214,7 @@ describe "Multiple consumers" do
         16.times { |i| @exchange.publish("rspec-#{i}", :headers => { :slug => "rspec", :arch => "ia64" }) }
       end
 
-      done(1.5) {
+      done(3.5) {
         mailbox1.size.should == 6
         mailbox1.should == ["all-0", "all-2", "all-4", "all-6", "all-8", "all-10"]
 
@@ -260,7 +260,7 @@ describe "Multiple consumers" do
         4.times  { @exchange.publish(".", :headers => { :slug => "rspec", :arch => "ia64" }) }
       end
 
-      done(1.5) {
+      done(3.5) {
         mailbox1.size.should == 8
         mailbox2.size.should == 8
       }
