@@ -17,6 +17,9 @@ unless ENV["CI"]
       @channel = AMQP::Channel.new(AMQP.connection, :auto_recovery => true)
     end
 
+    after :all do
+      start_rabbitmq unless rabbitmq_pid
+    end
 
     # ...
 

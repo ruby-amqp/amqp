@@ -18,6 +18,10 @@ unless ENV["CI"]
     end
 
 
+    after :all do
+      start_rabbitmq unless rabbitmq_pid
+    end
+
     # ...
 
 

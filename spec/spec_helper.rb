@@ -10,7 +10,7 @@ require "amqp"
 require "evented-spec"
 require "effin_utf8"
 
-puts "Using amq-client #{AMQ::Client::VERSION} and amq-protocol #{AMQ::Protocol::VERSION}"
+puts "Using Ruby #{RUBY_VERSION}, amq-client #{AMQ::Client::VERSION} and amq-protocol #{AMQ::Protocol::VERSION}"
 
 
 amqp_config = File.dirname(__FILE__) + '/amqp.yml'
