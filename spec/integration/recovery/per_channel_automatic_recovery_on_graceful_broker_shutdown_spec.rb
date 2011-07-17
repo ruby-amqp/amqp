@@ -25,7 +25,7 @@ unless ENV["CI"]
     # Examples
     #
 
-    it "kicks in when broker is shut down gracefully" do
+    it "can be used when broker is shut down gracefully" do
       AMQP.connection.on_error do |conn, connection_close|
         puts "[connection.close] Reply code = #{connection_close.reply_code}, reply text = #{connection_close.reply_text}"
         if connection_close.reply_code == 320
