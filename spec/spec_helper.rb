@@ -49,3 +49,26 @@ end
 
 EventMachine.kqueue = true if EventMachine.kqueue?
 EventMachine.epoll  = true if EventMachine.epoll?
+
+
+module RabbitMQ
+  module Control
+    def rabbitmq_pid
+      $1.to_i if `rabbitmqctl status` =~ /{pid,(\d+)}/
+    end
+
+    def start_rabbitmq(delay = 1.0)
+      # this is Homebrew-specific :(
+      `rabbitmq-server > /dev/null 2>&1 &`; sleep(delay)
+    end
+
+    def stop_rabbitmq(pid = rabbitmq_pid, delay = 1.0)
+      `rabbitmqctl stop`; sleep(delay)
+    end
+
+    def kill_rabbitmq(pid = rabbitmq_pid, delay = 1.0)
+      # tango is down, tango is down!
+      Process.kill("KILL", pid); sleep(delay)
+    end
+  end
+end

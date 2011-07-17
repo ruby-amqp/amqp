@@ -25,16 +25,19 @@ unless ENV["CI"]
     # Examples
     #
 
-    it "kicks in when broker goes down" do
-      AMQP.connection.on_tcp_connection_loss do |conn, settings|
-        puts "[network failure] Trying to reconnect..."
-        conn.reconnect(false, 1)
+    it "kicks in when broker is shut down gracefully" do
+      AMQP.connection.on_error do |conn, connection_close|
+        puts "[connection.close] Reply code = #{connection_close.reply_code}, reply text = #{connection_close.reply_text}"
+        if connection_close.reply_code == 320
+          puts "[connection.close] Setting up a periodic reconnection timer..."
+          conn.periodically_reconnect(1)
+        end
       end
 
       pid = rabbitmq_pid
       puts "rabbitmq pid = #{pid.inspect}"
 
-      kill_rabbitmq
+      stop_rabbitmq
       rabbitmq_pid.should be_nil
 
       # 2 seconds later, check that we are reconnecting
@@ -50,10 +53,10 @@ unless ENV["CI"]
         rabbitmq_pid.should_not be_nil
       end
 
-      # 12 seconds later, use the (now recovered) connection. Note that depending
+      # 10 seconds later, use the (now recovered) connection. Note that depending
       # on # of plugins used it may take 5-10 seconds to start up RabbitMQ and initialize it,
       # then open a new AMQP connection. That's why we wait. MK.
-      EventMachine.add_timer(12.0) do
+      EventMachine.add_timer(10.0) do
         AMQP.connection.should be_connected
         AMQP.connection.should_not be_reconnecting
 
