@@ -98,12 +98,6 @@ module AMQP
     end # priority
 
 
-
-    def respond_to_missing?(meth, _)
-      (@attributes && args.empty? && blk.nil? && @attributes.has_key?(meth)) || @method.respond_to?(meth)
-    end
-
-
     # Returns AMQP message attributes.
     # @api public
     def method_missing(meth, *args, &blk)
