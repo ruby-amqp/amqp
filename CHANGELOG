@@ -1,4 +1,7 @@
 = Version 0.7.2
+
+  * [BUG] Server-named queues declared en masse now get their unique names instead of all beign assigned the first generated name
+  * [API] Connection URI (string) format for vhosts no longer assumes that vhosts begin with a slash (/), learn more at http://bit.ly/mfzwcB
   * [BUG] Heartbeats broken for long running tasks [#43]
   * [BUG] Queue#reset leaks consumer tags [#40].
 
