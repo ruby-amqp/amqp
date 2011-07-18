@@ -67,6 +67,9 @@ describe "Message attributes" do
       metadata.consumer_tag.should_not be_nil
       metadata.consumer_tag.should_not be_empty
       metadata.delivery_tag.should == 1
+      metadata.reply_to.should == "a.sender"
+      metadata.correlation_id.should == "r-1"
+      metadata.message_id.should == "m-1"
       metadata.should_not be_redelivered
 
       metadata.app_id.should == "amqpgem.example"
@@ -94,7 +97,10 @@ describe "Message attributes" do
                        :nil_field    => nil,
                        :ary_field    => ["one", 2.0, 3, [{ "abc" => 123 }]]
                      },
-                     :timestamp   => @now.to_i,
-                     :routing_key => "amqpgem.key")
+                     :timestamp      => @now.to_i,
+                     :reply_to       => "a.sender",
+                     :correlation_id => "r-1",
+                     :message_id     => "m-1",
+                     :routing_key    => "amqpgem.key")
   end
 end

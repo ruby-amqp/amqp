@@ -97,6 +97,18 @@ module AMQP
       @attributes[:priority]
     end # priority
 
+    def reply_to
+      @attributes[:reply_to]
+    end # reply_to
+
+    def correlation_id
+      @attributes[:correlation_id]
+    end # correlation_id
+
+    def message_id
+      @attributes[:message_id]
+    end # message_id
+
 
     # Returns AMQP message attributes.
     # @api public
