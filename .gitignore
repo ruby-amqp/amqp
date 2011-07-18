@@ -13,3 +13,4 @@ vendor/amq*
 vendor/evented-spec
 doc/*
 .yardoc/*
+tmp/*
