@@ -427,6 +427,7 @@ module AMQP
 
       @on_status = blk
       @mq.callback {
+        @mq.queues_awaiting_declare_ok.push(self)
         @mq.send Protocol::Queue::Declare.new({ :queue => name,
                                                 :passive => true }.merge(opts))
       }
