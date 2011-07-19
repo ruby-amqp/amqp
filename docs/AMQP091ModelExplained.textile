@@ -1,0 +1,138 @@
+# @title Ruby amqp gem: AMQP 0.9.1 Model Explained
+
+h1. AMQP 0.9.1 Model Explained
+
+h2. About this guide
+
+This guide explains AMQP 0.9.1 Model used by RabbitMQ. Understanding the AMQP Model will make a lot of other documentation, both for the Ruby amqp gem and
+RabbitMQ itself, easier to follow.
+
+This guide covers:
+
+ * High-level overview of the AMQP 0.9.1 Model.
+ * Key differences of the AMQP model from some other messaging models.
+ * What are exchanges.
+ * What are queues.
+ * What are bindings.
+ * How AMQP protocol is structured. What are AMQP methods.
+ * What attributes AMQP 0.9.1 messages have.
+ * What are message acknowledgements.
+ * What are negative message acknowledgements.
+ * and a lot of other things.
+
+
+h2. Which versions of the amqp gem does this guide cover?
+
+This guide covers v0.8.0 and later of the Ruby amqp gem.
+
+
+h2. High-level overview of the AMQP 0.9.1 Model
+
+h3. Brokers & Their Role
+
+AMQP a networking protocol, the Advanced Message Queuing Protocol (AMQP), which enables conforming client applications to communicate with conforming
+messaging middleware brokers. Brokers receive messages from _producers_ (applications that publish them) and route them to _consumers_ (applications
+that process them).
+
+Brokers are centers of the nervous system, applications are more like limbs.
+
+
+h3. AMQP 0.9.1 Model, briefly
+
+AMQP 0.9.1 Model has the following view of the world: messages are published by producers to _exchanges_, often compared to post offices or mailboxes. Exchanges then
+distribute message copies to _queues_ using rules called _bindings_. Then AMQP brokers either push messages to consumers subscribed to some queues, or consumers
+fetch/pull messages from queues on demand, as needed.
+
+
+TBD
+
+
+h2. Key differences from some other messaging models
+
+TBD
+
+
+h2. AMQP Exchanges and Exchange Types.
+
+TBD
+
+
+h2. AMQP Queues.
+
+TBD
+
+
+h2. AMQP Bindings.
+
+TBD
+
+
+h2. AMQP Message Consumers.
+
+TBD
+
+
+h2. AMQP Channels.
+
+TBD
+
+
+h2. AMQP Virtual Hosts (vhosts).
+
+TBD
+
+
+
+h2. Wrapping up
+
+This is the end of the AMQP 0.9.1 Model tutorial. Congratulations! Armed with this knowledge, you will find it easy to follow the rest of
+the amqp gem documentation as well as rabbitmq.com documentation and "rabbitmq-discuss mailing list":http://groups.google.com/group/rabbitmq-discuss
+
+To stay up to date with amqp gem development, "follow @rubyamqp on Twitter":http://twitter.com/rubyamqp and "join our mailing list":http://groups.google.com/group/ruby-amqp.
+
+
+
+
+h2. What to read next
+
+Documentation is organized as a number of {file:docs/DocumentationGuidesIndex.textile documentation guides}, covering all kinds of
+topics from {file:docs/Exchanges.textile use cases for various exchange types} to {file:docs/ErrorHandling.textile error handling} and
+{file:docs/VendorSpecificExchanges.textile Broker-specific AMQP 0.9.1 extensions}.
+
+We recommend that you read the following guides next, if possible, in this order:
+
+ * {file:docs/ConnectingToTheBroker.textile Connection to the broker}. This guide explains how to connect to an AMQP broker and how to integrate the amqp gem into standalone and Web applications.
+ * {file:docs/Queues.textile Working With Queues}. This guide focuses on features that consumer applications use heavily.
+ * {file:docs/Exchanges.textile Working With Exchanges}. This guide focuses on features that producer applications use heavily.
+ * {file:docs/PatternsAndUseCases.textile Patterns & Use Cases}. This guide focuses implementation of "common messaging patterns":http://www.eaipatterns.com/ using AMQP Model features as building blocks.
+ * {file:docs/ErrorHandling.textile Error Handling & Recovery}. This guide explains how to handle protocol errors, network failures and other things that may go wrong in real world projects.
+
+If you are migrating your application from earlier versions of the amqp gem (0.6.x and 0.7.x), to 0.8.x and later, there is the
+{file:docs/08Migration.textile amqp gem 0.8 migration guide}.
+
+
+h2. Tell us what you think!
+
+Please take a moment to tell us what you think about this guide "on Twitter":http://twitter.com/rubyamqp or the "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp.
+ Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is
+key to making the documentation better.
+
+If, for some reason, you cannot use the communication channels mentioned above, you can "contact the author of the guides directly":mailto:michael@novemberain.com?subject=amqp%20gem%20documentation
+
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = 'rubyamqpdocs'; // required: replace example with your forum shortname
+
+    var disqus_developer = 0; // set to 1 on local machine for testing comments
+    var disqus_identifier = 'amqp_connecting_to_the_broker';
+    var disqus_url = 'http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/GettingStarted.textile';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
