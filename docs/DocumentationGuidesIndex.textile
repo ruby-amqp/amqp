@@ -26,6 +26,14 @@ Here is a summary of guides and their content:
   be integrated into rich object-oriented Ruby programs.
   </dd>
 
+
+  <dt>{file:docs/AMQP091ModelExplained.textile AMQP 0.9.1 Model Explained}</dt>
+  <dd>
+  Explains the AMQP 0.9.1 model, focusing on what purpose individual features have. Reading
+  other documentation guides will be easier when you are armed with this knowledge: a lot of the AMQP & RabbitMQ power
+  comes from the AMQP model.
+  </dd>
+
   <dt>{file:docs/ConnectingToTheBroker.textile Connecting to the Broker}</dt>
   <dd>
   Connecting to AMQP broker. How to integrate with standalone applications as well as Ruby on Rails, Merb, Sinatra or Rack apps.
@@ -76,6 +84,7 @@ When more than one guide describes the same concept, we make sure to use cross-r
 h2. Full guide list
 
  * {file:docs/GettingStarted.textile Getting Started}
+ * {file:docs/AMQP091ModelExplained.textile AMQP 0.9.1 Model Explained}
  * {file:docs/ConnectingToTheBroker.textile Connecting to the Broker}
  * {file:docs/Queues.textile Working With Queues}
  * {file:docs/Exchanges.textile Working With Exchanges}
