@@ -47,6 +47,54 @@ fetch/pull messages from queues on demand, as needed.
 TBD
 
 
+h3. AMQP is a Programmable Protocol
+
+AMQP 0.9.1 is a programmable protocol in a sense that routing schemes are defined by applications themselves, not a broker administrator. So there are protocol
+operations that declare queues and exchanges, define bindings between them, subscribe to queues and so on.
+
+This gives application developers a lot of freedom but also requires them to be aware of potential definition conflicts. In practice, those definition conflicts
+are rare and often indicate misconfigurations, and it is a good thing that misconfigurations are caught early.
+
+
+
+h3. AMQP 0.9.1 Methods
+
+AMQP 0.9.1 is structured as a number of _methods_. Methods are operations (like HTTP methods) and have nothing in common with methods in object-oriented programming
+languages. AMQP methods are grouped into _classes_. Classes are just logical groupings of AMQP methods. "AMQP 0.9.1 reference":http://www.rabbitmq.com/amqp-0-9-1-reference.html can be found on
+the RabbitMQ website.
+
+Lets take a look at the _exchange.*_ class, a group of methods related to operations on exchanges. It includes the following operations:
+
+
+ * exchange.declare
+ * exchange.declare-ok
+ * exchange.delete
+ * exchange.delete-ok
+
+(note that RabbitMQ site reference also includes RabbitMQ-specific extensions to the exchange.* class that we won't discuss in this guide).
+
+It is easy to see the operations above form logical pairs: *exchange.declare* and *exchange.declare-ok*,
+*exchange.delete* and *exchange.delete-ok*. These operations are "requests" (sent by clients) and "responses" (sent by
+brokers in response to aforementioned "requests").
+
+So first, client asks broker to declare a new exchange using *exchange.declare* method:
+
+!https://img.skitch.com/20110720-c4qjdhmdrih9bn56npqnic4die.jpg!
+
+as demonstrated on the diagram above, *exchange.declare* carries several _parameters_. They let client specify exchange name,
+type, durability flag and so on.
+
+And if the operation succeeds, broker responds with *exchange.declare-ok* method:
+
+!https://img.skitch.com/20110720-m4ptjbnex2sa52g6wdwj3e9ahm.jpg!
+
+*exchange.declare-ok* does not carry any parameters except for the channel number.
+
+
+Not all AMQP methods have counterparts. Some (*basic.publish* being the most widely used one) do not have corresponding "response" methods
+and some others (*basic.get*, for example) have more than one possible "response".
+
+
 h2. Key differences from some other messaging models
 
 TBD
@@ -72,7 +120,19 @@ h2. AMQP Message Consumers.
 TBD
 
 
+
+h2. AMQP Connections.
+
+TBD
+
+
+
 h2. AMQP Channels.
+
+
+
+Because communication on a particular channel is completely separate from communication on a separate channel, every AMQP method also carries a channel number that clients
+use to figure out what channel this method is for (and thus, for event handler needs to be invoked, for example).
 
 TBD
 
@@ -126,8 +186,8 @@ If, for some reason, you cannot use the communication channels mentioned above, 
     var disqus_shortname = 'rubyamqpdocs'; // required: replace example with your forum shortname
 
     var disqus_developer = 0; // set to 1 on local machine for testing comments
-    var disqus_identifier = 'amqp_connecting_to_the_broker';
-    var disqus_url = 'http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/GettingStarted.textile';
+    var disqus_identifier = 'amqp091_model_explained';
+    var disqus_url = 'http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/AMQP091ModelExplained.textile';
 
     /* * * DON'T EDIT BELOW THIS LINE * * */
     (function() {
