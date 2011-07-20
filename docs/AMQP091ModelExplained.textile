@@ -23,7 +23,7 @@ This guide covers:
 
 h2. Which versions of the amqp gem does this guide cover?
 
-This guide covers v0.8.0 and later of the Ruby amqp gem.
+This guide covers v0.8.0 and later of the "Ruby amqp gem":https://github.com/ruby-amqp/amqp.
 
 
 h2. High-level overview of the AMQP 0.9.1 Model
@@ -40,24 +40,65 @@ Brokers are centers of the nervous system, applications are more like limbs.
 h3. AMQP 0.9.1 Model, briefly
 
 AMQP 0.9.1 Model has the following view of the world: messages are published by producers to _exchanges_, often compared to post offices or mailboxes. Exchanges then
-distribute message copies to _queues_ using rules called _bindings_. Then AMQP brokers either push messages to consumers subscribed to some queues, or consumers
+distribute message copies to _queues_ using rules called _bindings_. Then AMQP brokers either push messages to _consumers_ subscribed to some queues, or consumers
 fetch/pull messages from queues on demand, as needed.
 
+When publishing a message, producers may specify various _message attributes_ (message metadata). Some of this metadata may be used by the broker, some other
+is completely opaque and will only be used by applications that receive the message.
 
-TBD
+Because networks are not reliable and applications may fail to process messages, AMQP Model has notion of
+_message acknowledgements_: when message is pushed down to a consumer, the consumer _notifies the broker_, either automatically or as soon as application
+developer chooses to. Brokers then will only complete remove message from the queue when they receive a notification for that message (or a group of messages).
+
+In certain situations, for example, when message cannot be routed, messages may be _returned_ to producers or dropped (or, if broker implements an extension,
+placed into so-called "dead letter queue"). Producers choose how situations like this are handled by publishing messages with certain parameters.
+
+Queues, entities and bindings are commonly referred to as _AMQP entities_.
 
 
 h3. AMQP is a Programmable Protocol
 
-AMQP 0.9.1 is a programmable protocol in a sense that routing schemes are defined by applications themselves, not a broker administrator. So there are protocol
+AMQP 0.9.1 is a programmable protocol in a sense that AMQP entities & routing schemes are defined by applications themselves, not a broker administrator. So there are protocol
 operations that declare queues and exchanges, define bindings between them, subscribe to queues and so on.
 
 This gives application developers a lot of freedom but also requires them to be aware of potential definition conflicts. In practice, those definition conflicts
 are rare and often indicate misconfigurations, and it is a good thing that misconfigurations are caught early.
 
+Applications declare AMQP entities they need, define routing schemes necessary and may choose to delete AMQP entities when they are no longer used.
 
 
-h3. AMQP 0.9.1 Methods
+
+h2. Key differences from some other messaging models
+
+Key difference to understand about the AMQP 0.9.1 Model is that *messages are not sent to queues. They are sent to exchanges that route them to
+queues according to rules called "bindings"*. This means that routing is primarily handled by AMQP brokers and not applications themselves.
+
+TBD
+
+
+h2. AMQP Exchanges and Exchange Types.
+
+TBD
+
+
+h2. AMQP Queues.
+
+TBD
+
+
+h2. AMQP Bindings.
+
+TBD
+
+
+
+h2. AMQP Message Consumers.
+
+TBD
+
+
+
+h2. AMQP 0.9.1 Methods
 
 AMQP 0.9.1 is structured as a number of _methods_. Methods are operations (like HTTP methods) and have nothing in common with methods in object-oriented programming
 languages. AMQP methods are grouped into _classes_. Classes are just logical groupings of AMQP methods. "AMQP 0.9.1 reference":http://www.rabbitmq.com/amqp-0-9-1-reference.html can be found on
@@ -88,36 +129,16 @@ And if the operation succeeds, broker responds with *exchange.declare-ok* method
 
 !https://img.skitch.com/20110720-m4ptjbnex2sa52g6wdwj3e9ahm.jpg!
 
-*exchange.declare-ok* does not carry any parameters except for the channel number.
+*exchange.declare-ok* does not carry any parameters except for the channel number (channelswill be described later in this guide).
 
+Event sequence is very similar for another methods pair, *queue.declare* and *queue.declare-ok*:
+
+!https://img.skitch.com/20110720-tmxswrie71ubb5m5nh8n17idhk.jpg!
+
+!https://img.skitch.com/20110720-g67urxg75c71qtwhwsjs684323.jpg!
 
 Not all AMQP methods have counterparts. Some (*basic.publish* being the most widely used one) do not have corresponding "response" methods
 and some others (*basic.get*, for example) have more than one possible "response".
-
-
-h2. Key differences from some other messaging models
-
-TBD
-
-
-h2. AMQP Exchanges and Exchange Types.
-
-TBD
-
-
-h2. AMQP Queues.
-
-TBD
-
-
-h2. AMQP Bindings.
-
-TBD
-
-
-h2. AMQP Message Consumers.
-
-TBD
 
 
 
