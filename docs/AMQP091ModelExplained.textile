@@ -43,6 +43,8 @@ AMQP 0.9.1 Model has the following view of the world: messages are published by 
 distribute message copies to _queues_ using rules called _bindings_. Then AMQP brokers either push messages to _consumers_ subscribed to some queues, or consumers
 fetch/pull messages from queues on demand, as needed.
 
+!https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/001_hello_world_example_routing.png!
+
 When publishing a message, producers may specify various _message attributes_ (message metadata). Some of this metadata may be used by the broker, some other
 is completely opaque and will only be used by applications that receive the message.
 
@@ -68,33 +70,101 @@ Applications declare AMQP entities they need, define routing schemes necessary a
 
 
 
-h2. Key differences from some other messaging models
-
-Key difference to understand about the AMQP 0.9.1 Model is that *messages are not sent to queues. They are sent to exchanges that route them to
-queues according to rules called "bindings"*. This means that routing is primarily handled by AMQP brokers and not applications themselves.
-
-TBD
-
-
 h2. AMQP Exchanges and Exchange Types.
 
-TBD
+_Exchanges_ are AMQP entities where messages are sent. Exchanges then take a message and route it into one or more (or none) queues. Routing algorithm used
+depends on _exchange type_ and rules called _bindings_. AMQP 0.9.1 brokers typically provide 4 exchange types out of the box:
+
+ * Direct exchange (typically used for for 1-to-1 communication or unicasting)
+ * Fanout exchange (1-to-n communication or broadcasting)
+ * Topic exchange (1-to-n or n-to-m communication, multicasting)
+ * Headers exchange (message metadata-based routing)
+
+but it is possible to extend AMQP 0.9.1 brokers with custom exchange types, for example:
+
+ * x-random exchange (randomly chooses a queue to route incoming messages to)
+ * x-recent-history (a fanout exchange that also keeps N recent messages in memory)
+ * regular expressions based variations of headers exchange
+
+and so on.
+
+Besides the type, exchanges have a number of attributes, most imprortant of which are:
+
+ * Name
+ * Can be durable (information about them is persisted to disk and thus survives broker restarts) or non-durable (information is only kept in RAM)
+ * Can have metadata associated with them on declaration
 
 
 h2. AMQP Queues.
 
-TBD
+Queues in the AMQP Model are very similar to queues in other messages (and "task queueing") systems: they store messages that are consumed by
+applications. Like AMQP exchanges, AMQP queues have names and durability property but also
+
+ * Can be exclusive (used by only one connection)
+ * Can be automatically deleted when last consumer unsubscribes
+ * Can have metadata associated with them on declaration (some brokers use it to implement features like message TTL and so on)
+
 
 
 h2. AMQP Bindings.
 
-TBD
+Bindings are rules that exchanges use (among other things) to route messages to queues. To instruct an exchange E to route messages to a queue Q,
+Q has to _be bound_ to E. Bindings may have an optional _routing key_ attribute used by some exchange types. The purpose of the routing key is to
+selectively match only specific (matching) messages published to an exchange to the bound queue. In other words, routing key acts like a filter.
 
 
 
 h2. AMQP Message Consumers.
 
-TBD
+Storing messages in queues is useless unless applications can _consume_ them. In the AMQP 0.9.1 Model, there are two ways for applications to do it:
+
+ * Have messages pushed to them ("push API")
+ * Fetch messages as needed ("pull API")
+
+With the "push API", applications have to indicate interest in consuming messages from a particular queue. When they do so, we say that they _register a consumer_
+(or, simply put, _subscribe to a queue_). It is possible to have more than one consumer per queue or to register an _exclusive consumer_ (the only consumer on
+the queue).
+
+Each consumer (subscription) has an identifier called _consumer tag_. It can be used to unsubscribe from messages. Delivered messages also have identifiers
+called _delivery tags_. Consumer tags are just strings. Delivery tag is an incrementing integer that is reset on certain events (see below).
+
+
+
+h2. AMQP Message Attributes and Payload.
+
+Messages in the AMQP Model have _attributes_. Some attributes are so common that AMQP 0.9.1 spec defines them and application developers don't have to think
+about exact attribute name. Some examples are
+
+ * Message content type
+ * Message content encoding
+ * Message routing key
+ * Message delivery mode (persistent or not)
+ * Consumer tag this delivery is for
+ * Delivery tag
+ * Message priority
+ * Whether or not message is redelivered
+ * Producer application id
+
+Some attributes are used by AMQP brokers, but most are up to interpretation by applications that receive them. Some attributes are optional and known
+as _headers_. They are similar to X-Headers in HTTP. Message attributes are set when message is published.
+
+AMQP messages also have _payload_ (data they carry). This data is never modified by AMQP brokers. It is possible for messages to only have attributes
+and no body. It is common to user serialization formats like JSON, Thrift, Protocol Buffers, MessagePack and so on to serialize structured data
+and publish it as AMQP message payload.
+
+
+
+h2. AMQP Message Acknowledgements.
+
+Since networks are unreliable and applications fail, it is often necessary to have some kind of "processing acknowledgements". Sometimes it is only
+necessary to acknowledge the fact that message has been received, sometimes acknowledgements mean that message was validated & processed by consumer,
+for example, verified to have mandatory data and persisted to a data store or indexed.
+
+Because this situation is so common, AMQP 0.9.1 has a built-in feature called _message acknowledgements_ (sometimes referred to as _acks_) that consumer
+use to confirm message delivery and/or processing. If application crashes (AMQP broker notice this when connection is closed), if acknowledgement for a
+message was not received by AMQP broker, the message is re-queued (and possibly immediately delivered to another consumer, if any).
+
+Having acknowledgements built into the protocol helps developers to build more robust software.
 
 
 
@@ -144,21 +214,42 @@ and some others (*basic.get*, for example) have more than one possible "response
 
 h2. AMQP Connections.
 
-TBD
+AMQP connections are typically long-lived. AMQP is an application level protocol that uses TCP for reliable delivery. AMQP connections use
+authentication and can be protected using TLS (SSL). When application no longer needs to be connected to AMQP broker, it should gracefully
+close AMQP connection instead of abruptly closing the underlying TCP connection.
 
 
 
 h2. AMQP Channels.
 
+Some applications need multiple connections to AMQP broker. It is, however, undesirable to keep open many TCP connections at the same time
+because doing so consumes system resources and makes it more difficult to configure firewalls. AMQP 0.9.1 connections are multiplexed with
+_channels_ that can be thought of as "lightweight connections that share a single TCP connection".
 
+For applications that use multiple threads/processes/etc for processing, it is very common to open a new channel per thread (process, etc)
+and *not share* channels between them.
 
 Because communication on a particular channel is completely separate from communication on a separate channel, every AMQP method also carries a channel number that clients
 use to figure out what channel this method is for (and thus, for event handler needs to be invoked, for example).
 
-TBD
+
 
 
 h2. AMQP Virtual Hosts (vhosts).
+
+To make it possible for a single broker to host multiple "realms" (isolated groups of users, exchanges, queues and so on), AMQP includes concept
+of _virtual hosts_ (vhosts). They are similar to virtual hosts used by many popular Web servers and provide completely isolated environments
+in which AMQP entities live. AMQP clients specify what vhosts they want to use during AMQP connection negotiation.
+
+AMQP 0.9.1 vhost can be any non-blank string.
+
+
+
+
+h2. Key differences from some other messaging models
+
+Key difference to understand about the AMQP 0.9.1 Model is that *messages are not sent to queues. They are sent to exchanges that route them to
+queues according to rules called "bindings"*. This means that routing is primarily handled by AMQP brokers and not applications themselves.
 
 TBD
 

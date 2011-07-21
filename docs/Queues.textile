@@ -304,7 +304,7 @@ h3. Accessing message metadata
 The `header` object in the example above provides access to message metadata and delivery information:
 
  * Message content type
- * Message content­ encoding
+ * Message content encoding
  * Message routing key
  * Message delivery mode (persistent or not)
  * Consumer tag this delivery is for
