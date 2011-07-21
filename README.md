@@ -3,7 +3,7 @@
 Ruby amqp gem is a widely used, feature-rich, well-maintained asynchronous AMQP 0.9.1 client with batteries included.
 This library works with Ruby 1.8.7 (p174 and p334), Ruby 1.9.2, [JRuby](http://jruby.org) (highly recommended to Microsoft Windows users), [REE](http://www.rubyenterpriseedition.com) and [Rubinius](http://rubini.us), and is licensed under the [Ruby License](http://www.ruby-lang.org/en/LICENSE.txt)
 
-Versions 0.8.0 and later of amqp gem implement [AMQP 0.9.1](http://bit.ly/hw2ELX) and support [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq.com/extensions.html).
+Versions 0.8.0.RC13 and later of amqp gem implement [AMQP 0.9.1](http://bit.ly/amqp-model-explained) (see also [AMQP 0.9.1 spec document](http://bit.ly/hw2ELX)) and support [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq.com/extensions.html).
 
 [![Continuous Integration status](https://secure.travis-ci.org/ruby-amqp/amqp.png)](http://travis-ci.org/ruby-amqp/amqp)
 
@@ -114,7 +114,8 @@ On other OSes or [JRuby](http://jruby.org):
 
 
 [Getting started guide](http://bit.ly/getting-started-with-amqp-ruby-gem) explains this and two more examples in detail,
-and is written in a form of a tutorial.
+and is written in a form of a tutorial. See [AMQP Model Explained](http://bit.ly/amqp-model-explained) if you want
+to learn more about AMQP principles & concepts.
 
 
 
@@ -122,7 +123,7 @@ and is written in a form of a tutorial.
 
 We believe that in order to be a library our users **really** love, we need to care about documentation as much as (or more)
 code readability, API beauty and autotomated testing across 5 Ruby implementations on multiple operating systems. We do care
-about our documentation: **if you don't find your answer in documentation, we consider it a high severity bug** that you
+about our [documentation](http://bitly.com/amqp-gem-docs): **if you don't find your answer in documentation, we consider it a high severity bug** that you
 should [file to us](http://github.com/ruby-amqp/amqp/issues). Or just complain to [@rubyamqp](https://twitter.com/rubyamqp) on Twitter.
 
 
@@ -144,10 +145,13 @@ of the page.
 You can find many examples (both real-world cases and simple demonstrations) under [examples directory](https://github.com/ruby-amqp/amqp/tree/master/examples) in the repository.
 Note that those examples are written against version 0.8.0.rc1 and later. 0.6.x and 0.7.x may not support certain AMQP protocol or "DSL syntax" features.
 
+There is also a work-in-progress [Messaging Patterns and Use Cases With AMQP](http://bit.ly/amqp-gem-patterns) documentation guide.
+
 
 ### Documentation guides ###
 
-[Documentation guides](http://bit.ly/amqp-gem-docs) describe the library itself as well as AMQP usage scenarios, topics like routing, error handing & recovery, broker-specific extensions, TLS support, troubleshooting and so on.
+[Documentation guides](http://bit.ly/amqp-gem-docs) describe the library itself as well as AMQP concepts, usage scenarios, topics like working with exchanges and queues,
+error handing & recovery, broker-specific extensions, TLS support, troubleshooting and so on. Most of the documentation is in these guides.
 
 
 ### API reference ###
