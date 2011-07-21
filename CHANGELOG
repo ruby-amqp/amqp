@@ -1,5 +1,6 @@
 = Version 0.8.0
 
+  * [BUG] Empty messages can finally be published fine. Yes, it took us just 3 years.
   * [FEATURE] When connected to RabbitMQ, RabbitMQ-specific extensions are required automatically
   * [FEATURE] AMQP::Session#broker and AMQP::Broker allow for broker capabilities inspection
   * [FEATURE] New bitset-based channel id allocator
