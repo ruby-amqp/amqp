@@ -1,0 +1,310 @@
+# @title Ruby amqp gem: AMQP 0.9.1 Model Explained
+
+h1. AMQP 0.9.1 Model Explained
+
+h2. About this guide
+
+This guide explains AMQP 0.9.1 Model used by RabbitMQ. Understanding the AMQP Model will make a lot of other documentation, both for the Ruby amqp gem and
+RabbitMQ itself, easier to follow.
+
+This guide covers:
+
+ * High-level overview of the AMQP 0.9.1 Model.
+ * Key differences of the AMQP model from some other messaging models.
+ * What are exchanges.
+ * What are queues.
+ * What are bindings.
+ * How AMQP protocol is structured. What are AMQP methods.
+ * What attributes AMQP 0.9.1 messages have.
+ * What are message acknowledgements.
+ * What are negative message acknowledgements.
+ * and a lot of other things.
+
+
+h2. Which versions of the amqp gem does this guide cover?
+
+This guide covers v0.8.0 and later of the "Ruby amqp gem":https://github.com/ruby-amqp/amqp.
+
+
+h2. High-level overview of the AMQP 0.9.1 Model
+
+h3. Brokers & Their Role
+
+AMQP a networking protocol, the Advanced Message Queuing Protocol (AMQP), which enables conforming client applications to communicate with conforming
+messaging middleware brokers. Brokers receive messages from _producers_ (applications that publish them) and route them to _consumers_ (applications
+that process them).
+
+Brokers are centers of the nervous system, applications are more like limbs.
+
+
+h3. AMQP 0.9.1 Model, briefly
+
+AMQP 0.9.1 Model has the following view of the world: messages are published by producers to _exchanges_, often compared to post offices or mailboxes. Exchanges then
+distribute message copies to _queues_ using rules called _bindings_. Then AMQP brokers either push messages to _consumers_ subscribed to some queues, or consumers
+fetch/pull messages from queues on demand, as needed.
+
+!https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/001_hello_world_example_routing.png!
+
+When publishing a message, producers may specify various _message attributes_ (message metadata). Some of this metadata may be used by the broker, some other
+is completely opaque and will only be used by applications that receive the message.
+
+Because networks are not reliable and applications may fail to process messages, AMQP Model has notion of
+_message acknowledgements_: when message is pushed down to a consumer, the consumer _notifies the broker_, either automatically or as soon as application
+developer chooses to. Brokers then will only complete remove message from the queue when they receive a notification for that message (or a group of messages).
+
+In certain situations, for example, when message cannot be routed, messages may be _returned_ to producers or dropped (or, if broker implements an extension,
+placed into so-called "dead letter queue"). Producers choose how situations like this are handled by publishing messages with certain parameters.
+
+Queues, entities and bindings are commonly referred to as _AMQP entities_.
+
+
+h3. AMQP is a Programmable Protocol
+
+AMQP 0.9.1 is a programmable protocol in a sense that AMQP entities & routing schemes are defined by applications themselves, not a broker administrator. So there are protocol
+operations that declare queues and exchanges, define bindings between them, subscribe to queues and so on.
+
+This gives application developers a lot of freedom but also requires them to be aware of potential definition conflicts. In practice, those definition conflicts
+are rare and often indicate misconfigurations, and it is a good thing that misconfigurations are caught early.
+
+Applications declare AMQP entities they need, define routing schemes necessary and may choose to delete AMQP entities when they are no longer used.
+
+
+
+h2. AMQP Exchanges and Exchange Types.
+
+_Exchanges_ are AMQP entities where messages are sent. Exchanges then take a message and route it into one or more (or none) queues. Routing algorithm used
+depends on _exchange type_ and rules called _bindings_. AMQP 0.9.1 brokers typically provide 4 exchange types out of the box:
+
+ * Direct exchange (typically used for for 1-to-1 communication or unicasting)
+ * Fanout exchange (1-to-n communication or broadcasting)
+ * Topic exchange (1-to-n or n-to-m communication, multicasting)
+ * Headers exchange (message metadata-based routing)
+
+but it is possible to extend AMQP 0.9.1 brokers with custom exchange types, for example:
+
+ * x-random exchange (randomly chooses a queue to route incoming messages to)
+ * x-recent-history (a fanout exchange that also keeps N recent messages in memory)
+ * regular expressions based variations of headers exchange
+
+and so on.
+
+Besides the type, exchanges have a number of attributes, most imprortant of which are:
+
+ * Name
+ * Can be durable (information about them is persisted to disk and thus survives broker restarts) or non-durable (information is only kept in RAM)
+ * Can have metadata associated with them on declaration
+
+
+h2. AMQP Queues.
+
+Queues in the AMQP Model are very similar to queues in other messages (and "task queueing") systems: they store messages that are consumed by
+applications. Like AMQP exchanges, AMQP queues have names and durability property but also
+
+ * Can be exclusive (used by only one connection)
+ * Can be automatically deleted when last consumer unsubscribes
+ * Can have metadata associated with them on declaration (some brokers use it to implement features like message TTL and so on)
+
+
+
+h2. AMQP Bindings.
+
+Bindings are rules that exchanges use (among other things) to route messages to queues. To instruct an exchange E to route messages to a queue Q,
+Q has to _be bound_ to E. Bindings may have an optional _routing key_ attribute used by some exchange types. The purpose of the routing key is to
+selectively match only specific (matching) messages published to an exchange to the bound queue. In other words, routing key acts like a filter.
+
+
+
+h2. AMQP Message Consumers.
+
+Storing messages in queues is useless unless applications can _consume_ them. In the AMQP 0.9.1 Model, there are two ways for applications to do it:
+
+ * Have messages pushed to them ("push API")
+ * Fetch messages as needed ("pull API")
+
+With the "push API", applications have to indicate interest in consuming messages from a particular queue. When they do so, we say that they _register a consumer_
+(or, simply put, _subscribe to a queue_). It is possible to have more than one consumer per queue or to register an _exclusive consumer_ (the only consumer on
+the queue).
+
+Each consumer (subscription) has an identifier called _consumer tag_. It can be used to unsubscribe from messages. Delivered messages also have identifiers
+called _delivery tags_. Consumer tags are just strings. Delivery tag is an incrementing integer that is reset on certain events (see below).
+
+
+
+h2. AMQP Message Attributes and Payload.
+
+Messages in the AMQP Model have _attributes_. Some attributes are so common that AMQP 0.9.1 spec defines them and application developers don't have to think
+about exact attribute name. Some examples are
+
+ * Message content type
+ * Message content encoding
+ * Message routing key
+ * Message delivery mode (persistent or not)
+ * Consumer tag this delivery is for
+ * Delivery tag
+ * Message priority
+ * Whether or not message is redelivered
+ * Producer application id
+
+Some attributes are used by AMQP brokers, but most are up to interpretation by applications that receive them. Some attributes are optional and known
+as _headers_. They are similar to X-Headers in HTTP. Message attributes are set when message is published.
+
+AMQP messages also have _payload_ (data they carry). This data is never modified by AMQP brokers. It is possible for messages to only have attributes
+and no body. It is common to user serialization formats like JSON, Thrift, Protocol Buffers, MessagePack and so on to serialize structured data
+and publish it as AMQP message payload.
+
+
+
+h2. AMQP Message Acknowledgements.
+
+Since networks are unreliable and applications fail, it is often necessary to have some kind of "processing acknowledgements". Sometimes it is only
+necessary to acknowledge the fact that message has been received, sometimes acknowledgements mean that message was validated & processed by consumer,
+for example, verified to have mandatory data and persisted to a data store or indexed.
+
+Because this situation is so common, AMQP 0.9.1 has a built-in feature called _message acknowledgements_ (sometimes referred to as _acks_) that consumer
+use to confirm message delivery and/or processing. If application crashes (AMQP broker notice this when connection is closed), if acknowledgement for a
+message was not received by AMQP broker, the message is re-queued (and possibly immediately delivered to another consumer, if any).
+
+Having acknowledgements built into the protocol helps developers to build more robust software.
+
+
+
+h2. AMQP 0.9.1 Methods
+
+AMQP 0.9.1 is structured as a number of _methods_. Methods are operations (like HTTP methods) and have nothing in common with methods in object-oriented programming
+languages. AMQP methods are grouped into _classes_. Classes are just logical groupings of AMQP methods. "AMQP 0.9.1 reference":http://www.rabbitmq.com/amqp-0-9-1-reference.html can be found on
+the RabbitMQ website.
+
+Lets take a look at the _exchange.*_ class, a group of methods related to operations on exchanges. It includes the following operations:
+
+
+ * exchange.declare
+ * exchange.declare-ok
+ * exchange.delete
+ * exchange.delete-ok
+
+(note that RabbitMQ site reference also includes RabbitMQ-specific extensions to the exchange.* class that we won't discuss in this guide).
+
+It is easy to see the operations above form logical pairs: *exchange.declare* and *exchange.declare-ok*,
+*exchange.delete* and *exchange.delete-ok*. These operations are "requests" (sent by clients) and "responses" (sent by
+brokers in response to aforementioned "requests").
+
+So first, client asks broker to declare a new exchange using *exchange.declare* method:
+
+!https://img.skitch.com/20110720-c4qjdhmdrih9bn56npqnic4die.jpg!
+
+as demonstrated on the diagram above, *exchange.declare* carries several _parameters_. They let client specify exchange name,
+type, durability flag and so on.
+
+And if the operation succeeds, broker responds with *exchange.declare-ok* method:
+
+!https://img.skitch.com/20110720-m4ptjbnex2sa52g6wdwj3e9ahm.jpg!
+
+*exchange.declare-ok* does not carry any parameters except for the channel number (channelswill be described later in this guide).
+
+Event sequence is very similar for another methods pair, *queue.declare* and *queue.declare-ok*:
+
+!https://img.skitch.com/20110720-tmxswrie71ubb5m5nh8n17idhk.jpg!
+
+!https://img.skitch.com/20110720-g67urxg75c71qtwhwsjs684323.jpg!
+
+Not all AMQP methods have counterparts. Some (*basic.publish* being the most widely used one) do not have corresponding "response" methods
+and some others (*basic.get*, for example) have more than one possible "response".
+
+
+
+h2. AMQP Connections.
+
+AMQP connections are typically long-lived. AMQP is an application level protocol that uses TCP for reliable delivery. AMQP connections use
+authentication and can be protected using TLS (SSL). When application no longer needs to be connected to AMQP broker, it should gracefully
+close AMQP connection instead of abruptly closing the underlying TCP connection.
+
+
+
+h2. AMQP Channels.
+
+Some applications need multiple connections to AMQP broker. It is, however, undesirable to keep open many TCP connections at the same time
+because doing so consumes system resources and makes it more difficult to configure firewalls. AMQP 0.9.1 connections are multiplexed with
+_channels_ that can be thought of as "lightweight connections that share a single TCP connection".
+
+For applications that use multiple threads/processes/etc for processing, it is very common to open a new channel per thread (process, etc)
+and *not share* channels between them.
+
+Because communication on a particular channel is completely separate from communication on a separate channel, every AMQP method also carries a channel number that clients
+use to figure out what channel this method is for (and thus, for event handler needs to be invoked, for example).
+
+
+
+
+h2. AMQP Virtual Hosts (vhosts).
+
+To make it possible for a single broker to host multiple "realms" (isolated groups of users, exchanges, queues and so on), AMQP includes concept
+of _virtual hosts_ (vhosts). They are similar to virtual hosts used by many popular Web servers and provide completely isolated environments
+in which AMQP entities live. AMQP clients specify what vhosts they want to use during AMQP connection negotiation.
+
+AMQP 0.9.1 vhost can be any non-blank string.
+
+
+
+
+h2. Key differences from some other messaging models
+
+Key difference to understand about the AMQP 0.9.1 Model is that *messages are not sent to queues. They are sent to exchanges that route them to
+queues according to rules called "bindings"*. This means that routing is primarily handled by AMQP brokers and not applications themselves.
+
+TBD
+
+
+
+h2. Wrapping up
+
+This is the end of the AMQP 0.9.1 Model tutorial. Congratulations! Armed with this knowledge, you will find it easy to follow the rest of
+the amqp gem documentation as well as rabbitmq.com documentation and "rabbitmq-discuss mailing list":http://groups.google.com/group/rabbitmq-discuss
+
+To stay up to date with amqp gem development, "follow @rubyamqp on Twitter":http://twitter.com/rubyamqp and "join our mailing list":http://groups.google.com/group/ruby-amqp.
+
+
+
+
+h2. What to read next
+
+Documentation is organized as a number of {file:docs/DocumentationGuidesIndex.textile documentation guides}, covering all kinds of
+topics from {file:docs/Exchanges.textile use cases for various exchange types} to {file:docs/ErrorHandling.textile error handling} and
+{file:docs/VendorSpecificExchanges.textile Broker-specific AMQP 0.9.1 extensions}.
+
+We recommend that you read the following guides next, if possible, in this order:
+
+ * {file:docs/ConnectingToTheBroker.textile Connection to the broker}. This guide explains how to connect to an AMQP broker and how to integrate the amqp gem into standalone and Web applications.
+ * {file:docs/Queues.textile Working With Queues}. This guide focuses on features that consumer applications use heavily.
+ * {file:docs/Exchanges.textile Working With Exchanges}. This guide focuses on features that producer applications use heavily.
+ * {file:docs/PatternsAndUseCases.textile Patterns & Use Cases}. This guide focuses implementation of "common messaging patterns":http://www.eaipatterns.com/ using AMQP Model features as building blocks.
+ * {file:docs/ErrorHandling.textile Error Handling & Recovery}. This guide explains how to handle protocol errors, network failures and other things that may go wrong in real world projects.
+
+If you are migrating your application from earlier versions of the amqp gem (0.6.x and 0.7.x), to 0.8.x and later, there is the
+{file:docs/08Migration.textile amqp gem 0.8 migration guide}.
+
+
+h2. Tell us what you think!
+
+Please take a moment to tell us what you think about this guide "on Twitter":http://twitter.com/rubyamqp or the "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp.
+ Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is
+key to making the documentation better.
+
+If, for some reason, you cannot use the communication channels mentioned above, you can "contact the author of the guides directly":mailto:michael@novemberain.com?subject=amqp%20gem%20documentation
+
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = 'rubyamqpdocs'; // required: replace example with your forum shortname
+
+    var disqus_developer = 0; // set to 1 on local machine for testing comments
+    var disqus_identifier = 'amqp091_model_explained';
+    var disqus_url = 'http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/AMQP091ModelExplained.textile';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>

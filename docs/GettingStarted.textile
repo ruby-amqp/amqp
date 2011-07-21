@@ -18,7 +18,7 @@ It should take about 20 minutes to read and study the provided code examples. Th
 
 h2. Which versions of the amqp gem does this guide cover?
 
-This guide covers v0.8.0 and later of the Ruby amqp gem.
+This guide covers v0.8.0 and later of the "Ruby amqp gem":https://github.com/ruby-amqp/amqp.
 
 
 h2. Installing RabbitMQ
@@ -591,6 +591,7 @@ We recommend that you read the following guides next, if possible, in this order
  * {file:docs/ConnectingToTheBroker.textile Connection to the broker}. This guide explains how to connect to an AMQP broker and how to integrate the amqp gem into standalone and Web applications.
  * {file:docs/Queues.textile Working With Queues}. This guide focuses on features that consumer applications use heavily.
  * {file:docs/Exchanges.textile Working With Exchanges}. This guide focuses on features that producer applications use heavily.
+ * {file:docs/PatternsAndUseCases.textile Patterns & Use Cases}. This guide focuses implementation of "common messaging patterns":http://www.eaipatterns.com/ using AMQP Model features as building blocks.
  * {file:docs/ErrorHandling.textile Error Handling & Recovery}. This guide explains how to handle protocol errors, network failures and other things that may go wrong in real world projects.
 
 If you are migrating your application from earlier versions of the amqp gem (0.6.x and 0.7.x), to 0.8.x and later, there is the
