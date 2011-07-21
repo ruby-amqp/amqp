@@ -30,7 +30,7 @@ h2. High-level overview of the AMQP 0.9.1 Model
 
 h3. Brokers & Their Role
 
-AMQP a networking protocol, the Advanced Message Queuing Protocol (AMQP), which enables conforming client applications to communicate with conforming
+AMQP (Advanced Message Queuing Protocol) is a networking protocol which enables conforming client applications to communicate with conforming
 messaging middleware brokers. Brokers receive messages from _producers_ (applications that publish them) and route them to _consumers_ (applications
 that process them).
 
@@ -39,7 +39,7 @@ Brokers are centers of the nervous system, applications are more like limbs.
 
 h3. AMQP 0.9.1 Model, briefly
 
-AMQP 0.9.1 Model has the following view of the world: messages are published by producers to _exchanges_, often compared to post offices or mailboxes. Exchanges then
+The AMQP 0.9.1 Model has the following view of the world: messages are published by producers to _exchanges_, often compared to post offices or mailboxes. Exchanges then
 distribute message copies to _queues_ using rules called _bindings_. Then AMQP brokers either push messages to _consumers_ subscribed to some queues, or consumers
 fetch/pull messages from queues on demand, as needed.
 
@@ -48,19 +48,19 @@ fetch/pull messages from queues on demand, as needed.
 When publishing a message, producers may specify various _message attributes_ (message metadata). Some of this metadata may be used by the broker, some other
 is completely opaque and will only be used by applications that receive the message.
 
-Because networks are not reliable and applications may fail to process messages, AMQP Model has notion of
-_message acknowledgements_: when message is pushed down to a consumer, the consumer _notifies the broker_, either automatically or as soon as application
-developer chooses to. Brokers then will only complete remove message from the queue when they receive a notification for that message (or a group of messages).
+Because networks are not reliable and applications may fail to process messages, the AMQP Model has a notion of
+_message acknowledgements_: when a message is pushed down to a consumer, the consumer _notifies the broker_, either automatically or as soon as application
+developer chooses to. Brokers then will only completely remove message from the queue when they receive a notification for that message (or a group of messages).
 
-In certain situations, for example, when message cannot be routed, messages may be _returned_ to producers or dropped (or, if broker implements an extension,
-placed into so-called "dead letter queue"). Producers choose how situations like this are handled by publishing messages with certain parameters.
+In certain situations, for example, when a message cannot be routed, messages may be _returned_ to producers or dropped (or, if broker implements an extension,
+placed into a so-called "dead letter queue"). Producers choose how situations like this are handled by publishing messages with certain parameters.
 
 Queues, entities and bindings are commonly referred to as _AMQP entities_.
 
 
 h3. AMQP is a Programmable Protocol
 
-AMQP 0.9.1 is a programmable protocol in a sense that AMQP entities & routing schemes are defined by applications themselves, not a broker administrator. So there are protocol
+AMQP 0.9.1 is a programmable protocol in the sense that AMQP entities & routing schemes are defined by applications themselves, not a broker administrator. So there are protocol
 operations that declare queues and exchanges, define bindings between them, subscribe to queues and so on.
 
 This gives application developers a lot of freedom but also requires them to be aware of potential definition conflicts. In practice, those definition conflicts
@@ -72,7 +72,7 @@ Applications declare AMQP entities they need, define routing schemes necessary a
 
 h2. AMQP Exchanges and Exchange Types.
 
-_Exchanges_ are AMQP entities where messages are sent. Exchanges then take a message and route it into one or more (or none) queues. Routing algorithm used
+_Exchanges_ are AMQP entities where messages are sent. Exchanges then take a message and route it into one or more (or no) queues. The routing algorithm used
 depends on _exchange type_ and rules called _bindings_. AMQP 0.9.1 brokers typically provide 4 exchange types out of the box:
 
  * Direct exchange (typically used for for 1-to-1 communication or unicasting)
@@ -110,7 +110,7 @@ h2. AMQP Bindings.
 
 Bindings are rules that exchanges use (among other things) to route messages to queues. To instruct an exchange E to route messages to a queue Q,
 Q has to _be bound_ to E. Bindings may have an optional _routing key_ attribute used by some exchange types. The purpose of the routing key is to
-selectively match only specific (matching) messages published to an exchange to the bound queue. In other words, routing key acts like a filter.
+selectively match only specific (matching) messages published to an exchange to the bound queue. In other words, the routing key acts like a filter.
 
 
 
@@ -149,7 +149,7 @@ Some attributes are used by AMQP brokers, but most are up to interpretation by a
 as _headers_. They are similar to X-Headers in HTTP. Message attributes are set when message is published.
 
 AMQP messages also have _payload_ (data they carry). This data is never modified by AMQP brokers. It is possible for messages to only have attributes
-and no body. It is common to user serialization formats like JSON, Thrift, Protocol Buffers, MessagePack and so on to serialize structured data
+and no body. It is common to use serialization formats like JSON, Thrift, Protocol Buffers, MessagePack and so on to serialize structured data
 and publish it as AMQP message payload.
 
 
@@ -161,7 +161,7 @@ necessary to acknowledge the fact that message has been received, sometimes ackn
 for example, verified to have mandatory data and persisted to a data store or indexed.
 
 Because this situation is so common, AMQP 0.9.1 has a built-in feature called _message acknowledgements_ (sometimes referred to as _acks_) that consumer
-use to confirm message delivery and/or processing. If application crashes (AMQP broker notice this when connection is closed), if acknowledgement for a
+use to confirm message delivery and/or processing. If an application crashes (AMQP broker notice this when connection is closed), if acknowledgement for a
 message was not received by AMQP broker, the message is re-queued (and possibly immediately delivered to another consumer, if any).
 
 Having acknowledgements built into the protocol helps developers to build more robust software.
@@ -184,7 +184,7 @@ Lets take a look at the _exchange.*_ class, a group of methods related to operat
 
 (note that RabbitMQ site reference also includes RabbitMQ-specific extensions to the exchange.* class that we won't discuss in this guide).
 
-It is easy to see the operations above form logical pairs: *exchange.declare* and *exchange.declare-ok*,
+The operations above form logical pairs: *exchange.declare* and *exchange.declare-ok*,
 *exchange.delete* and *exchange.delete-ok*. These operations are "requests" (sent by clients) and "responses" (sent by
 brokers in response to aforementioned "requests").
 
@@ -192,7 +192,7 @@ So first, client asks broker to declare a new exchange using *exchange.declare* 
 
 !https://img.skitch.com/20110720-c4qjdhmdrih9bn56npqnic4die.jpg!
 
-as demonstrated on the diagram above, *exchange.declare* carries several _parameters_. They let client specify exchange name,
+As demonstrated on the diagram above, *exchange.declare* carries several _parameters_. They let client specify exchange name,
 type, durability flag and so on.
 
 And if the operation succeeds, broker responds with *exchange.declare-ok* method:
@@ -222,7 +222,7 @@ close AMQP connection instead of abruptly closing the underlying TCP connection.
 
 h2. AMQP Channels.
 
-Some applications need multiple connections to AMQP broker. It is, however, undesirable to keep open many TCP connections at the same time
+Some applications need multiple connections to AMQP broker. It is, however, undesirable to keep many TCP connections open at the same time
 because doing so consumes system resources and makes it more difficult to configure firewalls. AMQP 0.9.1 connections are multiplexed with
 _channels_ that can be thought of as "lightweight connections that share a single TCP connection".
 
@@ -230,7 +230,7 @@ For applications that use multiple threads/processes/etc for processing, it is v
 and *not share* channels between them.
 
 Because communication on a particular channel is completely separate from communication on a separate channel, every AMQP method also carries a channel number that clients
-use to figure out what channel this method is for (and thus, for event handler needs to be invoked, for example).
+use to figure out what channel this method is for (and thus, what event handler needs to be invoked, for example).
 
 
 
