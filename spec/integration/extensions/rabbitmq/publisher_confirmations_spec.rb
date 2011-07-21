@@ -90,7 +90,7 @@ describe "Publisher confirmation(s)" do
           exchange.publish("Hi", :persistent => false, :mandatory => true)
         end
 
-        done(1.0) do
+        done(2.0) do
           events.should include(:basic_ack)
           events.should include(:basic_delivery)
         end
@@ -119,7 +119,7 @@ describe "Publisher confirmation(s)" do
           exchange.publish("Hi", :persistent => false, :immediately => true)
         end
 
-        done(1.0) do
+        done(2.0) do
           events.should include(:basic_ack)
           events.should include(:basic_delivery)
         end
@@ -147,7 +147,7 @@ describe "Publisher confirmation(s)" do
           exchange.publish("Hi", :persistent => false, :mandatory => true)
         end
 
-        done(1.0) { events.should == [:basic_return, :basic_ack] }
+        done(2.0) { events.should == [:basic_return, :basic_ack] }
       end
     end
 
@@ -172,7 +172,7 @@ describe "Publisher confirmation(s)" do
           exchange.publish("Hi", :persistent => false, :mandatory => true)
         end
 
-        done(1.0) { events.should == [:basic_return, :basic_ack] }
+        done(2.0) { events.should == [:basic_return, :basic_ack] }
       end
     end
 
