@@ -103,6 +103,20 @@ it is a good idea to check these two things first:
 
 
 
+h2. Broker Startup Issues
+
+h3. Missing erlang-os-mon on Debian and Ubuntu
+
+The following error on RabbitMQ startup on Debian or Ubuntu
+
+<pre>
+ERROR: failed to load application os_mon: {"no such file or directory","os_mon.app"}
+</pre>
+
+suggests that *erlang-os-mon* package is not installed.
+
+
+
 
 h2. Tell us what you think!
 
