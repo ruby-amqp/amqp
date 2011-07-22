@@ -3,12 +3,12 @@
 $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
 
 require 'bundler'
-Bundler.setup
-Bundler.require :default, :test
+Bundler.setup(:default, :test)
 
 require "amqp"
 require "evented-spec"
 require "effin_utf8"
+require "multi_json"
 
 puts "Using Ruby #{RUBY_VERSION}, amq-client #{AMQ::Client::VERSION} and amq-protocol #{AMQ::Protocol::VERSION}"
 

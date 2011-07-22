@@ -38,4 +38,9 @@ group :test do
 
   custom_gem "evented-spec", :git => "git://github.com/ruby-amqp/evented-spec.git", :branch => "master"
   gem "effin_utf8"
+
+  gem "multi_json"
+
+  gem "json",      :platform => :jruby
+  gem "yajl-ruby", :platform => :ruby_18
 end
