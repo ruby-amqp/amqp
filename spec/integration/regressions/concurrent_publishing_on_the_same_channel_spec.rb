@@ -38,7 +38,7 @@ describe "Concurrent publishing on a shared channel from multiple threads" do
       {:total_conversions=>0,:banked_clicks=>0,:total_earnings=>0,:pending_conversions=>0,:paid_net_earnings=>0,:banked_conversions=>0,:pending_earnings=>0,:optimizer_id=>345,:total_impressions=>0,:banked_earnings=>0,:bounce_count=>0,:time_on_page=>0,:total_clicks=>0,:entrances=>0,:pending_clicks=>0,:paid_earnings=>0}
     ]
   end
-  let(:messages) { inputs.map {|i| MultiJson.encode(i) } * 5 }
+  let(:messages) { inputs.map {|i| MultiJson.encode(i) } * 3 }
 
 
 
@@ -60,7 +60,7 @@ describe "Concurrent publishing on a shared channel from multiple threads" do
 
     EventMachine.add_periodic_timer(1.0) do
       # ZOMG THREADS!
-      20.times do
+      15.times do
         Thread.new do
           messages.each do |message|
             exchange.publish(message, :routing_key => queue.name, :immediate => true, :mandatory => true)
@@ -75,7 +75,7 @@ describe "Concurrent publishing on a shared channel from multiple threads" do
     done(10.0) {
       # we don't care about the exact number, just the fact that there are
       # no UNEXPECTED_FRAME connection-level exceptions. MK.
-      received_messages.size.should > 200
+      received_messages.size.should > 120
     }
   end
 end
