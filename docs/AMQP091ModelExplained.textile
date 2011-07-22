@@ -55,7 +55,7 @@ developer chooses to. Brokers then will only completely remove message from the 
 In certain situations, for example, when a message cannot be routed, messages may be _returned_ to producers or dropped (or, if broker implements an extension,
 placed into a so-called "dead letter queue"). Producers choose how situations like this are handled by publishing messages with certain parameters.
 
-Queues, entities and bindings are commonly referred to as _AMQP entities_.
+Queues, exchanges and bindings are commonly referred to as _AMQP entities_.
 
 
 h3. AMQP is a Programmable Protocol
@@ -67,6 +67,7 @@ This gives application developers a lot of freedom but also requires them to be 
 are rare and often indicate misconfigurations, and it is a good thing that misconfigurations are caught early.
 
 Applications declare AMQP entities they need, define routing schemes necessary and may choose to delete AMQP entities when they are no longer used.
+
 
 
 
@@ -125,8 +126,7 @@ With the "push API", applications have to indicate interest in consuming message
 (or, simply put, _subscribe to a queue_). It is possible to have more than one consumer per queue or to register an _exclusive consumer_ (the only consumer on
 the queue).
 
-Each consumer (subscription) has an identifier called _consumer tag_. It can be used to unsubscribe from messages. Delivered messages also have identifiers
-called _delivery tags_. Consumer tags are just strings. Delivery tag is an incrementing integer that is reset on certain events (see below).
+Each consumer (subscription) has an identifier called _consumer tag_. It can be used to unsubscribe from messages. Consumer tags are just strings.
 
 
 
@@ -135,20 +135,19 @@ h2. AMQP Message Attributes and Payload.
 Messages in the AMQP Model have _attributes_. Some attributes are so common that AMQP 0.9.1 spec defines them and application developers don't have to think
 about exact attribute name. Some examples are
 
- * Message content type
- * Message content encoding
- * Message routing key
- * Message delivery mode (persistent or not)
- * Consumer tag this delivery is for
- * Delivery tag
+ * Content type
+ * Content encoding
+ * Routing key
+ * Delivery mode (persistent or not)
  * Message priority
- * Whether or not message is redelivered
+ * Message publishing timestamp
+ * Expiration period
  * Producer application id
 
 Some attributes are used by AMQP brokers, but most are up to interpretation by applications that receive them. Some attributes are optional and known
 as _headers_. They are similar to X-Headers in HTTP. Message attributes are set when message is published.
 
-AMQP messages also have _payload_ (data they carry). This data is never modified by AMQP brokers. It is possible for messages to only have attributes
+AMQP messages also have _payload_ (data they carry). Brokers treat this data as opaque (it is not modified nor used by them). It is possible for messages to only have attributes
 and no body. It is common to use serialization formats like JSON, Thrift, Protocol Buffers, MessagePack and so on to serialize structured data
 and publish it as AMQP message payload.
 
@@ -237,11 +236,24 @@ use to figure out what channel this method is for (and thus, what event handler 
 
 h2. AMQP Virtual Hosts (vhosts).
 
-To make it possible for a single broker to host multiple "realms" (isolated groups of users, exchanges, queues and so on), AMQP includes concept
+To make it possible for a single broker to host multiple isolated "environments" (groups of users, exchanges, queues and so on), AMQP includes concept
 of _virtual hosts_ (vhosts). They are similar to virtual hosts used by many popular Web servers and provide completely isolated environments
 in which AMQP entities live. AMQP clients specify what vhosts they want to use during AMQP connection negotiation.
 
 AMQP 0.9.1 vhost can be any non-blank string.
+
+
+
+h2. AMQP is Extensible
+
+AMQP 0.9.1 has several extension points:
+
+ * Custom exchange types let developers implement routing schemes that exchange types provided out-of-the-box do not cover well, for example, geodata-based routing.
+ * Declaration of exchanges and queues can include additional attributes broker can use. For example, per-queue message TTL in RabbitMQ is implemented this way.
+ * Broker-specific extensions to the protocol. See, for example, "extensions RabbitMQ implements":http://www.rabbitmq.com/extensions.html.
+ * New AMQP 0.9.1 method classes can be introduced.
+
+These features make it even more flexible and applicable to a very broad range of problems.
 
 
 
