@@ -23,6 +23,7 @@ group(:development) do
   # yard tags this buddy along
   gem "RedCloth",  :platform => :mri
   gem "rdiscount", :platform => :ruby
+  gem "yajl-ruby", :platform => :ruby
 
   # To test event loop helper and various Rack apps
   gem "thin",    :platform => :ruby
