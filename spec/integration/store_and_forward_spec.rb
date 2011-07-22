@@ -65,7 +65,7 @@ describe "Store-and-forward routing" do
         end
 
         # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-        done(4.0) {
+        done(6.0) {
           number_of_received_messages.should == expected_number_of_messages
           @queue.unsubscribe
         }
@@ -85,7 +85,7 @@ describe "Store-and-forward routing" do
         end
 
         # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-        done(3.0) {
+        done(6.0) {
           number_of_received_messages.should == expected_number_of_messages
           @queue.unsubscribe
         }
