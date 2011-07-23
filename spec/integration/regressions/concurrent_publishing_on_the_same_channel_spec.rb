@@ -83,9 +83,8 @@ if mri?
       # let it run for several seconds because you know, concurrency issues do not always manifest themselves
       # immediately. MK.
       done(14.0) {
-        # we don't care about the exact number, just the fact that there are
+        # we don't care about the exact number of messages sent or received, just the fact that there are
         # no UNEXPECTED_FRAME connection-level exceptions. MK.
-        received_messages.size.should > 120
       }
     end
   end  
