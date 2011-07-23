@@ -11,7 +11,7 @@ describe "Authentication attempt" do
   include EventedSpec::EMSpec
   include EventedSpec::SpecHelper
 
-  default_timeout 5.0
+  default_timeout 7.0
 
 
   describe "with default connection parameters" do
@@ -50,7 +50,7 @@ describe "Authentication attempt" do
         it "succeeds" do
           connection = AMQP.connect(AMQP_OPTS.merge(:username => "amqp_gem", :password => "amqp_gem_password", :vhost => "amqp_gem_testbed"))
 
-          done(2.5) {
+          done(3.0) {
             connection.should be_connected
 
             connection.username.should        == "amqp_gem"
@@ -67,7 +67,7 @@ describe "Authentication attempt" do
       end # context
 
       context "and provided credentials ARE INCORRECT" do
-        default_timeout 10
+        default_timeout 6
 
         after(:all) { done }
 
@@ -83,7 +83,7 @@ describe "Authentication attempt" do
 
 
       context "and provided vhost DOES NOT EXIST" do
-        default_timeout 10
+        default_timeout 6
 
         after(:all) { done }
 
@@ -113,7 +113,7 @@ describe "Authentication attempt" do
         it "succeeds" do
           connection = AMQP.connect "amqp://amqp_gem:amqp_gem_password@localhost/amqp_gem_testbed"
 
-          done(2.5) {
+          done(3.0) {
             connection.should be_connected
             connection.close
           }
@@ -121,7 +121,7 @@ describe "Authentication attempt" do
       end # context
 
       context "and provided credentials ARE INCORRECT" do
-        default_timeout 10
+        default_timeout 6
 
         after(:all) { done }
 
