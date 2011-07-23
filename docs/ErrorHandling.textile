@@ -107,7 +107,7 @@ it means that authentication has failed.
 
 
 
-h2. Handling network connection interruption
+h2. Handling network connection interruptions
 
 Network connectivity issues are sad fact of life in modern software systems. Event small products and projects these days consist of multiple
 applications, often running on more than one machine. Ruby amqp gem detects TCP connection failures and lets you handle them by
@@ -337,10 +337,11 @@ recovery using events and callbacks introduced in the "Manual recovery" section.
 </span>
 
 
-h2. Detecting broker failure
+h2. Detecting broker failures
 
 AMQP applications see broker failure as TCP connection loss. There is no reliable way to know whether there is a network split
 or network peer is down.
+
 
 
 
@@ -376,7 +377,38 @@ Full example:
 
 
 
-h3. Integrating channel-level exceptions handling with object-oriented Ruby code
+h2. Handling graceful broker shutdown
+
+When AMQP broker is shut down, it properly closes connection first. To do so, it uses *connection.close* AMQP method. AMQP clients then
+need to check if the reply code is equal to 320 (CONNECTION_FORCED) to distinguish graceful shutdown. With RabbitMQ, when broker
+is stopped using
+
+<pre>rabbitmqctl stop</pre>
+
+reply_text will be set to
+
+<pre>CONNECTION_FORCED - broker forced connection closure with reason 'shutdown'</pre>
+
+Each application choose how to handle graceful broker shutdowns individually, so *amqp gem's automatic recovery mode does not cover graceful broker shutdowns*.
+Applications that want to reconnect when broker is stopped can use {AMQP::Session#periodically_reconnect} like so:
+
+<pre>
+<code>
+connection.on_error do |conn, connection_close|
+  puts "[connection.close] Reply code = #{connection_close.reply_code}, reply text = #{connection_close.reply_text}"
+  if connection_close.reply_code == 320
+    puts "[connection.close] Setting up a periodic reconnection timer..."
+    # every 30 seconds
+    conn.periodically_reconnect(30)
+  end
+end
+</code>
+</pre>
+
+
+
+
+h2. Integrating channel-level exceptions handling with object-oriented Ruby code
 
 Error handling can be easily integrated into object-oriented Ruby code (in fact, this is highly encouraged).
 A common technique is to combine {http://rubydoc.info/stdlib/core/1.8.7/Object:method Object#method} and {http://rubydoc.info/stdlib/core/1.8.7/Method:to_proc Method#to_proc}
