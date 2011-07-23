@@ -65,11 +65,11 @@ unless ENV["CI"]
         AMQP.connection.should_not be_reconnecting
 
         @channel.queue("amqpgem.tests.a.queue", :auto_delete => true).subscribe do |metadata, payload|
-          puts "Got a message"
+          puts "Got a message: #{payload.inspect}"
           done
         end
 
-        EventMachine.add_timer(1.5) { @channel.default_exchange.publish("Hi", :routing_key => "amqpgem.tests.a.queue") }
+        EventMachine.add_timer(1.5) { @channel.default_exchange.publish("", :routing_key => "amqpgem.tests.a.queue") }
       end
     end
   end
