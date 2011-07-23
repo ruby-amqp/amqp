@@ -74,7 +74,11 @@ module RabbitMQ
 end
 
 
-module RubiniusDetection
+module PlatformDetection
+  def mri?
+    !defined?(RUBY_ENGINE) || (defined?(RUBY_ENGINE) && ("ruby" == RUBY_ENGINE))
+  end
+
   def rubinius?
     defined?(RUBY_ENGINE) && (RUBY_ENGINE == 'rbx')
   end

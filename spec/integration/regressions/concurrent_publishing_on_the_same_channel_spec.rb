@@ -2,12 +2,16 @@
 
 require "spec_helper"
 
-include RubiniusDetection
+include PlatformDetection
 
+# Only run this for MRI.
+#
 # rubinius implementation of ThreadGroup has a bug: it references objects without checking
 # whether they are alive. So sandbox this test for other Rubies for now. Per discussion with
 # brixen in #travis, see also https://gist.github.com/1100572.
-unless rubinius?
+#
+# JRuby is having weird CI issues, too. Still investigating them. MK.
+if mri?
   describe "Concurrent publishing on a shared channel from multiple threads" do
 
     #
