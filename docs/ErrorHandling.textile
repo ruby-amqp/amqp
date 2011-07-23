@@ -389,7 +389,7 @@ reply_text will be set to
 
 <pre>CONNECTION_FORCED - broker forced connection closure with reason 'shutdown'</pre>
 
-Each application choose how to handle graceful broker shutdowns individually, so *amqp gem's automatic recovery mode does not cover graceful broker shutdowns*.
+Each application choose how to handle graceful broker shutdowns individually, so *amqp gem's automatic reconnection does not cover graceful broker shutdowns*.
 Applications that want to reconnect when broker is stopped can use {AMQP::Session#periodically_reconnect} like so:
 
 <pre>
@@ -405,7 +405,7 @@ end
 </code>
 </pre>
 
-
+Once AMQP connection is re-opened, channels in automatic recovery mode will recover just like they do after network outages.
 
 
 h2. Integrating channel-level exceptions handling with object-oriented Ruby code
