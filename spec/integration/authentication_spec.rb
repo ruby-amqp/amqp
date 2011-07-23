@@ -11,7 +11,7 @@ describe "Authentication attempt" do
   include EventedSpec::EMSpec
   include EventedSpec::SpecHelper
 
-  default_timeout 1.0
+  default_timeout 5.0
 
 
   describe "with default connection parameters" do
@@ -50,7 +50,7 @@ describe "Authentication attempt" do
         it "succeeds" do
           connection = AMQP.connect(AMQP_OPTS.merge(:username => "amqp_gem", :password => "amqp_gem_password", :vhost => "amqp_gem_testbed"))
 
-          done(0.5) {
+          done(2.5) {
             connection.should be_connected
 
             connection.username.should        == "amqp_gem"
@@ -113,7 +113,7 @@ describe "Authentication attempt" do
         it "succeeds" do
           connection = AMQP.connect "amqp://amqp_gem:amqp_gem_password@localhost/amqp_gem_testbed"
 
-          done(0.3) {
+          done(2.5) {
             connection.should be_connected
             connection.close
           }
