@@ -93,7 +93,7 @@ There are two ways to declare a fanout exchange:
 
  * By instantiating an {AMQP::Exchange} and specifying the type as ":fanout"
  * By using the {AMQP::Channel#fanout} method
- 
+
 Here are two examples to demonstrate:
 
 <pre>
@@ -211,7 +211,7 @@ There are two ways to declare a direct exchange:
 
  * By instantiating a {AMQP::Exchange} and specifying its type as ":direct"
  * By using the {AMQP::Channel#direct} method
- 
+
 Here are two examples to demonstrate:
 
 <pre>
@@ -301,7 +301,7 @@ The amqp gem offers two ways of obtaining a reference to the default exchange:
 
  * Using the {AMQP::Channel#default_exchange} method
  * Using the {AMQP::Channel#direct} method with an empty string as the exchange name
- 
+
 {AMQP::Exchange#initialize} can also be used, but requires more coding effort and it offers no benefits over instance
 methods on {AMQP::Channel} in this particular case.
 
@@ -406,7 +406,7 @@ but not
 
  * americas.south
  * americas.south.chile.santiago
- 
+
 As you can see, the "*" part of the pattern matches 1 word only.
 
 
@@ -711,6 +711,22 @@ Note that in order to survive a broker crash, both the message and the queue tha
 {file:docs/Durability.textile Durability and Message Persistence} provides more information on the subject.
 
 
+h3. Publishing In Multi-threaded Environments
+
+When using amqp gem in multi-threaded environments, the rule of thumb is: avoid sharing {AMQP::Channel} instances
+across threads.
+
+Starting with 0.8.0.RC14, {AMQP::Exchange#publish} synchronizes data delivery on the channel object associated
+with exchange. This protects application developers from the most common problems related to publishing messages on a
+shared channel from multiple threads, however, by no means protects from every possible concurrency hazard.
+
+<span class="note">
+When using amqp gem in multi-threaded environments, the rule of thumb is: avoid sharing {AMQP::Channel} instances
+across threads.
+</span>
+
+
+
 h3. Sending one-off messages
 
 The following example publishes a message and *safely* closes the AMQP connection afterwards by passing a block
@@ -823,7 +839,7 @@ There are two ways to declare a headers exchange:
 
  * By instantiating {AMQP::Exchange} and specifying type as ":headers"
  * By using the {AMQP::Channel#headers} method
- 
+
 Here are two examples to demonstrate:
 
 <pre>
