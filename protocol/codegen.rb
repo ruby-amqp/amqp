@@ -76,7 +76,7 @@ puts ERB.new(%q[
           def properties() @properties ||= [] end
 
           def id()   self::ID end
-          def name() self::NAME end
+          def name() self::NAME.to_s end
         end
 
         class Method
@@ -94,7 +94,7 @@ puts ERB.new(%q[
 
             def section() Protocol.const_get(self.to_s[/Protocol::(.+?)::/, 1]) end
             def id()      self::ID end
-            def name()    self::NAME end
+            def name()    self::NAME.to_s end
           end
 
           def == b
