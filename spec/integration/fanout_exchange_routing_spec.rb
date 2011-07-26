@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-describe "Workload distribution" do
+describe AMQP::Exchange, "of type fanout" do
 
   #
   # Environment
@@ -32,215 +32,59 @@ describe "Workload distribution" do
   # Examples
   #
 
-  context "that uses fanout exchange" do
-    amqp_before :all do
+
+  context "with three bound queues" do
+    it "routes all messages to all bound queues" do
       @exchange = @channel.fanout("amqpgem.integration.multicast.fanout", :auto_delete => true)
-    end
+      @queue1   = @channel.queue("amqpgem.integration.multicast.queue1",  :auto_delete => true)
+      @queue2   = @channel.queue("amqpgem.integration.multicast.queue2",  :auto_delete => true)
+      @queue3   = @channel.queue("amqpgem.integration.multicast.queue3",  :auto_delete => true)
 
-    context "with three bound queues" do
-      amqp_before :all do
-        @queue1   = @channel.queue("amqpgem.integration.multicast.queue1",  :auto_delete => true)
-        @queue2   = @channel.queue("amqpgem.integration.multicast.queue2",  :auto_delete => true)
-        @queue3   = @channel.queue("amqpgem.integration.multicast.queue3",  :auto_delete => true)
+      @queues   = [@queue1, @queue2, @queue3]
 
-        @queues   = [@queue1, @queue2, @queue3]
+      @received_messages = {
+        @queue1.name => [],
+        @queue2.name => [],
+        @queue3.name => []
+      }
 
-        @sent_values = Array.new
+      @expected_number_of_messages = {
+        @queue1.name => 10,
+        @queue2.name => 10,
+        @queue3.name => 10
+      }
 
-        @queue1.bind(@exchange).subscribe do |payload|
-          @received_messages[@queue1.name].push(payload.to_i)
-        end # subscribe
 
-        @queue2.bind(@exchange).subscribe do |payload|
-          @received_messages[@queue2.name].push(payload.to_i)
-        end # subscribe
+      @sent_values = Array.new
 
-        @queue3.bind(@exchange).subscribe do |payload|
-          @received_messages[@queue3.name].push(payload.to_i)
-        end # subscribe
+      @queue1.bind(@exchange).subscribe do |payload|
+        @received_messages[@queue1.name].push(payload.to_i)
+      end # subscribe
+
+      @queue2.bind(@exchange).subscribe do |payload|
+        @received_messages[@queue2.name].push(payload.to_i)
+      end # subscribe
+
+      @queue3.bind(@exchange).subscribe do |payload|
+        @received_messages[@queue3.name].push(payload.to_i)
+      end # subscribe
+
+      10.times do
+        dispatched_data             = rand(5_000_000)
+        @sent_values.push(dispatched_data)
+
+        @exchange.publish(dispatched_data, :mandatory => false)
       end
 
-      amqp_before :each do
-        @received_messages = {
-          @queue1.name => [],
-          @queue2.name => [],
-          @queue3.name => []
-        }
+      # for Rubinius, it is surprisingly slow on this workload
+      done(2.5) {
+        [@queue1, @queue2, @queue3].each do |q|
+          @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
 
-        @expected_number_of_messages = {
-          @queue1.name => 10,
-          @queue2.name => 10,
-          @queue3.name => 10
-        }
-      end
-
-      amqp_after :each do
-        @sent_values.clear
-      end
-
-
-      context "and messages are published as non-mandatory" do
-        it "routes all messages to all bound queues" do
-          10.times do
-            dispatched_data             = rand(5_000_000)
-            @sent_values.push(dispatched_data)
-
-            @exchange.publish(dispatched_data, :mandatory => false)
-          end
-
-          # for Rubinius, it is surprisingly slow on this workload
-          done(2.5) {
-            [@queue1, @queue2, @queue3].each do |q|
-              @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
-
-              # this one is ordering assertion
-              @received_messages[q.name].should == @sent_values
-            end
-          }
-        end # it
-      end # context
-
-
-
-      context "and messages are published as mandatory" do
-        it "routes all messages to all bound queues" do
-          10.times do
-            dispatched_data             = rand(5_000_000)
-            @sent_values.push(dispatched_data)
-
-            @exchange.publish(dispatched_data, :mandatory => true)
-          end
-
-          # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-          done(2.5) {
-            [@queue1, @queue2, @queue3].each do |q|
-              @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
-
-              # this one is ordering assertion
-              @received_messages[q.name].should == @sent_values
-            end
-          }
-        end # it
-      end # context
-
-
-
-      context "and messages are published as non-persistent" do
-        it "routes all messages to all bound queues" do
-          10.times do
-            dispatched_data             = rand(5_000_000)
-            @sent_values.push(dispatched_data)
-
-            @exchange.publish(dispatched_data, :persistent => false)
-          end
-
-          # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-          done(2.5) {
-            [@queue1, @queue2, @queue3].each do |q|
-              @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
-
-              # this one is ordering assertion
-              @received_messages[q.name].should == @sent_values
-            end
-          }
-        end # it
-      end # context
-
-
-
-      context "and messages are published as persistent" do
-        it "routes all messages to all bound queues" do
-          10.times do
-            dispatched_data             = rand(5_000_000)
-            @sent_values.push(dispatched_data)
-
-            @exchange.publish(dispatched_data, :persistent => true)
-          end
-
-          # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-          done(2.5) {
-            [@queue1, @queue2, @queue3].each do |q|
-              @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
-
-              # this one is ordering assertion
-              @received_messages[q.name].should == @sent_values
-            end
-          }
-        end # it
-      end # context
-
-
-      context "and messages are published as non-immediate" do
-        it "routes all messages to all bound queues" do
-          10.times do
-            dispatched_data             = rand(5_000_000)
-            @sent_values.push(dispatched_data)
-
-            @exchange.publish(dispatched_data, :immediate => false)
-          end
-
-          # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-          done(2.5) {
-            [@queue1, @queue2, @queue3].each do |q|
-              @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
-
-              # this one is ordering assertion
-              @received_messages[q.name].should == @sent_values
-            end
-          }
-        end # it
-      end # context
-
-
-
-      context "and messages are published as immediate" do
-        it "may get a Basic.Return back"
-      end # context
-
-
-
-      context "and messages are published WITHOUT routing key" do
-        it "routes all messages to all bound queues" do
-          10.times do
-            dispatched_data             = rand(5_000_000)
-            @sent_values.push(dispatched_data)
-
-            @exchange.publish(dispatched_data)
-          end
-
-          # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-          done(2.5) {
-            [@queue1, @queue2, @queue3].each do |q|
-              @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
-
-              # this one is ordering assertion
-              @received_messages[q.name].should == @sent_values
-            end
-          }
-        end # it
-      end # context
-
-
-      context "and messages are published WITH routing key that matches name of one of the queues" do
-        it "routes all messages to all bound queues" do
-          10.times do
-            dispatched_data             = rand(5_000_000)
-            @sent_values.push(dispatched_data)
-
-            @exchange.publish(dispatched_data, :routing_key => @queues.sample.name)
-          end
-
-          # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-          10.times {
-            [@queue1, @queue2, @queue3].each do |q|
-              @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
-
-              # this one is ordering assertion
-              @received_messages[q.name].should == @sent_values
-            end
-          }
-        end # it
-      end # context
-    end # context
-  end # context
+          # this one is ordering assertion
+          @received_messages[q.name].should == @sent_values
+        end
+      }
+    end # it
+  end
 end # describe
