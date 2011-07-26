@@ -33,12 +33,12 @@ describe "Workload distribution" do
   #
 
   context "that uses fanout exchange" do
-    amqp_before :each do
+    amqp_before :all do
       @exchange = @channel.fanout("amqpgem.integration.multicast.fanout", :auto_delete => true)
     end
 
     context "with three bound queues" do
-      amqp_before :each do
+      amqp_before :all do
         @queue1   = @channel.queue("amqpgem.integration.multicast.queue1",  :auto_delete => true)
         @queue2   = @channel.queue("amqpgem.integration.multicast.queue2",  :auto_delete => true)
         @queue3   = @channel.queue("amqpgem.integration.multicast.queue3",  :auto_delete => true)
