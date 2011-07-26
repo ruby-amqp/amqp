@@ -231,7 +231,7 @@ describe "Workload distribution" do
           end
 
           # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-          10 {
+          10.times {
             [@queue1, @queue2, @queue3].each do |q|
               @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
 
