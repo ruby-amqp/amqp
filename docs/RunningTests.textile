@@ -8,6 +8,8 @@ h2. About this guide
 This guide is for people who want to contribute to amqp gem development. It has no relevant information for those
 who want to build applications using the library.
 
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
+
 
 h2. Covered versions
 
@@ -42,7 +44,7 @@ h2. Dependencies
 Dependencies are managed by Bundler. So begin with
 
 <pre><code>
-gem install bundler --version "~> 1.0.13"
+gem install bundler
 </code></pre>
 
 and then, from the root of the repository run
@@ -82,9 +84,12 @@ For that, we use Rake:
 rake spec:ci
 </code></pre>
 
-Thanks to the excellent "Travis CI":http://travis-ci.org project, we run test suites across 5 Ruby implementations and 2 EventMachine versions, and can
-add more implementations/versions so easily it still seems unreal.
+Thanks to the excellent "Travis CI":http://travis-ci.org project, we run test suites across multiple Ruby implementations/versions and 2 EventMachine versions.
 
+
+h2. Authors
+
+This guide was written by "Michael Klishin":http://twitter.com/michaelklishin and edited by "Chris Duncan":https://twitter.com/celldee.
 
 
 

@@ -6,7 +6,7 @@ h1. Working with queues
 h2. About this guide
 
 This guide covers everything related to queues in the AMQP v0.9.1 specification, common usage scenarios and how to accomplish typical operations using the
-amqp gem.
+amqp gem. This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
 
 
 h2. Which versions of the amqp gem does this guide cover?
@@ -1159,6 +1159,12 @@ covering all kinds of topics. Guides related to this one are:
 RabbitMQ implements a number of extensions to AMQP v0.9.1 functionality that are covered in the
 {file:docs/VendorSpecificExtensions.textile Vendor-specific Extensions guide}. At least one extension,
 per-queue messages time-to-live (TTL), is related to this guide and can be used with the amqp gem v0.8.0 and later.
+
+
+h2. Authors
+
+This guide was written by "Michael Klishin":http://twitter.com/michaelklishin and edited by "Chris Duncan":https://twitter.com/celldee.
+
 
 
 h2. Tell us what you think!

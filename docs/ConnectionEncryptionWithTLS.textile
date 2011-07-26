@@ -79,6 +79,11 @@ h2. Example code
 TLS example (as well as sample certificates you can use to get started with) can be found in the "amqp gem git repository":https://github.com/ruby-amqp/amqp/tree/master/examples
 
 
+h2. Authors
+
+This guide was written by "Michael Klishin":http://twitter.com/michaelklishin and edited by "Chris Duncan":https://twitter.com/celldee.
+
+
 
 h2. Tell us what you think!
 

@@ -46,7 +46,12 @@ support, RabbitMQ 1.7.0 requires
  * Erlang/OTP R13B or later
  * Erlang SSL 3.10 or later
 
-and recommends using Erlang R141B that ships with Erlang SSL 4.0.1.
+and recommends using Erlang R141B that ships with Erlang SSL 4.0.1. Learn more in our {file:docs/ConnectionEncryptionWithTLS.textile Using TLS (SSL)} guide.
+
+
+h2. Authors
+
+This guide was written by "Michael Klishin":http://twitter.com/michaelklishin and edited by "Chris Duncan":https://twitter.com/celldee.
 
 
 

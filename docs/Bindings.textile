@@ -1,11 +1,13 @@
 # @title Ruby AMQP gem: Bindings
 
-h1. TBD
+h1. Working With Bindings
 
 h2. About this guide
 
 This guide covers bindings in AMQP 0.9.1, what they are, what role do they play and how to accomplish typical operations using
 Ruby amqp gem.
+
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
 
 
 h2. Covered versions
@@ -16,7 +18,11 @@ This guide covers "Ruby amqp gem":http://github.com/ruby-amqp/amqp v0.8.0 and la
 
 h2. Bindings in AMQP 0.9.1
 
-TBD
+Bindings are rules that exchanges use (among other things) to route messages to queues. To instruct an exchange E to route messages to a queue Q,
+Q has to _be bound_ to E. Bindings may have an optional _routing key_ attribute used by some exchange types. The purpose of the routing key is to
+selectively match only specific (matching) messages published to an exchange to the bound queue. In other words, the routing key acts like a filter.
+
+Learn more about how bindings fit into the AMQP Model in the {file:docs/AMQP091ModelExplained.textile AMQP 0.9.1 Model Explained} documentation guide.
 
 
 h2. One day in life of an AMQP 0.9.1 message
@@ -26,17 +32,59 @@ TBD
 
 h2. Binding queues to exchanges
 
-TBD
+In order to receive messages, a queue needs to be bound to at least one exchange. Most of the time binding is explcit
+(done by applications). To bind a queue to an exchange, use {AMQP::Queue#bind} where the argument passed can be
+either an {AMQP::Exchange} instance or a string.
+
+<pre>
+<code>
+queue.bind(exchange) do |bind_ok|
+  puts "Just bound #{queue.name} to #{exchange.name}"
+end
+</code>
+</pre>
+
+Full example:
+<script src="https://gist.github.com/998727.js"> </script>
+
+The same example using a string without callback:
+
+<pre>
+<code>
+queue.bind("amq.fanout")
+</code>
+</pre>
+
+Full example:
+<script src="https://gist.github.com/998729.js"> </script>
 
 
 h2. Unbinding queues from exchanges
 
-TBD
+To unbind a queue from an exchange use {AMQP::Queue#unbind}:
+
+<pre>
+<code>
+queue.unbind(exchange)
+</code>
+</pre>
+
+Full example:
+<script src="https://gist.github.com/998742.js"> </script>
+
+Note that trying to unbind a queue from an exchange that the queue was never bound to will result in a
+channel-level exception.
+
 
 
 h2. Binding attributes
 
 TBD
+
+
+h2. Authors
+
+This guide was written by "Michael Klishin":http://twitter.com/michaelklishin and edited by "Chris Duncan":https://twitter.com/celldee.
 
 
 

@@ -117,6 +117,11 @@ suggests that *erlang-os-mon* package is not installed.
 
 
 
+h2. Authors
+
+This guide was written by "Michael Klishin":http://twitter.com/michaelklishin and edited by "Chris Duncan":https://twitter.com/celldee.
+
+
 
 h2. Tell us what you think!
 

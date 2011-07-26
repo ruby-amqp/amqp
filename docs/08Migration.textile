@@ -8,6 +8,8 @@ h2. About this guide
 This guide explains how (and why) applications that use amqp gem versions 0.6.x and 0.7.x should migrate
 to 0.8.0.RCs and future versions. It also outlines deprecated features, when and why they will be removed.
 
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
+
 
 h2. Covered versions
 
@@ -208,9 +210,12 @@ AMQP::Protocol::* classes were removed in the the amqp gem 0.8.0 development cyc
 </span>
 
 
-
-
 h2. TBD
+
+
+h2. Authors
+
+This guide was written by "Michael Klishin":http://twitter.com/michaelklishin and edited by "Chris Duncan":https://twitter.com/celldee.
 
 
 

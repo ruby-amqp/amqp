@@ -4,7 +4,7 @@ h1. Ruby AMQP gem documentation guides
 
 h2. Which versions of the amqp gem do the guides cover?
 
-These guides cover v0.8.0.RC13 and later of the "Ruby amqp gem":http://github.com/ruby-amqp/amqp.
+These guides cover v0.8.0.RC14 and later of the "Ruby amqp gem":http://github.com/ruby-amqp/amqp.
 
 
 h2. Documentation structure and how to read these guides
@@ -99,6 +99,16 @@ h2. Full guide list
  * {file:docs/ConnectionEncryptionWithTLS.textile Using TLS (SSL)}
  * {file:docs/VendorSpecificExtensions.textile Vendor-specific Extensions to AMQP 0.9.1 spec}
  * {file:docs/RunningTests.textile Running amqp gem test suite}
+
+
+h2. License
+
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
+
+h2. Authors
+
+These guides were written by "Michael Klishin":http://twitter.com/michaelklishin and edited by "Chris Duncan":https://twitter.com/celldee
+
 
 
 h2. Tell us what you think!

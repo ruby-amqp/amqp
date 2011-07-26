@@ -21,6 +21,7 @@ as well as
  * How to recover after a network failure
  * What is automatic recovery mode, when you should and should not use it
 
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
 
 
 h2. Covered versions
@@ -589,6 +590,11 @@ amqp gem error handling and interruption is not a copy of RabbitMQ Java client's
 but they turn out to be similar with respect to network failures and connection-level exceptions.
 
 TBD
+
+
+h2. Authors
+
+This guide was written by "Michael Klishin":http://twitter.com/michaelklishin and edited by "Chris Duncan":https://twitter.com/celldee.
 
 
 

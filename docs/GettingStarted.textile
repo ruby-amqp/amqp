@@ -15,6 +15,8 @@ It should take about 20 minutes to read and study the provided code examples. Th
  * Creating a topic routing example with 2 publishers and 8 subscribers showcasing n:m communication when subscribers only receive messages that they are interested in.
  * Learning how the amqp gem can be integrated with Ruby objects in a way that makes unit testing easy.
 
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
+
 
 h2. Which versions of the amqp gem does this guide cover?
 
@@ -588,6 +590,8 @@ topics from {file:docs/Exchanges.textile use cases for various exchange types} t
 
 We recommend that you read the following guides next, if possible, in this order:
 
+ * {file:docs/AMQP091ModelExplained.textile AMQP 0.9.1 Model Explained}. A simple 2 page long introduction to the AMQP Model concepts and features. Understanding the AMQP Model
+   will make a lot of other documentation, both for the Ruby amqp gem and RabbitMQ itself, easier to follow. With this guide, you don't have to waste hours of time reading the whole specification.
  * {file:docs/ConnectingToTheBroker.textile Connection to the broker}. This guide explains how to connect to an AMQP broker and how to integrate the amqp gem into standalone and Web applications.
  * {file:docs/Queues.textile Working With Queues}. This guide focuses on features that consumer applications use heavily.
  * {file:docs/Exchanges.textile Working With Exchanges}. This guide focuses on features that producer applications use heavily.
@@ -596,6 +600,12 @@ We recommend that you read the following guides next, if possible, in this order
 
 If you are migrating your application from earlier versions of the amqp gem (0.6.x and 0.7.x), to 0.8.x and later, there is the
 {file:docs/08Migration.textile amqp gem 0.8 migration guide}.
+
+
+h2. Authors
+
+This guide was written by "Michael Klishin":http://twitter.com/michaelklishin and edited by "Chris Duncan":https://twitter.com/celldee.
+
 
 
 h2. Tell us what you think!
