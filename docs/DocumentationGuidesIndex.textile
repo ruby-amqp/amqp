@@ -29,9 +29,9 @@ Here is a summary of guides and their content:
 
   <dt>{file:docs/AMQP091ModelExplained.textile AMQP 0.9.1 Model Explained}</dt>
   <dd>
-  Explains the AMQP 0.9.1 model, focusing on what purpose individual features have. Reading
+  A simple, 2 page long introduction to the AMQP 0.9.1 model, focusing on what purpose individual features have. Reading
   other documentation guides will be easier when you are armed with this knowledge: a lot of the AMQP & RabbitMQ power
-  comes from the AMQP model.
+  comes from the AMQP Model.
   </dd>
 
   <dt>{file:docs/ConnectingToTheBroker.textile Connecting to the Broker}</dt>
