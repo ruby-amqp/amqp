@@ -68,9 +68,9 @@ describe "Workload distribution" do
         }
 
         @expected_number_of_messages = {
-          @queue1.name => 100,
-          @queue2.name => 100,
-          @queue3.name => 100
+          @queue1.name => 10,
+          @queue2.name => 10,
+          @queue3.name => 10
         }
       end
 
@@ -81,7 +81,7 @@ describe "Workload distribution" do
 
       context "and messages are published as non-mandatory" do
         it "routes all messages to all bound queues" do
-          100.times do
+          10.times do
             dispatched_data             = rand(5_000_000)
             @sent_values.push(dispatched_data)
 
@@ -89,7 +89,7 @@ describe "Workload distribution" do
           end
 
           # for Rubinius, it is surprisingly slow on this workload
-          done(5.0) {
+          done(2.5) {
             [@queue1, @queue2, @queue3].each do |q|
               @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
 
@@ -104,7 +104,7 @@ describe "Workload distribution" do
 
       context "and messages are published as mandatory" do
         it "routes all messages to all bound queues" do
-          100.times do
+          10.times do
             dispatched_data             = rand(5_000_000)
             @sent_values.push(dispatched_data)
 
@@ -112,7 +112,7 @@ describe "Workload distribution" do
           end
 
           # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-          done(5.0) {
+          done(2.5) {
             [@queue1, @queue2, @queue3].each do |q|
               @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
 
@@ -127,7 +127,7 @@ describe "Workload distribution" do
 
       context "and messages are published as non-persistent" do
         it "routes all messages to all bound queues" do
-          100.times do
+          10.times do
             dispatched_data             = rand(5_000_000)
             @sent_values.push(dispatched_data)
 
@@ -135,7 +135,7 @@ describe "Workload distribution" do
           end
 
           # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-          done(5.0) {
+          done(2.5) {
             [@queue1, @queue2, @queue3].each do |q|
               @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
 
@@ -150,7 +150,7 @@ describe "Workload distribution" do
 
       context "and messages are published as persistent" do
         it "routes all messages to all bound queues" do
-          100.times do
+          10.times do
             dispatched_data             = rand(5_000_000)
             @sent_values.push(dispatched_data)
 
@@ -158,7 +158,7 @@ describe "Workload distribution" do
           end
 
           # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-          done(5.0) {
+          done(2.5) {
             [@queue1, @queue2, @queue3].each do |q|
               @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
 
@@ -172,7 +172,7 @@ describe "Workload distribution" do
 
       context "and messages are published as non-immediate" do
         it "routes all messages to all bound queues" do
-          100.times do
+          10.times do
             dispatched_data             = rand(5_000_000)
             @sent_values.push(dispatched_data)
 
@@ -180,7 +180,7 @@ describe "Workload distribution" do
           end
 
           # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-          done(5.0) {
+          done(2.5) {
             [@queue1, @queue2, @queue3].each do |q|
               @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
 
@@ -201,7 +201,7 @@ describe "Workload distribution" do
 
       context "and messages are published WITHOUT routing key" do
         it "routes all messages to all bound queues" do
-          100.times do
+          10.times do
             dispatched_data             = rand(5_000_000)
             @sent_values.push(dispatched_data)
 
@@ -209,7 +209,7 @@ describe "Workload distribution" do
           end
 
           # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-          done(5.0) {
+          done(2.5) {
             [@queue1, @queue2, @queue3].each do |q|
               @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
 
@@ -223,7 +223,7 @@ describe "Workload distribution" do
 
       context "and messages are published WITH routing key that matches name of one of the queues" do
         it "routes all messages to all bound queues" do
-          100.times do
+          10.times do
             dispatched_data             = rand(5_000_000)
             @sent_values.push(dispatched_data)
 
@@ -231,7 +231,7 @@ describe "Workload distribution" do
           end
 
           # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-          done(5.0) {
+          10 {
             [@queue1, @queue2, @queue3].each do |q|
               @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
 
