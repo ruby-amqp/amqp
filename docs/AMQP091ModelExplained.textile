@@ -5,7 +5,10 @@ h1. AMQP 0.9.1 Model Explained
 h2. About this guide
 
 This guide explains the AMQP 0.9.1 Model used by RabbitMQ. Understanding the AMQP Model will make a lot of other documentation, both for the Ruby amqp gem and
-RabbitMQ itself, easier to follow.
+RabbitMQ itself, easier to follow. This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
+
+
+h3. What this guide covers
 
 This guide covers:
 
@@ -20,10 +23,6 @@ This guide covers:
  * What negative message acknowledgements are
  * and a lot of other things
 
-
-h2. Which versions of the amqp gem does this guide cover?
-
-This guide covers v0.8.0.RC14 and later of the "Ruby amqp gem":https://github.com/ruby-amqp/amqp.
 
 
 h2. High-level overview of the AMQP 0.9.1 Model
@@ -277,6 +276,11 @@ We recommend that you read the following guides next, if possible, in this order
 
 If you are migrating your application from earlier versions of the amqp gem (0.6.x and 0.7.x), to 0.8.x and later, there is the
 {file:docs/08Migration.textile amqp gem 0.8 migration guide}.
+
+
+h2. Authors
+
+This guide was written by "Michael Klishin":http://twitter.com/michaelklishin and edited by "Chris Duncan":https://twitter.com/celldee.
 
 
 h2. Tell us what you think!
