@@ -23,7 +23,7 @@ This guide covers:
 
 h2. Which versions of the amqp gem does this guide cover?
 
-This guide covers v0.8.0 and later of the "Ruby amqp gem":https://github.com/ruby-amqp/amqp.
+This guide covers v0.8.0.RC14 and later of the "Ruby amqp gem":https://github.com/ruby-amqp/amqp.
 
 
 h2. High-level overview of the AMQP 0.9.1 Model
