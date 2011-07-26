@@ -412,6 +412,10 @@ h3. Code example
 TBD
 
 
+h2. Authors
+
+These guides were written by "Michael Klishin":http://twitter.com/michaelklishin and edited by "Chris Duncan":https://twitter.com/celldee
+
 
 h2. Tell us what you think!
 
