@@ -27,7 +27,36 @@ require "amqp/extensions/rabbitmq"
 
 h2. Per-queue Message Time-to-Live
 
-TBD
+Per-queue Message Time-to-Live (TTL) is a RabbitMQ extension to AMQP 0.9.1 that lets developers control for how long
+a message published to a queue can live before it is discarded. A message that has been in the queue for longer than the
+configured TTL is said to be dead. Dead messages will not be delivered to consumers and cannot be fetched using
+*basic.get* operation ({AMQP::Queue#pop}).
+
+Message TTL is specified using *x-message-ttl* argument on declaration. With amqp gem, you pass it to {AMQP::Queue#initialize} or
+{AMQP::Channel#queue}:
+
+<pre>
+<code>
+# 1000 milliseconds
+channel.queue("", :arguments => { "x-message-ttl" => 1000 }
+</code>
+</pre>
+
+When a published messages is routed to multiple queues, each of the queues gets a _copy of the message_. If then the message dies in
+one of the queues, it has no effect on copies of the message in other queues.
+
+h3. Example
+
+The example below sets message TTL for a new server-named queue to be 1000 milliseconds. It then publishes several messages that
+are routed to the queue and tries to fetch messages using *basic.get* AMQP method ({AMQP::Queue#pop} after 0.7 and 1.5 seconds:
+
+<script src="https://gist.github.com/1113127.js"> </script>
+
+
+h3. RabbitMQ Documentation
+
+See also rabbitmq.com section on "Per-queue Message TTL":http://www.rabbitmq.com/extensions.html#queue-ttl
+
 
 
 h2. Publisher Confirms
