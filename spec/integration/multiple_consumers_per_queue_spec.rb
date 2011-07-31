@@ -12,7 +12,7 @@ describe "Multiple non-exclusive consumers per queue" do
   include EventedSpec::SpecHelper
 
   default_options AMQP_OPTS
-  default_timeout 5
+  default_timeout 10
 
   let(:messages) { (0..99).map {|i| "Message #{i}" } }
 
@@ -62,7 +62,7 @@ describe "Multiple non-exclusive consumers per queue" do
         end
       end
 
-      done(4.5) {
+      done(5.5) {
         @consumer1_mailbox.size.should == 34
         @consumer2_mailbox.size.should == 33
         @consumer3_mailbox.size.should == 33
@@ -108,7 +108,7 @@ describe "Multiple non-exclusive consumers per queue" do
         end
       end
 
-      done(2.5) {
+      done(5.0) {
         @consumer1_mailbox.size.should == 34
         @consumer2_mailbox.size.should == 33
         @consumer3_mailbox.size.should == 33
@@ -154,7 +154,7 @@ describe "Multiple non-exclusive consumers per queue" do
         end
       end
 
-      done(4.5) {
+      done(5.0) {
         @consumer1_mailbox.size.should == 50
         @consumer2_mailbox.size.should == 0
         @consumer3_mailbox.size.should == 50
@@ -203,7 +203,7 @@ describe "Multiple non-exclusive consumers per queue" do
         end
       end
 
-      done(4.5) {
+      done(5.0) {
         @consumer1_mailbox.size.should == 100
         @consumer2_mailbox.size.should == 0
         @consumer3_mailbox.size.should == 0
@@ -249,7 +249,7 @@ describe "Multiple non-exclusive consumers per queue" do
         end
       end
 
-      done(4.5) {
+      done(5.0) {
         @consumer1_mailbox.size.should == 100
         @consumer2_mailbox.size.should == 0
         @consumer3_mailbox.size.should == 0
@@ -311,7 +311,7 @@ describe "Multiple non-exclusive consumers per queue" do
         end
       end
 
-      done(4.5) {
+      done(6.0) {
         @returned_messages.size.should == 100
       }
     end # it
