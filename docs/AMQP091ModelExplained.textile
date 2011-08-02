@@ -25,12 +25,33 @@ This guide covers:
 
 
 
-h2. High-level overview of the AMQP 0.9.1 Model
+h2. High-level overview of AMQP 0.9.1 & the AMQP Model
+
+h3. What is AMQP
+
+AMQP (Advanced Message Queuing Protocol) is a networking protocol which enables conforming client applications to communicate with conforming
+messaging middleware brokers.
+
+
+h3. Why AMQP was created
+
+Messaging solutions have been around since 1970s, with multiple products from multiple vendors being completely
+or largely incompatible with each other. Because of this integration costs were in double digits per cent for many
+large companies, for example, in the financial services industry.
+
+AMQP 0.9.1 design pursued multiple goals but two key of them are
+
+ * Produce an open standard for messaging middleware
+ * Enable interoperability between various technologies and platforms
+
+There is a lot of software running on many operating systems built with multiple programming languages running on
+various hardware architectures and virtual machines. AMQP implementations like RabbitMQ make it possible for C
+systems interoperate with Java, .NET, PHP or Ruby applications as well as Clojure, Erlang, JavaScript and Python.
+
 
 h3. Brokers and their role
 
-AMQP (Advanced Message Queuing Protocol) is a networking protocol which enables conforming client applications to communicate with conforming
-messaging middleware brokers. Brokers receive messages from _producers_ (applications that publish them) and route them to _consumers_ (applications
+Messaging mrokers receive messages from _producers_ (applications that publish them) and route them to _consumers_ (applications
 that process them).
 
 If you imagine the human body, then brokers would be equivalent to centers of the nervous system and applications would be more like limbs.
@@ -286,10 +307,10 @@ This guide was written by "Michael Klishin":http://twitter.com/michaelklishin an
 h2. Tell us what you think!
 
 Please take a moment to tell us what you think about this guide "on Twitter":http://twitter.com/rubyamqp or the "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp.
- Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is
+Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is
 key to making the documentation better.
 
-If, for some reason, you cannot use the communication channels mentioned above, you can "contact the author of the guides directly":mailto:michael@novemberain.com?subject=amqp%20gem%20documentation
+If, for some reason, you cannot use the communication channels mentioned above, you can "contact the author of the guides directly":mailto:michaelklishin@me.com?subject=amqp%20gem%20documentation
 
 
 <div id="disqus_thread"></div>
