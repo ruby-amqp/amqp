@@ -10,6 +10,11 @@ AMQP gem supports two "RabbitMQ extensions to AMQP 0.9.1":
 
 * "Publisher confirmations":http://www.rabbitmq.com/extensions.html#confirms (confirm.* class)
 * "Negative acknowledgements":http://www.rabbitmq.com/extensions.html#negative-acknowledgements (basic.nack)
+* "Per-queue Message Time-to-Live":http://www.rabbitmq.com/extensions.html#queue-ttl
+* "Queue Leases":http://www.rabbitmq.com/extensions.html#queue-leases
+* "Sender-selected Distribution":http://www.rabbitmq.com/extensions.html#sender-selected-distribution
+* "Alternate Exchanges":http://www.rabbitmq.com/extensions.html#alternate-exchange
+* "Validated user_id":http://www.rabbitmq.com/extensions.html#validated-user-id
 
 h2. Enabling RabbitMQ extensions
 
