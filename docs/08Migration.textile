@@ -131,23 +131,74 @@ MQ class and class methods that use implicit connection (MQ.queue and so on) wil
 
 h2. MQ class is now AMQP::Channel
 
-TBD
+MQ class was renamed to AMQP::Channel to follow established {file:docs/AMQP091ModelExplained.textile AMQP 0.9.1 terminology}. Implicit per-thread
+channels are deprecated so code like this:
+
+<pre>
+<code>
+# amqp gem 0.6.x code style: connection is implicit, channel is implicit. Error handling & recovery are thus
+# not possible.
+# Deprecated, do not use.
+MQ.queue("search.indexing")
+
+# same for exchanges. Deprecated, do not use.
+MQ.direct("services.imaging")
+MQ.fanout("services.broadcast")
+MQ.topic("services.weather_updates")
+</code>
+</pre>
+
+<pre>
+<code>
+# connection object lets you define error handlers
+connection = AMQP.connect(:vhost => "myapp/production", :host => "192.168.0.18")
+# channek object lets you define error handlers and use multiple channels per application,
+# for example, one per thread
+channel    = AMQP::Channel.new(connection)
+# AMQP::Channel#queue has unchanged otherwise
+channel.queue("search.indexing")
+
+# exchanges examples
+channel.direct("services.imaging")
+channel.fanout("services.broadcast")
+channel.topic("services.weather_updates")
+</code>
+</pre>
+
+<span class="note">
+MQ.queue, MQ.direct, MQ.fanout and MQ.topic methods will be removed before 1.0 release. Use
+instance methods on AMQP::Channel (AMQP::Channel#queue, AMQP::Channel#direct, AMQP::Channel#default_exchange
+and so on) instead.
+</span>
 
 
 h2. MQ::Queue is now AMQP::Queue
 
-TBD
+MQ::Queue is now AMQP::Queue. All the methods from 0.6.x series are still available.
+
 
 
 h2. MQ::Exchange is now AMQP::Exchange
 
-TBD
+MQ::Exchange is now AMQP::Exchange. All the methods from 0.6.x series are still available.
+
 
 
 h2. MQ::Header is now AMQP::Header
 
-TBD
+MQ::Header is now AMQP::Header. If you code has any type checks or case matches on
+MQ::Header, it needs to change to AMQP::Header.
 
+
+h2. AMQP.error is deprecated
+
+Catch-all solutions for error handling are very difficult to use. Automatic recovery and fine-grained
+event handling is also not possible. amqp gem 0.8.0.RC14 and later includes fine-grained {file:docs/ErrorHandling.textile Error Handling and Recovery API}
+that is both significantly easier to use in real-world cases but also makes automatic recovery mode possible.
+
+<span class="note">
+AMQP.error method will be removed before 1.0 release.
+</span>
 
 
 h2. MQ::RPC is deprecated
@@ -210,7 +261,6 @@ AMQP::Protocol::* classes were removed in the the amqp gem 0.8.0 development cyc
 </span>
 
 
-h2. TBD
 
 
 h2. Authors
