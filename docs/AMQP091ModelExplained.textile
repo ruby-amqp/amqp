@@ -261,6 +261,7 @@ AMQP 0.9.1 has several extension points:
  * Declaration of exchanges and queues can include additional attributes that the broker can use. For example, per-queue message TTL in RabbitMQ is implemented this way.
  * Broker-specific extensions to the protocol. See, for example, "extensions RabbitMQ implements":http://www.rabbitmq.com/extensions.html.
  * New AMQP 0.9.1 method classes can be introduced.
+ * Brokers can be extended with additional plugins, for example, RabbitMQ management frontend and HTTP API are implemented as a plugin.
 
 These features make the AMQP 0.9.1 Model even more flexible and applicable to a very broad range of problems.
 
