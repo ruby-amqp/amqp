@@ -51,7 +51,7 @@ systems interoperate with Java, .NET, PHP or Ruby applications as well as Clojur
 
 h3. Brokers and their role
 
-Messaging mrokers receive messages from _producers_ (applications that publish them) and route them to _consumers_ (applications
+Messaging brokers receive messages from _producers_ (applications that publish them) and route them to _consumers_ (applications
 that process them).
 
 If you imagine the human body, then brokers would be equivalent to centers of the nervous system and applications would be more like limbs.
