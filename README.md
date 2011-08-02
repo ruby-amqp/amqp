@@ -136,8 +136,8 @@ should [file to us](http://github.com/ruby-amqp/amqp/issues). Or just complain t
  * Blabbr, a Twitter-like example of broadcasting (1-to-many communication)
  * Weathr, an example of sophisticated routing capabilities AMQP 0.9.1 has to offer (1-to-many or many-to-many communication)
 
-all in under 20 minutes. Check it out! If something isn't clear, every guide explains how to contact documentation authors at the bottom
-of the page.
+all in under 20 minutes. [AMQP 0.9.1 Protocol Tutorial](http://bit.ly/amqp-model-explained) will introduce you to protocol concepts
+in less than 5 minutes.
 
 
 ### Examples ###
@@ -160,11 +160,17 @@ error handing & recovery, broker-specific extensions, TLS support, troubleshooti
 
 
 
-
 ## How to use AMQP gem with Ruby on Rails, Merb, Sinatra and other web frameworks ##
 
 We cover this subject for multiple Ruby application servers in [Connecting to the broker guide](http://bit.ly/kFCVQU), take a look and let us know
 what wasn't clear.
+
+
+
+## Migration from amqp gem 0.6.x and 0.7.x
+
+Upgrading from amqp gem 0.6.x and 0.7.x to to 0.8.0.RCs is straightforward, please see [amqp gem 0.8.0 migration guide](http://bit.ly/amqp-gem-080-migration).
+The same guide explains amqp gem versions history and why you would want to upgrade.
 
 
 
