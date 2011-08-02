@@ -6,7 +6,7 @@ h2. RabbitMQ extensions
 
 h2. Supported extensions
 
-AMQP gem supports two "RabbitMQ extensions to AMQP 0.9.1":
+AMQP gem supports many RabbitMQ extensions to AMQP 0.9.1:
 
 * "Publisher confirmations":http://www.rabbitmq.com/extensions.html#confirms (confirm.* class)
 * "Negative acknowledgements":http://www.rabbitmq.com/extensions.html#negative-acknowledgements (basic.nack)
