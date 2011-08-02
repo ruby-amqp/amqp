@@ -25,7 +25,7 @@ This guide covers:
 
 
 
-h2. High-level overview of AMQP 0.9.1 & the AMQP Model
+h2. High-level overview of AMQP 0.9.1 and the AMQP Model
 
 h3. What is AMQP
 
@@ -35,18 +35,18 @@ messaging middleware brokers.
 
 h3. Why AMQP was created
 
-Messaging solutions have been around since the 1970s, with multiple products from multiple vendors being completely
-or largely incompatible with each other. Because of this integration costs were very high (in double digits per cent) for many
-large companies, for example, in the financial services industry.
+Messaging solutions have been around since the 1970s with a view to solving the problem of integrating incompatible products from diverse vendors. Without the use of messaging middleware, the integration of heterogenous systems has proved to be very expensive and complex. However, messaging solutions, such as IBM Websphere MQ and Tibco Enterprise Message Service, are also very costly and tend to be exclusively employed by large companies (who can afford them), especially those in the financial services industry.
 
-AMQP 0.9.1 design pursued multiple goals but two key of them are
+There is also a problem with interoperability between messaging solutions. Vendors have created their own proprietary messaging protocols which do not interoperate with others, therefore resulting in 'vendor lock-in'. 
 
- * Produce an open standard for messaging middleware
- * Enable interoperability between various technologies and platforms
+AMQP has multiple design goals but two of the most important are:
+
+ * To produce an open standard for messaging middleware
+ * To enable interoperability between various technologies and platforms
 
 There is a lot of software running on many operating systems built with multiple programming languages running on
-various hardware architectures and virtual machines. AMQP implementations like RabbitMQ make it possible for C
-systems interoperate with Java, .NET, PHP or Ruby applications as well as Clojure, Erlang, JavaScript and Python.
+various hardware architectures and virtual machines. AMQP not only makes it possible for these disparate systems to
+communicate with one another, but also enables different products that implement AMQP to exchange information.
 
 
 h3. Brokers and their role
