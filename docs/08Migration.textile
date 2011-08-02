@@ -176,11 +176,18 @@ h2. MQ::Queue is now AMQP::Queue
 
 MQ::Queue is now AMQP::Queue. All the methods from 0.6.x series are still available.
 
+<span class="note">
+MQ::Queue alias will be removed before 1.0 release. Please switch to AMQP::Queue.
+</span>
 
 
 h2. MQ::Exchange is now AMQP::Exchange
 
 MQ::Exchange is now AMQP::Exchange. All the methods from 0.6.x series are still available.
+
+<span class="note">
+MQ::Exchange alias will be removed before 1.0 release. Please switch to AMQP::Exchange.
+</span>
 
 
 
