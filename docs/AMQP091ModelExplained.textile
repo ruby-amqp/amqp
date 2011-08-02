@@ -35,8 +35,8 @@ messaging middleware brokers.
 
 h3. Why AMQP was created
 
-Messaging solutions have been around since 1970s, with multiple products from multiple vendors being completely
-or largely incompatible with each other. Because of this integration costs were in double digits per cent for many
+Messaging solutions have been around since the 1970s, with multiple products from multiple vendors being completely
+or largely incompatible with each other. Because of this integration costs were very high (in double digits per cent) for many
 large companies, for example, in the financial services industry.
 
 AMQP 0.9.1 design pursued multiple goals but two key of them are
