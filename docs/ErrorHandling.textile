@@ -272,6 +272,11 @@ Detecting network connections is nearly useless if AMQP-based application cannot
 in "error handling and recovery". Fortunately, recovery process for many applications follows one simple scheme that amqp
 gem can perform automatically for you.
 
+<span class="note">
+Recovery process, both manual and automatic, always begins with re-opening AMQP connection and then all the channels on that connection.
+</span>
+
+
 h3. Manual recovery
 
 Similarly to the Shutdown Protocol, amqp gem entities implement Recovery Protocol. Recovery Protocol consists of 3 methods
@@ -286,6 +291,15 @@ re-established but before AMQP connection is reopened*. {AMQP::Session#after_rec
 *after AMQP connection is reopened*.
 
 {AMQP::Channel}, {AMQP::Queue}, {AMQP::Consumer} and {AMQP::Exchange} methods behavior is identical.
+
+Recovery process for AMQP applications usually involves the following steps:
+
+ # Re-open AMQP connection.
+ # Once connection is open again, re-open all AMQP channels on that connection.
+ # For each channel, re-declare all exchanges
+ # For each channel, re-declare all queues
+ # Once queue is declared, for each queue, re-register all bindings
+ # Once queue is declared, for each queue, re-register all consumers
 
 
 h3. Automatic recovery
