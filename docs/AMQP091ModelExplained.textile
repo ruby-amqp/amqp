@@ -274,6 +274,21 @@ queues according to rules called "bindings"*. This means that routing is primari
 TBD
 
 
+h2. AMQP 0.9.1 clients ecosystem
+
+h3. Overview
+
+There are many AMQP 0.9.1 clients for many popular programming languages and platforms. Some of them follow AMQP terminology closely
+and only provide implementation of AMQP methods. Some others have additional features, convenience methods and abstractions. Some of the
+clients are asynchronous (non-blocking), some are synchronous (blocking), some support both models. Some clients support vendor-specific
+extensions (for example, RabbitMQ-specific extensions).
+
+Because one of the main AMQP goals is interoperability, it is a good idea for developers to understand protocol operations
+and not limit themselves to terminology of a particular client library. This way communicating with developers using different libraries will
+be significantly easier.
+
+
+
 h2. Wrapping up
 
 This is the end of the AMQP 0.9.1 Model tutorial. Congratulations! Armed with this knowledge, you will find it easier to follow the rest of
