@@ -64,11 +64,24 @@ See also rabbitmq.com section on "Per-queue Message TTL":http://www.rabbitmq.com
 
 
 
-h2. Publisher Confirms
+h2. Publisher Confirms (Publisher Acknowledgements)
+
+In some situations not a single message can be lost. The only reliable way of doing so is using confirmations.
+"Publisher Confirms AMQP extension":http://www.rabbitmq.com/blog/2011/02/10/introducing-publisher-confirms/ was designed to solve the reliable publishing problem.
+
+Publisher confirms are similar to message acknowledgements documented in the {file:docs/Queues.textile Working With Queues} guide but involve publisher and AMQP broker
+instead of consumer and AMQP broker.
+
 
 h3. Example
 
 <script src="https://gist.github.com/923599.js?file=rabbitmq_publisher_confirmations_with_amqp_gem_0.8.0.rb"></script>
+
+
+h3. Learn more
+
+See also rabbitmq.com section on "Confirms aka Publisher Acknowledgements":http://www.rabbitmq.com/extensions.html#confirms
+
 
 
 
