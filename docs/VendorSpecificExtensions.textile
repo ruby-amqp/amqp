@@ -43,7 +43,7 @@ Message TTL is specified using *x-message-ttl* argument on declaration. With amq
 <pre>
 <code>
 # 1000 milliseconds
-channel.queue("", :arguments => { "x-message-ttl" => 1000 }
+channel.queue("", :arguments => { "x-message-ttl" => 1000 })
 </code>
 </pre>
 
