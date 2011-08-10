@@ -10,7 +10,7 @@ Versions 0.8.0.RC13 and later of amqp gem implement [AMQP 0.9.1](http://bit.ly/a
 
 ## I know what AMQP is, how do I get started? ##
 
-See [Getting started with amqp gem](http://bit.ly/getting-started-with-amqp-ruby-gem) and other [documentation guides](http://bit.ly/amqp-gem-docs).
+See [Getting started with amqp gem](http://bit.ly/getting-started-with-amqp-ruby-gem) and other [documentation guides](http://bit.ly/amqp-gem-docs). We recommend that you read [AMQP 0.9.1 Model Explained](http://bit.ly/amqp-model-explained), too.
 
 
 
