@@ -9,7 +9,7 @@ h2. About this guide
 This guide explains typical messaging patterns and use cases. It only covers the most common scenarios. For comprehensive list
 of messaging patterns, consult books on this subject, for example, "Enterprise Integration Patterns":http://www.eaipatterns.com.
 
-This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>. The source is available "on Github":https://github.com/ruby-amqp/amqp/tree/master/docs.
 
 
 h2. Covered versions

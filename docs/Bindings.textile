@@ -7,8 +7,7 @@ h2. About this guide
 This guide covers bindings in AMQP 0.9.1, what they are, what role do they play and how to accomplish typical operations using
 Ruby amqp gem.
 
-This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
-
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>. The source is available "on Github":https://github.com/ruby-amqp/amqp/tree/master/docs.
 
 h2. Covered versions
 
@@ -25,9 +24,23 @@ selectively match only specific (matching) messages published to an exchange to 
 Learn more about how bindings fit into the AMQP Model in the {file:docs/AMQP091ModelExplained.textile AMQP 0.9.1 Model Explained} documentation guide.
 
 
-h2. One day in life of an AMQP 0.9.1 message
+h2. What Are AMQP 0.9.1 Bindings
 
-TBD
+Bindings are rules that exchanges use (among other things) to route messages to queues. To instruct an exchange E to route messages to a queue Q,
+Q has to _be bound_ to E. Bindings may have an optional _routing key_ attribute used by some exchange types. The purpose of the routing key is to
+selectively match only specific (matching) messages published to an exchange to the bound queue. In other words, the routing key acts like a filter.
+
+To draw an analogy:
+
+ * Queue is like your destination in New York city
+ * Exchange is like JFK airport
+ * Bindings are routes from JFK to your destination. There can be none or more than one way to reach it
+
+Some exchange types use routing key while some others do not (and route messages unconditionally or based on message metadata).
+If AMQP message cannot be routed to any queue (for example, because there are no bindings for the exchange it was published to), it is either
+dropped or returned to the publisher, depending on message attributes the publisher has set.
+
+If application wants to connect a queue to an exchange, it needs to _bind_ them. The opposite operation is called _unbinding_.
 
 
 h2. Binding queues to exchanges
@@ -72,14 +85,54 @@ queue.unbind(exchange)
 Full example:
 <script src="https://gist.github.com/998742.js"> </script>
 
-Note that trying to unbind a queue from an exchange that the queue was never bound to will result in a
+<span class="note">
+Trying to unbind a queue from an exchange that the queue was never bound to will result in a
 channel-level exception.
+</span>
 
 
+h2. Bindings, Routing and Returned Messages
 
-h2. Binding attributes
+h3. How AMQP 0.9.1 Brokers Route Messages
 
-TBD
+After AMQP message reaches AMQP broker and before it reaches a consumer, several things happen:
+
+ * AMQP broker needs to find one or more queues the message needs to be routed to, depending on exchange
+ * AMQP broker puts a copy of the message into each of those queues or decides to return the messages to the publisher
+ * AMQP broker pushes messages to consumers on those queues or waits for applications to fetch them on demand
+
+A more in-depth description is this:
+
+ * AMQP broker needs to consult bindings list for the exchange the message was published to find one or more queues the message needs to be routed to (step 1)
+ * If there are no suitable queues found during step 1 and the message was published as mandatory, it is returned to the publisher (step 1b)
+ * If there are suitable queues, a _copy_ of the message is placed into each one (step 2)
+ * If the message was published as mandatory, but there are no active consumers for it, it is returned to the publisher (step 2b)
+ * If there are active consumers on those queues and basic.qos setting permits, message is pushed to those consumers (step 3)
+ * If there are no active consumers and the message is *not* published as mandatory, it will be left in the queue
+
+The takeaway is that messages may or may not be routed and it is important for applications to handle unroutable messages.
+
+
+h3. Handling of Unroutable Messages
+
+Unroutable messages are either dropped or returned back to producers. Vendor-specific extensions can provide additional ways of handing of unroutable
+messages: for example, RabbitMQ's "Alternate Exchanges extension":http://www.rabbitmq.com/extensions.html#alternate-exchange makes it possible to route unroutable messages to another exchange.
+amqp gem support for it is documented in the {file:docs/VendorSpecificExtensions.textile Vendor-specific Extensions guide}.
+
+RabbitMQ 2.6 will introduce a new feature callled dead letter queue where unroutable messages will be put instead of dropping them.
+
+amqp gem provides a way to handle returned messages with the {AMQP::Exchange#on_return} method:
+
+<pre>
+<code>
+exchange.on_return do |basic_return, metadata, payload|
+  puts "#{payload} was returned! reply_code = #{basic_return.reply_code}, reply_text = #{basic_return.reply_text}"
+end
+</code>
+</pre>
+
+{file:docs/Exchanges.textile Working With Exchanges} documentation guide provides more information on the subject, including full code examples.
+
 
 
 h2. Authors

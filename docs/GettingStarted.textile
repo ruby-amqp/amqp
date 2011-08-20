@@ -15,7 +15,7 @@ It should take about 20 minutes to read and study the provided code examples. Th
  * Creating a topic routing example with 2 publishers and 8 subscribers showcasing n:m communication when subscribers only receive messages that they are interested in.
  * Learning how the amqp gem can be integrated with Ruby objects in a way that makes unit testing easy.
 
-This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>. The source is available "on Github":https://github.com/ruby-amqp/amqp/tree/master/docs.
 
 
 h2. Which versions of the amqp gem does this guide cover?

@@ -103,7 +103,7 @@ h2. Full guide list
 
 h2. License
 
-This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>. The source is available "on Github":https://github.com/ruby-amqp/amqp/tree/master/docs.
 
 h2. Authors
 
