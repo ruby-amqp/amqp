@@ -134,7 +134,7 @@ To draw an analogy:
 
  * Queue is like your destination in New York city
  * Exchange is like the JFK airport
- * Bindings are routes from the JFK to your destination. There can be more than one way to reach it
+ * Bindings are routes from the JFK to your destination. There can be none or more than one way to reach it
 
 
 h2. AMQP Message Consumers
