@@ -1,9 +1,9 @@
 # About Ruby amqp gem #
 
 Ruby amqp gem is a widely used, feature-rich, well-maintained asynchronous AMQP 0.9.1 client with batteries included.
-This library works with Ruby 1.8.7 (except p249, see the FAQ), Ruby 1.9.2, Ruby 1.9.3-preview1, [JRuby](http://jruby.org) (highly recommended to Microsoft Windows users), [REE](http://www.rubyenterpriseedition.com) and [Rubinius](http://rubini.us), and is licensed under the [Ruby License](http://www.ruby-lang.org/en/LICENSE.txt)
+This library works with Ruby 1.8.7 (*except for p249*, see the FAQ), Ruby 1.9.2, Ruby 1.9.3-preview1, [JRuby](http://jruby.org), [Rubinius](http://rubini.us) as well as [REE](http://www.rubyenterpriseedition.com), and is licensed under the [Ruby License](http://www.ruby-lang.org/en/LICENSE.txt)
 
-Versions 0.8.0.RC13 and later of amqp gem implement [AMQP 0.9.1](http://bit.ly/amqp-model-explained) (see also [AMQP 0.9.1 spec document](http://bit.ly/hw2ELX)) and support [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq.com/extensions.html).
+0.8.0.RCs and later versions of amqp gem implement [AMQP 0.9.1](http://bit.ly/amqp-model-explained) (see also [AMQP 0.9.1 spec document](http://bit.ly/hw2ELX)) and support [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq.com/extensions.html).
 
 [![Continuous Integration status](https://secure.travis-ci.org/ruby-amqp/amqp.png)](http://travis-ci.org/ruby-amqp/amqp)
 
@@ -95,11 +95,11 @@ On other OSes or [JRuby](http://jruby.org):
 
     EventMachine.run do
       connection = AMQP.connect(:host => '127.0.0.1')
-      puts "Connected to AMQP broker. Running #{AMQP::VERSION} version of the gem..."
+      puts "Connecting to AMQP broker. Running #{AMQP::VERSION} version of the gem..."
 
       channel  = AMQP::Channel.new(connection)
       queue    = channel.queue("amqpgem.examples.hello_world", :auto_delete => true)
-      exchange = channel.direct("")
+      exchange = channel.default_exchange
 
       queue.subscribe do |payload|
         puts "Received a message: #{payload}. Disconnecting..."
@@ -162,8 +162,7 @@ error handing & recovery, broker-specific extensions, TLS support, troubleshooti
 
 ## How to use AMQP gem with Ruby on Rails, Merb, Sinatra and other web frameworks ##
 
-We cover this subject for multiple Ruby application servers in [Connecting to the broker guide](http://bit.ly/kFCVQU), take a look and let us know
-what wasn't clear.
+We cover Web application integration for multiple Ruby Web servers in [Connecting to the broker guide](http://bit.ly/kFCVQU).
 
 
 
@@ -214,6 +213,7 @@ Special thanks to Dmitriy Samovskiy, Ben Hood and Tony Garnock-Jones.
 
 ### AMQP resources ###
 
+ * [AMQP 0.9.1 Model Explained](http://bit.ly/amqp-model-explained)
  * [RabbitMQ tutorials](http://www.rabbitmq.com/getstarted.html) that demonstrate interoperability
  * [Wikipedia page on AMQP](http://en.wikipedia.org/wiki/Advanced_Message_Queuing_Protocol)
  * [AMQP quick reference](http://www.rabbitmq.com/amqp-0-9-1-quickref.html)
@@ -248,8 +248,8 @@ In order to make code like the following (pseudo-synchronous) work
     ex.publish(some_data)
 
 and not be affected by this [Ruby 1.8.7-p249-specific bug (super called outside of method)](http://bit.ly/iONBmH), we need to
-avoid any inheritance for key amqp gem classes: Channel, Queue, Exchange. This will take a moderate refactoring effort, and
-is likely to happen in 0.8.0.RC15.
+avoid any inheritance for key amqp gem classes: Channel, Queue, Exchange, Consumer. This will take a significant refactoring effort and
+we do not expect this to change at this time.
 
 
 ### How does amqp gem relate to amq-client gem, amq-protocol and libraries like bunny? ###
