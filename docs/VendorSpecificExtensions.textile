@@ -114,20 +114,45 @@ See also rabbitmq.com section on "Confirms aka Publisher Acknowledgements":http:
 
 h2. basic.nack
 
-TBD
+The AMQP specification defines the basic.reject method that allows clients to reject individual, delivered messages, instructing the broker
+to either discard them or requeue them. Unfortunately, basic.reject provides no support for negatively acknowledging messages in bulk.
+
+To solve this, RabbitMQ supports the basic.nack method that provides all the functionality of basic.reject whilst also
+allowing for bulk processing of messages.
+
+h3. Public API
+
+When RabbitMQ extensions are loaded, {AMQP::Channel#reject} method is overriden via mixin to take one additional argument: multi (defaults to false).
+When it is given and is true, amqp gem will use basic.nack AMQP method instead of basic.reject, to reject multiple messages at once.
+Otherwise, basic.reject is used as usual.
+
+
+h3. Learn More
+
+See also rabbitmq.com section on "Confirms aka Publisher Acknowledgements":http://www.rabbitmq.com/extensions.html#negative-acknowledgements
 
 
 
 h2. Alternate Exchanges
 
+Alternate Exchanges is a RabbitMQ extension to AMQP 0.9.1 that lets developers define "fallback" exchanges where unroutable messages will be sent.
+
+
 h3. Public API
 
-TBD
+To specify exchange A as alternate exchange to exchange B, specify 'alternate-exchange' argument on declaration of B:
+
+<pre>
+<code>
+exchange1 = channel.fanout("ops.fallback",     :auto_delete => true)
+exchange2 = channel.fanout("events.collector", :auto_delete => true, :arguments => { "alternate-exchange" => "ops.fallback" })
+</code>
+</pre>
 
 
 h3. Example
 
-TBD
+<script src="https://gist.github.com/1159091.js?file=using_alternate_exchanges.rb"></script>
 
 
 h3. Learn More
