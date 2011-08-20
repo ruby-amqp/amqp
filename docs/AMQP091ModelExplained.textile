@@ -130,6 +130,12 @@ Bindings are rules that exchanges use (among other things) to route messages to 
 Q has to _be bound_ to E. Bindings may have an optional _routing key_ attribute used by some exchange types. The purpose of the routing key is to
 selectively match only specific (matching) messages published to an exchange to the bound queue. In other words, the routing key acts like a filter.
 
+To draw an analogy:
+
+ * Queue is like your destination in New York city
+ * Exchange is like the JFK airport
+ * Bindings are routes from the JFK to your destination. There can be more than one way to reach it
+
 
 h2. AMQP Message Consumers
 
