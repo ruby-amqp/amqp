@@ -14,7 +14,7 @@ EventMachine.run do
 
   channel  = AMQP::Channel.new(connection)
   queue    = channel.queue("amqpgem.examples.hello_world", :auto_delete => true)
-  exchange = channel.direct("")
+  exchange = channel.default_exchange
 
   queue.subscribe do |payload|
     puts "Received a message: #{payload}. Disconnecting..."
