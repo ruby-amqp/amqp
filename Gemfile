@@ -18,16 +18,19 @@ custom_gem "eventmachine"
 custom_gem "amq-client",   :git => "git://github.com/ruby-amqp/amq-client.git",   :branch => "master"
 custom_gem "amq-protocol", :git => "git://github.com/ruby-amqp/amq-protocol.git", :branch => "master"
 
-group(:development) do
+group :development do
   gem "yard", ">= 0.7.2"
   # yard tags this buddy along
   gem "RedCloth",  :platform => :mri
-  gem "rdiscount", :platform => :ruby
-  gem "yajl-ruby", :platform => :ruby
 
-  # To test event loop helper and various Rack apps
-  gem "thin",    :platform => :ruby
-  gem "unicorn", :platform => :ruby
+  platform :ruby do
+    gem "rdiscount"
+    gem "yajl-ruby"
+
+    # To test event loop helper and various Rack apps
+    gem "thin"
+    gem "unicorn"
+  end
 
   gem "changelog"
 end
