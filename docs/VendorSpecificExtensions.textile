@@ -10,10 +10,10 @@ AMQP gem supports many RabbitMQ extensions to AMQP 0.9.1:
 
 * "Publisher confirmations":http://www.rabbitmq.com/extensions.html#confirms (confirm.* class)
 * "Negative acknowledgements":http://www.rabbitmq.com/extensions.html#negative-acknowledgements (basic.nack)
+* "Alternate Exchanges":http://www.rabbitmq.com/extensions.html#alternate-exchange
 * "Per-queue Message Time-to-Live":http://www.rabbitmq.com/extensions.html#queue-ttl
 * "Queue Leases":http://www.rabbitmq.com/extensions.html#queue-leases
 * "Sender-selected Distribution":http://www.rabbitmq.com/extensions.html#sender-selected-distribution
-* "Alternate Exchanges":http://www.rabbitmq.com/extensions.html#alternate-exchange
 * "Validated user_id":http://www.rabbitmq.com/extensions.html#validated-user-id
 
 h2. Enabling RabbitMQ extensions
@@ -58,7 +58,7 @@ are routed to the queue and tries to fetch messages using *basic.get* AMQP metho
 <script src="https://gist.github.com/1113127.js"> </script>
 
 
-h3. RabbitMQ Documentation
+h3. Learn More
 
 See also rabbitmq.com section on "Per-queue Message TTL":http://www.rabbitmq.com/extensions.html#queue-ttl
 
@@ -73,12 +73,39 @@ Publisher confirms are similar to message acknowledgements documented in the {fi
 instead of consumer and AMQP broker.
 
 
+h3. Public API
+
+To use publisher confirmations, first put channel into confirmation mode using {AMQP::Channel#confirm_select}:
+
+<pre>
+<code>
+channel.confirm_select
+</code>
+</pre>
+
+From this moment on, every message published on this channel will cause channel's _publisher index_ (message counter) to be incremented. It is possible to access
+using {AMQP::Channel#publisher_index} method. To check whether channel is in the confirmation mode, use {AMQP::Channel#uses_publisher_confirmations?} predicate.
+
+To handle AMQP broker acknowledgements, define a handler using {AMQP::Channel#on_ack}, for example:
+
+<pre>
+<code>
+channel.on_ack do |basic_ack|
+ puts "Received basic_ack: multiple = #{basic_ack.multiple}, delivery_tag = #{basic_ack.delivery_tag}"
+end
+</code>
+</pre>
+
+Delivery tag will indicate number of confirmed messages. If *multiple* attribute is true, the confirmation is for all messages up to the number
+delivery tag indicates. In other words, AMQP broker may confirm just one message or a batch of them.
+
+
 h3. Example
 
 <script src="https://gist.github.com/923599.js?file=rabbitmq_publisher_confirmations_with_amqp_gem_0.8.0.rb"></script>
 
 
-h3. Learn more
+h3. Learn More
 
 See also rabbitmq.com section on "Confirms aka Publisher Acknowledgements":http://www.rabbitmq.com/extensions.html#confirms
 
@@ -89,6 +116,23 @@ h2. basic.nack
 
 TBD
 
+
+
+h2. Alternate Exchanges
+
+h3. Public API
+
+TBD
+
+
+h3. Example
+
+TBD
+
+
+h3. Learn More
+
+See also rabbitmq.com section on "Alternate Exchanges":http://www.rabbitmq.com/extensions.html#alternate-exchange
 
 
 h2. Authors
