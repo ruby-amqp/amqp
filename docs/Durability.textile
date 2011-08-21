@@ -45,7 +45,7 @@ AMQP broker persist them to disk. If the server is restarted, the system ensures
 are not lost. Simply publishing message to a durable exchange or the fact that queue(s) they are routed to
 is durable doesn't make messages persistent: it all depends on persistence mode of the messages itself.
 Publishing messages as persistent affects performance (just like with data stores, durability comes at a certain cost
-in performance and vise versa). Pass :persistent => true to {Exchange#publish} to publish your message as persistent.
+in performance and vise versa). Pass :persistent => true to {AMQP::Exchange#publish} to publish your message as persistent.
 
 
 h3. Transactions
