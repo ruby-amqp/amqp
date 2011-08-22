@@ -51,8 +51,14 @@ Here is a summary of guides and their content:
   <dt>{file:docs/Exchanges.textile Working With Exchanges}</dt>
   <dd>
   What AMQP exchanges are. Concept of binding. How to declare AMQP exchanges. How different exchange types route messages and common
-  use cases. How to publish messages, especially how to do it reliably. What AMQP transactions are. What Publisher Confirms are.
-  How to delete an exchange.
+  use cases. How to publish messages, especially how to do it reliably. What AMQP transactions are. What Publisher Confirms are. When
+  messages are returned. How to delete an exchange.
+  </dd>
+
+  <dt>{file:docs/Bindings.textile Bindings}</dt>
+  <dd>
+  What AMQP bindings are, in-depth. How to bind queues to exchanges. How to unbind queues from exchanges. What's the life cycle
+  of messages is. How unroutable messages are handled.
   </dd>
 
   <dt>{file:docs/PatternsAndUseCases.textile Patterns and Use Cases}</dt>
