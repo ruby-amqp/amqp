@@ -68,6 +68,32 @@ version 2.0 or later.
 TBD
 
 
+h2. Handling channel-level exceptions
+
+A broad range of problems result in AMQP channel exceptions: an indication by the broker that there was an issue application needs to be aware of.
+Channel-level exceptions are typically not fatal and can be recovered from. Some examples are:
+
+ * Exchange is re-declared with attributes different from the original declaration. For example, a non-durable exchange is being re-declared as durable.
+ * Queue is re-declared with attributes different from the original declaration. For example, an autodeletable queue is being re-declared as non-autodeletable.
+ * Queue is bound to an exchange that does not exist.
+
+and so on. When troubleshooting AMQP applications, it is recommended that you detect and handle channel-level exceptions on all channels your
+application may use. For that, use {AMQP::Channel#on_error} method as demonstrated below:
+
+<pre>
+<code>
+events_channel.on_error do |ch, channel_close|
+  puts "Channel-level exception on the events channel: #{channel_close.reply_text}"
+end
+
+commands_channel.on_error do |ch, channel_close|
+  puts "Channel-level exception on the commands channel: #{channel_close.reply_text}"
+end
+</code>
+</pre>
+
+Defining channel-level exception handlers will reveal many issues that it might take more time to detect using other troubleshooting techniques.
+
 
 h2. Testing network connection with AMQP broker using Telnet
 
