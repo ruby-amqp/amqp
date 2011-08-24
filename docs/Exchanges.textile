@@ -6,7 +6,7 @@ h1. Working with exchanges
 h2. About this guide
 
 This guide covers the use of exchanges according to the AMQP v0.9.1 specification including message publishing,
-common usage scenarios and how to accomplish typical operations using the Ruby amqp gem. This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>. The source is available "on Github":https://github.com/ruby-amqp/amqp/tree/master/docs.
+common usage scenarios and how to accomplish typical operations using the Ruby amqp gem. This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a> (including images & stylesheets). The source is available "on Github":https://github.com/ruby-amqp/amqp/tree/master/docs.
 
 
 h2. Which versions of the amqp gem does this guide cover?

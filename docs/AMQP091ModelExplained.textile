@@ -5,7 +5,7 @@ h1. AMQP 0.9.1 Model Explained
 h2. About this guide
 
 This guide explains the AMQP 0.9.1 Model used by RabbitMQ. Understanding the AMQP Model will make a lot of other documentation, both for the Ruby amqp gem and
-RabbitMQ itself, easier to follow. This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>. The source is available "on Github":https://github.com/ruby-amqp/amqp/tree/master/docs.
+RabbitMQ itself, easier to follow. This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a> (including images & stylesheets). The source is available "on Github":https://github.com/ruby-amqp/amqp/tree/master/docs.
 
 
 h3. What this guide covers
