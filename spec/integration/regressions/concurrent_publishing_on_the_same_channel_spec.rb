@@ -87,5 +87,5 @@ if mri?
         # no UNEXPECTED_FRAME connection-level exceptions. MK.
       }
     end
-  end  
+  end
 end
