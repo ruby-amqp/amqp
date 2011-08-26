@@ -14,6 +14,8 @@ this issue.
 
 To reiterate: 1.8.7-p174 and 1.8.7-p334 are supported. The fix has been committed to MRI in December 2009. It's
 a good idea to upgrade, although downgrading to p174 is an option, too.
+
+To learn more (including the 0.8.x migration guide) at http://bit.ly/amqp-gem-docs and https://github.com/ruby-amqp.
     MESSAGE
   end
 end
