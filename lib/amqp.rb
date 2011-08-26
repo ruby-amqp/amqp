@@ -1,5 +1,6 @@
 # encoding: utf-8
 
+require "amq/protocol"
 require "amq/client"
 require "amq/client/adapters/event_machine"
 
