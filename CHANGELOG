@@ -1,5 +1,6 @@
 = Version 0.8.0
 
+  * [API] AMQP::Session#on_skipped_heartbeats callback that can be used to handle skipped heartbeats (for cases when TCP network failure detection is not timely enough)
   * [API] AMQP::Exchange#publish calls now use a mutex on the channel exchange is declared on. Sharing channels between threads is discouraged but amqp gem covers your back in the most dangerous case.
   * [API] AMQP::Channel#synchronize now can be used to guarantee mutual exclusion of multiple threads on channel instances.
   * [BUG] Empty messages can finally be published fine. Yes, it took us just 3 years.
