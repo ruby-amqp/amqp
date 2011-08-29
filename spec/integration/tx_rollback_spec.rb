@@ -9,7 +9,7 @@ describe "AMQP transaction rollback" do
   #
 
   include EventedSpec::AMQPSpec
-  default_timeout 3.5
+  default_timeout 4.5
 
   amqp_before do
     @producer_channel    = AMQP::Channel.new
@@ -37,7 +37,7 @@ describe "AMQP transaction rollback" do
       @producer_channel.tx_rollback
     end
 
-    done(2.5)
+    done(3.5)
   end # it
 end # describe
 
@@ -51,7 +51,7 @@ describe "AMQP connection closure that follows tx.select" do
   #
 
   include EventedSpec::AMQPSpec
-  default_timeout 3.5
+  default_timeout 4.5
 
   amqp_before do
     @producer_channel    = AMQP::Channel.new
@@ -79,7 +79,7 @@ describe "AMQP connection closure that follows tx.select" do
       @producer_channel.connection.close
     end
 
-    done(2.5)
+    done(3.5)
   end # it
 end # describe
 
@@ -93,7 +93,7 @@ describe "AMQP channel closure that follows tx.select" do
   #
 
   include EventedSpec::AMQPSpec
-  default_timeout 3.5
+  default_timeout 4.5
 
   amqp_before do
     @producer_channel    = AMQP::Channel.new
@@ -121,7 +121,7 @@ describe "AMQP channel closure that follows tx.select" do
       @producer_channel.close
     end
 
-    done(2.5)
+    done(3.5)
   end # it
 end # describe
 
@@ -134,7 +134,7 @@ describe "AMQP transaction rollback attempt on a non-transactional channel" do
   #
 
   include EventedSpec::AMQPSpec
-  default_timeout 3.5
+  default_timeout 4.5
 
   amqp_before do
     @producer_channel    = AMQP::Channel.new
@@ -162,6 +162,6 @@ describe "AMQP transaction rollback attempt on a non-transactional channel" do
     end
     EventMachine.add_timer(0.5) { @producer_channel.tx_rollback }
 
-    done(2.5)
+    done(3.5)
   end # it
 end # describe
