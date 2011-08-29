@@ -14,3 +14,7 @@ gemfile:
 notifications:
   recipients:
     - michaelklishin@me.com
+branches:
+  only:
+    - master
+    - 0.7.x-stable
