@@ -47,7 +47,7 @@ describe "Multiple consumers bound to a queue with the same routing key" do
       12.times { @exchange.publish(".", :routing_key => "all.builds") }
     end
 
-    done(2.5) {
+    done(4.5) {
       mailbox1.size.should == 6
       mailbox2.size.should == 6
     }
