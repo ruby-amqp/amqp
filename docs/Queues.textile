@@ -699,7 +699,7 @@ end
 <code>
 queue.bind(exchange).subscribe do |metadata, payload|
   # reject and requeue
-  metadata.reject(true)
+  metadata.reject(:requeue => true)
 end
 </code>
 </pre>
