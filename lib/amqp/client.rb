@@ -106,7 +106,10 @@ module AMQP
     def unbind
       log 'disconnected'
       @connected = false
-      EM.next_tick { @on_disconnect.call; @tcp_connection_established = false }
+      EM.next_tick {
+        @on_disconnect.call if @on_disconnect
+        @tcp_connection_established = false
+      }
     end
 
     def add_channel(mq)
