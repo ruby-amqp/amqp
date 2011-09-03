@@ -10,7 +10,7 @@ describe "Message acknowledgements" do
 
   include EventedSpec::AMQPSpec
 
-  default_timeout 15
+  default_timeout 120
 
   amqp_before do
     @connection = AMQP.connect
