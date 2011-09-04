@@ -71,11 +71,11 @@ with are outdated even in recent (10.10) releases. Learn more in the [RabbitMQ v
 On Microsoft Windows 7
 
     gem install eventmachine --pre
-    gem install amqp --pre
+    gem install amqp
 
 On other OSes or [JRuby](http://jruby.org):
 
-    gem install amqp --pre
+    gem install amqp
 
 
 ### "Hello, World" example ###

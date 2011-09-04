@@ -70,13 +70,13 @@ h4. On Microsoft Windows 7:
 
 <pre>
 gem install eventmachine --pre
-gem install amqp --pre
+gem install amqp
 </pre>
 
 h4. On other OSes or JRuby:
 
 <pre>
-gem install amqp --pre
+gem install amqp
 </pre>
 
 h3. You can also use Bundler to install the gem 
@@ -85,7 +85,7 @@ h3. You can also use Bundler to install the gem
 <code>
 source :rubygems
 
-gem "amqp", "~> 0.8.0.RC15" # optionally: :git => "git://github.com/ruby-amqp/amqp.git", :branch => "master"
+gem "amqp", "~> 0.8.0" # optionally: :git => "git://github.com/ruby-amqp/amqp.git", :branch => "0.8.x-stable"
 </code>
 </pre>
 
@@ -100,7 +100,7 @@ irb -rubygems
 :001 > require "amqp"
 => true
 :002 > AMQP::VERSION
-=> "0.8.0.rc15"
+=> "0.8.0"
 </code>
 </pre>
 
