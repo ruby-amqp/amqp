@@ -270,6 +270,25 @@ module AMQP
       end
     end # auto_recover
 
+    # Can be used to recover channels from channel-level exceptions. Allocates a new channel id and reopens
+    # itself with this new id, releasing the old id after the new one is allocated.
+    #
+    # @api public
+    def reuse
+      old_id = @id
+      # must release after we allocate a new id, otherwise we will end up
+      # with the same value. MK.
+      @id    = self.class.next_channel_id
+      self.class.release_channel_id(old_id)
+
+      self.open do
+        @channel_is_open_deferrable.succeed
+
+        # exchanges must be recovered first because queue recovery includes recovery of bindings. MK.
+        @exchanges.each { |name, e| e.auto_recover }
+        @queues.each    { |name, q| q.auto_recover }
+      end
+    end # reuse
 
 
 
