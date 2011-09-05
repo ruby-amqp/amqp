@@ -33,7 +33,8 @@ There are other, more specialized group of messaging patterns that are out of sc
 This guide demonstrates implementation of several common routing patterns plus explains how built-in AMQP 0.9.1 features
 can be used to implement message construction and message transformation patterns.
 
-TBD
+Note that guide is a work in progress. There are many messaging patterns and new variations are being discovered every year.
+This guide thus strives to be useful to the 80% of developers instead of being "complete".
 
 
 
