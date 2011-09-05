@@ -1,3 +1,8 @@
+= Version 0.9.0 [development]
+  * [API] AMQP::Channel#reuse now can be used to reuse AMQP::Channel instance by reopening it with a new channel id. Useful for some
+          channel-level exception handling scenarios.
+
+
 = Version 0.8.0
 
   * [API] AMQP::Session#on_skipped_heartbeats callback that can be used to handle skipped heartbeats (for cases when TCP network failure detection is not timely enough)
