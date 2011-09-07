@@ -47,7 +47,7 @@ On Debian and Ubuntu, you can either "download the RabbitMQ .deb package":http:/
 For RPM-based distributions like RedHat or CentOS, the RabbitMQ team provides an "RPM package":http://www.rabbitmq.com/install.html#rpm.
 
 <span class="note">
-The RabbitMQ package that ships with recent Ubuntu 10.10 versions is outdated and *will not work with v0.8.0 and later of the amqp gem* (we need at least RabbitMQ v2.0 for use with this guide).
+The RabbitMQ package that ships with recent Ubuntu versions (for example, 10.10) is outdated and *will not work with v0.8.0 and later of the amqp gem* (we need at least RabbitMQ v2.0 for use with this guide).
 </span>
 
 

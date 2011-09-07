@@ -13,6 +13,17 @@ h2. Covered versions
 This guide covers "Ruby amqp gem":http://github.com/ruby-amqp/amqp v0.8.0 and later.
 
 
+h2. RabbitMQ Version Requirement
+
+amqp gem before 0.8.0 (0.6.x, 0.7.x) series implemented (most of) AMQP 0.8 specification. amqp gem 0.8.0 implements AMQP 0.9.1 and thus
+*requires RabbitMQ version 2.0 or later*. See {file:docs/RabbitMQVersions.textile RabbitMQ versions} for more information about
+RabbitMQ versions support and how obtain up-todate packages for your operating system.
+
+<span class="note">
+amqp gem 0.8.0 and later versions implement AMQP 0.9.1 and thus *requires RabbitMQ version 2.0 or later*
+</span>
+
+
 
 h2. Using recent versions on Debian and Ubuntu
 
@@ -21,6 +32,9 @@ that only supports AMQP protocol 0.8. Ruby amqp gem 0.8.0 and later *will not wo
 
 We strongly recommend that you use "RabbitMQ apt repository":http://www.rabbitmq.com/debian.html#apt that has recent versions of RabbitMQ.
 
+
+
+h2. OpsCode Chef & Puppet
 
 h3. Chef cookbook for RabbitMQ
 
