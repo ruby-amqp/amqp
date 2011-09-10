@@ -87,63 +87,12 @@ h3. Code example
 
 h4. Client code
 
-<pre>
-<code>
-require "amqp"
-
-EventMachine.run do
-  connection = AMQP.connect
-  channel    = AMQP::Channel.new(connection)
-
-  replies_queue = channel.queue("", :exclusive => true, :auto_delete => true)
-  replies_queue.subscribe do |metadata, payload|
-    puts "[response] Response for #{metadata.correlation_id}: #{payload.inspect}"
-  end
-
-  # request time from a peer every 3 seconds
-  EventMachine.add_periodic_timer(3.0) do
-    puts "[request] Sending a request..."
-    channel.default_exchange.publish("get.time",
-                                     :routing_key => "amqpgem.examples.services.time",
-                                     :message_id  => Kernel.rand(10101010).to_s,
-                                     :reply_to    => replies_queue.name,
-                                     :immediate   => true)
-  end
-
-
-  Signal.trap("INT") { connection.close { EventMachine.stop } }
-end
-</code>
-</pre>
+<script src="https://gist.github.com/1207763.js"> </script>
 
 
 h4. Server code
 
-<pre>
-<code>
-require "amqp"
-
-EventMachine.run do
-  connection = AMQP.connect
-  channel    = AMQP::Channel.new(connection)
-
-  requests_queue = channel.queue("amqpgem.examples.services.time", :exclusive => true, :auto_delete => true)
-  requests_queue.subscribe(:ack => true) do |metadata, payload|
-    puts "[requests] Got a request #{metadata.message_id}. Sending a reply..."
-    channel.default_exchange.publish(Time.now.to_s,
-                                     :routing_key    => metadata.reply_to,
-                                     :correlation_id => metadata.message_id,
-                                     :immediate      => true,
-                                     :mandatory      => true)
-
-    metadata.ack
-  end
-
-
-  Signal.trap("INT") { connection.close { EventMachine.stop } }
-end
-</code>
-</pre>
+<script src="https://gist.github.com/1207764.js"> </script>
 
 In the examples above messages are published with the :immediate attribute set. This is not necessary in all
 cases: sometimes it is OK for requests to sit in the queue without active consumers. Replies, on the other hand,
@@ -188,86 +137,19 @@ h4. Request message attributes
 
 <dl>
   <dt>:type</dt>
-  <dd>Message type, as a string. For example: gems.install or commands.shutdown</dd>
+  <dd>Message type as a string. For example: gems.install or commands.shutdown</dd>
 </dl>
 
 h3. Code example
 
 h4. Producer (Sender)
 
-<pre>
-<code>
-require "rubygems"
-require "amqp"
-require "yaml"
-
-t = Thread.new { EventMachine.run }
-sleep(0.5)
-
-
-connection = AMQP.connect
-channel    = AMQP::Channel.new(connection, :auto_recovery => true)
-
-channel.prefetch(1)
-
-# Acknowledgements are good for letting the server know
-# that the task is finished. If the consumer doesn't send
-# the acknowledgement, then the task is considered to be unfinished
-# and will be requeued when consumer closes AMQP connection (because of a crash, for example).
-channel.queue("amqpgem.examples.patterns.command", :durable => true, :auto_delete => false).subscribe(:ack => true) do |metadata, payload|
-  case metadata.type
-  when "gems.install"
-    data = YAML.load(payload)
-    puts "[gems.install] Received a 'gems.install' request with #{data.inspect}"
-
-    # just to demonstrate a realistic example
-    shellout = "gem install #{data[:gem]} --version '#{data[:version]}'"
-    puts "[gems.install] Executing #{shellout}"; system(shellout)
-    puts "[gems.install] Done"
-    puts
-  else
-    puts "[commands] Unknown command: #{metadata.type}"
-  end
-
-  # message is processed, acknowledge it so that broker discards it
-  metadata.ack
-end
-
-puts "[boot] Ready. Will be publishing commands every 10 seconds."
-Signal.trap("INT") { connection.close { EventMachine.stop } }
-t.join
-</code>
-</pre>
+<script src="https://gist.github.com/1207758.js"> </script>
 
 
 h4. Consumer (Recipient)
 
-<pre>
-<code>
-require "amqp"
-require "yaml"
-
-t = Thread.new { EventMachine.run }
-sleep(0.5)
-
-connection = AMQP.connect
-channel    = AMQP::Channel.new(connection)
-
-# publish new commands every 3 seconds
-EventMachine.add_periodic_timer(10.0) do
-  puts "Publishing a command (gems.install)"
-  payload = { :gem => "rack", :version => "~> 1.3.0" }.to_yaml
-
-  channel.default_exchange.publish(payload,
-                                   :type        => "gems.install",
-                                   :routing_key => "amqpgem.examples.patterns.command")
-end
-
-puts "[boot] Ready"
-Signal.trap("INT") { connection.close { EventMachine.stop } }
-t.join
-</code>
-</pre>
+<script src="https://gist.github.com/1207761.js"> </script>
 
 
 h3. Related patterns
@@ -293,8 +175,11 @@ Some specific use cases of Event pattern are
  * Live sport score updates
  * Various "push notifications" for mobile applications
 
-The Event pattern is very similar to the Command pattern with the difference that event listeners are often "passive" (do not respond
-to events or perform actions other than updating counters, persisting event information and so on).
+The Event pattern is very similar to the Command pattern, however, there is typically certain differences between the two:
+
+ * Event listeners often do not respond back to event producers
+ * Event listeners are often concerned with data collection: they update counters, persist event information and so on
+ * There may be more than event listener in the system. Commands are often carried out by one particular application
 
 
 h3. AMQP-based implementation
@@ -304,18 +189,38 @@ then use server-named exclusive queues and all bind to that exchange. Event mess
 attribute to indicate event type and message body (plus, possibly, message headers) to pass event
 context information.
 
+h4. Request message attributes
+
+<dl>
+  <dt>:type</dt>
+  <dd>Message type as a string. For example: files.created, files.indexed or pages.viewed</dd>
+</dl>
+
+<span class="note">
+Due to misconfiguration or different upgrade time/policy, applications may receive events they do not know how to handle.
+It is important for developers to handle such cases, otherwise it is likely that consumers may crash.
+</span>
+
 More on fanout exchange type in the {file:docs/Exchanges.textile Working With Exchanges} guide.
 
 
 h3. Code example
 
-TBD
+h4. Producer (Sender)
+
+<script src="https://gist.github.com/1207750.js"> </script>
+
+
+h4. Consumer (Handler)
+
+<script src="https://gist.github.com/1207749.js"> </script>
 
 
 h3. Related patterns
 
  * Command
  * Publish/Subscribe
+
 
 
 
