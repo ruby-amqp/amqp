@@ -103,8 +103,13 @@ server application will log returned messages. More on this in the {file:docs/Ex
 
 h3. Related patterns
 
- * Request/Reply
- * Event
+Request/Reply demonstrates two common techniques that are sometimes referred to as messaging patterns of its own:
+
+ * "Correlation Identifier":http://www.eaipatterns.com/CorrelationIdentifier.html (for identifying what request incoming response is for)
+ * "Return Address":http://www.eaipatterns.com/ReturnAddress.html (for identifying where replies should be sent)
+
+Other related patterns are
+
  * Scatter/Gather
  * Smart Proxy
 
