@@ -11,7 +11,7 @@ sleep(0.5)
 connection = AMQP.connect
 channel    = AMQP::Channel.new(connection)
 
-# publish new commands every 3 seconds
+# publish new commands every few seconds
 EventMachine.add_periodic_timer(10.0) do
   puts "Publishing a command (gems.install)"
   payload = { :gem => "rack", :version => "~> 1.3.0" }.to_yaml
