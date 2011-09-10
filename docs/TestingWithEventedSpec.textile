@@ -1,34 +1,36 @@
-# @title Ruby AMQP gem: Testing with Evented spec
+# @title Ruby AMQP gem: Testing AMQP applications
 
-h1. Testing you applications with evented-spec
-
+h1. Testing AMQP applications
 
 h2. About this guide
 
-This guide covers writing tests with evented-spec for amqp-based applications.
+This guide covers unit testing of amqp-based applications, primarily using "evented-spec":http://github.com/ruby-amqp/evented-spec.
+
 
 
 h2. Covered versions
 
-This guide covers "Ruby amqp gem":http://github.com/ruby-amqp/amqp v0.8.0 and later.
-Also covered is the "evented-spec gem":http://github.com/ruby-amqp/evented-spec v0.4.1 and later.
+This guide covers "Ruby amqp gem":http://github.com/ruby-amqp/amqp v0.8.0 and later as well as
+"evented-spec gem":http://github.com/ruby-amqp/evented-spec v0.9.0 and later.
+
 
 h2. Rationale
 
-Asynchronous environments are somewhat more difficult to test.
-There are two different approaches to testing them:
+The AMQP protocol is inherently asynchronous. Testing of asynchronous code is often more difficult
+than synchronous code. There are two approaches to it:
 
 * Stubbing out a big chunk of the environment
 * Using the "real" environment
 
-First approach is risky because your application becomes divorced from reality and what *really* happens.
-Second approach is more "correct", but at the same time much more tedious, because there are a lot of things to wrap your head around: initial setup, error handling,
-in case of amqp, also connection starting.
+The former is risky because your application becomes divorced from actual behavior of other applications.
+The latter approach is more reliable but at the same time more tedious, because there is certain amount of incidental complexity
+that "real" environment carries.
 
-However, tediousness for most part can be easily fought with proper helpers and organization. evented-spec gem
-(based on arvicco's amqp-spec and tmmm1's em-spec) provides this kind of helpers for your asynchronous applications.
+However, a lot of this complexity can be eliminated with tools and libraries. The evented-spec gem is one of those tools. It grew
+out of necessity to test "amqp Ruby gem":http://github.com/ruby-amqp/amqp and has provent itself to be both very powerful and easy to
+use. This guide covers usage of that gem in context of applications that use amqp gem but can also be useful for testing EventMachine and
+Cool.io-based applications.
 
-This guide covers usage of that gem in context of amqp but there are all the parts for testing EM-based and Cool.io-based applications.
 
 h2. Using evented-spec
 
@@ -39,14 +41,16 @@ calls to your examples:
 
 <script src="https://gist.github.com/1027377.js"></script>
 
-h3. Implications of asynchronous environment (or why we need #done)
+
+h3. Testing in the Asynchronous Environment
 
 Since we are using callback mechanisms in order to provide asynchronicity, we have to deal with situation when we expect a response,
 and response never comes. Usual solution includes setting a timeout which makes the given tests fail if they aren't finished in a timely
 manner. When <code>#done</code> is called, your tests confirm successful ending of specs. Try removing <code>done</code> from the above
 example and see what happens. (spoiler: <code>EventedSpec::SpecHelper::SpecTimeoutExceededError: Example timed out</code>)
 
-h3. Changing default connection options and default timeout
+
+h3. Default Connection Options and Timeout
 
 It is not uncommon to have custom options for your test environment. For example, setting up custom vhost and timeout:
 
@@ -54,12 +58,14 @@ It is not uncommon to have custom options for your test environment. For example
 
 Options are the same as used in <code>AMQP.connect</code>.
 
+
 h3. Callbacks
 
 evented-spec provides various callbacks similar to rspec's <code>before(:each)</code> / <code>after(:each)</code>. They are called <code>amqp_before</code> and
 <code>amqp_after</code> and happen right after connection is established or before connection is closed. It is a good place to put your channel initialization routines.
 
-h3. Example of a meaningful spec
+
+h3. Example
 
 Now that you're filled on theory part, it's time to do something with all this knowledge. Below goes a slightly modified version of one of the integration specs from AMQP
 suite. It sets up default topic exchange and publishes various messages about sports events:
@@ -69,7 +75,8 @@ suite. It sets up default topic exchange and publishes various messages about sp
 Couple of things to notice: <code>#done</code> is invoked using an optional callback and optional delay, also instance variables behavior in hooks is the same as in "normal" rspec
 hooks.
 
-h3. Using #delayed in your specs
+
+h3. Using #delayed
 
 AMQP gem uses "EventMachine":http://eventmachine.rubyforge.org/ under hood. If you don't know about eventmachine, you can read more about it on the official site.
 What's important for us is that you *cannot use <code>sleep</code> for delays*. Why? Because all the specs code is processed directly in the "reactor":http://en.wikipedia.org/wiki/Reactor_pattern thread, if you
@@ -83,6 +90,7 @@ In the following example, we declare two channels, then declare the same queue t
 
 If you draw a timeline, various events happen at 0.0s, then at 0.1s, then at 0.3s and eventually at 0.4s.
 
+
 h3. What happens under hood
 
 When you include <code>EventedSpec::AMQPSpec</code> module, <code>#it</code> calls are wrapped in <code>EM.start</code> + <code>AMQP.connect</code>
@@ -91,8 +99,10 @@ calls, so you can start writing your examples as if you're connected. You still 
 
 h2. What to read next
 
-There is a lot more to evented-spec than described in this guide. evented-spec has "rdocs":http://rdoc.info/github/ruby-amqp/evented-spec/master,
-which I strongly suggest to read in case you don't understand some parts of the gem.
+There is a lot more to evented-spec than described in this guide. "evented-spec documentation":http://rdoc.info/github/ruby-amqp/evented-spec/master
+covers that gem in more detail gem. For more code examples, see "amqp Ruby gem test suite":https://github.com/ruby-amqp/amqp/tree/master/spec.
+
+
 
 h2. Tell us what you think!
 
