@@ -228,15 +228,18 @@ h2. Document Message pattern
 
 h3. Description & Use cases
 
-TBD
+Document Message pattern is very similar to Command and Event patterns. The difference is in the intent: whereas a Command message tells
+the receiver to invoke certain behavior, a Document Message just passes data and lets the receiver decide what, if anything, to do with the data.
 
-h3. AMQP-based implementation
+Message payload is a single logical entity, for example, one (or a group of closely related) database rows or documents.
 
-TBD
+Use cases for the Document Message pattern often have something to do with processing of documents:
 
-h3. Code example
+ * Indexing
+ * Archiving
+ * Content extraction
+ * Transformation (translation, transcoding and so on) of document data
 
-TBD
 
 
 h2. Competing Consumers pattern
