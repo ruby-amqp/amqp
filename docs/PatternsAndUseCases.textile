@@ -293,6 +293,9 @@ Some specific use cases of Event pattern are
  * Live sport score updates
  * Various "push notifications" for mobile applications
 
+The Event pattern is very similar to the Command pattern with the difference that event listeners are often "passive" (do not respond
+to events or perform actions other than updating counters, persisting event information and so on).
+
 
 h3. AMQP-based implementation
 
