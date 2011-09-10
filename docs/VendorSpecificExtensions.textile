@@ -72,6 +72,10 @@ In some situations not a single message can be lost. The only reliable way of do
 Publisher confirms are similar to message acknowledgements documented in the {file:docs/Queues.textile Working With Queues} guide but involve publisher and AMQP broker
 instead of consumer and AMQP broker.
 
+!https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/006_amqp_091_message_acknowledgements.png!
+
+!https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/007_rabbitmq_publisher_confirms.png!
+
 
 h3. Public API
 

@@ -457,6 +457,8 @@ It can be right after receiving a message, or after persisting it to a data stor
 processing the message (for example, successfully fetching a Web page, processing and storing it into some persistent
 data store).
 
+!https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/006_amqp_091_message_acknowledgements.png!
+
 If a consumer dies without sending an acknowledgement, the AMQP broker will redeliver it to another consumer, or, if
 none are available at the time, the broker will wait until at least one consumer is registered for the same queue
 before attempting redelivery.
