@@ -42,6 +42,7 @@ calls to your examples:
 <script src="https://gist.github.com/1027377.js"></script>
 
 
+
 h3. Testing in the Asynchronous Environment
 
 Since we are using callback mechanisms in order to provide asynchronicity, we have to deal with situation when we expect a response,
@@ -50,22 +51,39 @@ manner. When <code>#done</code> is called, your tests confirm successful ending 
 example and see what happens. (spoiler: <code>EventedSpec::SpecHelper::SpecTimeoutExceededError: Example timed out</code>)
 
 
+
+h2. The #done method
+
+The *#done* method call is a hint for evented-spec to consider the example finished. If this method is not called, example will be forcefully
+terminated after a certain period of time or "time out". This means there are two approaches to testing of asynchronous code:
+
+ * Have timeout value high enough for all operations to finish (for example, expected number of messages is received).
+ * Call #done when some condition holds true (for example, message with a specific property or payload is received).
+
+The latter approach is recommended because it makes tests less dependent on machine-specific throughput or timing: it is very
+common for continuous integration environments to use virtual machines that are significantly less powerful than machines developers
+use, so timeouts have to be carefully adjusted to work in both settings.
+
+
+
 h3. Default Connection Options and Timeout
 
-It is not uncommon to have custom options for your test environment. For example, setting up custom vhost and timeout:
+It is sometimes desirable to use custom connection settings for your test environment as well as the default timeout value used. evented-spec lets you do
+it:
 
 <script src="https://gist.github.com/1027410.js"> </script>
 
-Options are the same as used in <code>AMQP.connect</code>.
+Available options are passed to {AMQP.connect} so it is possible to specify host, port, vhost, username and password your test suite needs.
 
 
-h3. Callbacks
+
+h3. Lifecycle Callbacks
 
 evented-spec provides various callbacks similar to rspec's <code>before(:each)</code> / <code>after(:each)</code>. They are called <code>amqp_before</code> and
 <code>amqp_after</code> and happen right after connection is established or before connection is closed. It is a good place to put your channel initialization routines.
 
 
-h3. Example
+h3. Full Example
 
 Now that you're filled on theory part, it's time to do something with all this knowledge. Below goes a slightly modified version of one of the integration specs from AMQP
 suite. It sets up default topic exchange and publishes various messages about sports events:
@@ -74,6 +92,7 @@ suite. It sets up default topic exchange and publishes various messages about sp
 
 Couple of things to notice: <code>#done</code> is invoked using an optional callback and optional delay, also instance variables behavior in hooks is the same as in "normal" rspec
 hooks.
+
 
 
 h3. Using #delayed
@@ -91,10 +110,11 @@ In the following example, we declare two channels, then declare the same queue t
 If you draw a timeline, various events happen at 0.0s, then at 0.1s, then at 0.3s and eventually at 0.4s.
 
 
-h3. What happens under hood
+h3. How evented-spec Works
 
-When you include <code>EventedSpec::AMQPSpec</code> module, <code>#it</code> calls are wrapped in <code>EM.start</code> + <code>AMQP.connect</code>
-calls, so you can start writing your examples as if you're connected. You still need to initialize your own channel though.
+When you include <code>EventedSpec::AMQPSpec</code> module, <code>#it</code> calls are wrapped in <code>EventMachine.start</code> + <code>AMQP.connect</code>
+calls, so you can start writing your examples as if you're connected. Please note that you still need to open your own channel(s).
+
 
 
 h2. What to read next
