@@ -110,7 +110,15 @@ In the following example, we declare two channels, then declare the same queue t
 If you draw a timeline, various events happen at 0.0s, then at 0.1s, then at 0.3s and eventually at 0.4s.
 
 
-h2. Real worldExamples
+h3. Design For Testability
+
+As *Integration With Objects* section of the {file:docs/GettingStarted.textile Getting Started with Ruby amqp gem and RabbitMQ} demonstrates, good object-oriented design
+often makes it possible to test AMQP consumers in isolation without connecting to the broker or even starting EventMachine even loop. All the "Design for testability"
+practices apply fully to AMQP application testing.
+
+
+
+h3. Real worldExamples
 
 Please refer to the "amqp gem test suite":https://github.com/ruby-amqp/amqp/tree/master/spec to see evented-spec in action.
 

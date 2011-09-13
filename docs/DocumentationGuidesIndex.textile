@@ -20,7 +20,7 @@ but *most of the content is concentrated in just 3-4 guides* that are about 80% 
 Here is a summary of guides and their content:
 
 <dl>
-  <dt>{file:docs/GettingStarted.textile Getting Started}</dt>
+  <dt>{file:docs/GettingStarted.textile Getting Started with Ruby amqp gem and RabbitMQ}</dt>
   <dd>
   Walks you through gem installation and 3 applications that demonstrate what AMQP has to offer. Explains how amqp gem should
   be integrated into rich object-oriented Ruby programs.
@@ -73,6 +73,13 @@ Here is a summary of guides and their content:
   recovery is hard. How to survive typical problems. What other tools can help (e.g. HAProxy).
   </dd>
 
+  <dt>{file:docs/TestingWithEventedSpec.textile Unit and integration testing of AMQP applications}</dt>
+  <dd>
+  Unit testing of asynchronous code: typical problems and ways to solve them. An oviewview of evented-spec, the gem that amqp gem itself uses
+  for "its test suite":https://github.com/ruby-amqp/amqp/tree/master/spec.
+  </dd>
+
+
   <dt>{file:docs/RabbitMQVersions.textile RabbitMQ versions}</dt>
   <dd>
   RabbitMQ versions that amqp gem supports. Popular Linux distributions and RabbitMQ versions they ship. How to obtain up-to-date official
@@ -89,7 +96,7 @@ When more than one guide describes the same concept, we make sure to use cross-r
 
 h2. Full guide list
 
- * {file:docs/GettingStarted.textile Getting Started}
+ * {file:docs/GettingStarted.textile Getting Started with Ruby amqp gem and RabbitMQ}
  * {file:docs/AMQP091ModelExplained.textile AMQP 0.9.1 Model Explained}
  * {file:docs/ConnectingToTheBroker.textile Connecting to the Broker}
  * {file:docs/Queues.textile Working With Queues}
@@ -99,6 +106,7 @@ h2. Full guide list
  * {file:docs/Durability.textile Durability and Message Persistence}
  * {file:docs/ErrorHandling.textile Error Handling and Recovery}
  * {file:docs/08Migration.textile Upgrading from version 0.6.x/0.7.x to 0.8.x and above}
+ * {file:docs/TestingWithEventedSpec.textile Unit and integration testing of AMQP applications}
  * {file:docs/Troubleshooting.textile Troubleshooting and debugging AMQP applications}
  * {file:docs/Clustering.textile Clustering}
  * {file:docs/RabbitMQVersions.textile RabbitMQ versions}
