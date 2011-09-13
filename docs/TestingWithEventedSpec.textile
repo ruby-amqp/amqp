@@ -52,7 +52,7 @@ example and see what happens. (spoiler: <code>EventedSpec::SpecHelper::SpecTimeo
 
 
 
-h2. The #done method
+h3. The #done method
 
 The *#done* method call is a hint for evented-spec to consider the example finished. If this method is not called, example will be forcefully
 terminated after a certain period of time or "time out". This means there are two approaches to testing of asynchronous code:
@@ -108,6 +108,12 @@ In the following example, we declare two channels, then declare the same queue t
 <script src="https://gist.github.com/1027500.js"> </script>
 
 If you draw a timeline, various events happen at 0.0s, then at 0.1s, then at 0.3s and eventually at 0.4s.
+
+
+h2. Real worldExamples
+
+Please refer to the "amqp gem test suite":https://github.com/ruby-amqp/amqp/tree/master/spec to see evented-spec in action.
+
 
 
 h3. How evented-spec Works
