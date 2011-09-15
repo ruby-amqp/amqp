@@ -14,3 +14,4 @@ vendor/evented-spec
 doc/*
 .yardoc/*
 tmp/*
+.rbx/*
