@@ -262,7 +262,11 @@ To make it possible for a single broker to host multiple isolated "environments"
 of _virtual hosts_ (vhosts). They are similar to virtual hosts used by many popular Web servers and provide completely isolated environments
 in which AMQP entities live. AMQP clients specify what vhosts they want to use during AMQP connection negotiation.
 
-An AMQP 0.9.1 vhost name can be any non-blank string.
+An AMQP 0.9.1 vhost name can be any non-blank string. Some most common use cases for vhosts are
+
+ * To separate AMQP entities used by different groups of applications
+ * To separate multiple installations/environments (e.g. production, staging) of one or more applications
+ * To implement a multi-tenant environment
 
 
 h2. AMQP is Extensible
