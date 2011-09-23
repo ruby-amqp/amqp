@@ -226,7 +226,7 @@ exchange = channel.direct("nodes.metadata")
 </code>
 </pre>
 
-Both methods asynchronously declare a queue. Because the declaration necessitates a network round trip, publishing
+Both methods asynchronously declare an exchange named "nodes.metadata". Because the declaration necessitates a network round trip, publishing
 operations on {AMQP::Exchange} instances are delayed until a broker reply (`exchange.declare-ok`) is received.
 
 Also, both methods let you pass a block to run a piece of code when the broker responds with `exchange.declare-ok`
