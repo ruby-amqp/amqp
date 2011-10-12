@@ -812,7 +812,7 @@ module AMQP
       shim = Proc.new { |q, declare_ok| block.call(declare_ok.message_count, declare_ok.consumer_count) }
 
       @channel.once_open do
-        # we do not use self.declare here to avoid caching of @passive, it may cause unexpected side-effects during automatic
+        # we do not use self.declare here to avoid caching of @passive since that will cause unexpected side-effects during automatic
         # recovery process. MK.
         @connection.send_frame(AMQ::Protocol::Queue::Declare.encode(@channel.id, @name, true, @opts[:durable], @opts[:exclusive], @opts[:auto_delete], false, @opts[:arguments]))
 
