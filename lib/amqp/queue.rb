@@ -811,7 +811,7 @@ module AMQP
 
       shim = Proc.new { |q, declare_ok| block.call(declare_ok.message_count, declare_ok.consumer_count) }
 
-      @channel.once_open { self.declare(true, @durable, @exclusive, @auto_delete, false, nil, &shim) }
+      @channel.once_open { self.declare(@passive, @durable, @exclusive, @auto_delete, false, nil, &shim) }
     end
 
 
