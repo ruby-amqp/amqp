@@ -172,6 +172,10 @@ Upgrading from amqp gem 0.6.x and 0.7.x to to 0.8.0.RCs is straightforward, plea
 The same guide explains amqp gem versions history and why you would want to upgrade.
 
 
+## Maintainer Information
+
+amqp gem is maintained by [Michael Klishin](https://github.com/michaelklishin).
+
 
 ## Community
 
