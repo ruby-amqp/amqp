@@ -775,7 +775,7 @@ module AMQP
     # unsubscription request is acknowledged as complete by the server.
     #
     # @option opts [Boolean] :nowait (true)  If set, the server will not respond to the method. The client should
-    #                                        not wait for a reply method.  If the server could not complete the
+    #                                        not wait for a reply method, the callback (if passed) will be ignored. If the server could not complete the
     #                                        method it will raise a channel or connection exception.
     #
     # @yield [cancel_ok]
