@@ -60,6 +60,7 @@ This guide assumes that you have installed one of the following supported Ruby i
 
  * Ruby v1.8.7
  * Ruby v1.9.2
+ * Ruby v1.9.3
  * JRuby (we recommend v1.6)
  * Rubinius v1.2 or higher
  * Ruby Enterprise Edition
