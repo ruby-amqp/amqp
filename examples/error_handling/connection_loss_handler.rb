@@ -12,7 +12,7 @@ require 'amqp'
 puts "=> Connection loss is detected and handled"
 puts
 AMQP.start(:port     => 5672,
-           :vhost    => "/amq_client_testbed",
+           :vhost    => "amq_client_testbed",
            :user     => "amq_client_gem",
            :password => "amq_client_gem_password",
            :timeout        => 0.3,
