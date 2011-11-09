@@ -6,5 +6,5 @@ module AMQP
   #
   # @see AMQ::Protocol::VERSION
   # @return [String] AMQP gem version
-  VERSION = '0.8.3'
+  VERSION = '0.8.4.pre'
 end
