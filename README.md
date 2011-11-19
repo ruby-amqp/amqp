@@ -150,7 +150,7 @@ There is also a work-in-progress [Messaging Patterns and Use Cases With AMQP](ht
 
 ### Documentation guides ###
 
-[Documentation guides](http://bit.ly/amqp-gem-docs) describe the library itself as well as AMQP concepts, usage scenarios, topics like working with exchanges and queues,
+[Documentation guides](http://rubyamqp.info) (also [on rubydoc.info](http://bit.ly/amqp-gem-docs)) describe the library itself as well as AMQP concepts, usage scenarios, topics like working with exchanges and queues,
 error handing & recovery, broker-specific extensions, TLS support, troubleshooting and so on. Most of the documentation is in these guides.
 
 
