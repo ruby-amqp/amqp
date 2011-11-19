@@ -1,9 +1,9 @@
 # About Ruby amqp gem #
 
-Ruby amqp gem is a widely used, feature-rich, well-maintained asynchronous AMQP 0.9.1 client with batteries included.
+[Ruby amqp gem](http://rubyamqp.info) is a widely used, feature-rich, well-maintained asynchronous AMQP 0.9.1 client with batteries included.
 This library works with Ruby 1.8.7 (*except for p249*, see the FAQ), Ruby 1.9.2, Ruby 1.9.3, [JRuby](http://jruby.org), [Rubinius](http://rubini.us) as well as [REE](http://www.rubyenterpriseedition.com), and is licensed under the [Ruby License](http://www.ruby-lang.org/en/LICENSE.txt)
 
-0.8.0.RCs and later versions of amqp gem implement [AMQP 0.9.1](http://bit.ly/amqp-model-explained) (see also [AMQP 0.9.1 spec document](http://bit.ly/hw2ELX)) and support [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq.com/extensions.html).
+0.8.0 and later versions of amqp gem implement [AMQP 0.9.1](http://bit.ly/amqp-model-explained) (see also [AMQP 0.9.1 spec document](http://bit.ly/hw2ELX)) and support [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq.com/extensions.html).
 
 [![Continuous Integration status](https://secure.travis-ci.org/ruby-amqp/amqp.png)](http://travis-ci.org/ruby-amqp/amqp)
 
@@ -123,7 +123,7 @@ to learn more about AMQP principles & concepts.
 
 We believe that in order to be a library our users **really** love, we need to care about documentation as much as (or more)
 code readability, API beauty and autotomated testing across 5 Ruby implementations on multiple operating systems. We do care
-about our [documentation](http://bitly.com/amqp-gem-docs): **if you don't find your answer in documentation, we consider it a high severity bug** that you
+about our [documentation](http://rubyamqp.info): **if you don't find your answer in documentation, we consider it a high severity bug** that you
 should [file to us](http://github.com/ruby-amqp/amqp/issues). Or just complain to [@rubyamqp](https://twitter.com/rubyamqp) on Twitter.
 
 
