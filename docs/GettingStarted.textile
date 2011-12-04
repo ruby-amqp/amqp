@@ -58,7 +58,7 @@ h3. Make sure that you have Ruby and "Rubygems":http://docs.rubygems.org/read/ch
 
 This guide assumes that you have installed one of the following supported Ruby implementations:
 
- * Ruby v1.8.7
+ * Ruby v1.8.7 [except for 1.8.7-p248 and -p249 that have "a bug that severely affects amqp gem":http://bit.ly/iONBmH]
  * Ruby v1.9.2
  * Ruby v1.9.3
  * JRuby (we recommend v1.6)
