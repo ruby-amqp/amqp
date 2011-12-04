@@ -61,7 +61,7 @@ if mri?
       queue    = @channel.queue("amqpgem.tests.concurrent_publishing", :auto_delete => true)
       exchange = @channel.default_exchange
       exchange.on_return do |method, header, body|
-        raise "Message was returned: #{method.reply_text}"
+        puts "Message was returned: #{method.reply_text}"
       end
 
       queue.subscribe do |metadata, payload|
