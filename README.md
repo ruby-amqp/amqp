@@ -3,7 +3,7 @@
 [Ruby amqp gem](http://rubyamqp.info) is a widely used, feature-rich, well-maintained asynchronous AMQP 0.9.1 client with batteries included.
 This library works with Ruby 1.8.7 (*except for p249*, see the FAQ), Ruby 1.9.2, Ruby 1.9.3, [JRuby](http://jruby.org), [Rubinius](http://rubini.us) as well as [REE](http://www.rubyenterpriseedition.com), and is licensed under the [Ruby License](http://www.ruby-lang.org/en/LICENSE.txt)
 
-0.8.0 and later versions of amqp gem implement [AMQP 0.9.1](http://bit.ly/amqp-model-explained) (see also [AMQP 0.9.1 spec document](http://bit.ly/hw2ELX)) and support [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq.com/extensions.html).
+0.8.0 and later versions of amqp gem implement [AMQP 0.9.1](http://bit.ly/amqp-model-explained) (see also [AMQP 0.9.1 spec document](http://bit.ly/amqp091spec)) and support [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq.com/extensions.html).
 
 [![Continuous Integration status](https://secure.travis-ci.org/ruby-amqp/amqp.png)](http://travis-ci.org/ruby-amqp/amqp)
 
