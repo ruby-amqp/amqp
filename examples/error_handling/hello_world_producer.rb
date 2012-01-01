@@ -29,10 +29,16 @@ AMQP.start(:host => "localhost") do |connection, open_ok|
 
 
   exchange = ch1.fanout("amq.fanout", :durable => true)
-  EventMachine.add_periodic_timer(0.5) do
-    puts "Publishing..."
+  EventMachine.add_periodic_timer(0.9) do
+    puts "Publishing via default exchange..."
     # messages must be routable & there must be at least one consumer.
-    exchange.publish("Hello", :immediate => true, :mandatory => true)
+    ch1.default_exchange.publish("Routed via default_exchange", :routing_key => "amqpgem.examples.autorecovery.queue")
+  end
+
+  EventMachine.add_periodic_timer(0.8) do
+    puts "Publishing via amq.fanout..."
+    # messages must be routable & there must be at least one consumer.
+    exchange.publish("Routed via amq.fanout", :immediate => true, :mandatory => true)
   end
 
 
