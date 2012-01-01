@@ -16,7 +16,13 @@ AMQP.start(:host => "localhost") do |connection, open_ok|
     raise connection_close.reply_text
   end
 
-  ch1 = AMQP::Channel.new(connection, 2)
+  connection.on_tcp_connection_loss do |conn, settings|
+    puts "[network failure] Trying to reconnect..."
+    conn.reconnect(false, 2)
+  end
+
+
+  ch1 = AMQP::Channel.new(connection, 2, :auto_recovery => true)
   ch1.on_error do |ch, channel_close|
     raise channel_close.reply_text
   end
@@ -36,7 +42,7 @@ AMQP.start(:host => "localhost") do |connection, open_ok|
 
   Signal.trap "TERM", show_stopper
   Signal.trap "INT",  show_stopper
-  EM.add_timer(15, show_stopper)
+  EM.add_timer(ENV.fetch("TIMER", 15), show_stopper)
 
   puts "This example a helper that publishes messages to amq.fanout. Use together with examples/error_handling/automatically_recovering_hello_world_consumer.rb."
   puts "This example terminates in 15 seconds and needs MANUAL RESTART when connection fails"

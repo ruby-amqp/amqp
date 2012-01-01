@@ -43,7 +43,7 @@ AMQP.start(:host => "localhost") do |connection, open_ok|
 
   Signal.trap "TERM", show_stopper
   Signal.trap "INT",  show_stopper
-  EM.add_timer(45, show_stopper)
+  EM.add_timer(ENV.fetch("TIMER", 45), show_stopper)
 
 
   puts "This example needs another script/app to publish messages to amq.fanout. See examples/error_handling/hello_world_producer.rb for example"
