@@ -23,6 +23,75 @@ describe AMQP::Channel do
   # Examples
   #
 
+
+  describe "default exchange" do
+    subject do
+      @channel.default_exchange
+    end
+
+    it "is predefined" do
+      subject.should be_predefined
+      done
+    end
+  end
+
+  describe "exchange named amq.direct" do
+    subject do
+      @channel.direct("amq.direct")
+    end
+
+    it "is predefined" do
+      subject.should be_predefined
+      done
+    end
+  end
+
+  describe "exchange named amq.fanout" do
+    subject do
+      @channel.direct("amq.fanout")
+    end
+
+    it "is predefined" do
+      subject.should be_predefined
+      done
+    end
+  end
+
+  describe "exchange named amq.topic" do
+    subject do
+      @channel.direct("amq.topic")
+    end
+
+    it "is predefined" do
+      subject.should be_predefined
+      done
+    end
+  end
+
+  describe "exchange named amq.match" do
+    subject do
+      @channel.direct("amq.match")
+    end
+
+    it "is predefined" do
+      subject.should be_predefined
+      done
+    end
+  end
+
+  describe "exchange named amq.headers" do
+    subject do
+      @channel.direct("amq.headers")
+    end
+
+    it "is predefined" do
+      subject.should be_predefined
+      done
+    end
+  end
+
+
+
   describe "#direct" do
     context "when exchange name is specified" do
       it 'declares a new direct exchange with that name' do
