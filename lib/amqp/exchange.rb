@@ -300,12 +300,12 @@ module AMQP
       @channel             = channel
       @type                = type
       @opts                = self.class.add_default_options(type, name, opts, block)
-      @default_routing_key = opts[:routing_key] || opts[:key]
+      @default_routing_key = opts[:routing_key] || opts[:key] || AMQ::Protocol::EMPTY_STRING
       @name                = name unless name.empty?
 
       @status                  = :unknown
       @default_publish_options = (opts.delete(:default_publish_options) || {
-                                    :routing_key  => AMQ::Protocol::EMPTY_STRING,
+                                    :routing_key  => @default_routing_key,
                                     :mandatory    => false,
                                     :immediate    => false
                                   }).freeze
