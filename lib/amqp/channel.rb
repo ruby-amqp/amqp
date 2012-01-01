@@ -265,7 +265,7 @@ module AMQP
         @channel_is_open_deferrable.succeed
 
         # exchanges must be recovered first because queue recovery includes recovery of bindings. MK.
-        @exchanges.each { |name, e| e.auto_recover }
+        @exchanges.each { |name, e| puts("Recovering ex #{name}"); e.auto_recover }
         @queues.each    { |name, q| q.auto_recover }
       end
     end # auto_recover
@@ -423,7 +423,7 @@ module AMQP
     # @return [Exchange]
     # @api public
     def default_exchange
-      Exchange.default(self)
+      @default_exchange ||= Exchange.default(self)
     end
 
     # Defines, intializes and returns a fanout Exchange instance.
