@@ -11,7 +11,8 @@ require 'amqp'
 
 puts "=> Auxiliary script that tests automatically recovering message consumer(s)"
 puts
-AMQP.start(:host => "localhost") do |connection, open_ok|
+AMQP.start(:host => ENV.fetch("BROKER_HOST", "localhost")) do |connection, open_ok|
+  puts "Connected to #{connection.hostname}"
   connection.on_error do |ch, connection_close|
     raise connection_close.reply_text
   end

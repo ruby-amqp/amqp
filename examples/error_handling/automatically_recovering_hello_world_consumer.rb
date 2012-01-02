@@ -10,7 +10,7 @@ require 'amqp'
 
 puts "=> Example of automatic AMQP channel and queues recovery"
 puts
-AMQP.start(:host => "localhost") do |connection, open_ok|
+AMQP.start(:host => ENV.fetch("BROKER_HOST", "localhost")) do |connection, open_ok|
   connection.on_error do |ch, connection_close|
     raise connection_close.reply_text
   end
