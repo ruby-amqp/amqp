@@ -23,7 +23,7 @@ AMQP.start(:host => ENV.fetch("BROKER_HOST", "localhost")) do |connection, open_
   end
 
 
-  ch1 = AMQP::Channel.new(connection, 2, :auto_recovery => true)
+  ch1 = AMQP::Channel.new(connection, :auto_recovery => true)
   ch1.on_error do |ch, channel_close|
     raise channel_close.reply_text
   end
