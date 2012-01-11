@@ -101,7 +101,7 @@ default handler raises {AMQP::PossibleAuthenticationFailureError}:
 
 <script src="https://gist.github.com/1016234.js"> </script>
 
-In case you wonder why callback name has "possible" in it: {http://bit.ly/mTr1YN AMQP 0.9.1 spec} requires broker implementations to
+In case you wonder why callback name has "possible" in it: {http://bit.ly/amqp091spec AMQP 0.9.1 spec} requires broker implementations to
 simply close TCP connection without sending any more data when an exception (such as authentication failure) occurs before AMQP connection
 is open. In practice, however, when broker closes TCP connection between successful TCP connection and before AMQP connection is open,
 it means that authentication has failed.
