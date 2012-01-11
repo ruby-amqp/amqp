@@ -356,7 +356,7 @@ end
 </code>
 </pre>
 
-In case you are wondering why the callback name has "possible" in it, {http://bit.ly/mTr1YN AMQP 0.9.1 spec} requires broker implementations to
+In case you are wondering why the callback name has "possible" in it, {http://bit.ly/amqp091spec AMQP 0.9.1 spec} requires broker implementations to
 simply close the TCP connection without sending any more data when an exception, such as authentication failure, occurs before the AMQP connection
 is open. In practice, however, when a broker closes a TCP connection after a successful TCP connection has been established but before an AMQP connection is open,
 it means that authentication has failed.
