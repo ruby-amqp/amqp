@@ -19,5 +19,6 @@ notifications:
 branches:
   only:
     - master
+    - 0.9.x-stable
     - 0.8.x-stable
     - 0.7.x-stable
