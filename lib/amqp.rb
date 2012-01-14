@@ -14,10 +14,3 @@ require "amqp/exchange"
 require "amqp/queue"
 require "amqp/channel"
 require "amqp/header"
-
-
-# Will be removed before 1.0.
-
-require "amqp/deprecated/mq"
-require "amqp/deprecated/rpc"
-require "amqp/deprecated/fork"
