@@ -67,6 +67,45 @@ describe "Publisher confirmation(s)" do
     @channel2 = AMQP::Channel.new
   end
 
+  it 'should increment publisher_index confirming channel' do
+    exchange = channel3.fanout("amqpgem.tests.fanout0", :auto_delete => true)
+    
+    channel3.confirm_select
+    channel3.publisher_index.should == 0
+
+    EventMachine.add_timer(0.5) do
+      exchange.publish("Hi")
+    end
+
+    done(2.0) do
+      channel3.publisher_index.should == 1
+    end
+  end
+
+  it 'should call after_publish callback' do
+    events = Array.new
+
+    channel3 = AMQP::Channel.new
+    exchange = channel3.fanout("amqpgem.tests.fanout0", :auto_delete => true)
+    
+    channel3.confirm_select
+
+    module AfterPublishMixin
+      def after_publish(*args)
+        events << :after_publish
+      end
+    end
+
+    channel.extend(AfterPublishMixin)
+
+    EventMachine.add_timer(0.5) do
+      exchange.publish("Hi")
+    end
+
+    done(2.0) do
+      events.should include(:after_publish)
+    end
+  end
 
   context "when messages are transient" do
     context "and routable" do
