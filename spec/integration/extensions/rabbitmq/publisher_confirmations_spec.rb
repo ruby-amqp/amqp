@@ -91,13 +91,22 @@ describe "Publisher confirmation(s)" do
     
     channel3.confirm_select
 
-    module AfterPublishMixin
-      def after_publish(*args)
-        events << :after_publish
+    #TODO make after_publish a real callback to avoid these meta gymnastics
+    after_publish = lambda do |*args|
+      events << :after_publish
+    end
+
+    if RUBY_VERSION < '1.9'
+      class AMQP::Channel
+        def singleton_class
+          class << self
+            self
+          end
+        end
       end
     end
 
-    channel3.extend(AfterPublishMixin)
+    channel3.singleton_class.send(:define_method, :after_publish, &after_publish)
 
     EventMachine.add_timer(0.5) do
       exchange.publish("Hi")
