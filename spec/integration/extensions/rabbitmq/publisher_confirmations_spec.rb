@@ -68,8 +68,9 @@ describe "Publisher confirmation(s)" do
   end
 
   it 'should increment publisher_index confirming channel' do
+    channel3 = AMQP::Channel.new
     exchange = channel3.fanout("amqpgem.tests.fanout0", :auto_delete => true)
-    
+
     channel3.confirm_select
     channel3.publisher_index.should == 0
 
@@ -96,7 +97,7 @@ describe "Publisher confirmation(s)" do
       end
     end
 
-    channel.extend(AfterPublishMixin)
+    channel3.extend(AfterPublishMixin)
 
     EventMachine.add_timer(0.5) do
       exchange.publish("Hi")
