@@ -83,39 +83,6 @@ describe "Publisher confirmation(s)" do
     end
   end
 
-  it 'should call after_publish callback' do
-    events = Array.new
-
-    channel3 = AMQP::Channel.new
-    exchange = channel3.fanout("amqpgem.tests.fanout0", :auto_delete => true)
-    
-    channel3.confirm_select
-
-    #TODO make after_publish a real callback to avoid these meta gymnastics
-    after_publish = lambda do |*args|
-      events << :after_publish
-    end
-
-    if RUBY_VERSION < '1.9'
-      class AMQP::Channel
-        def singleton_class
-          class << self
-            self
-          end
-        end
-      end
-    end
-
-    channel3.singleton_class.send(:define_method, :after_publish, &after_publish)
-
-    EventMachine.add_timer(0.5) do
-      exchange.publish("Hi")
-    end
-
-    done(2.0) do
-      events.should include(:after_publish)
-    end
-  end
 
   context "when messages are transient" do
     context "and routable" do
