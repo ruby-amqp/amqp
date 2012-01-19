@@ -67,6 +67,22 @@ describe "Publisher confirmation(s)" do
     @channel2 = AMQP::Channel.new
   end
 
+  it 'should increment publisher_index confirming channel' do
+    channel3 = AMQP::Channel.new
+    exchange = channel3.fanout("amqpgem.tests.fanout0", :auto_delete => true)
+
+    channel3.confirm_select
+    channel3.publisher_index.should == 0
+
+    EventMachine.add_timer(0.5) do
+      exchange.publish("Hi")
+    end
+
+    done(2.0) do
+      channel3.publisher_index.should == 1
+    end
+  end
+
 
   context "when messages are transient" do
     context "and routable" do
