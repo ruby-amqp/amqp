@@ -265,6 +265,7 @@ module AMQP
         @channel_is_open_deferrable.succeed
 
         # exchanges must be recovered first because queue recovery includes recovery of bindings. MK.
+        @exchanges.each { |name, e| puts("Recovering ex #{name}"); e.auto_recover }
         @queues.each    { |name, q| q.auto_recover }
       end
     end # auto_recover
