@@ -930,8 +930,7 @@ module AMQP
     # @api public
     def close(reply_code = 200, reply_text = DEFAULT_REPLY_TEXT, class_id = 0, method_id = 0, &block)
       r = super(reply_code, reply_text, class_id, method_id, &block)
-      self.class.release_channel_id(@id)
-
+    
       r
     end
 
@@ -1114,8 +1113,15 @@ module AMQP
 
       self.class.error(method.reply_text)
     end
-
-
+    
+    # Overrides AMQ::Client::Channel version to also release the channel id
+    #
+    # @private
+    # @api private
+    def handle_close_ok(method)
+      super(method)
+      self.class.release_channel_id(@id)
+    end
     # Resets channel state (for example, list of registered queue objects and so on).
     #
     # Most of the time, this method is not
