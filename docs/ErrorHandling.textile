@@ -4,10 +4,7 @@ h1. Error handling and recovery
 
 h2. About this guide
 
-Development of a robust application, be it message publisher or message consumer, involves dealing with
-multiple kinds of failures: protocol exceptions, network failures, broker failures and so on.
-Correct error handling and recovery is not easy. This guide explains how amqp gem helps you in dealing with
-issues like
+Development of a robust application, be it message publisher or message consumer, involves dealing with multiple kinds of failures: protocol exceptions, network failures, broker failures and so on. Correct error handling and recovery is not easy. This guide explains how amqp gem helps you in dealing with issues like
 
  * Initial broker connection failures
  * Network connection interruption
@@ -31,15 +28,11 @@ This guide covers "Ruby amqp gem":http://github.com/ruby-amqp/amqp v0.8.0.RC14 a
 
 h2. Code examples
 
-There are several {https://github.com/ruby-amqp/amqp/tree/master/examples/error_handling examples}  in the git repository dedicated to the topic of error handling and recovery. Feel
-free to contribute new examples.
-
+There are several {https://github.com/ruby-amqp/amqp/tree/master/examples/error_handling examples}  in the git repository dedicated to the topic of error handling and recovery. Feel free to contribute new examples.
 
 h3. Initial broker connection failures
 
-When applications connect to the broker, they need to handle connection failures. Networks are not 100% reliable, even with modern system configuration tools
-like Chef or Puppet misconfigurations happen and broker might be down, too. Error detection should happen as early as possible. There are two ways of detecting
-TCP connection failure, the first one is to catch an exception:
+When applications connect to the broker, they need to handle connection failures. Networks are not 100% reliable, even with modern system configuration tools like Chef or Puppet misconfigurations happen and broker might be down, too. Error detection should happen as early as possible. There are two ways of detecting TCP connection failure, the first one is to catch an exception:
 
 <pre>
 <code>
@@ -56,9 +49,7 @@ end
 Full example:
 <script src="https://gist.github.com/1016238.js"> </script>
 
-{AMQP.connect} (and {AMQP.start}) will raise {AMQP::TCPConnectionFailed} if connection fails. Code that catches it can write to log
-about the issue or use retry to execute begin block one more time. Because initial connection failures are due to misconfiguration or network outage, reconnection
-to the same endpoint (hostname, port, vhost combination) will result in the same issue over and over. TBD: failover, connection to the cluster.
+{AMQP.connect} (and {AMQP.start}) will raise {AMQP::TCPConnectionFailed} if connection fails. Code that catches it can write to log about the issue or use retry to execute begin block one more time. Because initial connection failures are due to misconfiguration or network outage, reconnection to the same endpoint (hostname, port, vhost combination) will result in the same issue over and over. TBD: failover, connection to the cluster.
 
 Alternative way of handling connection failure is with an errback (a callback for specific kind of error):
 
@@ -81,16 +72,14 @@ Full example:
 
 :on_tcp_connection_failure option accepts any object that responds to #call.
 
-If you connect to the broker from a code in a class (as opposed to top-level scope in a script), Object#method can be used to pass object method as a handler
-instead of a Proc.
+If you connect to the broker from a code in a class (as opposed to top-level scope in a script), Object#method can be used to pass object method as a handler instead of a Proc.
 
 TBD: provide an example
 
 
 h3. Authentication failures
 
-Another reason why connection may fail is authentication failure. Handling authentication failure is very similar to handling initial TCP
-connection failure:
+Another reason why connection may fail is authentication failure. Handling authentication failure is very similar to handling initial TCP connection failure:
 
 <script src="https://gist.github.com/1016233.js"> </script>
 
@@ -101,19 +90,13 @@ default handler raises {AMQP::PossibleAuthenticationFailureError}:
 
 <script src="https://gist.github.com/1016234.js"> </script>
 
-In case you wonder why callback name has "possible" in it: {http://bit.ly/amqp091spec AMQP 0.9.1 spec} requires broker implementations to
-simply close TCP connection without sending any more data when an exception (such as authentication failure) occurs before AMQP connection
-is open. In practice, however, when broker closes TCP connection between successful TCP connection and before AMQP connection is open,
-it means that authentication has failed.
+In case you wonder why callback name has "possible" in it: {http://bit.ly/amqp091spec AMQP 0.9.1 spec} requires broker implementations to simply close TCP connection without sending any more data when an exception (such as authentication failure) occurs before AMQP connection is open. In practice, however, when broker closes TCP connection between successful TCP connection and before AMQP connection is open, it means that authentication has failed.
 
 
 
 h2. Handling network connection interruptions
 
-Network connectivity issues are sad fact of life in modern software systems. Event small products and projects these days consist of multiple
-applications, often running on more than one machine. Ruby amqp gem detects TCP connection failures and lets you handle them by
-defining a callback using {AMQP::Session#on_tcp_connection_loss}. That callback will be run when TCP connection fails, and will be passed
-two parameters: connection object and settings of the last successful connection.
+Network connectivity issues are sad fact of life in modern software systems. Event small products and projects these days consist of multiple applications, often running on more than one machine. Ruby amqp gem detects TCP connection failures and lets you handle them by defining a callback using {AMQP::Session#on_tcp_connection_loss}. That callback will be run when TCP connection fails, and will be passed two parameters: connection object and settings of the last successful connection.
 
 <pre>
 <code>
@@ -124,35 +107,25 @@ end
 </code>
 </pre>
 
-Sometimes it is necessary for other entities in an application to react to network failures. amqp gem 0.8.0 and later provides a number event
-handlers to make this task easier for developers. This set of features is know as the "shutdown protocol" (the word "protocol" here means
-"API interface" or "behavior", not network protocol).
+Sometimes it is necessary for other entities in an application to react to network failures. amqp gem 0.8.0 and later provides a number event handlers to make this task easier for developers. This set of features is know as the "shutdown protocol" (the word "protocol" here means "API interface" or "behavior", not network protocol).
 
-{AMQP::Session}, {AMQP::Channel}, {AMQP::Exchange}, {AMQP::Queue} and {AMQP::Consumer all implement shutdown protocol and thus error
-handling API is consistent for all classes, with {AMQP::Session} and #{AMQP::Channel} having a few methods other entities do not have.
+{AMQP::Session}, {AMQP::Channel}, {AMQP::Exchange}, {AMQP::Queue} and {AMQP::Consumer all implement shutdown protocol and thus error handling API is consistent for all classes, with {AMQP::Session} and #{AMQP::Channel} having a few methods other entities do not have.
 
 The Shutdown protocol revolves around two events:
 
  * Network connection fails
  * Broker closes AMQP connection (or channel)
 
-In this section, we concentrate only on the former. When network connection fails, the underlying networking library detects it and
-runs a piece of code on {AMQP::Session} to handle it. That, in turn, propagates this event to channels, channels propagate it to
-exchanges and queues, queues propagate it to their consumers (if any). Each of these entities in the object graph can react
-to network interruption by executing application-defined callbacks.
+In this section, we concentrate only on the former. When network connection fails, the underlying networking library detects it and runs a piece of code on {AMQP::Session} to handle it. That, in turn, propagates this event to channels, channels propagate it to exchanges and queues, queues propagate it to their consumers (if any). Each of these entities in the object graph can react to network interruption by executing application-defined callbacks.
 
 h3. Shutdown Protocol methods on AMQP::Session
 
  * {AMQP::Session#on_tcp_connection_loss}
  * {AMQP::Session#on_connection_interruption}
 
-The difference between these methods is that {AMQP::Session#on_tcp_connection_loss} is used to define a callback that will
-be executed *once* when TCP connection fails. It is possible that reconnection attempts will not succeed immediately, so
-there will be subsequent failures. To react to those, {AMQP::Session#on_connection_interruption} method is used.
+The difference between these methods is that {AMQP::Session#on_tcp_connection_loss} is used to define a callback that will be executed *once* when TCP connection fails. It is possible that reconnection attempts will not succeed immediately, so there will be subsequent failures. To react to those, {AMQP::Session#on_connection_interruption} method is used.
 
-First argument that both of these methods yield to the handler your application defines is the connection itself. This is
-done to make sure you can register Ruby objects as handlers, and they do not have to keep any state around (for example,
-connection instances):
+First argument that both of these methods yield to the handler your application defines is the connection itself. This is done to make sure you can register Ruby objects as handlers, and they do not have to keep any state around (for example, connection instances):
 
 <pre>
 <code>
@@ -181,17 +154,14 @@ connection.on_connection_interruption(&handler.method(:handle))
 
 Note that {AMQP::Session#on_connection_interruption} callback is called *before* this event is propagated to channels, queues and so on.
 
-Different applications handle connection failures differently. It is very common to use {AMQP::Session#reconnect} method
-to schedule a reconnection to the same host, or use {AMQP::Session#reconnect_to} to connect to a different one.
+Different applications handle connection failures differently. It is very common to use {AMQP::Session#reconnect} method to schedule a reconnection to the same host, or use {AMQP::Session#reconnect_to} to connect to a different one.
 
-For some applications it is OK to simply exit and wait to be restarted at a later point in time, for example, by a process
-monitoring system like Nagios or Monit.
+For some applications it is OK to simply exit and wait to be restarted at a later point in time, for example, by a process monitoring system like Nagios or Monit.
 
 
 h3. Shutdown Protocol methods on AMQP::Channel
 
-{AMQP::Channel} provides only one method: {AMQP::Channel#on_connection_interruption}, that registers a callback similar to
-the one seen in the previous section:
+{AMQP::Channel} provides only one method: {AMQP::Channel#on_connection_interruption}, that registers a callback similar to the one seen in the previous section:
 
 <pre>
 <code>
@@ -201,8 +171,7 @@ end
 </code>
 </pre>
 
-Note that {AMQP::Channel#on_connection_interruption} callback is called *after* this event is propagated to exchanges, queues and so on.
-Right after that channel state is reset, except for error handling/recovery-related callbacks.
+Note that {AMQP::Channel#on_connection_interruption} callback is called *after* this event is propagated to exchanges, queues and so on. Right after that channel state is reset, except for error handling/recovery-related callbacks.
 
 <span class="note">
 Many applications do not need per-channel network failure handling.
@@ -229,8 +198,7 @@ Many applications do not need per-exchange network failure handling.
 
 h3. Shutdown Protocol methods on AMQP::Queue
 
-{AMQP::Queue} provides only one method: {AMQP::Queue#on_connection_interruption}, that registers a callback similar to
-the one seen in the previous section:
+{AMQP::Queue} provides only one method: {AMQP::Queue#on_connection_interruption}, that registers a callback similar to the one seen in the previous section:
 
 <pre>
 <code>
@@ -249,8 +217,7 @@ Many applications do not need per-queue network failure handling.
 
 h3. Shutdown Protocol methods on AMQP::Consumer
 
-{AMQP::Consumer} provides only one method: {AMQP::Consumer#on_connection_interruption}, that registers a callback similar to
-the one seen in the previous section:
+{AMQP::Consumer} provides only one method: {AMQP::Consumer#on_connection_interruption}, that registers a callback similar to the one seen in the previous section:
 
 <pre>
 <code>
@@ -279,16 +246,13 @@ Recovery process, both manual and automatic, always begins with re-opening AMQP 
 
 h3. Manual recovery
 
-Similarly to the Shutdown Protocol, amqp gem entities implement Recovery Protocol. Recovery Protocol consists of 3 methods
-connections, channels, queues, consumers and exchanges implement:
+Similarly to the Shutdown Protocol, amqp gem entities implement Recovery Protocol. Recovery Protocol consists of 3 methods connections, channels, queues, consumers and exchanges implement:
 
  * {AMQP::Session#before_recovery}
  * {AMQP::Session#auto_recover}
  * {AMQP::Session#after_recovery}
 
-{AMQP::Session#before_recovery} lets application developers register a callback that will be executed *after TCP connection is
-re-established but before AMQP connection is reopened*. {AMQP::Session#after_recovery} is similar except that the callback is run
-*after AMQP connection is reopened*.
+{AMQP::Session#before_recovery} lets application developers register a callback that will be executed *after TCP connection is re-established but before AMQP connection is reopened*. {AMQP::Session#after_recovery} is similar except that the callback is run *after AMQP connection is reopened*.
 
 {AMQP::Channel}, {AMQP::Queue}, {AMQP::Consumer} and {AMQP::Exchange} methods behavior is identical.
 
@@ -312,8 +276,7 @@ Many applications use the same recovery strategy, that consists of the following
  * For each queue, recover all bindings
  * For each queue, recover all consumers
 
-amqp gem provides a feature known as "automatic recovery" that is *opt-in* (not opt-out, not used by default) and lets application
-developers get aforementioned recovery strategy by setting one additional attribute on {AMQP::Channel} instance:
+amqp gem provides a feature known as "automatic recovery" that is *opt-in* (not opt-out, not used by default) and lets application developers get aforementioned recovery strategy by setting one additional attribute on {AMQP::Channel} instance:
 
 <pre>
 <code>
@@ -330,15 +293,12 @@ ch = AMQP::Channel.new(connection, AMQP::Channel.next_channel_id, :auto_recovery
 </code>
 </pre>
 
-Note that if you do not want to pass any options, 2nd argument can be left out as well,
-then it will default to {AMQP::Channel.next_channel_id}.
+Note that if you do not want to pass any options, 2nd argument can be left out as well, then it will default to {AMQP::Channel.next_channel_id}.
 
 
 To find out whether channel uses automatic recovery mode, use {AMQP::Channel#auto_recovering?}.
 
-Auto recovery mode can be turned on and off any number of times during channel life cycle, although very small percentage of
-applications really does this. Typically you decide what channels should be using automatic recovery at application design
-stage.
+Auto recovery mode can be turned on and off any number of times during channel life cycle, although very small percentage of applications really does this. Typically you decide what channels should be using automatic recovery at application design stage.
 
 Full example (run it, then shut down AMQP broker running on localhost, then bring it back up and use management tools such as `rabbitmqctl`
 to see that queues & bindings & consumer have all recovered):
@@ -346,16 +306,14 @@ to see that queues & bindings & consumer have all recovered):
 
 Server-named queues, when recovered automatically, will get *new server-generated names* to guarantee there are no name collisions.
 
-<span note="class">
-When in doubt, try using automatic recovery first. If it is not sufficient for you application, switch to manual
-recovery using events and callbacks introduced in the "Manual recovery" section.
+<span note="note">
+  When in doubt, try using automatic recovery first. If it is not sufficient for you application, switch to manual recovery using events and callbacks introduced in the "Manual recovery" section.
 </span>
 
 
 h2. Detecting broker failures
 
-AMQP applications see broker failure as TCP connection loss. There is no reliable way to know whether there is a network split
-or network peer is down.
+AMQP applications see broker failure as TCP connection loss. There is no reliable way to know whether there is a network split or network peer is down.
 
 
 
@@ -364,9 +322,7 @@ h2. AMQP connection-level exceptions
 
 h3. Handling connection-level exceptions
 
-Connection-level exceptions are rare and may indicate a serious issue with client library or in-flight data corruption. They mandate
-that connection cannot be used any more and must be closed. In any case, your application should be prepared to handle this kind of errors.
-To define a handler, use {AMQP::Session#on_error} method that takes a callback and yields two arguments to it when connection-level exception happens:
+Connection-level exceptions are rare and may indicate a serious issue with client library or in-flight data corruption. They mandate that connection cannot be used any more and must be closed. In any case, your application should be prepared to handle this kind of errors. To define a handler, use {AMQP::Session#on_error} method that takes a callback and yields two arguments to it when connection-level exception happens:
 
 <pre>
 <code>
@@ -394,9 +350,7 @@ Full example:
 
 h2. Handling graceful broker shutdown
 
-When AMQP broker is shut down, it properly closes connection first. To do so, it uses *connection.close* AMQP method. AMQP clients then
-need to check if the reply code is equal to 320 (CONNECTION_FORCED) to distinguish graceful shutdown. With RabbitMQ, when broker
-is stopped using
+When AMQP broker is shut down, it properly closes connection first. To do so, it uses *connection.close* AMQP method. AMQP clients then need to check if the reply code is equal to 320 (CONNECTION_FORCED) to distinguish graceful shutdown. With RabbitMQ, when broker is stopped using
 
 <pre>rabbitmqctl stop</pre>
 
@@ -404,8 +358,7 @@ reply_text will be set to
 
 <pre>CONNECTION_FORCED - broker forced connection closure with reason 'shutdown'</pre>
 
-Each application choose how to handle graceful broker shutdowns individually, so *amqp gem's automatic reconnection does not cover graceful broker shutdowns*.
-Applications that want to reconnect when broker is stopped can use {AMQP::Session#periodically_reconnect} like so:
+Each application choose how to handle graceful broker shutdowns individually, so *amqp gem's automatic reconnection does not cover graceful broker shutdowns*. Applications that want to reconnect when broker is stopped can use {AMQP::Session#periodically_reconnect} like so:
 
 <pre>
 <code>
@@ -425,9 +378,7 @@ Once AMQP connection is re-opened, channels in automatic recovery mode will reco
 
 h2. Integrating channel-level exceptions handling with object-oriented Ruby code
 
-Error handling can be easily integrated into object-oriented Ruby code (in fact, this is highly encouraged).
-A common technique is to combine {http://rubydoc.info/stdlib/core/1.8.7/Object:method Object#method} and {http://rubydoc.info/stdlib/core/1.8.7/Method:to_proc Method#to_proc}
-and use object methods as error handlers:
+Error handling can be easily integrated into object-oriented Ruby code (in fact, this is highly encouraged). A common technique is to combine {http://rubydoc.info/stdlib/core/1.8.7/Object:method Object#method} and {http://rubydoc.info/stdlib/core/1.8.7/Method:to_proc Method#to_proc} and use object methods as error handlers:
 
 <pre>
 <code>
@@ -468,10 +419,9 @@ TBD
 
 h2. AMQP channel-level exceptions
 
-h3. Hanling channel-level exceptions
+h3. Handling channel-level exceptions
 
-Channel-level exceptions are more common than connection-level ones. They are handled in a similar manner, by defining a callback
-with {AMQP::Channel#on_error} method that takes a callback and yields two arguments to it when channel-level exception happens:
+Channel-level exceptions are more common than connection-level ones. They are handled in a similar manner, by defining a callback with {AMQP::Channel#on_error} method that takes a callback and yields two arguments to it when channel-level exception happens:
 
 <pre>
 <code>
@@ -498,13 +448,10 @@ Full example:
 
 h3. Integrating channel-level exceptions handling with object-oriented Ruby code
 
-Error handling can be easily integrated into object-oriented Ruby code (in fact, this is highly encouraged).
-A common technique is to combine {http://rubydoc.info/stdlib/core/1.8.7/Object:method Object#method} and {http://rubydoc.info/stdlib/core/1.8.7/Method:to_proc Method#to_proc}
-and use object methods as error handlers. For example of this, see section on connection-level exceptions above.
+Error handling can be easily integrated into object-oriented Ruby code (in fact, this is highly encouraged). A common technique is to combine {http://rubydoc.info/stdlib/core/1.8.7/Object:method Object#method} and {http://rubydoc.info/stdlib/core/1.8.7/Method:to_proc Method#to_proc} and use object methods as error handlers. For example of this, see section on connection-level exceptions above.
 
 <span class="note">
-Because channel-level exceptions may be raised because of multiple unrelated reasons and often indicate misconfigurations, how they are handled is
-very specific to particular applications. A common strategy is to log an error and then open and use another channel.
+Because channel-level exceptions may be raised because of multiple unrelated reasons and often indicate misconfigurations, how they are handled is very specific to particular applications. A common strategy is to log an error and then open and use another channel.
 </span>
 
 
@@ -584,9 +531,7 @@ TBD
 
 h2. Conclusion
 
-Distributed applications introduce a whole new class of failres developers need to be aware of. Many of them come from
-unreliability of the network. The famous "Fallacies of Distributed Computing":http://en.wikipedia.org/wiki/Fallacies_of_Distributed_Computing list
-common assumptions software engineers must not make:
+Distributed applications introduce a whole new class of failures developers need to be aware of. Many of them come from unreliability of the network. The famous "Fallacies of Distributed Computing":http://en.wikipedia.org/wiki/Fallacies_of_Distributed_Computing list common assumptions software engineers must not make:
 
  * The network is reliable.
  * Latency is zero.
@@ -597,16 +542,11 @@ common assumptions software engineers must not make:
  * Transport cost is zero.
  * The network is homogeneous.
 
-Unfortunately, applications that use Ruby and AMQP are not immune to these problems and developers need to always keep that
-in mind. This list is just as relevant in 2011 as it was in the 90s.
+Unfortunately, applications that use Ruby and AMQP are not immune to these problems and developers need to always keep that in mind. This list is just as relevant in 2011 as it was in the 90s.
 
-Ruby amqp gem 0.8.x and later lets applications to define handlers that handle connection-level exceptions, channel-level
-exceptions and TCP connection failures. Handling AMQP exceptions and network connection failures is relatively easy.
-Re-declaring AMQP instances application works with is where the most of complexity comes from. By using Ruby objects as
-error handlers, declaration of AMQP entities can be done in one place, making it much easier to understand and maintain.
+Ruby amqp gem 0.8.x and later lets applications to define handlers that handle connection-level exceptions, channel-level exceptions and TCP connection failures. Handling AMQP exceptions and network connection failures is relatively easy. Re-declaring AMQP instances application works with is where the most of complexity comes from. By using Ruby objects as error handlers, declaration of AMQP entities can be done in one place, making it much easier to understand and maintain.
 
-amqp gem error handling and interruption is not a copy of RabbitMQ Java client's "Shutdown Protocol":http://www.rabbitmq.com/api-guide.html#shutdown,
-but they turn out to be similar with respect to network failures and connection-level exceptions.
+amqp gem error handling and interruption is not a copy of RabbitMQ Java client's "Shutdown Protocol":http://www.rabbitmq.com/api-guide.html#shutdown, but they turn out to be similar with respect to network failures and connection-level exceptions.
 
 TBD
 
@@ -619,9 +559,7 @@ This guide was written by "Michael Klishin":http://twitter.com/michaelklishin an
 
 h2. Tell us what you think!
 
-Please take a moment and tell us what you think about this guide "on Twitter":http://twitter.com/rubyamqp or "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp:
-what was unclear? what wasn't covered? maybe you don't like guide style or grammar and spelling are incorrect? Readers feedback is
-key to making documentation better.
+Please take a moment and tell us what you think about this guide "on Twitter":http://twitter.com/rubyamqp or "Ruby AMQP mailing list":http://groups.google.com/group/ruby-amqp: What was unclear? What wasn't covered? Maybe you don't like guide style or grammar and spelling are incorrect? Readers feedback is key to making documentation better.
 
 If mailing list communication is not an option for you for some reason, you can "contact guides author directly":mailto:michael@novemberain.com?subject=amqp%20gem%20documentation
 
