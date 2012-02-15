@@ -1,4 +1,8 @@
-= Version 0.9.0 (not yet released)
+= Version 0.9.0 to 0.9.4
+
+  * [BUG] A couple of concurrency issues (race conditions) fixed for apps that actively close and/or reuse channels
+  * [BUG] AMQP::Queue#initialize with :nowait => true no longer fails with NoMethodError
+  * [FEATURE] Automatic recovery mode now works for publishers
 
 
 = Version 0.8.1
