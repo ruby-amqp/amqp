@@ -1,3 +1,7 @@
+= Version 1.0.0
+
+  * [API] All public API bits deprecated in 0.8.0 are COMPLETELY REMOVED
+
 = Version 0.9.0 to 0.9.4
 
   * [BUG] A couple of concurrency issues (race conditions) fixed for apps that actively close and/or reuse channels
