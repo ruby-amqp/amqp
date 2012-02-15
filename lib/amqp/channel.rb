@@ -828,10 +828,10 @@ module AMQP
                 Queue.new(self, name, opts)
               else
                 shim = Proc.new { |q, method|
-          queue = find_queue(method.queue)
           if block.arity == 1
-            block.call(queue)
+            block.call(q)
           else
+            queue = find_queue(method.queue)
             block.call(queue, method.consumer_count, method.message_count)
           end
         }
