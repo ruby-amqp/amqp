@@ -1,7 +1,7 @@
-# https://github.com/travis-ci/travis-ci/wiki/.travis.yml-options
+language: ruby
 bundler_args: --without development
-script: "bundle exec rake spec:ci"
 before_script: ./bin/ci/before_build.sh
+script: "bundle exec rake spec:ci"
 rvm:
   - 1.8.7
   - rbx-19mode
