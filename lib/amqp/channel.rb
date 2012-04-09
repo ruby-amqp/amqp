@@ -264,6 +264,9 @@ module AMQP
       self.open do
         @channel_is_open_deferrable.succeed
 
+        # re-establish prefetch
+        self.prefetch(@options[:prefetch], false) if @options[:prefetch]
+
         # exchanges must be recovered first because queue recovery includes recovery of bindings. MK.
         @exchanges.each { |name, e| e.auto_recover }
         @queues.each    { |name, q| q.auto_recover }
@@ -283,6 +286,9 @@ module AMQP
 
       self.open do
         @channel_is_open_deferrable.succeed
+
+        # re-establish prefetch
+        self.prefetch(@options[:prefetch], false) if @options[:prefetch]
 
         # exchanges must be recovered first because queue recovery includes recovery of bindings. MK.
         @exchanges.each { |name, e| e.auto_recover }
