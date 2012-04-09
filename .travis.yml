@@ -23,6 +23,12 @@ branches:
     - 0.7.x-stable
 matrix:
   allow_failures:
+    - rvm: 1.8.7
+      gemfile: gemfiles/eventmachine-pre
+    - rvm: 1.9.3
+      gemfile: gemfiles/eventmachine-pre
+    - rvm: jruby-19mode
+      gemfile: gemfiles/eventmachine-pre
     - rvm: jruby-head
       gemfile: gemfiles/eventmachine-pre
     - rvm: jruby-head
