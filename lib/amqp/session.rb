@@ -39,12 +39,12 @@ module AMQP
     def initialize(*args, &block)
       super(*args, &block)
 
-      @client_properties = {
+      @client_properties.merge!({
         :platform    => ::RUBY_DESCRIPTION,
         :product     => "AMQP gem",
         :information => "http://github.com/ruby-amqp/amqp",
         :version     => AMQP::VERSION
-      }
+      })
     end # initialize(*args, &block)
 
     # @return [Boolean] true if this AMQP connection is currently open
