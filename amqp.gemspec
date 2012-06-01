@@ -13,6 +13,7 @@ Gem::Specification.new do |s|
   # RubyGems will emit warnings if summary is the same as description. I have no idea why but lets trick it. MK.
   s.description = "Widely used, feature-rich asynchronous AMQP 0.9.1 client with batteries included."
   s.email = ["bWljaGFlbEBub3ZlbWJlcmFpbi5jb20=\n", "c3Rhc3RueUAxMDFpZGVhcy5jeg==\n"].map { |i| Base64.decode64(i) }
+  s.licenses = ["Ruby"]
 
   # files
   s.files = `git ls-files`.split("\n").reject { |file| file =~ /^vendor\// || file =~ /^gemfiles\// }
