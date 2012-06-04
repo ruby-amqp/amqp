@@ -227,6 +227,8 @@ module AMQP
       # Read more about EM::Deferrable#callback behavior in EventMachine documentation. MK.
       @channel_is_open_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
 
+      @parameter_checks = {:queue => [:durable, :exclusive, :auto_delete, :arguments], :exchange => [:type, :durable, :arguments]}
+
       # only send channel.open when connection is actually open. Makes it possible to
       # do c = AMQP.connect; AMQP::Channel.new(c) that is what some people do. MK.
       @connection.on_connection do
@@ -379,7 +381,7 @@ module AMQP
       if exchange = find_exchange(name)
         extended_opts = Exchange.add_default_options(:direct, name, opts, block)
 
-        validate_parameters_match!(exchange, extended_opts)
+        validate_parameters_match!(exchange, extended_opts, :exchange)
 
         block.call(exchange) if block
         exchange
@@ -487,7 +489,7 @@ module AMQP
       if exchange = find_exchange(name)
         extended_opts = Exchange.add_default_options(:fanout, name, opts, block)
 
-        validate_parameters_match!(exchange, extended_opts)
+        validate_parameters_match!(exchange, extended_opts, :exchange)
 
         block.call(exchange) if block
         exchange
@@ -603,7 +605,7 @@ module AMQP
       if exchange = find_exchange(name)
         extended_opts = Exchange.add_default_options(:topic, name, opts, block)
 
-        validate_parameters_match!(exchange, extended_opts)
+        validate_parameters_match!(exchange, extended_opts, :exchange)
 
         block.call(exchange) if block
         exchange
@@ -709,7 +711,7 @@ module AMQP
       if exchange = find_exchange(name)
         extended_opts = Exchange.add_default_options(:headers, name, opts, block)
 
-        validate_parameters_match!(exchange, extended_opts)
+        validate_parameters_match!(exchange, extended_opts, :exchange)
 
         block.call(exchange) if block
         exchange
@@ -812,7 +814,7 @@ module AMQP
       if name && !name.empty? && (queue = find_queue(name))
         extended_opts = Queue.add_default_options(name, opts, block)
 
-        validate_parameters_match!(queue, extended_opts)
+        validate_parameters_match!(queue, extended_opts, :queue)
 
         block.call(queue) if block
         queue
@@ -1266,15 +1268,13 @@ module AMQP
     end
 
 
-
     protected
 
-    # @private
-    def validate_parameters_match!(entity, parameters)
-      parameters.delete(:no_declare)
-      unless entity.opts == parameters || parameters[:passive]
+    @private
+    def validate_parameters_match!(entity, parameters, type)
+      unless entity.opts.values_at(*@parameter_checks[type]) == parameters.values_at(*@parameter_checks[type]) || parameters[:passive]
         raise AMQP::IncompatibleOptionsError.new(entity.name, entity.opts, parameters)
       end
-    end # validate_parameters_match!(entity, parameters)
+    end # validate_parameters_match!(entity, parameters, type)
   end # Channel
 end # AMQP

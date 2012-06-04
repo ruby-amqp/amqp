@@ -232,6 +232,18 @@ describe AMQP::Channel do
         done
       end # it
     end # context
+
+    context "when exchange is re-declared with irrelevent parameters different from original declaration" do
+      it "doesn't raise an exception" do
+        @channel.direct("previously.declared.durable.direct.exchange", :durable => true)
+
+        expect {
+          @channel.direct("previously.declared.durable.direct.exchange", :durable => true, :header => {:random => 'stuff' })
+        }.to_not raise_error(AMQP::IncompatibleOptionsError)
+
+        done
+      end # it
+    end # context
   end # describe
 
 
