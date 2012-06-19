@@ -268,7 +268,7 @@ exchange = channel.fanout("nba.scores")
 </pre>
 
 The exchange that we declare above using {AMQP::Channel#fanout} is a _fanout exchange_. A fanout exchange delivers messages to all of the queues that
- are bound to it: exactly what we want in the case of Blabbr!
+ are bound to it: exactly what we want in the case of Blabbr.
 
 This piece of code
 
