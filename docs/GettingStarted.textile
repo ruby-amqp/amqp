@@ -299,11 +299,11 @@ A diagram for Blabbr looks like this:
 
 
 Next we use EventMachine's {http://eventmachine.rubyforge.org/EventMachine.html#M000466 add_timer} method to
-run a piece of code in 1 second from now:
+run a piece of code in 2 seconds from now:
 
 <pre>
 <code>
-EventMachine.add_timer(1) do
+EventMachine.add_timer(2) do
   exchange.delete
 
   connection.close { EventMachine.stop }
