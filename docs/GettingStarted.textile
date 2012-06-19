@@ -219,7 +219,7 @@ For the sake of simplicity, both the message producer (App I) and the consumer (
 Now let us move on to a little bit more sophisticated example.
 
 
-h2. Blabblr: one-to-many publish/subscribe (pubsub) example
+h2. Blabbr: one-to-many publish/subscribe (pubsub) example
 
 The previous example demonstrated how a connection to a broker is made and how to do 1:1 communication
 using the default exchange. Now let us take a look at another common scenario: broadcast, or multiple consumers
