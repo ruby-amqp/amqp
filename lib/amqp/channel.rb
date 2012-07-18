@@ -137,7 +137,7 @@ module AMQP
   #
   # h2. RabbitMQ extensions.
   #
-  # AMQP gem supports several RabbitMQ extensions taht extend Channel functionality.
+  # AMQP gem supports several RabbitMQ extensions that extend Channel functionality.
   # Learn more in {file:docs/VendorSpecificExtensions.textile}
   #
   # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.2.5)
