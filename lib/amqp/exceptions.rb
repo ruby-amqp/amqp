@@ -30,7 +30,7 @@ module AMQP
       @settings = settings
       @cause    = cause
 
-      super("Could not estabilish TCP connection to #{@settings[:host]}:#{@settings[:port]}")
+      super("Could not establish TCP connection to #{@settings[:host]}:#{@settings[:port]}")
     end # TCPConnectionFailed
   end
 
