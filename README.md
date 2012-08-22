@@ -190,7 +190,7 @@ amqp gem is maintained by [Michael Klishin](https://github.com/michaelklishin).
 
 * [API reference](http://rdoc.info/github/ruby-amqp/amqp/master/frames)
 * [Documentation guides](http://bit.ly/amqp-gem-docs)
-* [Code Examples](https://github.com/ruby-amqp/amq-protocol/tree/master/examples/)
+* [Code Examples](https://github.com/ruby-amqp/amqp/tree/master/examples)
 * [Issue tracker](http://github.com/ruby-amqp/amqp/issues)
 * [Continous integration status](http://travis-ci.org/#!/ruby-amqp/amqp)
 
