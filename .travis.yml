@@ -43,3 +43,6 @@ matrix:
       gemfile: gemfiles/eventmachine-pre
     - rvm: 1.9.2
       gemfile: Gemfile
+
+services:
+  - rabbitmq
