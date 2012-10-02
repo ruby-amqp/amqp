@@ -22,7 +22,7 @@ AMQP.start(:host => '127.0.0.1') do |connection|
 
   EventMachine.add_timer(0.3) {
     10.times do |i|
-      exchange.publish("Message ##{i}", :immediate => true)
+      exchange.publish("Message ##{i}")
     end
   }
 
