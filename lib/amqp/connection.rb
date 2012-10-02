@@ -54,7 +54,7 @@ module AMQP
   # Pass it a block if you want a piece of code to be run once default connection
   # is successfully closed.
   #
-  # @note If default connection was never estabilished or is in the closing state already,
+  # @note If default connection was never established or is in the closing state already,
   #       this method has no effect.
   # @api public
   def self.stop(reply_code = 200, reply_text = "Goodbye", &block)
