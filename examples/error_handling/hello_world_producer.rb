@@ -39,7 +39,7 @@ AMQP.start(:host => ENV.fetch("BROKER_HOST", "localhost")) do |connection, open_
   EventMachine.add_periodic_timer(0.8) do
     puts "Publishing via amq.fanout..."
     # messages must be routable & there must be at least one consumer.
-    exchange.publish("Routed via amq.fanout", :immediate => true, :mandatory => true)
+    exchange.publish("Routed via amq.fanout", :mandatory => true)
   end
 
 
