@@ -132,7 +132,7 @@ describe "Publisher confirmation(s)" do
         end
 
         EventMachine.add_timer(0.5) do
-          exchange.publish("Hi", :persistent => false, :immediately => true)
+          exchange.publish("Hi", :persistent => false)
         end
 
         done(2.0) do

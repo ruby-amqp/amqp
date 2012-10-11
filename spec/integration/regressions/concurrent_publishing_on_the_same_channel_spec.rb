@@ -73,7 +73,7 @@ if mri?
         20.times do
           Thread.new do
             messages.each do |message|
-              exchange.publish(message, :routing_key => queue.name, :immediate => true, :mandatory => true)
+              exchange.publish(message, :routing_key => queue.name, :mandatory => true)
             end
           end
         end

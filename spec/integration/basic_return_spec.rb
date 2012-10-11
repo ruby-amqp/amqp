@@ -38,10 +38,10 @@ describe "Message published as mandatory" do
       @exchange.on_return do |basic_return, header, body|
         returned_messages << basic_return.reply_text
       end
-      (1..10).to_a.each { |m| @exchange.publish(m, :immediate => true) }
+      (1..10).to_a.each { |m| @exchange.publish(m, :mandatory => true) }
 
       done(1.0) {
-        returned_messages.should == Array.new(10) { "NO_CONSUMERS" }
+        returned_messages.should == Array.new(10) { "NO_ROUTE" }
       }
     end
   end

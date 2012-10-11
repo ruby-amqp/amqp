@@ -53,8 +53,7 @@ describe "Exclusive server-named queue" do
                           :reply_to    => queue2.name,
                           :app_id      => "Client",
                           :timestamp   => request_timestamp,
-                          :mandatory   => true,
-                          :immediate   => true)
+                          :mandatory   => true)
 
         done(0.2) {
           queue1.unsubscribe
