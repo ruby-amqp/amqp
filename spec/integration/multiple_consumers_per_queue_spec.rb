@@ -58,7 +58,7 @@ describe "Multiple non-exclusive consumers per queue" do
 
       EventMachine.add_timer(1.0) do
         messages.each do |message|
-          exchange.publish(message, :immediate => true, :mandatory => true, :routing_key => queue.name)
+          exchange.publish(message, :mandatory => true, :routing_key => queue.name)
         end
       end
 
@@ -104,7 +104,7 @@ describe "Multiple non-exclusive consumers per queue" do
 
       EventMachine.add_timer(1.0) do
         messages.each do |message|
-          exchange.publish(message, :immediate => true, :mandatory => true, :routing_key => queue.name)
+          exchange.publish(message, :mandatory => true, :routing_key => queue.name)
         end
       end
 
@@ -150,7 +150,7 @@ describe "Multiple non-exclusive consumers per queue" do
 
       EventMachine.add_timer(1.0) do
         messages.each do |message|
-          exchange.publish(message, :immediate => true, :mandatory => true, :routing_key => queue.name)
+          exchange.publish(message, :mandatory => true, :routing_key => queue.name)
         end
       end
 
@@ -199,7 +199,7 @@ describe "Multiple non-exclusive consumers per queue" do
 
       EventMachine.add_timer(1.0) do
         messages.each do |message|
-          exchange.publish(message, :immediate => true, :mandatory => true, :routing_key => queue.name)
+          exchange.publish(message, :mandatory => true, :routing_key => queue.name)
         end
       end
 
@@ -245,7 +245,7 @@ describe "Multiple non-exclusive consumers per queue" do
 
       EventMachine.add_timer(1.0) do
         messages.each do |message|
-          exchange.publish(message, :immediate => true, :mandatory => true, :routing_key => queue.name)
+          exchange.publish(message, :mandatory => true, :routing_key => queue.name)
         end
       end
 
