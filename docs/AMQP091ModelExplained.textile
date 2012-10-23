@@ -107,7 +107,7 @@ but it is possible to extend AMQP 0.9.1 brokers with custom exchange types, for 
 
 and so on.
 
-Besides the type, exchanges have a number of attributes, most imprortant of which are:
+Besides the type, exchanges have a number of attributes, most important of which are:
 
  * Name
  * Can be durable (information about them is persisted to disk and thus survives broker restarts) or non-durable (information is only kept in RAM)
