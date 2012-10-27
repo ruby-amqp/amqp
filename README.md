@@ -154,25 +154,23 @@ Note that those examples are written against version 0.8.0.rc1 and later. 0.6.x 
 
 There is also a work-in-progress [Messaging Patterns and Use Cases With AMQP](http://rubyamqp.info/articles/patterns_and_use_cases/) documentation guide.
 
+## Documentation
+
+### Guides
+
+[Documentation guides](http://rubyamqp.info) describe the library itself as well as AMQP concepts, usage scenarios, topics like working with exchanges and queues,
+error handing & recovery, broker-specific extensions, TLS support, troubleshooting and so on. Most of the documentation is in these guides.
+
 
 ### API reference
-
-[API reference](http://bit.ly/mDm1JE) is up on [rubydoc.info](http://rubydoc.info) and is updated daily.
-
-
 
 ## How to use AMQP gem with Ruby on Rails, Sinatra and other Web frameworks ##
 
 We cover Web application integration for multiple Ruby Web servers in [Connecting to the broker guide](http://rubyamqp.info/articles/connecting_to_broker/).
 
+## How to use AMQP gem with Ruby on Rails, Sinatra and other Web frameworks ##
 
-
-## Community
-
- * Join also [RabbitMQ mailing list](https://lists.rabbitmq.com/cgi-bin/mailman/listinfo/rabbitmq-discuss) (the AMQP community epicenter).
- * Join [Ruby AMQP mailing list](http://groups.google.com/group/ruby-amqp)
- * Follow [@rubyamqp](https://twitter.com/rubyamqp) on Twitter for Ruby AMQP ecosystem updates.
- * Stop by #rabbitmq on irc.freenode.net. You can use [Web IRC client](http://webchat.freenode.net?channels=rabbitmq) if you don't have IRC client installed.
+We cover Web application integration for multiple Ruby Web servers in [Connecting to the broker guide](http://rubyamqp.info/articles/connecting_to_broker/).
 
 
 
@@ -182,6 +180,14 @@ Upgrading from amqp gem 0.6.x and 0.7.x to to 0.8.0.RCs is straightforward, plea
 The same guide explains amqp gem versions history and why you would want to upgrade.
 
 
+## Community
+
+ * Join also [RabbitMQ mailing list](https://lists.rabbitmq.com/cgi-bin/mailman/listinfo/rabbitmq-discuss) (the AMQP community epicenter).
+ * Join [Ruby AMQP mailing list](http://groups.google.com/group/ruby-amqp)
+ * Follow [@rubyamqp](https://twitter.com/rubyamqp) on Twitter for Ruby AMQP ecosystem updates.
+ * Stop by #rabbitmq on irc.freenode.net. You can use [Web IRC client](http://webchat.freenode.net?channels=rabbitmq) if you don't have IRC client installed.
+
+[![Continuous Integration status](https://secure.travis-ci.org/ruby-amqp/amqp.png?branch=master)](http://travis-ci.org/ruby-amqp/amqp)
 
 ## Maintainer Information
 
