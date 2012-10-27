@@ -465,9 +465,7 @@ describe AMQP::Channel do
 
       it "raises an exception" do
         channel = AMQP::Channel.new
-
         channel.topic("previously.declared.durable.topic.exchange", :durable => true)
-        channel.should be_open
 
         expect {
           channel.topic("previously.declared.durable.topic.exchange", :durable => false)
@@ -630,7 +628,7 @@ describe AMQP::Channel do
         end
         channel2.headers(name, :durable => false, :auto_delete => false)
 
-        done(0.5) {
+        done(1.0) {
           @error_code.should == 406
         }
       end # it
@@ -655,7 +653,7 @@ describe AMQP::Channel do
         end
         channel2.headers(name, :durable => true)
 
-        done(0.5) {
+        done(1.0) {
           @error_code.should == 406
         }
       end # it
