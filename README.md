@@ -120,7 +120,7 @@ to learn more about AMQP principles & concepts.
 
 
 
-## Documentation: tutorials, guides & API reference ##
+## Documentation: tutorials, guides & API reference
 
 We believe that in order to be a library our users **really** love, we need to care about documentation as much as (or more)
 code readability, API beauty and autotomated testing across 5 Ruby implementations on multiple operating systems. We do care
@@ -128,7 +128,7 @@ about our [documentation](http://rubyamqp.info): **if you don't find your answer
 should [file to us](http://github.com/ruby-amqp/amqp/issues). Or just complain to [@rubyamqp](https://twitter.com/rubyamqp) on Twitter.
 
 
-### Tutorials ###
+### Tutorials
 
 [Getting started guide](http://rubyamqp.info/articles/getting_started/) is written as a tutorial that walks you through
 3 examples:
@@ -141,7 +141,13 @@ all in under 20 minutes. [AMQP 0.9.1 Concepts](http://www.rabbitmq.com/tutorials
 in less than 5 minutes.
 
 
-### Examples ###
+### Guides
+
+[Documentation guides](http://rubyamqp.info) describe the library itself as well as AMQP concepts, usage scenarios, topics like working with exchanges and queues,
+error handing & recovery, broker-specific extensions, TLS support, troubleshooting and so on. Most of the documentation is in these guides.
+
+
+### Examples
 
 You can find many examples (both real-world cases and simple demonstrations) under [examples directory](https://github.com/ruby-amqp/amqp/tree/master/examples) in the repository.
 Note that those examples are written against version 0.8.0.rc1 and later. 0.6.x and 0.7.x may not support certain AMQP protocol or "DSL syntax" features.
@@ -149,17 +155,10 @@ Note that those examples are written against version 0.8.0.rc1 and later. 0.6.x 
 There is also a work-in-progress [Messaging Patterns and Use Cases With AMQP](http://rubyamqp.info/articles/patterns_and_use_cases/) documentation guide.
 
 
-## Documentation
-
-### Guides
-
-[Documentation guides](http://rubyamqp.info) describe the library itself as well as AMQP concepts, usage scenarios, topics like working with exchanges and queues,
-error handing & recovery, broker-specific extensions, TLS support, troubleshooting and so on. Most of the documentation is in these guides.
-
-
 ### API reference
 
 [API reference](http://bit.ly/mDm1JE) is up on [rubydoc.info](http://rubydoc.info) and is updated daily.
+
 
 
 ## How to use AMQP gem with Ruby on Rails, Sinatra and other Web frameworks ##
@@ -168,18 +167,20 @@ We cover Web application integration for multiple Ruby Web servers in [Connectin
 
 
 
-## Migration from amqp gem 0.6.x and 0.7.x
-
-Upgrading from amqp gem 0.6.x and 0.7.x to to 0.8.0.RCs is straightforward, please see [amqp gem 0.8.0 migration guide](http://rubyamqp.info/articles/08_migration/).
-The same guide explains amqp gem versions history and why you would want to upgrade.
-
-
 ## Community
 
  * Join also [RabbitMQ mailing list](https://lists.rabbitmq.com/cgi-bin/mailman/listinfo/rabbitmq-discuss) (the AMQP community epicenter).
  * Join [Ruby AMQP mailing list](http://groups.google.com/group/ruby-amqp)
  * Follow [@rubyamqp](https://twitter.com/rubyamqp) on Twitter for Ruby AMQP ecosystem updates.
  * Stop by #rabbitmq on irc.freenode.net. You can use [Web IRC client](http://webchat.freenode.net?channels=rabbitmq) if you don't have IRC client installed.
+
+
+
+## Migration from amqp gem 0.6.x and 0.7.x
+
+Upgrading from amqp gem 0.6.x and 0.7.x to to 0.8.0.RCs is straightforward, please see [amqp gem 0.8.0 migration guide](http://rubyamqp.info/articles/08_migration/).
+The same guide explains amqp gem versions history and why you would want to upgrade.
+
 
 
 ## Maintainer Information
