@@ -470,7 +470,7 @@ describe AMQP::Channel do
     end # context
 
 
-    context "when exchange is re-declared with parameters different from original declaration" do
+    context "when exchange is re-declared with parameters different from the original declaration" do
       amqp_after do
         done
       end
@@ -498,7 +498,8 @@ describe AMQP::Channel do
       let(:name) { "new.headers.exchange" }
 
       it "declares a new headers exchange with that name" do
-        exchange = @channel.headers(name)
+        channel  = AMQP::Channel.new
+        exchange = channel.headers(name)
 
         exchange.name.should == name
 
@@ -512,7 +513,8 @@ describe AMQP::Channel do
       end
 
       it "uses amq.match" do
-        exchange = @channel.headers
+        channel  = AMQP::Channel.new
+        exchange = channel.headers
         exchange.name.should == "amq.match"
         exchange.name.should_not == "amq.headers"
 
@@ -523,10 +525,11 @@ describe AMQP::Channel do
     context "when passive option is used" do
       context "and exchange with given name already exists" do
         it "silently returns" do
-          name = "a_new_headers_exchange declared at #{Time.now.to_i}"
+          name    = "a_new_headers_exchange declared at #{Time.now.to_i}"
+          channel = AMQP::Channel.new
 
-          original_exchange = @channel.headers(name)
-          exchange          = @channel.headers(name, :passive => true)
+          original_exchange = channel.headers(name)
+          exchange          = channel.headers(name, :passive => true)
 
           exchange.should == original_exchange
 
@@ -537,9 +540,10 @@ describe AMQP::Channel do
       context "and exchange with given name DOES NOT exist" do
         it "raises an exception" do
           pending "Not yet supported"
+          channel = AMQP::Channel.new
 
           expect {
-            exchange = @channel.headers("headers exchange declared at #{Time.now.to_i}", :passive => true)
+            exchange = channel.headers("headers exchange declared at #{Time.now.to_i}", :passive => true)
           }.to raise_error
 
           done
@@ -550,7 +554,8 @@ describe AMQP::Channel do
 
     context "when exchange is declared as durable" do
       it "returns a new durable headers exchange" do
-        exchange = @channel.headers("a_new_durable_headers_exchange", :durable => true)
+        channel  = AMQP::Channel.new
+        exchange = channel.headers("a_new_durable_headers_exchange", :durable => true)
         exchange.should be_durable
         exchange.should_not be_transient
 
@@ -561,7 +566,8 @@ describe AMQP::Channel do
 
     context "when exchange is declared as non-durable" do
       it "returns a new NON-durable headers exchange" do
-        exchange = @channel.headers("a_new_non_durable_headers_exchange", :durable => false)
+        channel  = AMQP::Channel.new
+        exchange = channel.headers("a_new_non_durable_headers_exchange", :durable => false)
         exchange.should_not be_durable
         exchange.should be_transient
 
@@ -572,7 +578,8 @@ describe AMQP::Channel do
 
     context "when exchange is declared as auto-deleted" do
       it "returns a new auto-deleted headers exchange" do
-        exchange = @channel.headers("a new auto-deleted headers exchange", :auto_delete => true)
+        channel  = AMQP::Channel.new
+        exchange = channel.headers("a new auto-deleted headers exchange", :auto_delete => true)
 
         exchange.should be_auto_deleted
         done
@@ -582,7 +589,8 @@ describe AMQP::Channel do
 
     context "when exchange is declared as auto-deleted" do
       it "returns a new auto-deleted headers exchange" do
-        exchange = @channel.headers("a new non-auto-deleted headers exchange", :auto_delete => false)
+        channel  = AMQP::Channel.new
+        exchange = channel.headers("a new non-auto-deleted headers exchange", :auto_delete => false)
 
         exchange.should_not be_auto_deleted
         done
@@ -592,7 +600,8 @@ describe AMQP::Channel do
 
     context "when exchange is declared without explicit :nowait parameter" do
       it "is declared with :nowait by default" do
-        exchange = @channel.headers("a new non-auto-deleted headers exchange", :auto_delete => false)
+        channel  = AMQP::Channel.new
+        exchange = channel.headers("a new non-auto-deleted headers exchange", :auto_delete => false)
 
         exchange.should_not be_auto_deleted
         done
@@ -606,10 +615,11 @@ describe AMQP::Channel do
       end
 
       it "raises an exception" do
-        @channel.headers("previously.declared.durable.headers.exchange", :durable => true)
+        channel = AMQP::Channel.new
+        channel.headers("previously.declared.durable.headers.exchange", :durable => true)
 
         expect {
-          @channel.headers("previously.declared.durable.headers.exchange", :durable => false)
+          channel.headers("previously.declared.durable.headers.exchange", :durable => false)
         }.to raise_error(AMQP::IncompatibleOptionsError)
 
         done
@@ -619,29 +629,45 @@ describe AMQP::Channel do
 
     context "when exchange is re-declared with parameters different from original declaration on two separate channels" do
       it "raises an exception" do
+        name     = "previously.declared.durable.headers.exchange2"
+        channel1 = AMQP::Channel.new
         channel2 = AMQP::Channel.new
-        @channel.headers("previously.declared.durable.headers.exchange", :durable => true)
+        channel1.headers(name, :durable => true, :auto_delete => true)
 
         channel2.on_error do |ch, channel_close|
           puts "reply_text: #{channel_close.reply_text}, reply_code: #{channel_close.reply_code}"
-          done
+          @error_code = channel_close.reply_code
         end
-        channel2.headers("previously.declared.durable.headers.exchange", :durable => false)
+        channel2.headers(name, :durable => false, :auto_delete => false)
+
+        done(0.5) {
+          @error_code.should == 406
+        }
       end # it
     end # context
 
 
 
-    context "when exchange is re-declared with type different from original declaration on two separate channels" do
+    context "when exchange is re-declared with type different from the original declaration on two separate channels" do
+      amqp_after do
+        done
+      end
+
       it "raises an exception" do
+        name     = "previously.declared.durable.topic.exchange3"
+        channel1 = AMQP::Channel.new
         channel2 = AMQP::Channel.new
-        @channel.topic("previously.declared.durable.topic.exchange", :durable => true)
+        channel1.topic(name, :durable => true)
 
         channel2.on_error do |ch, channel_close|
           puts "reply_text: #{channel_close.reply_text}, reply_code: #{channel_close.reply_code}"
-          done
+          @error_code = channel_close.reply_code
         end
-        channel2.headers("previously.declared.durable.topic.exchange", :durable => true)
+        channel2.headers(name, :durable => true)
+
+        done(0.5) {
+          @error_code.should == 406
+        }
       end # it
     end # context
   end # describe
