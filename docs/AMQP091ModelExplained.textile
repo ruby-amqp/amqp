@@ -2,6 +2,11 @@
 
 h1. AMQP 0.9.1 Model Explained
 
+h2. This Documentation Has Moved to rubyamqp.info
+
+amqp gem documentation guides are now hosted on "rubyamqp.info":http://rubyamqp.info.
+
+
 h2. About this guide
 
 This guide explains the AMQP 0.9.1 Model used by RabbitMQ. Understanding the AMQP Model will make a lot of other documentation, both for the Ruby amqp gem and

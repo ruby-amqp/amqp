@@ -2,6 +2,10 @@
 
 h1. Error handling and recovery
 
+h2. This Documentation Has Moved to rubyamqp.info
+
+amqp gem documentation guides are now hosted on "rubyamqp.info":http://rubyamqp.info.
+
 h2. About this guide
 
 Development of a robust application, be it message publisher or message consumer, involves dealing with

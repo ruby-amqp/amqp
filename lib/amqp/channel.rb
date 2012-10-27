@@ -7,7 +7,7 @@ require "amqp/queue"
 module AMQP
   # h2. What are AMQP channels
   #
-  # To quote {http://bit.ly/hw2ELX AMQP 0.9.1 specification}:
+  # To quote {http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification}:
   #
   # AMQP is a multi-channelled protocol. Channels provide a way to multiplex
   # a heavyweight TCP/IP connection into several light weight connections.
@@ -140,7 +140,7 @@ module AMQP
   # AMQP gem supports several RabbitMQ extensions taht extend Channel functionality.
   # Learn more in {file:docs/VendorSpecificExtensions.textile}
   #
-  # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.2.5)
+  # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 2.2.5)
   class Channel < AMQ::Client::Channel
 
     #
@@ -373,7 +373,7 @@ module AMQP
     # @see Channel#default_exchange
     # @see Exchange
     # @see Exchange#initialize
-    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 3.1.3.1)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 3.1.3.1)
     #
     # @return [Exchange]
     # @api public
@@ -426,7 +426,7 @@ module AMQP
     #
     #
     # @see Exchange
-    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.1.2.4)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 2.1.2.4)
     #
     # @return [Exchange]
     # @api public
@@ -481,7 +481,7 @@ module AMQP
     # @see Exchange
     # @see Exchange#initialize
     # @see Channel#default_exchange
-    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 3.1.3.2)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 3.1.3.2)
     #
     # @return [Exchange]
     # @api public
@@ -597,7 +597,7 @@ module AMQP
     # @see Exchange
     # @see Exchange#initialize
     # @see http://www.rabbitmq.com/faq.html#Binding-and-Routing RabbitMQ FAQ on routing & wildcards
-    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 3.1.3.3)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 3.1.3.3)
     #
     # @return [Exchange]
     # @api public
@@ -703,7 +703,7 @@ module AMQP
     # @see Exchange
     # @see Exchange#initialize
     # @see Channel#default_exchange
-    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 3.1.3.3)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 3.1.3.3)
     #
     # @return [Exchange]
     # @api public
@@ -804,7 +804,7 @@ module AMQP
     #
     # @see Queue
     # @see Queue#initialize
-    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.1.4)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 2.1.4)
     #
     # @return [Queue]
     # @api public
@@ -957,7 +957,7 @@ module AMQP
     #
     # @param [Boolean] Desired flow state.
     #
-    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.5.2.3.)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Reference.pdf AMQP 0.9.1 protocol documentation (Section 1.5.2.3.)
     # @api public
     def flow(active = false, &block)
       super(active, &block)
@@ -998,7 +998,7 @@ module AMQP
     # @api public
     # @see #reject
     # @see #recover
-    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.8.3.13.)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Reference.pdf AMQP 0.9.1 protocol documentation (Section 1.8.3.13.)
     def acknowledge(delivery_tag, multiple = false)
       super(delivery_tag, multiple)
     end # acknowledge(delivery_tag, multiple = false)
@@ -1008,7 +1008,7 @@ module AMQP
     # @api public
     # @see #acknowledge
     # @see #recover
-    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.8.3.14.)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Reference.pdf AMQP 0.9.1 protocol documentation (Section 1.8.3.14.)
     def reject(delivery_tag, requeue = true)
       super(delivery_tag, requeue)
     end # reject(delivery_tag, requeue = true)
@@ -1019,7 +1019,7 @@ module AMQP
     # @return [Channel]  self
     #
     # @note RabbitMQ as of 2.3.1 does not support basic.recover with requeue = false.
-    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.8.3.16.)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Reference.pdf AMQP 0.9.1 protocol documentation (Section 1.8.3.16.)
     # @see #acknowledge
     # @api public
     def recover(requeue = true, &block)

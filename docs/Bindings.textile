@@ -2,6 +2,10 @@
 
 h1. Working With Bindings
 
+h2. This Documentation Has Moved to rubyamqp.info
+
+amqp gem documentation guides are now hosted on "rubyamqp.info":http://rubyamqp.info.
+
 h2. About this guide
 
 This guide covers bindings in AMQP 0.9.1, what they are, what role do they play and how to accomplish typical operations using
