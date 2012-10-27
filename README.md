@@ -146,20 +146,12 @@ in less than 5 minutes.
 [Documentation guides](http://rubyamqp.info) describe the library itself as well as AMQP concepts, usage scenarios, topics like working with exchanges and queues,
 error handing & recovery, broker-specific extensions, TLS support, troubleshooting and so on. Most of the documentation is in these guides.
 
-
 ### Examples
 
 You can find many examples (both real-world cases and simple demonstrations) under [examples directory](https://github.com/ruby-amqp/amqp/tree/master/examples) in the repository.
 Note that those examples are written against version 0.8.0.rc1 and later. 0.6.x and 0.7.x may not support certain AMQP protocol or "DSL syntax" features.
 
 There is also a work-in-progress [Messaging Patterns and Use Cases With AMQP](http://rubyamqp.info/articles/patterns_and_use_cases/) documentation guide.
-
-## Documentation
-
-### Guides
-
-[Documentation guides](http://rubyamqp.info) describe the library itself as well as AMQP concepts, usage scenarios, topics like working with exchanges and queues,
-error handing & recovery, broker-specific extensions, TLS support, troubleshooting and so on. Most of the documentation is in these guides.
 
 
 ### API reference
@@ -168,16 +160,11 @@ error handing & recovery, broker-specific extensions, TLS support, troubleshooti
 
 We cover Web application integration for multiple Ruby Web servers in [Connecting to the broker guide](http://rubyamqp.info/articles/connecting_to_broker/).
 
+
 ## How to use AMQP gem with Ruby on Rails, Sinatra and other Web frameworks ##
 
 We cover Web application integration for multiple Ruby Web servers in [Connecting to the broker guide](http://rubyamqp.info/articles/connecting_to_broker/).
 
-
-
-## Migration from amqp gem 0.6.x and 0.7.x
-
-Upgrading from amqp gem 0.6.x and 0.7.x to to 0.8.0.RCs is straightforward, please see [amqp gem 0.8.0 migration guide](http://rubyamqp.info/articles/08_migration/).
-The same guide explains amqp gem versions history and why you would want to upgrade.
 
 
 ## Community
@@ -188,6 +175,14 @@ The same guide explains amqp gem versions history and why you would want to upgr
  * Stop by #rabbitmq on irc.freenode.net. You can use [Web IRC client](http://webchat.freenode.net?channels=rabbitmq) if you don't have IRC client installed.
 
 [![Continuous Integration status](https://secure.travis-ci.org/ruby-amqp/amqp.png?branch=master)](http://travis-ci.org/ruby-amqp/amqp)
+
+
+## Migration from amqp gem 0.6.x and 0.7.x
+
+Upgrading from amqp gem 0.6.x and 0.7.x to to 0.8.0.RCs is straightforward, please see [amqp gem 0.8.0 migration guide](http://rubyamqp.info/articles/08_migration/).
+The same guide explains amqp gem versions history and why you would want to upgrade.
+
+
 
 ## Maintainer Information
 
