@@ -1,4 +1,4 @@
-# About Ruby amqp gem #
+# Ruby amqp gem: the asynchronous Ruby RabbitMQ client
 
 [Ruby amqp gem](http://rubyamqp.info) is a widely used, feature-rich, well-maintained asynchronous AMQP 0.9.1 client with batteries included.
 This library works with Ruby 1.8.7 (*except for p249*, see the FAQ), Ruby 1.9.2, Ruby 1.9.3, [JRuby](http://jruby.org), [Rubinius](http://rubini.us) as well as [REE](http://www.rubyenterpriseedition.com), and is licensed under the [Ruby License](http://www.ruby-lang.org/en/LICENSE.txt)
@@ -6,14 +6,14 @@ This library works with Ruby 1.8.7 (*except for p249*, see the FAQ), Ruby 1.9.2,
 0.8.0 and later versions of amqp gem implement [AMQP 0.9.1](http://www.rabbitmq.com/tutorials/amqp-concepts.html) (see also [AMQP 0.9.1 spec document](http://bit.ly/amqp091spec)) and support [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq.com/extensions.html).
 
 
-## I know what AMQP is, how do I get started? ##
+## I know what AMQP is, how do I get started?
 
 See [Getting started with amqp gem](http://rubyamqp.info/articles/getting_started/) and other [amqp gem documentation guides](http://rubyamqp.info/).
 We recommend that you read [AMQP 0.9.1 Model Explained](http://www.rabbitmq.com/tutorials/amqp-concepts.html), too.
 
 
 
-## What is AMQP? ##
+## What is AMQP?
 
 AMQP is an [open standard for messaging middleware](http://www.amqp.org/confluence/display/AMQP/About+AMQP) that
 emphasizes interoperability between different technologies (for example, Java, .NET, Ruby, Python, Node.js, Erlang, C and so on).
@@ -22,7 +22,7 @@ Key features of AMQP are very flexible yet simple routing and binary protocol ef
 message acknowledgements, returning of messages to producer, redelivery of messages that couldn't be processed, load balancing between message consumers and so on.
 
 
-## What is amqp gem good for? ##
+## What is amqp gem good for?
 
 One can use amqp gem to make Ruby applications interoperate with other
 applications (both Ruby and not). Complexity and size may vary from
@@ -56,9 +56,9 @@ Specific examples:
 
 
 
-## Getting started with Ruby amqp gem ##
+## Getting started with Ruby amqp gem
 
-### Install RabbitMQ ###
+### Install RabbitMQ
 
 Please refer to the [RabbitMQ installation guide](http://www.rabbitmq.com/install.html). Note that for Ubuntu and Debian we strongly advice that you
 use [RabbitMQ apt repository](http://www.rabbitmq.com/debian.html#apt) that has recent versions of RabbitMQ. RabbitMQ packages Ubuntu and Debian ship
@@ -161,7 +161,7 @@ There is also a work-in-progress [Messaging Patterns and Use Cases With AMQP](ht
 
 
 
-## How to use AMQP gem with Ruby on Rails, Sinatra and other Web frameworks ##
+## How to use AMQP gem with Ruby on Rails, Sinatra and other Web frameworks
 
 We cover Web application integration for multiple Ruby Web servers in [Connecting to the broker guide](http://rubyamqp.info/articles/connecting_to_broker/).
 
