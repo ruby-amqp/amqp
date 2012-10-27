@@ -127,27 +127,14 @@ describe AMQP::Channel do
     end # context
 
 
-    context "when exchange name was specified as a blank string" do
-      it 'returns direct exchange with server-generated name' do
-        pending <<-EOF
-      This has to be fixed in RabbitMQ first
-      https://bugzilla.rabbitmq.com/show_bug.cgi?id=23509
-    EOF
-        @channel.direct("") do |exchange|
-          exchange.name.should_not be_empty
-          done
-        end
-      end
-    end # context
-
-
     context "when passive option is used" do
       context "and exchange with given name already exists" do
         it "silently returns" do
-          name = "a_new_direct_exchange declared at #{Time.now.to_i}"
+          name    = "a_new_direct_exchange declared at #{Time.now.to_i}"
+          channel = AMQP::Channel.new
 
-          original_exchange = @channel.direct(name)
-          exchange          = @channel.direct(name, :passive => true)
+          original_exchange = channel.direct(name)
+          exchange          = channel.direct(name, :passive => true)
 
           exchange.should == original_exchange
 
@@ -157,13 +144,16 @@ describe AMQP::Channel do
 
       context "and exchange with given name DOES NOT exist" do
         it "raises an exception" do
-          pending "Not yet supported"
+          channel = AMQP::Channel.new
+          channel.on_error do |ch, channel_close|
+            @error_code = channel_close.reply_code
+          end
 
-          expect {
-            exchange = @channel.direct("direct exchange declared at #{Time.now.to_i}", :passive => true)
-          }.to raise_error
+          exchange = channel.direct("direct exchange declared at #{Time.now.to_i}", :passive => true)
 
-          done
+          done(0.5) {
+            @error_code.should == 404
+          }
         end # it
       end # context
     end # context
@@ -223,23 +213,12 @@ describe AMQP::Channel do
 
     context "when exchange is re-declared with parameters different from original declaration" do
       it "raises an exception" do
-        @channel.direct("previously.declared.durable.direct.exchange", :durable => true)
+        channel = AMQP::Channel.new
+        channel.direct("previously.declared.durable.direct.exchange", :durable => true)
 
         expect {
-          @channel.direct("previously.declared.durable.direct.exchange", :durable => false)
+          channel.direct("previously.declared.durable.direct.exchange", :durable => false)
         }.to raise_error(AMQP::IncompatibleOptionsError)
-
-        done
-      end # it
-    end # context
-
-    context "when exchange is re-declared with irrelevent parameters different from original declaration" do
-      it "doesn't raise an exception" do
-        @channel.direct("previously.declared.durable.direct.exchange", :durable => true)
-
-        expect {
-          @channel.direct("previously.declared.durable.direct.exchange", :durable => true, :header => {:random => 'stuff' })
-        }.to_not raise_error(AMQP::IncompatibleOptionsError)
 
         done
       end # it
@@ -287,12 +266,17 @@ describe AMQP::Channel do
       end
 
       context "and exchange with given name DOES NOT exist" do
-        it "raises an exception" do
-          pending "Not yet supported"
+        it "results in a channel exception" do
+          channel = AMQP::Channel.new
+          channel.on_error do |ch, channel_close|
+            @error_code = channel_close.reply_code
+          end
 
-          expect {
-            exchange = @channel.fanout("fanout exchange declared at #{Time.now.to_i}", :passive => true)
-          }.to raise_error
+          exchange = channel.fanout("fanout exchange declared at #{Time.now.to_i}", :passive => true)
+
+          done(0.5) {
+            @error_code.should == 404
+          }
 
           done
         end # it
@@ -354,10 +338,11 @@ describe AMQP::Channel do
 
     context "when exchange is re-declared with parameters different from original declaration" do
       it "raises an exception" do
-        @channel.fanout("previously.declared.durable.topic.exchange", :durable => true)
+        channel = AMQP::Channel.new
+        channel.fanout("previously.declared.durable.topic.exchange", :durable => true)
 
         expect {
-          @channel.fanout("previously.declared.durable.topic.exchange", :durable => false)
+          channel.fanout("previously.declared.durable.topic.exchange", :durable => false)
         }.to raise_error(AMQP::IncompatibleOptionsError)
 
         done
@@ -377,7 +362,7 @@ describe AMQP::Channel do
         exchange.name.should == name
 
         done
-      end
+      end # it
     end # context
 
     context "when exchange name is omitted" do
@@ -387,7 +372,7 @@ describe AMQP::Channel do
         exchange.name.should_not == "amq.topic2"
 
         done
-      end
+      end # it
     end # context
 
     context "when passive option is used" do
@@ -402,20 +387,23 @@ describe AMQP::Channel do
 
           done
         end # it
-      end
+      end # context
 
       context "and exchange with given name DOES NOT exist" do
-        it "raises an exception" do
-          pending "Not yet supported"
+        it "results in a channel exception" do
+          channel = AMQP::Channel.new
+          channel.on_error do |ch, channel_close|
+            @error_code = channel_close.reply_code
+          end
 
-          expect {
-            exchange = @channel.topic("topic exchange declared at #{Time.now.to_i}", :passive => true)
-          }.to raise_error
+          exchange = channel.topic("topic exchange declared at #{Time.now.to_i}", :passive => true)
 
-          done
+          done(0.5) {
+            @error_code.should == 404
+          }
         end # it
       end # context
-    end # context
+    end
 
 
     context "when exchange is declared as durable" do
@@ -539,14 +527,16 @@ describe AMQP::Channel do
 
       context "and exchange with given name DOES NOT exist" do
         it "raises an exception" do
-          pending "Not yet supported"
           channel = AMQP::Channel.new
+          channel.on_error do |ch, channel_close|
+            @error_code = channel_close.reply_code
+          end
 
-          expect {
-            exchange = channel.headers("headers exchange declared at #{Time.now.to_i}", :passive => true)
-          }.to raise_error
+          exchange = channel.headers("headers exchange declared at #{Time.now.to_i}", :passive => true)
 
-          done
+          done(0.5) {
+            @error_code.should == 404
+          }
         end # it
       end # context
     end # context
