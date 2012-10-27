@@ -613,50 +613,5 @@ describe AMQP::Channel do
         done
       end # it
     end # context
-
-
-    context "when exchange is re-declared with parameters different from original declaration on two separate channels" do
-      it "raises an exception" do
-        name     = "previously.declared.durable.headers.exchange2"
-        channel1 = AMQP::Channel.new
-        channel2 = AMQP::Channel.new
-        channel1.headers(name, :durable => true, :auto_delete => true)
-
-        channel2.on_error do |ch, channel_close|
-          puts "reply_text: #{channel_close.reply_text}, reply_code: #{channel_close.reply_code}"
-          @error_code = channel_close.reply_code
-        end
-        channel2.headers(name, :durable => false, :auto_delete => false)
-
-        done(1.0) {
-          @error_code.should == 406
-        }
-      end # it
-    end # context
-
-
-
-    context "when exchange is re-declared with type different from the original declaration on two separate channels" do
-      amqp_after do
-        done
-      end
-
-      it "raises an exception" do
-        name     = "previously.declared.durable.topic.exchange3"
-        channel1 = AMQP::Channel.new
-        channel2 = AMQP::Channel.new
-        channel1.topic(name, :durable => true)
-
-        channel2.on_error do |ch, channel_close|
-          puts "reply_text: #{channel_close.reply_text}, reply_code: #{channel_close.reply_code}"
-          @error_code = channel_close.reply_code
-        end
-        channel2.headers(name, :durable => true)
-
-        done(1.0) {
-          @error_code.should == 406
-        }
-      end # it
-    end # context
   end # describe
 end # describe AMQP
