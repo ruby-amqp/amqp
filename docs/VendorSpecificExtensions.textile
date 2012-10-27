@@ -2,6 +2,10 @@
 
 h1. Vendor-specific AMQP extensions support in amqp gem
 
+h2. This Documentation Has Moved to rubyamqp.info
+
+amqp gem documentation guides are now hosted on "rubyamqp.info":http://rubyamqp.info.
+
 h2. RabbitMQ extensions
 
 h2. Supported extensions

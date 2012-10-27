@@ -116,7 +116,7 @@ module AMQP
   #       persistence.
   #
   #
-  # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.1.1)
+  # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 2.1.1)
   # @see AMQP::Exchange
   class Queue < AMQ::Client::Queue
 
