@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe AMQP do
+describe "AMQP queue redeclaration with different attributes" do
 
   #
   # Environment
@@ -17,7 +17,7 @@ describe AMQP do
   # Examples
   #
 
-  context "when queue is redeclared with different attributes" do
+  context "when :durable value is different" do
     let(:name)              { "amqp-gem.nondurable.queue" }
     let(:options)           {
       { :durable => false, :exclusive => true, :auto_delete => true, :arguments => {}, :passive => false }
@@ -25,35 +25,48 @@ describe AMQP do
     let(:different_options) {
       { :durable => true, :exclusive => true, :auto_delete => true, :arguments => {}, :passive => false}
     }
-    let(:irrelevant_different_options) {
-      { :durable => false, :exclusive => true, :auto_delete => true, :arguments => {}, :passive => false, :header => {:random => 'stuff' } }
-    }
 
 
     it "should raise AMQP::IncompatibleOptionsError for incompatable options" do
       channel = AMQP::Channel.new
-      channel.on_error do |ch, close|
-        @callback_fired = true
+      channel.on_error do |ch, channel_close|
+        @error_code = channel_close.reply_code
       end
 
       channel.queue(name, options)
       expect {
         channel.queue(name, different_options)
       }.to raise_error(AMQP::IncompatibleOptionsError)
-      done
+
+      done(0.5) {
+        @error_code.should == 406
+      }
     end
+  end
+
+  context "when :headers are different" do
+    let(:name)              { "amqp-gem.nondurable.queue" }
+    let(:options)           {
+      { :durable => false, :exclusive => true, :auto_delete => true, :arguments => {}, :passive => false }
+    }
+    let(:different_options) {
+      { :durable => false, :exclusive => true, :auto_delete => true, :arguments => {}, :passive => false, :header => {:random => 'stuff' } }
+    }
 
     it "should not raise AMQP::IncompatibleOptionsError for irrelevant options" do
       channel = AMQP::Channel.new
-      channel.on_error do |ch, close|
-        @callback_fired = true
+      channel.on_error do |ch, channel_close|
+        @error_code = channel_close.reply_code
       end
 
       channel.queue(name, options)
       expect {
-        channel.queue(name, irrelevant_different_options)
+        channel.queue(name, different_options)
       }.to_not raise_error(AMQP::IncompatibleOptionsError)
-      done
+
+      done(0.5) {
+        @error_code.should == 406
+      }
     end
   end
 end # describe AMQP
