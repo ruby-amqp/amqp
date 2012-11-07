@@ -97,7 +97,7 @@ module AMQP
   #
   # h2. Queue durability and persistence of messages.
   #
-  # Learn more in our {file:docs/Durability.textile Durability guide}.
+  # Learn more in our {http://rubyamqp.info/articles/durability/}.
   #
   #
   # h2. Message ordering
@@ -112,7 +112,7 @@ module AMQP
   # Learn more in {file:docs/ErrorHandling.textile Error Handling guide}.
   #
   #
-  # @note Please make sure you read {file:docs/Durability.textile Durability guide} that covers exchanges durability vs. messages
+  # @note Please make sure you read {http://rubyamqp.info/articles/durability/} that covers exchanges durability vs. messages
   #       persistence.
   #
   #
