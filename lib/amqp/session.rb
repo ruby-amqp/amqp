@@ -186,7 +186,7 @@ module AMQP
       super(&block)
     end
 
-    # Defines a callback that will be run when initial TCP connection fails.
+    # Defines a callback that will be run when TCP connection to AMQP broker is lost (interrupted).
     # You can define only one callback.
     #
     # @api public
