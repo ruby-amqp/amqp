@@ -192,6 +192,7 @@ module AMQP
   # @option connection_options_or_string [String]  :username ("guest") Username to use. Also can be specified as :user.
   # @option connection_options_or_string [String]  :password ("guest") Password to use. Also can be specified as :pass.
   # @option connection_options_or_string [Hash]  :ssl TLS (SSL) parameters to use.
+  # @option connection_options_or_string [Fixnum] :heartbeat (0) Connection heartbeat, in seconds. 0 means no heartbeat. Can also be configured server-side starting with RabbitMQ 3.0.
   # @option connection_options_or_string [#call]  :on_tcp_connection_failure A callable object that will be run if connection to server fails
   # @option connection_options_or_string [#call]  :on_possible_authentication_failure A callable object that will be run if authentication fails (see Authentication failure section)
   #
