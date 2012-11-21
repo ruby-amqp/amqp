@@ -22,7 +22,7 @@ module AMQP
     # @see AMQP.connect
     # @api plugin
     #
-    # @see http://bit.ly/ks8MXK Connecting to The Broker documentation guide
+    # @see http://rubyamqp.info/articles/connecting_to_broker/ Connecting to The Broker documentation guide
     def self.connect(connection_string_or_options = {}, options = {}, &block)
       opts = case connection_string_or_options
              when String then
@@ -82,7 +82,7 @@ module AMQP
     #
     # @raise [ArgumentError] When connection URI schema is not amqp or amqps, or the path contains multiple segments
     #
-    # @see http://bit.ly/ks8MXK Connecting to The Broker documentation guide
+    # @see http://rubyamqp.info/articles/connecting_to_broker/ Connecting to The Broker documentation guide
     # @api public
     def self.parse_connection_uri(connection_string)
       AMQ::Client::Settings.parse_amqp_url(connection_string)
