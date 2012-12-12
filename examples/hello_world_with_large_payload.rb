@@ -17,7 +17,7 @@ end
 
 EventMachine.next_tick {
   connection = AMQP.connect(:host => '127.0.0.1')
-  puts "Connected to AMQP broker. Running #{AMQP::VERSION} version of the gem..."
+  puts "Connected to RabbitMQ. Running #{AMQP::VERSION} version of the gem..."
 
   channel  = AMQP::Channel.new(connection)
   queue    = channel.queue("amqpgem.examples.hello_world", :auto_delete => true)
@@ -62,31 +62,31 @@ EventMachine.next_tick {
   A TCP segment consists of a segment header and a data section. The TCP header contains 10 mandatory fields, and an optional extension field (Options, pink background in table).
 
   The data section follows the header. Its contents are the payload data carried for the application. The length of the data section is not specified in the TCP segment header. It can be calculated by subtracting the combined length of the TCP header and the encapsulating IP segment header from the total IP segment length (specified in the IP segment header).
-  TCP Header Bit offset 	 0 	 1 	 2 	 3 	 4 	 5 	 6 	 7 	 8 	 9 	10 	11 	12 	13 	14 	15 	16 	17 	18 	19 	20 	21 	22 	23 	24 	25 	26 	27 	28 	29 	30 	31
-  0 	Source port 	Destination port
-  32 	Sequence number
-  64 	Acknowledgment number (if ACK set)
-  96 	Data offset 	Reserved 	C
+  TCP Header Bit offset          0       1       2       3       4       5       6       7       8       9      10      11      12      13      14      15      16      17      18      19      20      21      22      23      24      25      26      27      28      29      30      31
+  0     Source port     Destination port
+  32    Sequence number
+  64    Acknowledgment number (if ACK set)
+  96    Data offset     Reserved        C
   W
-  R 	E
+  R     E
   C
-  E 	U
+  E     U
   R
-  G 	A
+  G     A
   C
-  K 	P
+  K     P
   S
-  H 	R
+  H     R
   S
-  T 	S
+  T     S
   Y
-  N 	F
+  N     F
   I
-  N 	Window Size
-  128 	Checksum 	Urgent pointer (if URG set)
+  N     Window Size
+  128   Checksum        Urgent pointer (if URG set)
   160
-  ... 	Options (if Data Offset > 5)
-  ... 	padding
+  ...   Options (if Data Offset > 5)
+  ...   padding
 
       Source port (16 bits) – identifies the sending port
       Destination port (16 bits) – identifies the receiving port
@@ -337,17 +337,17 @@ EventMachine.next_tick {
       The checksum field is the 16 bit one's complement of the one's complement sum of all 16-bit words in the header and text. If a segment contains an odd number of header and text octets to be checksummed, the last octet is padded on the right with zeros to form a 16-bit word for checksum purposes. The pad is not transmitted as part of the segment. While computing the checksum, the checksum field itself is replaced with zeros.
 
   In other words, after appropriate padding, all 16-bit words are added using one's complement arithmetic. The sum is then bitwise complemented and inserted as the checksum field. A pseudo-header that mimics the IPv4 packet header used in the checksum computation is shown in the table below.
-  TCP pseudo-header (IPv4) Bit offset 	0–3 	4–7 	8–15 	16–31
-  0 	Source address
-  32 	Destination address
-  64 	Zeros 	Protocol 	TCP length
-  96 	Source port 	Destination port
-  128 	Sequence number
-  160 	Acknowledgement number
-  192 	Data offset 	Reserved 	Flags 	Window
-  224 	Checksum 	Urgent pointer
-  256 	Options (optional)
-  256/288+ 	 
+  TCP pseudo-header (IPv4) Bit offset   0–3     4–7     8–15    16–31
+  0     Source address
+  32    Destination address
+  64    Zeros   Protocol        TCP length
+  96    Source port     Destination port
+  128   Sequence number
+  160   Acknowledgement number
+  192   Data offset     Reserved        Flags   Window
+  224   Checksum        Urgent pointer
+  256   Options (optional)
+  256/288+       
   Data
 
 
@@ -359,24 +359,24 @@ EventMachine.next_tick {
       Any transport or other upper-layer protocol that includes the addresses from the IP header in its checksum computation must be modified for use over IPv6, to include the 128-bit IPv6 addresses instead of 32-bit IPv4 addresses.
 
   A pseudo-header that mimics the IPv6 header for computation of the checksum is shown below.
-  TCP pseudo-header (IPv6) Bit offset 	0 - 7 	8–15 	16–23 	24–31
-  0 	Source address
+  TCP pseudo-header (IPv6) Bit offset   0 - 7   8–15    16–23   24–31
+  0     Source address
   32
   64
   96
-  128 	Destination address
+  128   Destination address
   160
   192
   224
-  256 	TCP length
-  288 	Zeros 	Next header
-  320 	Source port 	Destination port
-  352 	Sequence number
-  384 	Acknowledgement number
-  416 	Data offset 	Reserved 	Flags 	Window
-  448 	Checksum 	Urgent pointer
-  480 	Options (optional)
-  480/512+ 	 
+  256   TCP length
+  288   Zeros   Next header
+  320   Source port     Destination port
+  352   Sequence number
+  384   Acknowledgement number
+  416   Data offset     Reserved        Flags   Window
+  448   Checksum        Urgent pointer
+  480   Options (optional)
+  480/512+       
   Data
 
 

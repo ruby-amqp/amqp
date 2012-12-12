@@ -37,7 +37,7 @@ end
 EventMachine.run do
   manager = ConnectionManager.new
   manager.connect(:host => '127.0.0.1', :port => 5672) do |connection|
-    puts "Connected to AMQP broker. Running #{AMQP::VERSION} version of the gem..."
+    puts "Connected to RabbitMQ. Running #{AMQP::VERSION} version of the gem..."
 
     # send_frame is NOT part of the public API, but it is public for entities like AMQ::Client::Channel
     # and we use it here to trigger a connection-level exception. MK.

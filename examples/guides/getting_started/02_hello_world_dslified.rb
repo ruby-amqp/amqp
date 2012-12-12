@@ -6,7 +6,7 @@ require "amqp"
 
 EventMachine.run do
   AMQP.connect(:host => '127.0.0.1') do |connection|
-    puts "Connected to AMQP broker. Running #{AMQP::VERSION} version of the gem..."
+    puts "Connected to RabbitMQ. Running #{AMQP::VERSION} version of the gem..."
 
     channel  = AMQP::Channel.new(connection)
 
