@@ -345,7 +345,8 @@ module AMQP
     # {Queue#subscribe} or {Queue#pop} call.
     #
     # @param [Exchange] Exchange to unbind from.
-    #
+    # @option opts [String] :routing_key Binding routing key
+    # @option opts [Hash] :arguments Binding arguments
     # @option opts [Boolean] :nowait (true)  If set, the server will not respond to the method. The client should
     #                                       not wait for a reply method.  If the server could not complete the
     #                                       method it will raise a channel or connection exception.
