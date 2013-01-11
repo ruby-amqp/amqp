@@ -938,7 +938,7 @@ module AMQP
     # @api public
     def close(reply_code = 200, reply_text = DEFAULT_REPLY_TEXT, class_id = 0, method_id = 0, &block)
       r = super(reply_code, reply_text, class_id, method_id, &block)
-    
+
       r
     end
 
@@ -1121,7 +1121,7 @@ module AMQP
 
       self.class.error(method.reply_text)
     end
-    
+
     # Overrides AMQ::Client::Channel version to also release the channel id
     #
     # @private
