@@ -1120,6 +1120,7 @@ module AMQP
       super(method)
 
       self.class.error(method.reply_text)
+      self.class.release_channel_id(@id)
     end
     
     # Overrides AMQ::Client::Channel version to also release the channel id
