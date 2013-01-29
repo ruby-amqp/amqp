@@ -2,6 +2,10 @@
 
 h1. Ruby AMQP gem documentation guides
 
+h2. This Documentation Has Moved to rubyamqp.info
+
+amqp gem documentation guides are now hosted on "rubyamqp.info":http://rubyamqp.info.
+
 h2. Which versions of the amqp gem do the guides cover?
 
 These guides cover v0.8.0.RC14 and later of the "Ruby amqp gem":http://github.com/ruby-amqp/amqp.

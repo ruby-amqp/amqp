@@ -7,7 +7,7 @@ require "amqp/queue"
 module AMQP
   # h2. What are AMQP channels
   #
-  # To quote {http://bit.ly/hw2ELX AMQP 0.9.1 specification}:
+  # To quote {http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification}:
   #
   # AMQP is a multi-channelled protocol. Channels provide a way to multiplex
   # a heavyweight TCP/IP connection into several light weight connections.
@@ -137,10 +137,10 @@ module AMQP
   #
   # h2. RabbitMQ extensions.
   #
-  # AMQP gem supports several RabbitMQ extensions taht extend Channel functionality.
+  # AMQP gem supports several RabbitMQ extensions that extend Channel functionality.
   # Learn more in {file:docs/VendorSpecificExtensions.textile}
   #
-  # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.2.5)
+  # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 2.2.5)
   class Channel < AMQ::Client::Channel
 
     #
@@ -227,6 +227,8 @@ module AMQP
       # Read more about EM::Deferrable#callback behavior in EventMachine documentation. MK.
       @channel_is_open_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
 
+      @parameter_checks = {:queue => [:durable, :exclusive, :auto_delete, :arguments], :exchange => [:type, :durable, :arguments]}
+
       # only send channel.open when connection is actually open. Makes it possible to
       # do c = AMQP.connect; AMQP::Channel.new(c) that is what some people do. MK.
       @connection.on_connection do
@@ -264,6 +266,9 @@ module AMQP
       self.open do
         @channel_is_open_deferrable.succeed
 
+        # re-establish prefetch
+        self.prefetch(@options[:prefetch], false) if @options[:prefetch]
+
         # exchanges must be recovered first because queue recovery includes recovery of bindings. MK.
         @exchanges.each { |name, e| e.auto_recover }
         @queues.each    { |name, q| q.auto_recover }
@@ -283,6 +288,9 @@ module AMQP
 
       self.open do
         @channel_is_open_deferrable.succeed
+
+        # re-establish prefetch
+        self.prefetch(@options[:prefetch], false) if @options[:prefetch]
 
         # exchanges must be recovered first because queue recovery includes recovery of bindings. MK.
         @exchanges.each { |name, e| e.auto_recover }
@@ -365,7 +373,7 @@ module AMQP
     # @see Channel#default_exchange
     # @see Exchange
     # @see Exchange#initialize
-    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 3.1.3.1)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 3.1.3.1)
     #
     # @return [Exchange]
     # @api public
@@ -373,7 +381,7 @@ module AMQP
       if exchange = find_exchange(name)
         extended_opts = Exchange.add_default_options(:direct, name, opts, block)
 
-        validate_parameters_match!(exchange, extended_opts)
+        validate_parameters_match!(exchange, extended_opts, :exchange)
 
         block.call(exchange) if block
         exchange
@@ -418,7 +426,7 @@ module AMQP
     #
     #
     # @see Exchange
-    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.1.2.4)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 2.1.2.4)
     #
     # @return [Exchange]
     # @api public
@@ -473,7 +481,7 @@ module AMQP
     # @see Exchange
     # @see Exchange#initialize
     # @see Channel#default_exchange
-    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 3.1.3.2)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 3.1.3.2)
     #
     # @return [Exchange]
     # @api public
@@ -481,7 +489,7 @@ module AMQP
       if exchange = find_exchange(name)
         extended_opts = Exchange.add_default_options(:fanout, name, opts, block)
 
-        validate_parameters_match!(exchange, extended_opts)
+        validate_parameters_match!(exchange, extended_opts, :exchange)
 
         block.call(exchange) if block
         exchange
@@ -589,7 +597,7 @@ module AMQP
     # @see Exchange
     # @see Exchange#initialize
     # @see http://www.rabbitmq.com/faq.html#Binding-and-Routing RabbitMQ FAQ on routing & wildcards
-    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 3.1.3.3)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 3.1.3.3)
     #
     # @return [Exchange]
     # @api public
@@ -597,7 +605,7 @@ module AMQP
       if exchange = find_exchange(name)
         extended_opts = Exchange.add_default_options(:topic, name, opts, block)
 
-        validate_parameters_match!(exchange, extended_opts)
+        validate_parameters_match!(exchange, extended_opts, :exchange)
 
         block.call(exchange) if block
         exchange
@@ -695,7 +703,7 @@ module AMQP
     # @see Exchange
     # @see Exchange#initialize
     # @see Channel#default_exchange
-    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 3.1.3.3)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 3.1.3.3)
     #
     # @return [Exchange]
     # @api public
@@ -703,7 +711,7 @@ module AMQP
       if exchange = find_exchange(name)
         extended_opts = Exchange.add_default_options(:headers, name, opts, block)
 
-        validate_parameters_match!(exchange, extended_opts)
+        validate_parameters_match!(exchange, extended_opts, :exchange)
 
         block.call(exchange) if block
         exchange
@@ -796,7 +804,7 @@ module AMQP
     #
     # @see Queue
     # @see Queue#initialize
-    # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.1.4)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 2.1.4)
     #
     # @return [Queue]
     # @api public
@@ -806,7 +814,7 @@ module AMQP
       if name && !name.empty? && (queue = find_queue(name))
         extended_opts = Queue.add_default_options(name, opts, block)
 
-        validate_parameters_match!(queue, extended_opts)
+        validate_parameters_match!(queue, extended_opts, :queue)
 
         block.call(queue) if block
         queue
@@ -828,10 +836,10 @@ module AMQP
                 Queue.new(self, name, opts)
               else
                 shim = Proc.new { |q, method|
-          queue = find_queue(method.queue)
           if block.arity == 1
-            block.call(queue)
+            block.call(q)
           else
+            queue = find_queue(method.queue)
             block.call(queue, method.consumer_count, method.message_count)
           end
         }
@@ -949,7 +957,7 @@ module AMQP
     #
     # @param [Boolean] Desired flow state.
     #
-    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.5.2.3.)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Reference.pdf AMQP 0.9.1 protocol documentation (Section 1.5.2.3.)
     # @api public
     def flow(active = false, &block)
       super(active, &block)
@@ -990,7 +998,7 @@ module AMQP
     # @api public
     # @see #reject
     # @see #recover
-    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.8.3.13.)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Reference.pdf AMQP 0.9.1 protocol documentation (Section 1.8.3.13.)
     def acknowledge(delivery_tag, multiple = false)
       super(delivery_tag, multiple)
     end # acknowledge(delivery_tag, multiple = false)
@@ -1000,7 +1008,7 @@ module AMQP
     # @api public
     # @see #acknowledge
     # @see #recover
-    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.8.3.14.)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Reference.pdf AMQP 0.9.1 protocol documentation (Section 1.8.3.14.)
     def reject(delivery_tag, requeue = true)
       super(delivery_tag, requeue)
     end # reject(delivery_tag, requeue = true)
@@ -1011,7 +1019,7 @@ module AMQP
     # @return [Channel]  self
     #
     # @note RabbitMQ as of 2.3.1 does not support basic.recover with requeue = false.
-    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.8.3.16.)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Reference.pdf AMQP 0.9.1 protocol documentation (Section 1.8.3.16.)
     # @see #acknowledge
     # @api public
     def recover(requeue = true, &block)
@@ -1260,15 +1268,13 @@ module AMQP
     end
 
 
-
     protected
 
-    # @private
-    def validate_parameters_match!(entity, parameters)
-      parameters.delete(:no_declare)
-      unless entity.opts == parameters || parameters[:passive]
+    @private
+    def validate_parameters_match!(entity, parameters, type)
+      unless entity.opts.values_at(*@parameter_checks[type]) == parameters.values_at(*@parameter_checks[type]) || parameters[:passive]
         raise AMQP::IncompatibleOptionsError.new(entity.name, entity.opts, parameters)
       end
-    end # validate_parameters_match!(entity, parameters)
+    end # validate_parameters_match!(entity, parameters, type)
   end # Channel
 end # AMQP

@@ -10,7 +10,7 @@ require 'amqp'
 
 EventMachine.run do
   connection = AMQP.connect(:host => '127.0.0.1')
-  puts "Connected to AMQP broker. Running #{AMQP::VERSION} version of the gem..."
+  puts "Connected to RabbitMQ. Running #{AMQP::VERSION} version of the gem..."
 
 
   connection.on_error do |conn, connection_close|

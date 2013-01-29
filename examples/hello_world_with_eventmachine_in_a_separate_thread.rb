@@ -17,7 +17,7 @@ end
 
 EventMachine.next_tick {
   connection = AMQP.connect(:host => '127.0.0.1')
-  puts "Connected to AMQP broker. Running #{AMQP::VERSION} version of the gem..."
+  puts "Connected to RabbitMQ. Running #{AMQP::VERSION} version of the gem..."
 
   channel  = AMQP::Channel.new(connection)
   queue    = channel.queue("amqpgem.examples.hello_world", :auto_delete => true)

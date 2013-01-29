@@ -139,7 +139,7 @@ module AMQP
     # @return [Consumer]  self
     #
     # @api public
-    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.8.3.13.)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Reference.pdf AMQP 0.9.1 protocol documentation (Section 1.8.3.13.)
     def acknowledge(delivery_tag)
       super(delivery_tag)
     end # acknowledge(delivery_tag)
@@ -148,7 +148,7 @@ module AMQP
     # @return [Consumer]  self
     #
     # @api public
-    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.8.3.14.)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Reference.pdf AMQP 0.9.1 protocol documentation (Section 1.8.3.14.)
     def reject(delivery_tag, requeue = true)
       super(delivery_tag, requeue)
     end # reject(delivery_tag, requeue = true)

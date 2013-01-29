@@ -39,12 +39,12 @@ module AMQP
     def initialize(*args, &block)
       super(*args, &block)
 
-      @client_properties = {
+      @client_properties.merge!({
         :platform    => ::RUBY_DESCRIPTION,
         :product     => "AMQP gem",
         :information => "http://github.com/ruby-amqp/amqp",
         :version     => AMQP::VERSION
-      }
+      })
     end # initialize(*args, &block)
 
     # @return [Boolean] true if this AMQP connection is currently open
@@ -110,7 +110,7 @@ module AMQP
 
 
     # Properly close connection with AMQ broker, as described in
-    # section 2.2.4 of the {http://bit.ly/hw2ELX AMQP 0.9.1 specification}.
+    # section 2.2.4 of the {http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification}.
     #
     # @api  plugin
     # @see  #close_connection
@@ -129,19 +129,19 @@ module AMQP
     # Server properties (product information, platform, et cetera)
     #
     # @return [Hash]
-    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.4.2.1.3)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Reference.pdf AMQP 0.9.1 protocol documentation (Section 1.4.2.1.3)
     attr_reader :server_properties
 
     # Server capabilities (usually used to detect AMQP 0.9.1 extensions like basic.nack, publisher
     # confirms and so on)
     #
     # @return [Hash]
-    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.4.2.1.3)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Reference.pdf AMQP 0.9.1 protocol documentation (Section 1.4.2.1.3)
     attr_reader :server_capabilities
 
     # Locales server supports
     #
-    # @see http://bit.ly/htCzCX AMQP 0.9.1 protocol documentation (Section 1.4.2.1.3)
+    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Reference.pdf AMQP 0.9.1 protocol documentation (Section 1.4.2.1.3)
     attr_reader :server_locales
 
     # @return [AMQP::Broker] Broker this connection is established with
@@ -186,7 +186,7 @@ module AMQP
       super(&block)
     end
 
-    # Defines a callback that will be run when initial TCP connection fails.
+    # Defines a callback that will be run when TCP connection to AMQP broker is lost (interrupted).
     # You can define only one callback.
     #
     # @api public

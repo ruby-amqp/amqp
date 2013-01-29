@@ -53,7 +53,6 @@ describe AMQP do
       }
 
       delayed(0.3) {
-        @q1.delete
         @q2.delete
       }
 

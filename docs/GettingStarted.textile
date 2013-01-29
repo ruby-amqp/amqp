@@ -2,6 +2,10 @@
 
 h1. Getting started with the Ruby amqp gem
 
+h2. This Documentation Has Moved to rubyamqp.info
+
+amqp gem documentation guides are now hosted on "rubyamqp.info":http://rubyamqp.info.
+
 
 h2. About this guide
 
@@ -219,7 +223,7 @@ For the sake of simplicity, both the message producer (App I) and the consumer (
 Now let us move on to a little bit more sophisticated example.
 
 
-h2. Blabblr: one-to-many publish/subscribe (pubsub) example
+h2. Blabbr: one-to-many publish/subscribe (pubsub) example
 
 The previous example demonstrated how a connection to a broker is made and how to do 1:1 communication
 using the default exchange. Now let us take a look at another common scenario: broadcast, or multiple consumers
@@ -268,7 +272,7 @@ exchange = channel.fanout("nba.scores")
 </pre>
 
 The exchange that we declare above using {AMQP::Channel#fanout} is a _fanout exchange_. A fanout exchange delivers messages to all of the queues that
- are bound to it: exactly what we want in the case of Blabbr!
+ are bound to it: exactly what we want in the case of Blabbr.
 
 This piece of code
 
@@ -299,11 +303,11 @@ A diagram for Blabbr looks like this:
 
 
 Next we use EventMachine's {http://eventmachine.rubyforge.org/EventMachine.html#M000466 add_timer} method to
-run a piece of code in 1 second from now:
+run a piece of code in 2 seconds from now:
 
 <pre>
 <code>
-EventMachine.add_timer(1) do
+EventMachine.add_timer(2) do
   exchange.delete
 
   connection.close { EventMachine.stop }

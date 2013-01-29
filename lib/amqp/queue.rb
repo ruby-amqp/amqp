@@ -97,7 +97,7 @@ module AMQP
   #
   # h2. Queue durability and persistence of messages.
   #
-  # Learn more in our {file:docs/Durability.textile Durability guide}.
+  # Learn more in our {http://rubyamqp.info/articles/durability/}.
   #
   #
   # h2. Message ordering
@@ -112,11 +112,11 @@ module AMQP
   # Learn more in {file:docs/ErrorHandling.textile Error Handling guide}.
   #
   #
-  # @note Please make sure you read {file:docs/Durability.textile Durability guide} that covers exchanges durability vs. messages
+  # @note Please make sure you read {http://rubyamqp.info/articles/durability/} that covers exchanges durability vs. messages
   #       persistence.
   #
   #
-  # @see http://bit.ly/hw2ELX AMQP 0.9.1 specification (Section 2.1.1)
+  # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 2.1.1)
   # @see AMQP::Exchange
   class Queue < AMQ::Client::Queue
 
@@ -345,7 +345,8 @@ module AMQP
     # {Queue#subscribe} or {Queue#pop} call.
     #
     # @param [Exchange] Exchange to unbind from.
-    #
+    # @option opts [String] :routing_key Binding routing key
+    # @option opts [Hash] :arguments Binding arguments
     # @option opts [Boolean] :nowait (true)  If set, the server will not respond to the method. The client should
     #                                       not wait for a reply method.  If the server could not complete the
     #                                       method it will raise a channel or connection exception.

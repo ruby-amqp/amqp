@@ -19,8 +19,7 @@ EventMachine.run do
     channel.default_exchange.publish("get.time",
                                      :routing_key => "amqpgem.examples.services.time",
                                      :message_id  => Kernel.rand(10101010).to_s,
-                                     :reply_to    => replies_queue.name,
-                                     :immediate   => true)
+                                     :reply_to    => replies_queue.name)
   end
 
 

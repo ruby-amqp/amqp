@@ -30,7 +30,7 @@ module AMQP
       @settings = settings
       @cause    = cause
 
-      super("Could not estabilish TCP connection to #{@settings[:host]}:#{@settings[:port]}")
+      super("Could not establish TCP connection to #{@settings[:host]}:#{@settings[:port]}")
     end # TCPConnectionFailed
   end
 
@@ -43,8 +43,17 @@ module AMQP
     def initialize(settings)
       @settings = settings
 
-      super("AMQP broker closed TCP connection before authentication succeeded: this usually means authentication failure due to misconfiguration. Settings are #{settings.inspect}")
+      super("AMQP broker closed TCP connection before authentication succeeded: this usually means authentication failure due to misconfiguration. Settings are #{filtered_settings.inspect}")
     end # initialize(settings)
+
+    def filtered_settings
+      filtered_settings = settings.dup
+      [:pass, :password].each do |sensitve_setting|
+        filtered_settings[sensitve_setting] &&= '[filtered]'
+      end
+
+      filtered_settings
+    end
   end # PossibleAuthenticationFailureError
 
 

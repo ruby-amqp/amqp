@@ -2,6 +2,10 @@
 
 h1. Ruby amqp gem and RabbitMQ versions compatibility
 
+h2. This Documentation Has Moved to rubyamqp.info
+
+amqp gem documentation guides are now hosted on "rubyamqp.info":http://rubyamqp.info.
+
 h2. About this guide
 
 This guide covers compatibility of the "Ruby amqp gem":http://github.com/ruby-amqp/amqp with various versions of "RabbitMQ":http://rabbitmq.com messaging broker.

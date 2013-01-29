@@ -54,7 +54,7 @@ module AMQP
   # Pass it a block if you want a piece of code to be run once default connection
   # is successfully closed.
   #
-  # @note If default connection was never estabilished or is in the closing state already,
+  # @note If default connection was never established or is in the closing state already,
   #       this method has no effect.
   # @api public
   def self.stop(reply_code = 200, reply_text = "Goodbye", &block)
@@ -192,6 +192,7 @@ module AMQP
   # @option connection_options_or_string [String]  :username ("guest") Username to use. Also can be specified as :user.
   # @option connection_options_or_string [String]  :password ("guest") Password to use. Also can be specified as :pass.
   # @option connection_options_or_string [Hash]  :ssl TLS (SSL) parameters to use.
+  # @option connection_options_or_string [Fixnum] :heartbeat (0) Connection heartbeat, in seconds. 0 means no heartbeat. Can also be configured server-side starting with RabbitMQ 3.0.
   # @option connection_options_or_string [#call]  :on_tcp_connection_failure A callable object that will be run if connection to server fails
   # @option connection_options_or_string [#call]  :on_possible_authentication_failure A callable object that will be run if authentication fails (see Authentication failure section)
   #

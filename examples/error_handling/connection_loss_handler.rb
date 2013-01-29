@@ -28,7 +28,7 @@ AMQP.start(:port     => 5672,
     connection.close { EventMachine.stop }
   end
 
-  puts "Connected, authenticated. To really exercise this example, shut AMQP broker down for a few seconds. If you don't it will exit gracefully in 30 seconds."
+  puts "Connected, authenticated. To really exercise this example, shut RabbitMQ down for a few seconds. If you don't it will exit gracefully in 30 seconds."
 
   Signal.trap "INT",  show_stopper
   EM.add_timer(30, show_stopper)

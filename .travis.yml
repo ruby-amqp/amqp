@@ -1,16 +1,16 @@
-# https://github.com/travis-ci/travis-ci/wiki/.travis.yml-options
+language: ruby
 bundler_args: --without development
-script: "bundle exec rake spec:ci"
 before_script: ./bin/ci/before_build.sh
+script: "bundle exec rake spec:ci"
+env:
+  - CI=true
 rvm:
   - 1.8.7
-  - rbx-18mode
-  # - rbx-19mode
-  - jruby-18mode
-  # - jruby-18mode
+  - rbx-19mode
+  - jruby-19mode
+  - jruby-head
   - 1.9.2
   - 1.9.3
-  # - ruby-head
 gemfile:
   - Gemfile
   - gemfiles/eventmachine-pre
@@ -23,3 +23,26 @@ branches:
     - 0.9.x-stable
     - 0.8.x-stable
     - 0.7.x-stable
+matrix:
+  allow_failures:
+    - rvm: 1.8.7
+      gemfile: gemfiles/eventmachine-pre
+    - rvm: 1.9.3
+      gemfile: gemfiles/eventmachine-pre
+    - rvm: jruby-19mode
+      gemfile: gemfiles/eventmachine-pre
+    - rvm: jruby-head
+      gemfile: gemfiles/eventmachine-pre
+    - rvm: jruby-head
+      gemfile: Gemfile
+    - rvm: rbx-19mode
+      gemfile: gemfiles/eventmachine-pre
+    - rvm: rbx-19mode
+      gemfile: Gemfile
+    - rvm: 1.9.2
+      gemfile: gemfiles/eventmachine-pre
+    - rvm: 1.9.2
+      gemfile: Gemfile
+
+services:
+  - rabbitmq

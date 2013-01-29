@@ -2,6 +2,10 @@
 
 h1. Testing AMQP applications
 
+h2. This Documentation Has Moved to rubyamqp.info
+
+amqp gem documentation guides are now hosted on "rubyamqp.info":http://rubyamqp.info.
+
 h2. About this guide
 
 This guide covers unit testing of amqp-based applications, primarily using "evented-spec":http://github.com/ruby-amqp/evented-spec.
