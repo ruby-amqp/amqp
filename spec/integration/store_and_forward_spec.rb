@@ -53,11 +53,7 @@ describe "Store-and-forward routing" do
         @queue.subscribe(:ack => false) do |payload|
           payload.should_not be_nil
           number_of_received_messages += 1
-          if RUBY_VERSION =~ /^1.9/
-            payload.force_encoding("UTF-8").should == dispatched_data
-          else
-            payload.should == dispatched_data
-          end
+          payload.should == dispatched_data
         end # subscribe
 
         expected_number_of_messages.times do
