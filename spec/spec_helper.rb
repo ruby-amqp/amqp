@@ -15,6 +15,12 @@ puts "Using Ruby #{RUBY_VERSION}, amq-client #{AMQ::Client::VERSION} and amq-pro
 
 amqp_config = File.dirname(__FILE__) + '/amqp.yml'
 
+port = if ENV["TRACER"]
+         5673
+       else
+         5672
+       end
+
 if File.exists? amqp_config
   class Hash
     def symbolize_keys
@@ -28,7 +34,7 @@ if File.exists? amqp_config
   end
   AMQP_OPTS = YAML::load_file(amqp_config).symbolize_keys[:test]
 else
-  AMQP_OPTS = {:host => 'localhost', :port => 5672}
+  AMQP_OPTS = {:host => 'localhost', :port => port}
 end
 
 # puts "AMQP_OPTS = #{AMQP_OPTS.inspect}"
