@@ -263,6 +263,9 @@ module AMQP
     def auto_recover
       return unless auto_recovering?
 
+      @channel_is_open_deferrable.fail
+      @channel_is_open_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
+
       self.open do
         @channel_is_open_deferrable.succeed
 
@@ -285,6 +288,9 @@ module AMQP
       # with the same value. MK.
       @id    = self.class.next_channel_id
       self.class.release_channel_id(old_id)
+
+      @channel_is_open_deferrable.fail
+      @channel_is_open_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
 
       self.open do
         @channel_is_open_deferrable.succeed
@@ -929,14 +935,25 @@ module AMQP
     #
     # @api public
     def once_open(&block)
-      @channel_is_open_deferrable.callback(&block)
+      @channel_is_open_deferrable.callback do
+        # guards against cases when deferred operations
+        # don't complete before the channel is closed
+        block.call if open?
+      end
     end # once_open(&block)
     alias once_opened once_open
+
+    # @return [Boolean]
+    # @api public
+    def closing?
+      self.status == :closing
+    end
 
     # Closes AMQP channel.
     #
     # @api public
     def close(reply_code = 200, reply_text = DEFAULT_REPLY_TEXT, class_id = 0, method_id = 0, &block)
+      self.status = :closing
       r = super(reply_code, reply_text, class_id, method_id, &block)
 
       r

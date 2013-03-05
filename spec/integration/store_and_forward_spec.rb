@@ -60,12 +60,13 @@ describe "Store-and-forward routing" do
           end
         end # subscribe
 
-        expected_number_of_messages.times do
-          @exchange.publish(dispatched_data, :routing_key => @queue_name)
+        delayed(0.3) do
+          expected_number_of_messages.times do
+            @exchange.publish(dispatched_data, :routing_key => @queue_name)
+          end
         end
 
-        # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-        done(6.0) {
+        done(4.0) {
           number_of_received_messages.should == expected_number_of_messages
           @queue.unsubscribe
         }

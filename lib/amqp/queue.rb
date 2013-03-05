@@ -221,7 +221,11 @@ module AMQP
     #
     # @api public
     def once_declared(&block)
-      @declaration_deferrable.callback(&block)
+      @declaration_deferrable.callback do
+        # guards against cases when deferred operations
+        # don't complete before the channel is closed
+        block.call if @channel.open?
+      end
     end # once_declared(&block)
 
 
@@ -281,14 +285,8 @@ module AMQP
     # @api public
     # @see Queue#unbind
     def bind(exchange, opts = {}, &block)
-      if self.server_named?
-        @channel.once_open do
-          @declaration_deferrable.callback do
-            super(exchange, (opts[:key] || opts[:routing_key] || AMQ::Protocol::EMPTY_STRING), (opts[:nowait] || block.nil?), opts[:arguments], &block)
-          end
-        end
-      else
-        @channel.once_open do
+      @channel.once_open do
+        self.once_name_is_available do
           super(exchange, (opts[:key] || opts[:routing_key] || AMQ::Protocol::EMPTY_STRING), (opts[:nowait] || block.nil?), opts[:arguments], &block)
         end
       end
@@ -357,7 +355,9 @@ module AMQP
     # @see Queue#bind
     def unbind(exchange, opts = {}, &block)
       @channel.once_open do
-        super(exchange, (opts[:key] || opts[:routing_key] || AMQ::Protocol::EMPTY_STRING), opts[:arguments], &block)
+        self.once_name_is_available do
+          super(exchange, (opts[:key] || opts[:routing_key] || AMQ::Protocol::EMPTY_STRING), opts[:arguments], &block)
+        end
       end
     end
 
@@ -391,7 +391,9 @@ module AMQP
     # @see Queue#unbind
     def delete(opts = {}, &block)
       @channel.once_open do
-        super(opts.fetch(:if_unused, false), opts.fetch(:if_empty, false), opts.fetch(:nowait, false), &block)
+        self.once_name_is_available do
+          super(opts.fetch(:if_unused, false), opts.fetch(:if_empty, false), opts.fetch(:nowait, false), &block)
+        end
       end
 
       # backwards compatibility
@@ -416,7 +418,9 @@ module AMQP
     # @see Queue#unbind
     def purge(opts = {}, &block)
       @channel.once_open do
-        super(opts.fetch(:nowait, false), &block)
+        self.once_declared do
+          super(opts.fetch(:nowait, false), &block)
+        end
       end
 
       # backwards compatibility
@@ -477,11 +481,17 @@ module AMQP
         }
 
         @channel.once_open do
-          # see AMQ::Client::Queue#get in amq-client
-          self.get(!opts.fetch(:ack, false), &shim)
+          self.once_name_is_available do
+            # see AMQ::Client::Queue#get in amq-client
+            self.get(!opts.fetch(:ack, false), &shim)
+          end
         end
       else
-        @channel.once_open { self.get(!opts.fetch(:ack, false)) }
+        @channel.once_open do
+          self.once_name_is_available do
+            self.get(!opts.fetch(:ack, false))
+          end
+        end
       end
     end
 
@@ -719,7 +729,9 @@ module AMQP
       opts[:nowait] = false if (@on_confirm_subscribe = opts[:confirm])
 
       @channel.once_open do
-        self.once_declared do
+        self.once_name_is_available do
+          # guards against a pathological case race condition when a channel
+          # is opened and closed before delayed operations are completed.
           self.consume(!opts[:ack], opts[:exclusive], (opts[:nowait] || block.nil?), opts[:no_local], nil, &opts[:confirm])
 
           self.on_delivery(&block)
@@ -785,7 +797,7 @@ module AMQP
     # @api public
     def unsubscribe(opts = {}, &block)
       @channel.once_open do
-        self.once_declared do
+        self.once_name_is_available do
           if @default_consumer
             @default_consumer.cancel(opts.fetch(:nowait, true), &block); @default_consumer = nil
           end
@@ -812,12 +824,14 @@ module AMQP
       shim = Proc.new { |q, declare_ok| block.call(declare_ok.message_count, declare_ok.consumer_count) }
 
       @channel.once_open do
-        # we do not use self.declare here to avoid caching of @passive since that will cause unexpected side-effects during automatic
-        # recovery process. MK.
-        @connection.send_frame(AMQ::Protocol::Queue::Declare.encode(@channel.id, @name, true, @opts[:durable], @opts[:exclusive], @opts[:auto_delete], false, @opts[:arguments]))
+        self.once_name_is_available do
+          # we do not use self.declare here to avoid caching of @passive since that will cause unexpected side-effects during automatic
+          # recovery process. MK.
+          @connection.send_frame(AMQ::Protocol::Queue::Declare.encode(@channel.id, @name, true, @opts[:durable], @opts[:exclusive], @opts[:auto_delete], false, @opts[:arguments]))
 
-        self.append_callback(:declare, &shim)
-        @channel.queues_awaiting_declare_ok.push(self)
+          self.append_callback(:declare, &shim)
+          @channel.queues_awaiting_declare_ok.push(self)
+        end
       end
 
       self
@@ -881,6 +895,16 @@ module AMQP
     # @private
     def self.add_default_options(name, opts, block)
       { :queue => name, :nowait => (block.nil? && !name.empty?) }.merge(opts)
+    end
+
+    def once_name_is_available(&block)
+      if server_named?
+        self.once_declared do
+          block.call
+        end
+      else
+        block.call
+      end
     end
 
     private
