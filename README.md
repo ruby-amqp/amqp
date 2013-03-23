@@ -178,14 +178,14 @@ We cover Web application integration for multiple Ruby Web servers in [Connectin
 
 ## Migration from amqp gem 0.6.x and 0.7.x
 
-Upgrading from amqp gem 0.6.x and 0.7.x to to 0.8.0.RCs is straightforward, please see [amqp gem 0.8.0 migration guide](http://rubyamqp.info/articles/08_migration/).
+Upgrading from amqp gem 0.6.x and 0.7.x to 0.8.0+ is straightforward, please see [amqp gem 0.8.0 migration guide](http://rubyamqp.info/articles/08_migration/).
 The same guide explains amqp gem versions history and why you would want to upgrade.
 
 
 
 ## Maintainer Information
 
-amqp gem is maintained by [Michael Klishin](https://github.com/michaelklishin).
+amqp gem is maintained by [Michael Klishin](http://twitter.com/michaelklishin).
 
 
 ## Continuous Integration
