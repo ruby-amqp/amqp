@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://rubyamqp.info"
   s.summary = "Widely used, feature-rich asynchronous RabbitMQ client with batteries included"
   # RubyGems will emit warnings if summary is the same as description. I have no idea why but lets trick it. MK.
-  s.description = "Widely used, feature-rich asynchronous AMQP RabbitMQ client with batteries included."
+  s.description = "Widely used, feature-rich asynchronous RabbitMQ client with batteries included."
   s.email = ["bWljaGFlbEBub3ZlbWJlcmFpbi5jb20=\n", "c3Rhc3RueUAxMDFpZGVhcy5jeg==\n"].map { |i| Base64.decode64(i) }
   s.licenses = ["Ruby"]
 
