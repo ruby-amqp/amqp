@@ -45,7 +45,7 @@ EventMachine.run do
       end
     end
 
-    EventMachine.add_timer(3.0) do
+    EventMachine.add_periodic_timer(3.0) do
       puts "Publishing a message..."
       x = channel.fanout("amq.fanout")
       x.publish("xyz", :routing_key => "amqpgem.examples.channel_exception.q1")
