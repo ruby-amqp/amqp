@@ -15,3 +15,4 @@ vendor
 doc/*
 tmp/*
 bin/*
+.AppleDouble/*
