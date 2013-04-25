@@ -281,6 +281,9 @@ module AMQP
     # Can be used to recover channels from channel-level exceptions. Allocates a new channel id and reopens
     # itself with this new id, releasing the old id after the new one is allocated.
     #
+    # This includes recovery of known exchanges, queues and bindings, exactly the same way as when
+    # the client recovers from a network failure.
+    #
     # @api public
     def reuse
       old_id = @id
@@ -842,13 +845,13 @@ module AMQP
                 Queue.new(self, name, opts)
               else
                 shim = Proc.new { |q, method|
-          if block.arity == 1
-            block.call(q)
-          else
-            queue = find_queue(method.queue)
-            block.call(queue, method.consumer_count, method.message_count)
-          end
-        }
+                  if block.arity == 1
+                    block.call(q)
+                  else
+                    queue = find_queue(method.queue)
+                    block.call(queue, method.consumer_count, method.message_count)
+                  end
+                }
                 Queue.new(self, name, opts, &shim)
               end
 
