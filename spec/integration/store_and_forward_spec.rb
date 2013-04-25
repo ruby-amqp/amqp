@@ -38,7 +38,7 @@ describe "Store-and-forward routing" do
         @queue_name = "amqpgem.integration.snf.queue1"
 
         @exchange = @channel.direct("")
-        @queue    = @channel.queue(@queue_name, :auto_delete => true, :nowait => false)
+        @queue    = @channel.queue(@queue_name, :auto_delete => true)
       end
 
       it "allows asynchronous subscription to messages WITHOUT acknowledgements" do
@@ -49,7 +49,7 @@ describe "Store-and-forward routing" do
         # various test suites. MK.
         dispatched_data             = "libertà è participazione (inviato a #{Time.now.to_i})"
 
-        @queue.purge :nowait => true
+        @queue.purge
         @queue.subscribe(:ack => false) do |payload|
           payload.should_not be_nil
           number_of_received_messages += 1
