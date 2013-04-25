@@ -185,18 +185,9 @@ module AMQP
       # it's crazy, but 0.7.x supports it, so... MK.
       @declaration_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
 
-      if @opts[:nowait]
-        @status = :opened
-        block.call(self) if block
-      else
-        @status = :opening
-      end
-
       super(channel.connection, channel, name)
 
       shim = Proc.new do |q, declare_ok|
-        @declaration_deferrable.succeed
-
         case block.arity
         when 1 then block.call(q)
         else
@@ -205,13 +196,17 @@ module AMQP
       end
 
       @channel.once_open do
+        if @opts[:nowait]
+          @declaration_deferrable.succeed
+          block.call(self) if block
+        end
+
         if block
           self.declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], @opts[:nowait], @opts[:arguments], &shim)
         else
-          injected_callback = Proc.new { @declaration_deferrable.succeed }
           # we cannot pass :nowait as true here, AMQ::Client::Queue will (rightfully) raise an exception because
           # it has no idea about crazy edge cases we are trying to support for sake of backwards compatibility. MK.
-          self.declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], false, @opts[:arguments], &injected_callback)
+          self.declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], false, @opts[:arguments])
         end
       end
     end
@@ -319,7 +314,6 @@ module AMQP
       end
 
       self.redeclare do
-        @declaration_deferrable.succeed
         self.rebind
 
         @consumers.each { |tag, consumer| consumer.auto_recover }
@@ -890,6 +884,12 @@ module AMQP
 
       @declaration_deferrable = EventMachine::DefaultDeferrable.new
     end
+
+    def handle_declare_ok(method)
+      super(method)
+      @declaration_deferrable.succeed
+    end
+
 
     protected
 
