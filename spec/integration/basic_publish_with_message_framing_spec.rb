@@ -19,8 +19,8 @@ describe "Large messages that need to be framed" do
       raise "Channel-level error!: #{close.inspect}"
     end
 
-    @queue1    = @channel.queue("amqpgem.tests.integration.queue#{Time.now}", :exclusive => true)
-    @queue2    = @channel.queue("amqpgem.tests.integration.queue#{Time.now}", :exclusive => true)
+    @queue1    = @channel.queue("amqpgem.tests.integration.queue#{Time.now.to_i}#{rand}", :exclusive => true)
+    @queue2    = @channel.queue("amqpgem.tests.integration.queue#{Time.now.to_i}#{rand}", :exclusive => true)
 
     # Rely on default direct exchange binding, see section 2.1.2.4 Automatic Mode in AMQP 0.9.1 spec.
     @exchange = AMQP::Exchange.default(@channel)
