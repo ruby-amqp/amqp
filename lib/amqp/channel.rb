@@ -341,10 +341,6 @@ module AMQP
     #                                                    method it will raise a channel or connection exception.
     #
     #
-    # @raise [AMQP::Error] Raised when exchange is redeclared with parameters different from original declaration.
-    # @raise [AMQP::Error] Raised when exchange is declared with  :passive => true and the exchange does not exist.
-    #
-    #
     # @example Using default pre-declared direct exchange and no callbacks (pseudo-synchronous style)
     #
     #    # an exchange application A will be using to publish updates
@@ -472,11 +468,6 @@ module AMQP
     #                                                    not wait for a reply method.  If the server could not complete the
     #                                                    method it will raise a channel or connection exception.
     #
-    #
-    # @raise [AMQP::Error] Raised when exchange is redeclared with parameters different from original declaration.
-    # @raise [AMQP::Error] Raised when exchange is declared with  :passive => true and the exchange does not exist.
-    #
-    #
     # @example Using fanout exchange to deliver messages to multiple consumers
     #
     #   # open up a channel
@@ -536,11 +527,6 @@ module AMQP
     # @option opts [Boolean] :nowait (true)              If set, the server will not respond to the method. The client should
     #                                                    not wait for a reply method.  If the server could not complete the
     #                                                    method it will raise a channel or connection exception.
-    #
-    #
-    # @raise [AMQP::Error] Raised when exchange is redeclared with parameters different from original declaration.
-    # @raise [AMQP::Error] Raised when exchange is declared with  :passive => true and the exchange does not exist.
-    #
     #
     # @example Using topic exchange to deliver relevant news updates
     #   AMQP.connect do |connection|
@@ -651,10 +637,6 @@ module AMQP
     # @option opts [Boolean] :nowait (true)              If set, the server will not respond to the method. The client should
     #                                                    not wait for a reply method.  If the server could not complete the
     #                                                    method it will raise a channel or connection exception.
-    #
-    #
-    # @raise [AMQP::Error] Raised when exchange is redeclared with parameters different from original declaration.
-    # @raise [AMQP::Error] Raised when exchange is declared with  :passive => true and the exchange does not exist.
     #
     #
     # @example Using headers exchange to route messages based on multiple attributes (OS, architecture, # of cores)
@@ -797,12 +779,6 @@ module AMQP
     # @option opts [Boolean] :nowait (true)              If set, the server will not respond to the method. The client should
     #                                                    not wait for a reply method.  If the server could not complete the
     #                                                    method it will raise a channel or connection exception.
-    #
-    #
-    # @raise [AMQP::Error] Raised when queue is redeclared with parameters different from original declaration.
-    # @raise [AMQP::Error] Raised when queue is declared with :passive => true and the queue does not exist.
-    # @raise [AMQP::Error] Raised when queue is declared with :exclusive => true and queue with that name already exist.
-    #
     #
     # @yield [queue, declare_ok] Yields successfully declared queue instance and AMQP method (queue.declare-ok) instance. The latter is optional.
     # @yieldparam [Queue] queue Queue that is successfully declared and is ready to be used.
