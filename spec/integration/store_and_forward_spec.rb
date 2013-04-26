@@ -49,7 +49,7 @@ describe "Store-and-forward routing" do
         # various test suites. MK.
         dispatched_data             = "libertà è participazione (inviato a #{Time.now.to_i})"
 
-        @queue.purge :nowait => true
+        @queue.purge
         @queue.subscribe(:ack => false) do |payload|
           payload.should_not be_nil
           number_of_received_messages += 1
