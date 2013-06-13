@@ -35,6 +35,17 @@ module AMQP
   #
   # @api public
   def self.start(connection_options_or_string = {}, other_options = {}, &block)
+    other_options[:on_tcp_connection_failure] ||= Proc.new do |settings|
+      raise AMQP.client.tcp_connection_failure_exception_class.new(settings)
+    end
+    old_proc = other_options[:on_tcp_connection_failure]
+    other_options[:on_tcp_connection_failure] = Proc.new do |settings|
+      begin
+        old_proc.call(settings)
+      ensure
+        @connection = nil
+      end
+    end
     EM.run do
       if !@connection || @connection.closed? || @connection.closing?
         @connection   = connect(connection_options_or_string, other_options, &block)
