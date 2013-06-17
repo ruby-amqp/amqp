@@ -66,9 +66,9 @@ describe "Topic-based subscription" do
       # publish some messages none of our queues should be receiving
       3.times do
         @exchange.publish(626 + rand(1000)/400.0, :key => "nasdaq.goog")
-      end # do
+      end
 
-      done(0.4) {
+      done(0.5) {
         received_messages.should == expected_messages
         @aapl_queue.unsubscribe
         @amzn_queue.unsubscribe
@@ -117,7 +117,7 @@ describe "Topic-based subscription" do
       @exchange.publish("Blatche, Wall lead Wizards over Jazz 108-101", :key => "sports.nba.jazz")
       @exchange.publish("Deron Williams Receives NBA Cares Community Assist Award", :key => "sports.nba.jazz")
 
-      done(0.2) {
+      done(0.6) {
         received_messages.should == expected_messages
 
         @nba_queue.unsubscribe
@@ -151,6 +151,7 @@ describe "Topic-based subscription" do
         @celtics_queue.name => 3
       }
 
+
       @sports_queue.bind(@exchange, :key => "sports.#").subscribe do |payload|
         received_messages[@sports_queue.name] += 1
       end
@@ -180,7 +181,7 @@ describe "Topic-based subscription" do
       @exchange.publish("Philadelphia's Daniel Briere has been named as an All-Star replacement for Jarome Iginla.", :key => "sports.nhl.allstargame")
       @exchange.publish("Devils blank Sid- and Malkin-less Penguins 2-0", :key => "sports.nhl.penguins")
 
-      done(0.2) {
+      done(0.5) {
         received_messages.should == expected_messages
 
         @sports_queue.unsubscribe

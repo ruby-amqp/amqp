@@ -29,7 +29,8 @@ describe AMQP, 'class object' do
       :ssl       => false,
       :broker    => nil,
       :frame_max => 131072,
-      :heartbeat => 0
+      :heartbeat => 0,
+      :auth_mechanism => "PLAIN"
     }
   end
 

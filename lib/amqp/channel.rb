@@ -263,6 +263,9 @@ module AMQP
     def auto_recover
       return unless auto_recovering?
 
+      @channel_is_open_deferrable.fail
+      @channel_is_open_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
+
       self.open do
         @channel_is_open_deferrable.succeed
 
@@ -278,6 +281,9 @@ module AMQP
     # Can be used to recover channels from channel-level exceptions. Allocates a new channel id and reopens
     # itself with this new id, releasing the old id after the new one is allocated.
     #
+    # This includes recovery of known exchanges, queues and bindings, exactly the same way as when
+    # the client recovers from a network failure.
+    #
     # @api public
     def reuse
       old_id = @id
@@ -285,6 +291,9 @@ module AMQP
       # with the same value. MK.
       @id    = self.class.next_channel_id
       self.class.release_channel_id(old_id)
+
+      @channel_is_open_deferrable.fail
+      @channel_is_open_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
 
       self.open do
         @channel_is_open_deferrable.succeed
@@ -333,10 +342,6 @@ module AMQP
     # @option opts [Boolean] :nowait (true)              If set, the server will not respond to the method. The client should
     #                                                    not wait for a reply method.  If the server could not complete the
     #                                                    method it will raise a channel or connection exception.
-    #
-    #
-    # @raise [AMQP::Error] Raised when exchange is redeclared with parameters different from original declaration.
-    # @raise [AMQP::Error] Raised when exchange is declared with  :passive => true and the exchange does not exist.
     #
     #
     # @example Using default pre-declared direct exchange and no callbacks (pseudo-synchronous style)
@@ -466,11 +471,6 @@ module AMQP
     #                                                    not wait for a reply method.  If the server could not complete the
     #                                                    method it will raise a channel or connection exception.
     #
-    #
-    # @raise [AMQP::Error] Raised when exchange is redeclared with parameters different from original declaration.
-    # @raise [AMQP::Error] Raised when exchange is declared with  :passive => true and the exchange does not exist.
-    #
-    #
     # @example Using fanout exchange to deliver messages to multiple consumers
     #
     #   # open up a channel
@@ -530,11 +530,6 @@ module AMQP
     # @option opts [Boolean] :nowait (true)              If set, the server will not respond to the method. The client should
     #                                                    not wait for a reply method.  If the server could not complete the
     #                                                    method it will raise a channel or connection exception.
-    #
-    #
-    # @raise [AMQP::Error] Raised when exchange is redeclared with parameters different from original declaration.
-    # @raise [AMQP::Error] Raised when exchange is declared with  :passive => true and the exchange does not exist.
-    #
     #
     # @example Using topic exchange to deliver relevant news updates
     #   AMQP.connect do |connection|
@@ -645,10 +640,6 @@ module AMQP
     # @option opts [Boolean] :nowait (true)              If set, the server will not respond to the method. The client should
     #                                                    not wait for a reply method.  If the server could not complete the
     #                                                    method it will raise a channel or connection exception.
-    #
-    #
-    # @raise [AMQP::Error] Raised when exchange is redeclared with parameters different from original declaration.
-    # @raise [AMQP::Error] Raised when exchange is declared with  :passive => true and the exchange does not exist.
     #
     #
     # @example Using headers exchange to route messages based on multiple attributes (OS, architecture, # of cores)
@@ -792,12 +783,6 @@ module AMQP
     #                                                    not wait for a reply method.  If the server could not complete the
     #                                                    method it will raise a channel or connection exception.
     #
-    #
-    # @raise [AMQP::Error] Raised when queue is redeclared with parameters different from original declaration.
-    # @raise [AMQP::Error] Raised when queue is declared with :passive => true and the queue does not exist.
-    # @raise [AMQP::Error] Raised when queue is declared with :exclusive => true and queue with that name already exist.
-    #
-    #
     # @yield [queue, declare_ok] Yields successfully declared queue instance and AMQP method (queue.declare-ok) instance. The latter is optional.
     # @yieldparam [Queue] queue Queue that is successfully declared and is ready to be used.
     # @yieldparam [AMQP::Protocol::Queue::DeclareOk] declare_ok AMQP queue.declare-ok) instance.
@@ -836,13 +821,13 @@ module AMQP
                 Queue.new(self, name, opts)
               else
                 shim = Proc.new { |q, method|
-          if block.arity == 1
-            block.call(q)
-          else
-            queue = find_queue(method.queue)
-            block.call(queue, method.consumer_count, method.message_count)
-          end
-        }
+                  if block.arity == 1
+                    block.call(q)
+                  else
+                    queue = find_queue(method.queue)
+                    block.call(queue, method.consumer_count, method.message_count)
+                  end
+                }
                 Queue.new(self, name, opts, &shim)
               end
 
@@ -929,14 +914,25 @@ module AMQP
     #
     # @api public
     def once_open(&block)
-      @channel_is_open_deferrable.callback(&block)
+      @channel_is_open_deferrable.callback do
+        # guards against cases when deferred operations
+        # don't complete before the channel is closed
+        block.call if open?
+      end
     end # once_open(&block)
     alias once_opened once_open
+
+    # @return [Boolean]
+    # @api public
+    def closing?
+      self.status == :closing
+    end
 
     # Closes AMQP channel.
     #
     # @api public
     def close(reply_code = 200, reply_text = DEFAULT_REPLY_TEXT, class_id = 0, method_id = 0, &block)
+      self.status = :closing
       r = super(reply_code, reply_text, class_id, method_id, &block)
 
       r
@@ -1072,17 +1068,6 @@ module AMQP
       super(&block)
     end
 
-
-    # Defines a global callback to be run on channel-level exception across
-    # all channels. Consider using Channel#on_error instead. This method is here for sake
-    # of backwards compatibility with 0.6.x and 0.7.x releases.
-    # @see AMQP::Channel#on_error
-    # @deprecated
-    # @api public
-    def self.on_error(&block)
-      self.error(&block)
-    end # self.on_error(&block)
-
     # @endgroup
 
 
@@ -1120,6 +1105,7 @@ module AMQP
       super(method)
 
       self.class.error(method.reply_text)
+      self.class.release_channel_id(@id)
     end
 
     # Overrides AMQ::Client::Channel version to also release the channel id

@@ -35,13 +35,6 @@ describe AMQP do
       end
       @q1 = @channel.queue(name, options)
 
-      # backwards compatibility, please consider against
-      # using global error handlers in your programs!
-      AMQP::Channel.on_error do |msg|
-        puts "Global handler has fired: #{msg}"
-        @global_callback_fired = true
-      end
-
       # Small delays to ensure the order of execution
       delayed(0.1) {
         @other_channel = AMQP::Channel.new
@@ -58,7 +51,6 @@ describe AMQP do
 
       done(0.4) {
         @callback_fired.should be_true
-        @global_callback_fired.should be_true
         # looks like there is a difference between platforms/machines
         # so check either one. MK.
         @other_channel.closed?.should be_true

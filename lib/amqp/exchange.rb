@@ -50,7 +50,7 @@ module AMQP
   # As part of the standard, the server _must_ predeclare the direct exchange
   # 'amq.direct' and the fanout exchange 'amq.fanout' (all exchange names
   # starting with 'amq.' are reserved). Attempts to declare an exchange using
-  # 'amq.' as the name will raise an AMQP::Error and fail. In practice these
+  # 'amq.' as the name will result in a channel-level exception and fail. In practice these
   # default exchanges are never used directly by client code.
   #
   #
@@ -277,10 +277,6 @@ module AMQP
     #
     # @option opts [Hash] :arguments (nil)  A hash of optional arguments with the declaration. Some brokers implement
     #                                          AMQP extensions using x-prefixed declaration arguments.
-    #
-    #
-    # @raise [AMQP::Error] Raised when exchange is redeclared with parameters different from original declaration.
-    # @raise [AMQP::Error] Raised when exchange is declared with :passive => true and the exchange does not exist.
     #
     # @yield [exchange, declare_ok] Yields successfully declared exchange instance and AMQP method (exchange.declare-ok) instance. The latter is optional.
     # @yieldparam [Exchange] exchange Exchange that is successfully declared and is ready to be used.

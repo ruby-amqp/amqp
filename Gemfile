@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-source :rubygems
+source "https://rubygems.org"
 
 # Use local clones if possible.
 # If you want to use your local copy, just symlink it to vendor.
@@ -14,7 +14,7 @@ def custom_gem(name, options = Hash.new)
   end
 end
 
-custom_gem "eventmachine"
+custom_gem "eventmachine", ">= 1.0.0"
 # gem "json", :platform => :ruby_18
 custom_gem "amq-client",   :git => "git://github.com/ruby-amqp/amq-client.git",   :branch => "master"
 custom_gem "amq-protocol", :git => "git://github.com/ruby-amqp/amq-protocol.git", :branch => "master"
@@ -32,13 +32,11 @@ group :development do
     gem "thin"
     gem "unicorn"
   end
-
-  gem "changelog"
 end
 
 group :test do
   gem "rspec", "~> 2.6.0"
-  gem "rake",  "~> 0.9.2"
+  gem "rake",  "~> 10.0.0"
 
   custom_gem "evented-spec", :git => "git://github.com/ruby-amqp/evented-spec.git", :branch => "master"
   gem "effin_utf8"

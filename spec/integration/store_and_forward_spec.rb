@@ -47,25 +47,22 @@ describe "Store-and-forward routing" do
         expected_number_of_messages = 300
         # It is always a good idea to use non-ASCII charachters in
         # various test suites. MK.
-        dispatched_data             = "libertà è participazione (inviato a #{Time.now.to_i})"
+        dispatched_data             = "messages sent at #{Time.now.to_i}"
 
-        @queue.purge :nowait => true
+        @queue.purge
         @queue.subscribe(:ack => false) do |payload|
           payload.should_not be_nil
           number_of_received_messages += 1
-          if RUBY_VERSION =~ /^1.9/
-            payload.force_encoding("UTF-8").should == dispatched_data
-          else
-            payload.should == dispatched_data
-          end
+          payload.should == dispatched_data
         end # subscribe
 
-        expected_number_of_messages.times do
-          @exchange.publish(dispatched_data, :routing_key => @queue_name)
+        delayed(0.3) do
+          expected_number_of_messages.times do
+            @exchange.publish(dispatched_data, :routing_key => @queue_name)
+          end
         end
 
-        # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-        done(6.0) {
+        done(4.0) {
           number_of_received_messages.should == expected_number_of_messages
           @queue.unsubscribe
         }
@@ -84,8 +81,8 @@ describe "Store-and-forward routing" do
           @exchange.publish(rand, :key => @queue_name)
         end
 
-        # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-        done(6.0) {
+        # 5 seconds are for Rubinius, it is surprisingly slow on this workload
+        done(5.0) {
           number_of_received_messages.should == expected_number_of_messages
           @queue.unsubscribe
         }

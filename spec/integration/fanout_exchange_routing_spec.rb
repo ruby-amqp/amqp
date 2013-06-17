@@ -77,7 +77,7 @@ describe AMQP::Exchange, "of type fanout" do
       end
 
       # for Rubinius, it is surprisingly slow on this workload
-      done(2.5) {
+      done(1.5) {
         [@queue1, @queue2, @queue3].each do |q|
           @received_messages[q.name].size.should == @expected_number_of_messages[q.name]
 

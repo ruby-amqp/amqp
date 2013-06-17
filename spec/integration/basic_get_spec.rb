@@ -59,36 +59,17 @@ describe AMQP::Queue, "#pop" do
 
   context "when THERE ARE messages in the queue" do
     it "yields message payload to the callback" do
-      number_of_received_messages = 0
-      expected_number_of_messages = 300
+      @channel.default_exchange.publish(@dispatched_data, :routing_key => @queue.name)
 
-      expected_number_of_messages.times do |i|
-        @exchange.publish(@dispatched_data + "_#{i}", :key => @queue_name)
+      @queue.pop do |headers, payload|
+        payload.should == @dispatched_data
       end
 
-      @queue.status do |number_of_messages, number_of_consumers|
-        expected_number_of_messages.times do
-          @queue.pop do |headers, payload|
-            payload.should_not be_nil
-            number_of_received_messages += 1
-            headers.message_count.should == (expected_number_of_messages - number_of_received_messages)
-
-            if RUBY_VERSION =~ /^1.9/
-              payload.force_encoding("UTF-8").should =~ /#{@dispatched_data}/
-            else
-              payload.should =~ /#{@dispatched_data}/
-            end
-          end # pop
-        end # do
-      end
-
-      delayed(1.3) {
+      delayed(0.5) {
         # Queue.Get doesn't qualify for subscription, hence, manual deletion is required
         @queue.delete
       }
-      done(2.5) {
-        number_of_received_messages.should == expected_number_of_messages
-      }
+      done(0.8)
     end # it
   end # context
 
@@ -110,7 +91,7 @@ describe AMQP::Queue, "#pop" do
       x  = ch1.default_exchange
 
       q.purge
-      x.publish(@dispatched_data, :routing_key => q.name)
+      delayed(0.2) { x.publish(@dispatched_data, :routing_key => q.name) }
 
       delayed(0.5) {
         q.pop(:ack => true) do |meta, payload|
@@ -119,7 +100,7 @@ describe AMQP::Queue, "#pop" do
 
         ch1.close
 
-        EventMachine.add_timer(0.5) {
+        EventMachine.add_timer(0.7) {
           ch2.queue(queue_name, :exclusive => true).status do |number_of_messages, number_of_consumers|
             number_of_messages.should == 1
             done
