@@ -53,7 +53,7 @@ describe "Store-and-forward routing" do
         @queue.subscribe(:ack => false) do |payload|
           payload.should_not be_nil
           number_of_received_messages += 1
-          payload.should == dispatched_data
+          payload.bytes.should == dispatched_data.bytes
         end # subscribe
 
         delayed(0.3) do
@@ -81,8 +81,8 @@ describe "Store-and-forward routing" do
           @exchange.publish(rand, :key => @queue_name)
         end
 
-        # 6 seconds are for Rubinius, it is surprisingly slow on this workload
-        done(6.0) {
+        # 5 seconds are for Rubinius, it is surprisingly slow on this workload
+        done(5.0) {
           number_of_received_messages.should == expected_number_of_messages
           @queue.unsubscribe
         }
