@@ -1068,17 +1068,6 @@ module AMQP
       super(&block)
     end
 
-
-    # Defines a global callback to be run on channel-level exception across
-    # all channels. Consider using Channel#on_error instead. This method is here for sake
-    # of backwards compatibility with 0.6.x and 0.7.x releases.
-    # @see AMQP::Channel#on_error
-    # @deprecated
-    # @api public
-    def self.on_error(&block)
-      self.error(&block)
-    end # self.on_error(&block)
-
     # @endgroup
 
 
