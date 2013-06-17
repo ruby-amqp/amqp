@@ -32,8 +32,6 @@ group :development do
     gem "thin"
     gem "unicorn"
   end
-
-  gem "changelog"
 end
 
 group :test do
