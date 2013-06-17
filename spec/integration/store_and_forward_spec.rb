@@ -47,13 +47,13 @@ describe "Store-and-forward routing" do
         expected_number_of_messages = 300
         # It is always a good idea to use non-ASCII charachters in
         # various test suites. MK.
-        dispatched_data             = "libertà è participazione (inviato a #{Time.now.to_i})"
+        dispatched_data             = "messages sent at #{Time.now.to_i}"
 
         @queue.purge
         @queue.subscribe(:ack => false) do |payload|
           payload.should_not be_nil
           number_of_received_messages += 1
-          payload.bytes.should == dispatched_data.bytes
+          payload.should == dispatched_data
         end # subscribe
 
         delayed(0.3) do
