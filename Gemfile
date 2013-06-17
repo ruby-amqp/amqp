@@ -35,7 +35,7 @@ group :development do
 end
 
 group :test do
-  gem "rspec", "~> 2.13.0"
+  gem "rspec", "~> 2.6.0"
   gem "rake",  "~> 10.0.0"
 
   custom_gem "evented-spec", :git => "git://github.com/ruby-amqp/evented-spec.git", :branch => "master"
