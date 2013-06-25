@@ -845,49 +845,6 @@ module AMQP
 
 
 
-    # Instantiates and returns an RPC instance associated with this channel.
-    #
-    # The optional object may be a class name, module name or object
-    # instance. When given a class or module name, the object is instantiated
-    # during this setup. The passed queue is automatically subscribed to so
-    # it passes all messages (and their arguments) to the object.
-    #
-    # Marshalling and unmarshalling the objects is handled internally. This
-    # marshalling is subject to the same restrictions as defined in the
-    # [http://ruby-doc.org/core/classes/Marshal.html Marshal module} in the Ruby standard
-    # library.
-    #
-    # When the optional object is not passed, the returned rpc reference is
-    # used to send messages and arguments to the queue. See {AMQP::RPC#method_missing}
-    # which does all of the heavy lifting with the proxy. Some client
-    # elsewhere must call this method *with* the optional block so that
-    # there is a valid destination. Failure to do so will just enqueue
-    # marshalled messages that are never consumed.
-    #
-    # @example Use of RPC
-    #
-    #   # TODO
-    #
-    #
-    # @param [String, Queue] Queue to be used by RPC server.
-    # @return [RPC]
-    # @api public
-    def rpc(name, obj = nil)
-      RPC.new(self, name, obj)
-    end
-
-
-
-    # Returns a hash of all rpc proxy objects.
-    #
-    # Most of the time, this method is not
-    # called by application code.
-    # @api plugin
-    def rpcs
-      @rpcs.values
-    end
-
-
 
     # @group Channel lifecycle
 
