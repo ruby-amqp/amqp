@@ -49,7 +49,7 @@ describe "Headers exchange" do
     end
 
     any_linux_messages = []
-    @channel.queue("", :auto_delete => true).bind(exchange, :arguments => { :os => 'linux' }).subscribe do |metadata, payload|
+    @channel.queue("", :auto_delete => true).bind(exchange, :arguments => { "x-match" => "any", :os => 'linux' }).subscribe do |metadata, payload|
       any_linux_messages << [metadata, payload]
     end
 
@@ -59,7 +59,7 @@ describe "Headers exchange" do
     end
 
     riak_messages = []
-    @channel.queue("", :auto_delete => true).bind(exchange, :arguments => { :package => { :name => 'riak', :version => '0.14.2' } }).subscribe do |metadata, payload|
+    @channel.queue("", :auto_delete => true).bind(exchange, :arguments => { "x-match" => "any", :package => { :name => 'riak', :version => '0.14.2' } }).subscribe do |metadata, payload|
       riak_messages << [metadata, payload]
     end
 
@@ -110,7 +110,7 @@ describe "Multiple consumers" do
       @queue    = @channel.queue("", :auto_delete => true)
       @exchange = @channel.headers("amqpgem.tests.integration.headers.exchange1", :auto_delete => true)
 
-      @queue.bind(@exchange, :arguments => { :slug => "all" })
+      @queue.bind(@exchange, :arguments => { :slug => "all", "x-match" => "any" })
     end
 
 
