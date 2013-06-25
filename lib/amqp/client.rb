@@ -39,9 +39,6 @@ module AMQP
                      AMQP.client.connect(opts.merge(options))
                    end
 
-      connection.on_open do
-        require "amqp/extensions/rabbitmq" if connection.broker.rabbitmq?
-      end
       connection
     end
 

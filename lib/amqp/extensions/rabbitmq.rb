@@ -1,3 +1,3 @@
 # encoding: utf-8
 
-require "amq/client/extensions/rabbitmq"
+# No-op as of 1.1

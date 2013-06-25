@@ -16,3 +16,4 @@ doc/*
 tmp/*
 bin/*
 .AppleDouble/*
+debug/*

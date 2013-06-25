@@ -213,7 +213,6 @@ module AMQP
 
       super(@connection, id, options)
 
-      @rpcs                       = Hash.new
       # we need this deferrable to mimic what AMQP gem 0.7 does to enable
       # the following (pseudo-synchronous) style of programming some people use in their
       # existing codebases:
@@ -845,49 +844,6 @@ module AMQP
 
 
 
-    # Instantiates and returns an RPC instance associated with this channel.
-    #
-    # The optional object may be a class name, module name or object
-    # instance. When given a class or module name, the object is instantiated
-    # during this setup. The passed queue is automatically subscribed to so
-    # it passes all messages (and their arguments) to the object.
-    #
-    # Marshalling and unmarshalling the objects is handled internally. This
-    # marshalling is subject to the same restrictions as defined in the
-    # [http://ruby-doc.org/core/classes/Marshal.html Marshal module} in the Ruby standard
-    # library.
-    #
-    # When the optional object is not passed, the returned rpc reference is
-    # used to send messages and arguments to the queue. See {AMQP::RPC#method_missing}
-    # which does all of the heavy lifting with the proxy. Some client
-    # elsewhere must call this method *with* the optional block so that
-    # there is a valid destination. Failure to do so will just enqueue
-    # marshalled messages that are never consumed.
-    #
-    # @example Use of RPC
-    #
-    #   # TODO
-    #
-    #
-    # @param [String, Queue] Queue to be used by RPC server.
-    # @return [RPC]
-    # @api public
-    def rpc(name, obj = nil)
-      RPC.new(self, name, obj)
-    end
-
-
-
-    # Returns a hash of all rpc proxy objects.
-    #
-    # Most of the time, this method is not
-    # called by application code.
-    # @api plugin
-    def rpcs
-      @rpcs.values
-    end
-
-
 
     # @group Channel lifecycle
 
@@ -1071,6 +1027,15 @@ module AMQP
     # @endgroup
 
 
+    # @group Publisher Confirms
+
+    def confirm_select(nowait = false, &block)
+      self.once_open do
+        super(nowait, &block)
+      end
+    end
+
+    # @endgroup
 
 
     #
@@ -1142,7 +1107,6 @@ module AMQP
     # @api plugin
     def reset_state!
       super
-      @rpcs = Hash.new
     end # reset_state!
 
 
@@ -1212,46 +1176,6 @@ module AMQP
       max_channel     =  (1 << 16) - 1
       @int_allocator ||= IntAllocator.new(1, max_channel)
     end # self.initialize_channel_id_allocator
-
-    # @private
-    # @api plugin
-    def register_rpc(rpc)
-      raise ArgumentError, "argument is nil!" unless rpc
-
-      @rpcs[rpc.name] = rpc
-    end # register_rpc(rpc)
-
-    # @private
-    # @api plugin
-    def find_rpc(name)
-      @rpcs[name]
-    end
-
-
-    #
-    # Backwards compatibility with 0.6.x
-    #
-
-    # unique identifier of the default thread-local channel
-    # @deprecated
-    # @private
-    def self.id
-      Thread.current[:mq_id] ||= "#{`hostname`.strip}-#{Process.pid}-#{Thread.current.object_id}"
-    end
-
-    # @private
-    # @deprecated
-    def self.default
-      # TODO: clear this when connection is closed
-      Thread.current[:mq] ||= AMQP::Channel.new
-    end
-
-    # Allows for calls to all MQ instance methods. This implicitly calls
-    # AMQP::Channel.new so that a new channel is allocated for subsequent operations.
-    # @deprecated
-    def self.method_missing(meth, *args, &blk)
-      self.default.__send__(meth, *args, &blk)
-    end
 
 
     protected
