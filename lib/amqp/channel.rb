@@ -1028,6 +1028,15 @@ module AMQP
     # @endgroup
 
 
+    # @group Publisher Confirms
+
+    def confirm_select(nowait = false, &block)
+      self.once_open do
+        super(nowait, &block)
+      end
+    end
+
+    # @endgroup
 
 
     #
