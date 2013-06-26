@@ -422,8 +422,6 @@ module AMQ
         #
         # @return [self] self.
         def on_ack(nowait = false, &block)
-          self.use_publisher_confirmations! unless self.uses_publisher_confirmations?
-
           self.define_callback(:ack, &block) if block
 
           self
