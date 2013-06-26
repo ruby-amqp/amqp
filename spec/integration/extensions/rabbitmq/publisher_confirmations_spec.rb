@@ -29,21 +29,6 @@ describe "confirm.select" do
       end
     end
   end
-
-
-  context "with :nowait attribute set" do
-    it "results in NOT confirm.select-ok response" do
-      lambda do
-        @channel.confirm_select(:nowait => true) do
-          fail "Should never be called"
-        end
-      end.should raise_error(ArgumentError, /makes no sense/)
-
-      @channel.confirm_select(:nowait => true)
-
-      done(0.5)
-    end
-  end
 end
 
 
