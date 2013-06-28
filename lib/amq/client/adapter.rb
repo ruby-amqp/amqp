@@ -3,7 +3,6 @@
 require "amq/client/logging"
 require "amq/client/settings"
 
-require "amq/client/async/queue"
 require "amq/client/async/exchange"
 require "amq/client/async/channel"
 require "amq/client/async/adapter"
