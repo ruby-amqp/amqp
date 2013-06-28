@@ -1,7 +1,5 @@
 # encoding: utf-8
 
-require "amq/client/exchange"
-
 module AMQP
 
   # h2. What are AMQP exchanges?
@@ -137,13 +135,23 @@ module AMQP
   # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 2.1.1)
   # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 2.1.5)
   # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 3.1.3)
-  class Exchange < AMQ::Client::Exchange
+  class Exchange
+
+
+    #
+    # Behaviours
+    #
+
+    include AMQ::Client::Async::Entity
+    extend  AMQ::Client::Async::ProtocolMethodHandlers
+
 
     #
     # API
     #
 
     DEFAULT_CONTENT_TYPE = "application/octet-stream".freeze
+    BUILTIN_TYPES = [:fanout, :direct, :topic, :headers].freeze
 
 
     # The default exchange. Default exchange is a direct exchange that is predefined.
@@ -190,6 +198,13 @@ module AMQP
     # @return [#call] A callback that is executed once declaration notification (exchange.declare-ok)
     #                 from the broker arrives.
     attr_accessor :on_declare
+
+    # Channel this exchange belongs to.
+    attr_reader :channel
+
+    # @return [Hash] Additional arguments given on queue declaration. Typically used by AMQP extensions.
+    attr_reader :arguments
+
 
     # @return [String]
     attr_reader :default_routing_key
@@ -301,18 +316,31 @@ module AMQP
 
       @status                  = :unknown
       @default_publish_options = (opts.delete(:default_publish_options) || {
-                                    :routing_key  => @default_routing_key,
-                                    :mandatory    => false,
-                                    :immediate    => false
-                                  }).freeze
+          :routing_key  => @default_routing_key,
+          :mandatory    => false,
+          :immediate    => false
+        }).freeze
 
       @default_headers = (opts.delete(:default_headers) || {
-                            :content_type => DEFAULT_CONTENT_TYPE,
-                            :persistent   => false,
-                            :priority     => 0
-                          }).freeze
+          :content_type => DEFAULT_CONTENT_TYPE,
+          :persistent   => false,
+          :priority     => 0
+        }).freeze
 
-      super(channel.connection, channel, name, type)
+      if !(BUILTIN_TYPES.include?(type.to_sym) || type.to_s =~ /^x-.+/i)
+        raise UnknownExchangeTypeError.new(BUILTIN_TYPES, type)
+      end
+
+      @channel    = channel
+      @name       = name
+      @type       = type
+
+      # register pre-declared exchanges
+      if @name == AMQ::Protocol::EMPTY_STRING || @name =~ /^amq\.(direct|fanout|topic|match|headers)/
+        @channel.register_exchange(self)
+      end
+
+      super(channel.connection)
 
       # The AMQP 0.8 specification (as well as 0.9.1) in 1.1.4.2 mentiones
       # that Exchange.Declare-Ok confirms the name of the exchange (because
@@ -338,9 +366,9 @@ module AMQP
                 end
               end
 
-              self.declare(passive = @opts[:passive], durable = @opts[:durable], auto_delete = @opts[:auto_delete], nowait = @opts[:nowait], @opts[:arguments], &shim)
+              self.exchange_declare(passive = @opts[:passive], durable = @opts[:durable], auto_delete = @opts[:auto_delete], nowait = @opts[:nowait], @opts[:arguments], &shim)
             else
-              self.declare(passive = @opts[:passive], durable = @opts[:durable], auto_delete = @opts[:auto_delete], nowait = @opts[:nowait], @opts[:arguments])
+              self.exchange_declare(passive = @opts[:passive], durable = @opts[:durable], auto_delete = @opts[:auto_delete], nowait = @opts[:nowait], @opts[:arguments])
             end
           end
         end
@@ -359,6 +387,42 @@ module AMQP
     def channel
       @channel
     end
+
+    # @return [Boolean] true if this exchange is of type `fanout`
+    # @api public
+    def fanout?
+      @type == :fanout
+    end
+
+    # @return [Boolean] true if this exchange is of type `direct`
+    # @api public
+    def direct?
+      @type == :direct
+    end
+
+    # @return [Boolean] true if this exchange is of type `topic`
+    # @api public
+    def topic?
+      @type == :topic
+    end
+
+    # @return [Boolean] true if this exchange is of type `headers`
+    # @api public
+    def headers?
+      @type == :headers
+    end
+
+    # @return [Boolean] true if this exchange is of a custom type (begins with x-)
+    # @api public
+    def custom_type?
+      @type.to_s =~ /^x-.+/i
+    end # custom_type?
+
+    # @return [Boolean] true if this exchange is a pre-defined one (amq.direct, amq.fanout, amq.match and so on)
+    def predefined?
+      @name && ((@name == AMQ::Protocol::EMPTY_STRING) || !!(@name =~ /^amq\.(direct|fanout|topic|headers|match)/i))
+    end # predefined?
+
 
     # Publishes message to the exchange. The message will be routed to queues by the exchange
     # and distributed to any active consumers. Routing logic is determined by exchange type and
@@ -475,7 +539,7 @@ module AMQP
       @channel.once_open do
         properties                 = @default_headers.merge(options)
         properties[:delivery_mode] = properties.delete(:persistent) ? 2 : 1
-        super(payload.to_s, opts[:key] || opts[:routing_key] || @default_routing_key, properties, opts[:mandatory], opts[:immediate])
+        basic_publish(payload.to_s, opts[:key] || opts[:routing_key] || @default_routing_key, properties, opts[:mandatory], opts[:immediate])
 
         # don't pass block to AMQ::Client::Exchange#publish because it will be executed
         # immediately and we want to do it later. See ruby-amqp/amqp/#67 MK.
@@ -506,7 +570,7 @@ module AMQP
     # @api public
     def delete(opts = {}, &block)
       @channel.once_open do
-        super(opts.fetch(:if_unused, false), opts.fetch(:nowait, false), &block)
+        exchange_delete(opts.fetch(:if_unused, false), opts.fetch(:nowait, false), &block)
       end
 
       # backwards compatibility
@@ -542,6 +606,191 @@ module AMQP
     def reset
       initialize(@channel, @type, @name, @opts)
     end
+
+
+    # @group Declaration
+
+    # @api public
+    def exchange_declare(passive = false, durable = false, auto_delete = false, nowait = false, arguments = nil, &block)
+      # for re-declaration
+      @passive     = passive
+      @durable     = durable
+      @auto_delete = auto_delete
+      @arguments   = arguments
+
+      @connection.send_frame(AMQ::Protocol::Exchange::Declare.encode(@channel.id, @name, @type.to_s, passive, durable, auto_delete, false, nowait, arguments))
+
+      unless nowait
+        self.define_callback(:declare, &block)
+        @channel.exchanges_awaiting_declare_ok.push(self)
+      end
+
+      self
+    end
+
+
+    # @api public
+    def redeclare(&block)
+      nowait = block.nil?
+      @connection.send_frame(AMQ::Protocol::Exchange::Declare.encode(@channel.id, @name, @type.to_s, @passive, @durable, @auto_delete, false, nowait, @arguments))
+
+      unless nowait
+        self.define_callback(:declare, &block)
+        @channel.exchanges_awaiting_declare_ok.push(self)
+      end
+
+      self
+    end # redeclare(&block)
+
+    # @endgroup
+
+
+    # @api public
+    def exchange_delete(if_unused = false, nowait = false, &block)
+      @connection.send_frame(AMQ::Protocol::Exchange::Delete.encode(@channel.id, @name, if_unused, nowait))
+
+      unless nowait
+        self.define_callback(:delete, &block)
+
+        # TODO: delete itself from exchanges cache
+        @channel.exchanges_awaiting_delete_ok.push(self)
+      end
+
+      self
+    end # delete(if_unused = false, nowait = false)
+
+
+
+    # @group Publishing Messages
+
+    # @api public
+    def basic_publish(payload, routing_key = AMQ::Protocol::EMPTY_STRING, user_headers = {}, mandatory = false, immediate = false, frame_size = nil)
+      headers = { :priority => 0, :delivery_mode => 2, :content_type => "application/octet-stream" }.merge(user_headers)
+      @connection.send_frameset(AMQ::Protocol::Basic::Publish.encode(@channel.id, payload, headers, @name, routing_key, mandatory, immediate, (frame_size || @connection.frame_max)), @channel)
+
+      # publisher confirms support. MK.
+      @channel.exec_callback(:after_publish)
+      self
+    end
+
+
+    # @api public
+    def on_return(&block)
+      self.redefine_callback(:return, &block)
+
+      self
+    end # on_return(&block)
+
+    # @endgroup
+
+
+
+    # @group Error Handling and Recovery
+
+
+    # Defines a callback that will be executed after TCP connection is interrupted (typically because of a network failure).
+    # Only one callback can be defined (the one defined last replaces previously added ones).
+    #
+    # @api public
+    def on_connection_interruption(&block)
+      self.redefine_callback(:after_connection_interruption, &block)
+    end # on_connection_interruption(&block)
+    alias after_connection_interruption on_connection_interruption
+
+    # @private
+    def handle_connection_interruption(method = nil)
+      self.exec_callback_yielding_self(:after_connection_interruption)
+    end # handle_connection_interruption
+
+
+
+    # Defines a callback that will be executed after TCP connection is recovered after a network failure
+    # but before AMQP connection is re-opened.
+    # Only one callback can be defined (the one defined last replaces previously added ones).
+    #
+    # @api public
+    def before_recovery(&block)
+      self.redefine_callback(:before_recovery, &block)
+    end # before_recovery(&block)
+
+    # @private
+    def run_before_recovery_callbacks
+      self.exec_callback_yielding_self(:before_recovery)
+    end
+
+
+    # Defines a callback that will be executed when AMQP connection is recovered after a network failure..
+    # Only one callback can be defined (the one defined last replaces previously added ones).
+    #
+    # @api public
+    def on_recovery(&block)
+      self.redefine_callback(:after_recovery, &block)
+    end # on_recovery(&block)
+    alias after_recovery on_recovery
+
+    # @private
+    def run_after_recovery_callbacks
+      self.exec_callback_yielding_self(:after_recovery)
+    end
+
+
+    # Called by associated connection object when AMQP connection has been re-established
+    # (for example, after a network failure).
+    #
+    # @api plugin
+    def auto_recover
+      self.redeclare unless predefined?
+    end # auto_recover
+
+    # @endgroup
+
+
+
+    #
+    # Implementation
+    #
+
+
+    def handle_declare_ok(method)
+      @name = method.exchange if self.anonymous?
+      @channel.register_exchange(self)
+
+      self.exec_callback_once_yielding_self(:declare, method)
+    end
+
+    def handle_delete_ok(method)
+      self.exec_callback_once(:delete, method)
+    end # handle_delete_ok(method)
+
+
+
+    self.handle(AMQ::Protocol::Exchange::DeclareOk) do |connection, frame|
+      method   = frame.decode_payload
+      channel  = connection.channels[frame.channel]
+      exchange = channel.exchanges_awaiting_declare_ok.shift
+
+      exchange.handle_declare_ok(method)
+    end # handle
+
+
+    self.handle(AMQ::Protocol::Exchange::DeleteOk) do |connection, frame|
+      channel  = connection.channels[frame.channel]
+      exchange = channel.exchanges_awaiting_delete_ok.shift
+      exchange.handle_delete_ok(frame.decode_payload)
+    end # handle
+
+
+    self.handle(AMQ::Protocol::Basic::Return) do |connection, frame, content_frames|
+      channel  = connection.channels[frame.channel]
+      method   = frame.decode_payload
+      exchange = channel.find_exchange(method.exchange)
+
+      header   = content_frames.shift
+      body     = content_frames.map { |frame| frame.payload }.join
+
+      exchange.exec_callback(:return, method, header, body)
+    end
+
 
 
     protected
