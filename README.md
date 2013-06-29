@@ -1,25 +1,39 @@
 # Ruby amqp gem: the asynchronous Ruby RabbitMQ client
 
-[Ruby amqp gem](http://rubyamqp.info) is a widely used, feature-rich, well-maintained asynchronous AMQP 0.9.1 client with batteries included.
-This library works with Ruby 1.8.7 (*except for p249*, see the FAQ), Ruby 1.9.2, Ruby 1.9.3, [JRuby](http://jruby.org), [Rubinius](http://rubini.us) as well as [REE](http://www.rubyenterpriseedition.com), and is licensed under the [Ruby License](http://www.ruby-lang.org/en/LICENSE.txt)
+[Ruby amqp gem](http://rubyamqp.info) is a widely used, feature-rich, well-maintained asynchronous RabbitMQ client with batteries included.
+This library works with
+
+ * Ruby 2.0
+ * Ruby 1.9.3
+ * [JRuby](http://jruby.org)
+ * [Rubinius](http://rubini.us)
+ * Ruby 1.9.2
+ * Ruby 1.8.7 (*except for p249*, see the FAQ)
+ * [REE](http://www.rubyenterpriseedition.com),
+
+and is licensed under the [Ruby License](http://www.ruby-lang.org/en/LICENSE.txt)
 
 0.8.0 and later versions of amqp gem implement [AMQP 0.9.1](http://www.rabbitmq.com/tutorials/amqp-concepts.html) (see also [AMQP 0.9.1 spec document](http://bit.ly/amqp091spec)) and support [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq.com/extensions.html).
 
 
-## I know what AMQP is, how do I get started?
+## I know what RabbitMQ is, how do I get started?
 
 See [Getting started with amqp gem](http://rubyamqp.info/articles/getting_started/) and other [amqp gem documentation guides](http://rubyamqp.info/).
 We recommend that you read [AMQP 0.9.1 Model Explained](http://www.rabbitmq.com/tutorials/amqp-concepts.html), too.
 
 
 
-## What is AMQP?
+## What is RabbitMQ?
 
-AMQP is an [open standard for messaging middleware](http://www.amqp.org/confluence/display/AMQP/About+AMQP) that
-emphasizes interoperability between different technologies (for example, Java, .NET, Ruby, Python, Node.js, Erlang, C and so on).
+RabbitMQ is an open source messaging middleware that emphasizes
+interoperability between different technologies (for example, Java,
+.NET, Ruby, Python, Node.js, Erlang, Go, C and so on).
 
-Key features of AMQP are very flexible yet simple routing and binary protocol efficiency. AMQP supports many sophisticated features, for example,
-message acknowledgements, returning of messages to producer, redelivery of messages that couldn't be processed, load balancing between message consumers and so on.
+Key features of RabbitMQ are very flexible yet simple routing and
+binary protocol efficiency. RabbitMQ supports many sophisticated
+features, for example, message acknowledgements, queue length limit,
+message TTL, redelivery of messages that couldn't be processed, load
+balancing between message consumers and so on.
 
 
 ## What is amqp gem good for?
@@ -115,8 +129,8 @@ end
 
 
 [Getting started guide](http://rubyamqp.info/articles/getting_started/) explains this and two more examples in detail,
-and is written in a form of a tutorial. See [AMQP Model Explained](http://www.rabbitmq.com/tutorials/amqp-concepts.html) if you want
-to learn more about AMQP principles & concepts.
+and is written in a form of a tutorial. See [AMQP 0.9.1 Model Explained](http://www.rabbitmq.com/tutorials/amqp-concepts.html) if you want
+to learn more about RabbitMQ protocol principles & concepts.
 
 
 
