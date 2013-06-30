@@ -41,7 +41,7 @@ module AMQP
 
       @client_properties.merge!({
         :platform    => ::RUBY_DESCRIPTION,
-        :product     => "AMQP gem",
+        :product     => "amqp gem",
         :information => "http://github.com/ruby-amqp/amqp",
         :version     => AMQP::VERSION
       })
