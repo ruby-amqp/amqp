@@ -804,6 +804,13 @@ module AMQP
       self
     end
 
+    # @api public
+    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Sections 1.8.3.9)
+    def on_delivery(&block)
+      @default_consumer.on_delivery(&block)
+    end # on_delivery(&block)
+
+
     # @return [String] Consumer tag of the default consumer associated with this queue (if any), or nil
     # @note Default consumer is the one registered with the convenience {AMQP::Queue#subscribe} method. It has no special properties of any kind.
     # @see Queue#subscribe
@@ -1148,14 +1155,6 @@ module AMQP
 
 
     # @group Working With Messages
-
-
-    # @api public
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Sections 1.8.3.9)
-    def on_delivery(&block)
-      @default_consumer.on_delivery(&block)
-    end # on_delivery(&block)
-
 
     # Fetches messages from the queue.
     # @return [Queue]  self

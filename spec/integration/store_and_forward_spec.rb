@@ -51,7 +51,7 @@ describe "Store-and-forward routing" do
 
         @queue.purge
         @queue.subscribe(:ack => false) do |payload|
-          payload.should_not be_nil
+          payload.should be_instance_of(String)
           number_of_received_messages += 1
           payload.should == dispatched_data
         end # subscribe
