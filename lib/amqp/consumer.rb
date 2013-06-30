@@ -177,71 +177,6 @@ module AMQP
     end # on_delivery(&block)
 
 
-    # @group Acknowledging & Rejecting Messages
-
-    # Acknowledge a delivery tag.
-    # @return [Consumer]  self
-    #
-    # @api public
-    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Reference.pdf AMQP 0.9.1 protocol documentation (Section 1.8.3.13.)
-    def acknowledge(delivery_tag)
-      super(delivery_tag)
-    end # acknowledge(delivery_tag)
-
-    #
-    # @return [Consumer]  self
-    #
-    # @api public
-    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Reference.pdf AMQP 0.9.1 protocol documentation (Section 1.8.3.14.)
-    def reject(delivery_tag, requeue = true)
-      super(delivery_tag, requeue)
-    end # reject(delivery_tag, requeue = true)
-
-    # @endgroup
-
-
-    # @group Error Handling & Recovery
-
-    # Defines a callback that will be executed after TCP connection is interrupted (typically because of a network failure).
-    # Only one callback can be defined (the one defined last replaces previously added ones).
-    #
-    # @api public
-    def on_connection_interruption(&block)
-      super(&block)
-    end # on_connection_interruption(&block)
-    alias after_connection_interruption on_connection_interruption
-
-
-    # Defines a callback that will be executed after TCP connection is recovered after a network failure
-    # but before AMQP connection is re-opened.
-    # Only one callback can be defined (the one defined last replaces previously added ones).
-    #
-    # @api public
-    def before_recovery(&block)
-      super(&block)
-    end # before_recovery(&block)
-
-    # Defines a callback that will be executed when AMQP connection is recovered after a network failure..
-    # Only one callback can be defined (the one defined last replaces previously added ones).
-    #
-    # @api public
-    def on_recovery(&block)
-      super(&block)
-    end # on_recovery(&block)
-    alias after_recovery on_recovery
-
-
-    # Called by associated connection object when AMQP connection has been re-established
-    # (for example, after a network failure).
-    #
-    # @api plugin
-    def auto_recover
-      super
-    end # auto_recover
-
-    # @endgroup
-
-
     # @return [String] Readable representation of relevant object state.
     def inspect
       "#<AMQP::Consumer:#{@consumer_tag}> queue=#{@queue.name} channel=#{@channel.id} callbacks=#{@callbacks.inspect}"
@@ -284,6 +219,19 @@ module AMQP
       self
     end # reject(delivery_tag, requeue = true)
 
+    # Defines a callback that will be executed when AMQP connection is recovered after a network failure..
+    # Only one callback can be defined (the one defined last replaces previously added ones).
+    #
+    # @api public
+    # Defines a callback that will be executed when AMQP connection is recovered after a network failure..
+    # Only one callback can be defined (the one defined last replaces previously added ones).
+    #
+    # @api public
+    def on_recovery(&block)
+      self.redefine_callback(:after_recovery, &block)
+    end # on_recovery(&block)
+    alias after_recovery on_recovery
+
     # @endgroup
 
 
@@ -317,16 +265,6 @@ module AMQP
     def run_before_recovery_callbacks
       self.exec_callback_yielding_self(:before_recovery)
     end
-
-
-    # Defines a callback that will be executed when AMQP connection is recovered after a network failure..
-    # Only one callback can be defined (the one defined last replaces previously added ones).
-    #
-    # @api public
-    def on_recovery(&block)
-      self.redefine_callback(:after_recovery, &block)
-    end # on_recovery(&block)
-    alias after_recovery on_recovery
 
     # @private
     def run_after_recovery_callbacks
