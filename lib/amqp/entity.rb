@@ -18,11 +18,11 @@ module AMQP
 
   module ProtocolMethodHandlers
     def handle(klass, &block)
-      AMQ::Client::HandlersRegistry.register(klass, &block)
+      HandlersRegistry.register(klass, &block)
     end
 
     def handlers
-      AMQ::Client::HandlersRegistry.handlers
+      HandlersRegistry.handlers
     end
   end # ProtocolMethodHandlers
 
