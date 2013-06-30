@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-require "amq/client/adapters/event_machine"
+require "amq/client/async/adapters/eventmachine"
 require "amqp/broker"
 
 module AMQP
