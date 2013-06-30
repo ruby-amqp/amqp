@@ -4,9 +4,6 @@ require "amq/client/version"
 require "amq/client/exceptions"
 require "amq/client/handlers_registry"
 require "amq/client/adapter"
-require "amq/client/channel"
-require "amq/client/exchange"
-require "amq/client/queue"
 
 begin
   require "amq/protocol/client"
