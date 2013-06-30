@@ -142,8 +142,8 @@ module AMQP
     # Behaviours
     #
 
-    include AMQ::Client::Async::Entity
-    extend  AMQ::Client::Async::ProtocolMethodHandlers
+    include Entity
+    extend  ProtocolMethodHandlers
 
 
     #

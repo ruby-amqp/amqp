@@ -17,8 +17,8 @@ module AMQP
     # Behaviours
     #
 
-    include AMQ::Client::Async::Callbacks
-    extend  AMQ::Client::Async::ProtocolMethodHandlers
+    include Callbacks
+    extend  ProtocolMethodHandlers
 
 
     #

@@ -147,9 +147,9 @@ module AMQP
     # Behaviours
     #
 
-    extend  AMQ::Client::Async::RegisterEntityMixin
-    include AMQ::Client::Async::Entity
-    extend  AMQ::Client::Async::ProtocolMethodHandlers
+    extend  RegisterEntityMixin
+    include Entity
+    extend  ProtocolMethodHandlers
 
     register_entity :queue,    AMQP::Queue
     register_entity :exchange, AMQP::Exchange
