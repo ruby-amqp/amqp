@@ -2,7 +2,7 @@
 
 require "amq/client/version"
 require "amq/client/exceptions"
-require "amq/client/adapter"
+require "amq/client/async/adapter"
 
 begin
   require "amq/protocol/client"
