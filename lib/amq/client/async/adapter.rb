@@ -3,8 +3,6 @@
 require "amq/client/logging"
 require "amq/client/settings"
 require "amq/client/async/auth_mechanism_adapter"
-require "amq/client/async/entity"
-require "amq/client/async/channel"
 
 module AMQ
   # For overview of AMQP client adapters API, see {AMQ::Client::Adapter}
