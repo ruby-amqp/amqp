@@ -27,7 +27,7 @@ module AMQP
   end # ProtocolMethodHandlers
 
 
-  # AMQ entities, as implemented by AMQ::Client, have callbacks and can run them
+  # AMQ entities, as implemented by AMQP, have callbacks and can run them
   # when necessary.
   #
   # @note Exchanges and queues implementation is based on this class.

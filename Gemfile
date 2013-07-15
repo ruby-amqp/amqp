@@ -15,8 +15,6 @@ def custom_gem(name, options = Hash.new)
 end
 
 custom_gem "eventmachine", ">= 1.0.0"
-# gem "json", :platform => :ruby_18
-custom_gem "amq-client",   :git => "git://github.com/ruby-amqp/amq-client.git",   :branch => "master"
 custom_gem "amq-protocol", :git => "git://github.com/ruby-amqp/amq-protocol.git", :branch => "master"
 
 group :development do

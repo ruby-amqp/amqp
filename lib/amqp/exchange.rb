@@ -541,7 +541,7 @@ module AMQP
         properties[:delivery_mode] = properties.delete(:persistent) ? 2 : 1
         basic_publish(payload.to_s, opts[:key] || opts[:routing_key] || @default_routing_key, properties, opts[:mandatory], opts[:immediate])
 
-        # don't pass block to AMQ::Client::Exchange#publish because it will be executed
+        # don't pass block to AMQP::Exchange#publish because it will be executed
         # immediately and we want to do it later. See ruby-amqp/amqp/#67 MK.
         EventMachine.next_tick(&block) if block
       end

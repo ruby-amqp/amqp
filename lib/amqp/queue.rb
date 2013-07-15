@@ -1,12 +1,8 @@
 # encoding: utf-8
 
-require "amq/client/async/entity"
-require "amq/client/adapter"
-require "amq/client/server_named_entity"
+require "amqp/entity"
 
 require "amq/protocol/get_response"
-require "amq/client/async/consumer"
-
 require "amqp/consumer"
 
 module AMQP
@@ -146,13 +142,13 @@ module AMQP
     attr_accessor :opts
 
     # Channel this queue belongs to.
-    # @return [AMQ::Client::Channel]
+    # @return [AMQP::Channel]
     attr_reader :channel
 
     # @return [Array<Hash>] All consumers on this queue.
     attr_reader :consumers
 
-    # @return [AMQ::Client::Consumer] Default consumer (registered with {Queue#consume}).
+    # @return [AMQP::Consumer] Default consumer (registered with {Queue#consume}).
     attr_reader :default_consumer
 
     # @return [Hash] Additional arguments given on queue declaration. Typically used by AMQP extensions.
@@ -215,7 +211,7 @@ module AMQP
       # a deferrable that we use to delay operations until this queue is actually declared.
       # one reason for this is to support a case when a server-named queue is immediately bound.
       # it's crazy, but 0.7.x supports it, so... MK.
-      @declaration_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
+      @declaration_deferrable = AMQP::Deferrable.new
 
       super(channel.connection)
 
@@ -253,7 +249,7 @@ module AMQP
         if block
           self.queue_declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], @opts[:nowait], @opts[:arguments], &shim)
         else
-          # we cannot pass :nowait as true here, AMQ::Client::Queue will (rightfully) raise an exception because
+          # we cannot pass :nowait as true here, AMQP::Queue will (rightfully) raise an exception because
           # it has no idea about crazy edge cases we are trying to support for sake of backwards compatibility. MK.
           self.queue_declare(@opts[:passive], @opts[:durable], @opts[:exclusive], @opts[:auto_delete], false, @opts[:arguments])
         end
@@ -545,7 +541,7 @@ module AMQP
 
         @channel.once_open do
           self.once_name_is_available do
-            # see AMQ::Client::Queue#get in amq-client
+            # see AMQP::Queue#get in amq-client
             self.get(!opts.fetch(:ack, false), &shim)
           end
         end
@@ -1122,7 +1118,7 @@ module AMQP
     # @api public
     # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.8.3.3.)
     def basic_consume(no_ack = false, exclusive = false, nowait = false, no_local = false, arguments = nil, &block)
-      raise RuntimeError.new("This queue already has default consumer. Please instantiate AMQ::Client::Consumer directly to register additional consumers.") if @default_consumer
+      raise RuntimeError.new("This queue already has default consumer. Please instantiate AMQP::Consumer directly to register additional consumers.") if @default_consumer
 
       nowait            = true unless block
       @default_consumer = self.class.consumer_class.new(@channel, self, generate_consumer_tag(@name), exclusive, no_ack, arguments, no_local, &block)

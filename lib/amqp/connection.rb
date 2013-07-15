@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-require "amqp/client"
+require "amqp/session"
 
 # Top-level namespace of amqp gem. Please refer to "See also" section below.
 #
@@ -212,12 +212,27 @@ module AMQP
   # @return [AMQP::Session]
   # @api public
   def self.connect(connection_options_or_string = {}, other_options = {}, &block)
-    Client.connect(connection_options_or_string, other_options, &block)
+      opts = case connection_string_or_options
+             when String then
+               parse_connection_uri(connection_string_or_options)
+             when Hash then
+               connection_string_or_options
+             else
+               Hash.new
+             end
+
+      connection = if block
+                     AMQP.client.connect(opts.merge(options), &block)
+                   else
+                     AMQP.client.connect(opts.merge(options))
+                   end
+
+      connection
   end
 
   # @return [Hash] Default AMQP connection settings. This hash may be modified.
   # @api public
   def self.settings
-    @settings ||= AMQ::Client::Settings.default
+    @settings ||= AMQP::Settings.default
   end
 end # AMQP
