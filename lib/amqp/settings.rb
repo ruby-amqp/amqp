@@ -149,5 +149,9 @@ module AMQP
 
       opts
     end
+
+    def self.parse_connection_uri(connection_string)
+      parse_amqp_url(connection_string)
+    end
   end
 end

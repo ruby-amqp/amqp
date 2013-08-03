@@ -2,6 +2,7 @@
 
 require "eventmachine"
 require "amqp/framing/string/frame"
+require "amqp/auth_mechanism_adapter"
 require "amqp/broker"
 
 require "amqp/channel"
@@ -889,15 +890,6 @@ module AMQP
     #
     # Implementation
     #
-
-
-    # Sends opaque data to AMQ broker over active connection.
-    #
-    # @note This must be implemented by all AMQP clients.
-    # @api plugin
-    def send_raw(data)
-      raise NotImplementedError
-    end
 
     # Sends connection preamble to the broker.
     # @api plugin

@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-module AMQP::Async
+module AMQP
   # Provides a flexible method for encoding AMQP credentials. PLAIN and
   # EXTERNAL are provided by this gem. In order to implement a new
   # authentication mechanism, create a subclass like so:
