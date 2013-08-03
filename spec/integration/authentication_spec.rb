@@ -11,7 +11,7 @@ describe "Authentication attempt" do
   include EventedSpec::EMSpec
   include EventedSpec::SpecHelper
 
-  default_timeout 2.0
+  default_timeout 7.0
 
 
   describe "with default connection parameters" do
@@ -67,7 +67,7 @@ describe "Authentication attempt" do
       end # context
 
       context "and provided credentials ARE INCORRECT" do
-        default_timeout 10
+        default_timeout 5
 
         after(:all) { done }
 
