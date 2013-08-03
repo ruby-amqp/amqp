@@ -3,53 +3,22 @@
 require 'spec_helper'
 require 'amqp'
 
-describe AMQP, 'class object' do
-
-  #
-  # Environment
-  #
-
-  subject { AMQP }
+describe AMQP do
 
   #
   # Examples
   #
 
-  its(:settings) do
-    # TODO: rewrite using key should eql value,
-    # it's not very wise to check frame_max etc.
-    should == {
-      :host      => "127.0.0.1",
-      :port      => 5672,
-      :user      => "guest",
-      :pass      => "guest",
-      :vhost     => "/",
-      :timeout   => nil,
-      :logging   => false,
-      :ssl       => false,
-      :broker    => nil,
-      :frame_max => 131072,
-      :heartbeat => 0,
-      :auth_mechanism => "PLAIN"
-    }
+  it "has default settings" do
+    s = AMQP.settings.dup
+
+    s[:host].should == "127.0.0.1"
+    s[:port].should == 5672
+    s[:user].should == "guest"
+    s[:pass].should == "guest"
+    s[:heartbeat].should == 0
+    s[:auth_mechanism].should == "PLAIN"
   end
-
-  its(:client) { should == AMQP::Session }
-
-
-
-
-  describe 'logging' do
-    after(:all) do
-      AMQP.logging = false
-    end
-
-    it 'is silent by default' do
-      AMQP.logging.should be_false
-    end
-  end # .logging=
-
-
 
 
   describe '.start' do
