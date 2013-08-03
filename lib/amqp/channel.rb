@@ -279,7 +279,7 @@ module AMQP
       # ...
       #
       # Read more about EM::Deferrable#callback behavior in EventMachine documentation. MK.
-      @channel_is_open_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
+      @channel_is_open_deferrable = AMQP::Deferrable.new
 
       @parameter_checks = {:queue => [:durable, :exclusive, :auto_delete, :arguments], :exchange => [:type, :durable, :arguments]}
 
@@ -318,7 +318,7 @@ module AMQP
       return unless auto_recovering?
 
       @channel_is_open_deferrable.fail
-      @channel_is_open_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
+      @channel_is_open_deferrable = AMQP::Deferrable.new
 
       self.open do
         @channel_is_open_deferrable.succeed
@@ -347,7 +347,7 @@ module AMQP
       self.class.release_channel_id(old_id)
 
       @channel_is_open_deferrable.fail
-      @channel_is_open_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
+      @channel_is_open_deferrable = AMQP::Deferrable.new
 
       self.open do
         @channel_is_open_deferrable.succeed
@@ -1147,11 +1147,11 @@ module AMQP
     # @private
     # @api plugin
     def reset(&block)
-      # See AMQ::Client::Channel
+      # See AMQP::Channel
       self.reset_state!
 
       # there is no way to reset a deferrable; we have to use a new instance. MK.
-      @channel_is_open_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
+      @channel_is_open_deferrable = AMQP::Deferrable.new
       @channel_is_open_deferrable.callback(&block)
 
       @connection.on_connection do
@@ -1173,7 +1173,7 @@ module AMQP
       self.reset_state!
 
       self.class.release_channel_id(@id) unless auto_recovering?
-      @channel_is_open_deferrable = AMQ::Client::EventMachineClient::Deferrable.new
+      @channel_is_open_deferrable = AMQP::Deferrable.new
     end
 
 
@@ -1257,7 +1257,7 @@ module AMQP
 
     # AMQP connection this channel belongs to.
     #
-    # @return [AMQ::Client::Connection] Connection this channel belongs to.
+    # @return [AMQP::Connection] Connection this channel belongs to.
     def connection
       @connection
     end # connection
@@ -1470,7 +1470,7 @@ module AMQP
     # it was previously instantiated on this channel.
     #
     # @param [String] name Exchange name
-    # @return [AMQ::Client::Exchange] Exchange (if found)
+    # @return [AMQP::Exchange] Exchange (if found)
     # @api plugin
     def find_exchange(name)
       @exchanges[name]

@@ -67,7 +67,7 @@ describe "Authentication attempt" do
       end # context
 
       context "and provided credentials ARE INCORRECT" do
-        default_timeout 10
+        default_timeout 5
 
         after(:all) { done }
 

@@ -4,7 +4,7 @@ module AMQP
 
     class ImproperStatusError < ArgumentError
       def initialize(value)
-        super("Value #{value.inspect} isn't permitted. Choose one of: #{AMQ::Client::Openable::VALUES.inspect}")
+        super("Value #{value.inspect} isn't permitted. Choose one of: #{AMQP::Openable::VALUES.inspect}")
       end
     end
 

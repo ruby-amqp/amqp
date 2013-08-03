@@ -2,7 +2,9 @@
 
 require 'spec_helper'
 
-describe AMQP::Client do
+require "amqp/settings"
+
+describe AMQP::Settings do
 
   #
   # Examples

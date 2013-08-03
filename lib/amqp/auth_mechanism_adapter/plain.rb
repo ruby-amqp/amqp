@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-module AMQ::Client::Async
+module AMQP
 
   # Manages the encoding of credentials for the PLAIN authentication
   # mechanism.
