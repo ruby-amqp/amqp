@@ -256,7 +256,7 @@ module AMQP
       # ruby-amqp/amqp#66, MK.
       if self.open?
         closing!
-        self.send_frame(AMQ::Protocol::Connection::Close.encode(reply_code, reply_text, class_id, method_id))
+        self.send_frame(AMQ::Protocol::Connection::Close.encode(reply_code, reply_text, 0, 0))
       elsif self.closing?
         # no-op
       else

@@ -232,14 +232,14 @@ module AMQP
   def self.connect(connection_options_or_string = {}, other_options = {}, &block)
     opts = case connection_options_or_string
            when String then
-             parse_connection_uri(connection_options_or_string)
+             AMQP::Settings.parse_connection_uri(connection_options_or_string)
            when Hash then
              connection_options_or_string
            else
              Hash.new
            end
 
-    AMQP::Session.connect(settings)
+    AMQP::Session.connect(opts.merge(other_options), &block)
   end
 
   # @return [Hash] Default AMQP connection settings. This hash may be modified.

@@ -11,7 +11,7 @@ describe "Authentication attempt" do
   include EventedSpec::EMSpec
   include EventedSpec::SpecHelper
 
-  default_timeout 7.0
+  default_timeout 2.0
 
 
   describe "with default connection parameters" do
