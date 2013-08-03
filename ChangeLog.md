@@ -1,5 +1,10 @@
 ## Changes Between 1.0.0 and 1.1.0
 
+### AMQ::Client is Removed
+
+`amq-client` has been incorporated into amqp gem. `AMQ::Client` and related
+modules are no longer available.
+
 ### AMQP::Channel#confirm_select is Now Delayed
 
 `AMQP::Channel#confirm_select` is now delayed until after the channel
