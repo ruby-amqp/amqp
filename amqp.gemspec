@@ -24,7 +24,7 @@ Gem::Specification.new do |s|
 
   # Dependencies
   s.add_dependency "eventmachine"
-  s.add_dependency "amq-protocol", ">= 1.6.0"
+  s.add_dependency "amq-protocol", ">= 1.7.0"
 
   s.rubyforge_project = "amqp"
 end
