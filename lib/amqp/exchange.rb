@@ -317,8 +317,7 @@ module AMQP
       @status                  = :unknown
       @default_publish_options = (opts.delete(:default_publish_options) || {
           :routing_key  => @default_routing_key,
-          :mandatory    => false,
-          :immediate    => false
+          :mandatory    => false
         }).freeze
 
       @default_headers = (opts.delete(:default_headers) || {
@@ -503,12 +502,6 @@ module AMQP
     #                                      unroutable message back to the client with basic.return AMQPmethod.
     #                                      If message is not mandatory, the server silently drops the message.
     #
-    # @option options [Boolean] :immediate (false) This flag tells the server how to react if the message cannot be
-    #                                      routed to a queue consumer immediately.  If this flag is set, the
-    #                                      server will return an undeliverable message with a Return method.
-    #                                      If this flag is zero, the server will queue the message, but with
-    #                                      no guarantee that it will ever be consumed.
-    #
     # @option options [Boolean] :persistent (false) When true, this message will be persisted to disk and remain in the queue until
     #                                       it is consumed. When false, the message is only kept in a transient store
     #                                       and will lost in case of server restart.
@@ -539,7 +532,7 @@ module AMQP
       @channel.once_open do
         properties                 = @default_headers.merge(options)
         properties[:delivery_mode] = properties.delete(:persistent) ? 2 : 1
-        basic_publish(payload.to_s, opts[:key] || opts[:routing_key] || @default_routing_key, properties, opts[:mandatory], opts[:immediate])
+        basic_publish(payload.to_s, opts[:key] || opts[:routing_key] || @default_routing_key, properties, opts[:mandatory])
 
         # don't pass block to AMQP::Exchange#publish because it will be executed
         # immediately and we want to do it later. See ruby-amqp/amqp/#67 MK.
@@ -664,9 +657,9 @@ module AMQP
     # @group Publishing Messages
 
     # @api public
-    def basic_publish(payload, routing_key = AMQ::Protocol::EMPTY_STRING, user_headers = {}, mandatory = false, immediate = false, frame_size = nil)
+    def basic_publish(payload, routing_key = AMQ::Protocol::EMPTY_STRING, user_headers = {}, mandatory = false)
       headers = { :priority => 0, :delivery_mode => 2, :content_type => "application/octet-stream" }.merge(user_headers)
-      @connection.send_frameset(AMQ::Protocol::Basic::Publish.encode(@channel.id, payload, headers, @name, routing_key, mandatory, immediate, (frame_size || @connection.frame_max)), @channel)
+      @connection.send_frameset(AMQ::Protocol::Basic::Publish.encode(@channel.id, payload, headers, @name, routing_key, mandatory, false, @connection.frame_max, @channel)
 
       # publisher confirms support. MK.
       @channel.exec_callback(:after_publish)
