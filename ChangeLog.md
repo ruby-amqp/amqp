@@ -1,5 +1,11 @@
 ## Changes Between 1.0.0 and 1.1.0
 
+### amq-protocol Update
+
+Minimum `amq-protocol` version is now `1.8.0` which includes
+a bug fix for messages exactly 128 Kb in size.
+
+
 ### AMQ::Client is Removed
 
 `amq-client` has been incorporated into amqp gem. `AMQ::Client` and related
