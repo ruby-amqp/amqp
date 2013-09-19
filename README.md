@@ -8,7 +8,7 @@ This library works with
  * [JRuby](http://jruby.org)
  * [Rubinius](http://rubini.us)
  * Ruby 1.9.2
- * Ruby 1.8.7 (*except for p249*, see the FAQ)
+ * Ruby 1.8.7
  * [REE](http://www.rubyenterpriseedition.com),
 
 and is licensed under the [Ruby License](http://www.ruby-lang.org/en/LICENSE.txt)
@@ -86,7 +86,7 @@ On Microsoft Windows 7
     gem install eventmachine
     gem install amqp
 
-On other OSes or [JRuby](http://jruby.org):
+On other OSes
 
     gem install amqp
 
