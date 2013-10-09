@@ -17,7 +17,7 @@ gemfile:
   - gemfiles/eventmachine-pre
 notifications:
   recipients:
-    - michaelklishin@me.com
+    - michael@rabbitmq.com
 branches:
   only:
     - master
