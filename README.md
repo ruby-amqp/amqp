@@ -6,20 +6,25 @@ This library works with Ruby 1.8.7 (*except for p249*, see the FAQ), Ruby 1.9.2,
 0.8.0 and later versions of amqp gem implement [AMQP 0.9.1](http://www.rabbitmq.com/tutorials/amqp-concepts.html) (see also [AMQP 0.9.1 spec document](http://bit.ly/amqp091spec)) and support [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq.com/extensions.html).
 
 
-## I know what AMQP is, how do I get started?
+## I know what RabbitMQ is, how do I get started?
 
 See [Getting started with amqp gem](http://rubyamqp.info/articles/getting_started/) and other [amqp gem documentation guides](http://rubyamqp.info/).
-We recommend that you read [AMQP 0.9.1 Model Explained](http://www.rabbitmq.com/tutorials/amqp-concepts.html), too.
+We recommend that you read [AMQP 0.9.1 Model Explained](http://www.rabbitmq.com/tutorials/amqp-concepts.html)
+and consider [Bunny](http://rubybunny.info) and [March Hare](http://rubymarchhare.info), too.
 
 
 
-## What is AMQP?
+## What is AMQP 0.9.1?
 
-AMQP is an [open standard for messaging middleware](http://www.amqp.org/confluence/display/AMQP/About+AMQP) that
-emphasizes interoperability between different technologies (for example, Java, .NET, Ruby, Python, Node.js, Erlang, C and so on).
+AMQP 0.9.1 is a messaging middleware protocol that emphasizes
+interoperability between different technologies (for example, Java,
+.NET, Ruby, Python, Node.js, Erlang, C and so on).
 
-Key features of AMQP are very flexible yet simple routing and binary protocol efficiency. AMQP supports many sophisticated features, for example,
-message acknowledgements, returning of messages to producer, redelivery of messages that couldn't be processed, load balancing between message consumers and so on.
+Key features of AMQP 0.9.1 are very flexible yet simple routing and binary
+protocol efficiency. AMQP 0.9.1 supports many sophisticated features, for
+example, message acknowledgements, returning of messages to producer,
+redelivery of messages that couldn't be processed, load balancing
+between message consumers and so on.
 
 
 ## What is amqp gem good for?
