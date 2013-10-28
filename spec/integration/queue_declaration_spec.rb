@@ -47,6 +47,7 @@ describe AMQP do
         it "uses server-assigned queue name" do
           @channel.queue("") do |queue, *args|
             queue.name.should_not be_empty
+            queue.should be_anonymous
             queue.delete
             done
           end
