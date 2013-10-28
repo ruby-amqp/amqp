@@ -745,7 +745,7 @@ module AMQP
 
 
     def handle_declare_ok(method)
-      @name = method.exchange if self.anonymous?
+      @name = method.exchange
       @channel.register_exchange(self)
 
       self.exec_callback_once_yielding_self(:declare, method)
