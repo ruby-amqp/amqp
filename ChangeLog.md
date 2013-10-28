@@ -1,3 +1,11 @@
+## Changes Between 1.1.0 and 1.2.0
+
+### Fixed Exception in AMQP::Exchange#handle_declare_ok
+
+`AMQP::Exchange#handle_declare_ok` no longer raises an exception
+about undefined method `#anonymous?`.
+
+
 ## Changes Between 1.0.0 and 1.1.0
 
 ### amq-protocol Update
