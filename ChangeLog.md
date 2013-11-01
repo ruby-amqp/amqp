@@ -1,3 +1,8 @@
+## Changes Between 1.1.1 and 1.1.2
+
+No changes yet.
+
+
 ## Changes Between 1.1.0 and 1.1.1
 
 ### Fixed Exception in AMQP::Exchange#handle_declare_ok
