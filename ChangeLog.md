@@ -1,6 +1,8 @@
 ## Changes Between 1.1.1 and 1.1.2
 
-No changes yet.
+### amq-protocol Update
+
+Minimum `amq-protocol` version is now `1.9.0`.
 
 
 ## Changes Between 1.1.0 and 1.1.1
