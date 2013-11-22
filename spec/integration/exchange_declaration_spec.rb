@@ -10,6 +10,7 @@ describe AMQP::Channel do
 
   include EventedSpec::AMQPSpec
 
+  default_options AMQP_OPTS
   default_timeout 2
 
 
@@ -238,6 +239,20 @@ describe AMQP::Channel do
         exchange.name.should == name
 
         done
+      end
+    end # context
+
+    context "when exchange name is specified and :nowait is false" do
+      let(:name) { "new.fanout.exchange#{rand}" }
+
+      it "declares a new fanout exchange with that name" do
+        exchange = @channel.fanout(name, :nowait => false)
+
+        exchange.delete
+
+        done(0.5) {
+          exchange.name.should == name
+        }
       end
     end # context
 
