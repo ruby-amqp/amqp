@@ -75,4 +75,12 @@ module AMQP
       super("Channel with id = #{instance.channel} is closed, you can't use it anymore!")
     end
   end # ChannelClosedError
+
+  # Raised on attempt to use a connection that was previously closed
+  # @api public
+  class ConnectionClosedError < Error
+    def initialize(frame)
+      super("The connection is closed, you can't use it anymore!")
+    end
+  end # ConnectionClosedError
 end # AMQP
