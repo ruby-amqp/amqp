@@ -1,6 +1,24 @@
+## Changes Between 1.1.4 and 1.1.5
+
+### channel.close is Delayed Until After Channel is Open
+
+This eliminates a race condition in some codebases that use
+very short lived channels.
+
+
+## Changes Between 1.1.3 and 1.1.4
+
+### ConnectionClosedError is Back
+
+`ConnectionClosedError` is now defined again.
+
+
 ## Changes Between 1.1.2 and 1.1.3
 
-No changes yet.
+### Fixed Exception in AMQP::Exchange#handle_declare_ok
+
+`AMQP::Exchange#handle_declare_ok` no longer raises an exception
+about undefined method.
 
 
 ## Changes Between 1.1.1 and 1.1.2
