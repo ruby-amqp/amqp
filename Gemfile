@@ -24,7 +24,6 @@ group :development do
 
   platform :ruby do
     gem "rdiscount"
-    gem "yajl-ruby"
 
     # To test event loop helper and various Rack apps
     gem "thin"
