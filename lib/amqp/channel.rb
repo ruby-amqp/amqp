@@ -949,10 +949,12 @@ module AMQP
     #
     # @api public
     def close(reply_code = 200, reply_text = DEFAULT_REPLY_TEXT, class_id = 0, method_id = 0, &block)
-      self.status = :closing
-      @connection.send_frame(AMQ::Protocol::Channel::Close.encode(@id, reply_code, reply_text, class_id, method_id))
+      self.once_open do
+        self.status = :closing
+        @connection.send_frame(AMQ::Protocol::Channel::Close.encode(@id, reply_code, reply_text, class_id, method_id))
 
-      self.redefine_callback :close, &block
+        self.redefine_callback :close, &block
+      end
     end
 
     # @endgroup
