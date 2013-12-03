@@ -46,7 +46,7 @@ describe AMQP::Channel, "options hash" do
 
 
   it "can be passed as the 3rd constructor argument" do
-    ch = AMQP::Channel.new(AMQP.connection, AMQP::Channel.next_channel_id, :auto_recovery => true)
+    ch = AMQP::Channel.new(AMQP.connection, nil, :auto_recovery => true)
     ch.auto_recovery.should be_true
     ch.auto_recovery = false
     ch.auto_recovery.should be_false
