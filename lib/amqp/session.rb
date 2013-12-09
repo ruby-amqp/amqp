@@ -6,6 +6,7 @@ require "amqp/auth_mechanism_adapter"
 require "amqp/broker"
 
 require "amqp/channel"
+require "amqp/channel_id_allocator"
 
 module AMQP
   # AMQP session represents connection to the broker. Session objects let you define callbacks for
@@ -33,7 +34,7 @@ module AMQP
   #
   # @api public
   class Session < EM::Connection
-
+  include AMQP::ChannelIdAllocator
 
     #
     # Behaviours
