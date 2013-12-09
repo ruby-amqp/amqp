@@ -1,3 +1,13 @@
+## Changes Between 1.1.5 and 1.1.6
+
+### 65535 Channels Per Connection
+
+amqp gem now allows for 65535 channels per connection and
+not Ruby process.
+
+Contributed by Neo (http://neo.com) developers.
+
+
 ## Changes Between 1.1.4 and 1.1.5
 
 ### channel.close is Delayed Until After Channel is Open
