@@ -20,6 +20,7 @@ notifications:
 branches:
   only:
     - master
+    - 1.1.x-stable
     - 1.0.x-stable
 matrix:
   allow_failures:
