@@ -191,8 +191,7 @@ module AMQP
     #                                   connection (accessible via {AMQP.connection}) will be used.
     # @param [Integer]       id         Channel id. Must not be greater than max channel id client and broker
     #                                   negotiated on during connection setup. Almost always the right thing to do
-    #                                   is to let AMQP gem pick channel identifier for you. If you want to get next
-    #                                   channel id, use {AMQP::Channel.next_channel_id} (it is thread-safe).
+    #                                   is to let AMQP gem pick channel identifier for you.
     # @param [Hash]          options    A hash of options
     #
     # @example Instantiating a channel for default connection (accessible as AMQP.connection)
@@ -215,7 +214,7 @@ module AMQP
     # @example Instantiating a channel with a :prefetch option
     #
     #   AMQP.connect do |connection|
-    #     AMQP::Channel.new(connection, AMQP::Channel.next_channel_id, :prefetch => 5) do |channel, open_ok|
+    #     AMQP::Channel.new(connection, :prefetch => 5) do |channel, open_ok|
     #       # ...
     #     end
     #   end
