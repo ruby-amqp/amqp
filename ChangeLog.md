@@ -1,5 +1,12 @@
 ## Changes Between 1.1.0 and 1.2.0
 
+### Automatic Recovery Fix
+
+Automatic connection recovery now correctly recovers bindings again.
+
+Contributed by Devin Christensen.
+
+
 ### 65535 Channels Per Connection
 
 amqp gem now allows for	65535 channels per connection and
