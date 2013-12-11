@@ -1,3 +1,12 @@
+## Changes Between 1.1.6 and 1.1.7
+
+### Automatic Recovery Fix
+
+Automatic connection recovery now correctly recovers bindings again.
+
+Contributed by Devin Christensen.
+
+
 ## Changes Between 1.1.5 and 1.1.6
 
 ### 65535 Channels Per Connection
