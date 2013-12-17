@@ -148,25 +148,6 @@ module AMQP
         settings[:logging] = boolean
       end
 
-
-      # Establishes connection to AMQ broker and returns it. New connection object is yielded to
-      # the block if it is given.
-      #
-      # @example Specifying adapter via the :adapter option
-      #   AMQP::Adapter.connect(:adapter => "socket")
-      # @example Specifying using custom adapter class
-      #   AMQP::SocketClient.connect
-      # @param [Hash] Connection parameters, including :adapter to use.
-      # @api public
-      def connect(settings = nil, &block)
-        @settings = Settings.configure(settings)
-
-        instance = self.new
-        instance.establish_connection(settings)
-        instance.register_connection_callback(&block)
-
-        instance
-      end
     end
 
 
@@ -531,15 +512,6 @@ module AMQP
           block.call(self)
         end
       end
-    end
-
-
-
-    # For EventMachine adapter, this is a no-op.
-    # @api public
-    def establish_connection(settings)
-      # Unfortunately there doesn't seem to be any sane way
-      # how to get EventMachine connect to the instance level.
     end
 
     alias close disconnect
