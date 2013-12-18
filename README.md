@@ -273,3 +273,7 @@ we do not expect this to change at this time.
 ### How does amqp gem relate to amq-client gem, amq-protocol and libraries like Bunny?
 
 See [this page about AMQP gems family](https://github.com/ruby-amqp/amq-client/blob/master/README.textile)
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/ruby-amqp/amqp/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
