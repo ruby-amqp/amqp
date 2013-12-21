@@ -1,3 +1,10 @@
+## Changes Between 1.1.7 and 1.1.8
+
+### amq-protocol Update
+
+Minimum `amq-protocol` version is now `1.9.2`.
+
+
 ## Changes Between 1.1.6 and 1.1.7
 
 ### Automatic Recovery Fix
