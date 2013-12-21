@@ -1,5 +1,9 @@
 ## Changes Between 1.1.0 and 1.2.0
 
+### amq-protocol Update
+
+Minimum `amq-protocol` version is now `1.9.2`.
+
 ### Automatic Recovery Fix
 
 Automatic connection recovery now correctly recovers bindings again.
