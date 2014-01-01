@@ -347,7 +347,7 @@ The first line that is different from the Blabbr example is
 
 <pre>
 <code>
-exchange = channel.topic("pub/sub", :auto_delete => true)
+exchange = channel.fanout("nba.scores")
 </code>
 </pre>
 
