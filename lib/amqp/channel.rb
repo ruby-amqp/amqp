@@ -295,7 +295,7 @@ module AMQP
             end # case
           end # if
 
-          self.prefetch(options[:prefetch], false) if options[:prefetch]
+          self.prefetch(@options[:prefetch], false) if @options[:prefetch]
         end # self.open
       end # @connection.on_open
     end
@@ -997,8 +997,10 @@ module AMQP
     # @api public
     def prefetch(count, global = false, &block)
       self.once_open do
-        # RabbitMQ as of 2.3.1 does not support prefetch_size.
+        # RabbitMQ does not support prefetch_size.
         self.qos(0, count, global, &block)
+
+        @options[:prefetch] = count
       end
 
       self
