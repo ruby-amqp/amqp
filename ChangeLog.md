@@ -1,5 +1,12 @@
 ## Changes Between 1.1.0 and 1.2.0
 
+## basic.qos Recovery Fix
+
+`basic.qos` setting will now be recovered first thing after
+channel recovery, to the most recent value passed via `:prefetch` channel
+constructor option or `AMQP::Channel#prefetch`.
+
+
 ### amq-protocol Update
 
 Minimum `amq-protocol` version is now `1.9.2`.
