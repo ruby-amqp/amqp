@@ -1028,6 +1028,12 @@ module AMQP
     # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.5.2.9)
     def handle_close(conn_close)
       closed!
+      # getting connection.close during connection negotiation means authentication
+      # has failed (RabbitMQ 3.2+):
+      # http://www.rabbitmq.com/auth-notification.html
+      if authenticating?
+        @on_possible_authentication_failure.call(@settings) if @on_possible_authentication_failure
+      end
       self.exec_callback_yielding_self(:error, conn_close)
     end
 
