@@ -20,7 +20,7 @@ describe AMQP::ChannelIdAllocator do
       end
     end
 
-    context "when THERE IS NOT channel id available for allocation" do
+    context "when THERE IS NO a channel id available for allocation" do
       it "raises an exception" do
         (ChannelAllocator::MAX_CHANNELS_PER_CONNECTION - 1).times do
           subject.next_channel_id
