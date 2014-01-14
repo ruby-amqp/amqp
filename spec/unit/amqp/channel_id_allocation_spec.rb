@@ -9,7 +9,7 @@ describe AMQP::ChannelIdAllocator do
 
   describe "#next_channel_id" do
     subject do
-      ChannelAllocator.new()
+      ChannelAllocator.new
     end
 
     context "when there is a channel id available for allocation" do
@@ -34,7 +34,7 @@ describe AMQP::ChannelIdAllocator do
 
   describe ".release_channel_id" do
     subject do
-      ChannelAllocator.new()
+      ChannelAllocator.new
     end
 
     it "releases that channel id" do
@@ -49,8 +49,8 @@ describe AMQP::ChannelIdAllocator do
 
   describe "each instance gets its own channel IDs" do
     it "has an allocator per instance" do
-      one = ChannelAllocator.new()
-      two = ChannelAllocator.new()
+      one = ChannelAllocator.new
+      two = ChannelAllocator.new
       one.next_channel_id.should == 1
       one.next_channel_id.should == 2
       two.next_channel_id.should == 1
