@@ -3,6 +3,7 @@
 [Ruby amqp gem](http://rubyamqp.info) is a widely used, feature-rich, well-maintained asynchronous RabbitMQ client with batteries included.
 This library works with
 
+ * Ruby 2.1
  * Ruby 2.0
  * Ruby 1.9.3
  * [JRuby](http://jruby.org)
