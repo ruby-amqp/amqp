@@ -1,5 +1,13 @@
 ## Changes Between 1.1.0 and 1.2.0
 
+### [Authentication Failure Notification](http://www.rabbitmq.com/auth-notification.html) Support
+
+amqp gem now supports [Authentication Failure
+Notification](http://www.rabbitmq.com/auth-notification.html). Public
+API for authentication failure handling hasn't changed.
+
+This extension is available in RabbitMQ 3.2+.
+
 ## basic.qos Recovery Fix
 
 `basic.qos` setting will now be recovered first thing after
