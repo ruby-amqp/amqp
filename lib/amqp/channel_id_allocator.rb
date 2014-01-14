@@ -1,7 +1,7 @@
 module AMQP
   module ChannelIdAllocator
 
-    MAX_CHANNELS_PER_CONNECTION = (2**16)
+    MAX_CHANNELS_PER_CONNECTION = (2**16) - 1
 
     # Resets channel allocator. This method is thread safe.
     # @api public
