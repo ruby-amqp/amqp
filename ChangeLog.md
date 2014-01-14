@@ -43,10 +43,6 @@ very short lived channels.
 `ConnectionClosedError` from `amq-client` is now defined again.
 
 
-### amq-protocol Update
-
-Minimum `amq-protocol` version is now `1.9.0`.
-
 ### Fixed Exceptions in AMQP::Exchange#handle_declare_ok
 
 `AMQP::Exchange#handle_declare_ok` no longer raises an exception
