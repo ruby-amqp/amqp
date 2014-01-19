@@ -73,6 +73,7 @@ module AMQP
     def self.configure(settings = nil)
       case settings
       when Hash then
+        settings = Hash[settings.map {|k, v| [k.to_sym, v] }] # symbolize keys
         if username = settings.delete(:username)
           settings[:user] ||= username
         end
