@@ -174,7 +174,7 @@ module AMQP
       # make it easier to use *args. MK.
       @settings                           = Settings.configure(args.first)
 
-      @on_tcp_connection_failure          = ->(settings) {
+      @on_tcp_connection_failure          = Proc.new { |settings|
         closed!
         if cb = @settings[:on_tcp_connection_failure]
           cb.call(settings)
