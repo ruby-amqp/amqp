@@ -5,6 +5,8 @@
 Set connection status to closed on connection failure, which
 means connection retries succeed.
 
+Contributed by Marius Hanne.
+
 ## Changes Between 1.1.0 and 1.2.0
 
 ### [Authentication Failure Notification](http://www.rabbitmq.com/auth-notification.html) Support
