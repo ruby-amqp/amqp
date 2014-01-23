@@ -1,4 +1,4 @@
-
+## Changes Between 1.2.x and 1.3.0
 
 ### Initial Connection Failures Retries
 
