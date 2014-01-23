@@ -173,9 +173,16 @@ module AMQP
       # EventMachine::Connection's and Adapter's constructors arity
       # make it easier to use *args. MK.
       @settings                           = Settings.configure(args.first)
-      @on_tcp_connection_failure          = @settings[:on_tcp_connection_failure] || Proc.new { |settings|
-        raise self.class.tcp_connection_failure_exception_class.new(settings)
+
+      @on_tcp_connection_failure          = Proc.new { |settings|
+        closed!
+        if cb = @settings[:on_tcp_connection_failure]
+          cb.call(settings)
+        else
+          raise self.class.tcp_connection_failure_exception_class.new(settings)
+        end
       }
+
       @on_possible_authentication_failure = @settings[:on_possible_authentication_failure] || Proc.new { |settings|
         raise self.class.authentication_failure_exception_class.new(settings)
       }
