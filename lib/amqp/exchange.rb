@@ -365,9 +365,9 @@ module AMQP
                 end
               end
 
-              self.exchange_declare(passive = @opts[:passive], durable = @opts[:durable], auto_delete = @opts[:auto_delete], nowait = @opts[:nowait], @opts[:arguments], &shim)
+              self.exchange_declare(@opts[:passive], @opts[:durable], @opts[:auto_delete], @opts[:nowait], @opts[:arguments], @opts[:internal], &shim)
             else
-              self.exchange_declare(passive = @opts[:passive], durable = @opts[:durable], auto_delete = @opts[:auto_delete], nowait = @opts[:nowait], @opts[:arguments])
+              self.exchange_declare(@opts[:passive], @opts[:durable], @opts[:auto_delete], @opts[:nowait], @opts[:arguments], @opts[:internal])
             end
           end
         end
@@ -422,6 +422,10 @@ module AMQP
       @name && ((@name == AMQ::Protocol::EMPTY_STRING) || !!(@name =~ /^amq\.(direct|fanout|topic|headers|match)/i))
     end # predefined?
 
+    # @return [Boolean] true if this exchange is an internal exchange
+    def internal?
+      @opts[:internal]
+    end
 
     # Publishes message to the exchange. The message will be routed to queues by the exchange
     # and distributed to any active consumers. Routing logic is determined by exchange type and
@@ -604,14 +608,15 @@ module AMQP
     # @group Declaration
 
     # @api public
-    def exchange_declare(passive = false, durable = false, auto_delete = false, nowait = false, arguments = nil, &block)
+    def exchange_declare(passive = false, durable = false, auto_delete = false, nowait = false, arguments = nil, internal = false, &block)
       # for re-declaration
       @passive     = passive
       @durable     = durable
       @auto_delete = auto_delete
       @arguments   = arguments
+      @internal    = internal
 
-      @connection.send_frame(AMQ::Protocol::Exchange::Declare.encode(@channel.id, @name, @type.to_s, passive, durable, auto_delete, false, nowait, arguments))
+      @connection.send_frame(AMQ::Protocol::Exchange::Declare.encode(@channel.id, @name, @type.to_s, passive, durable, auto_delete, internal, nowait, arguments))
 
       unless nowait
         self.define_callback(:declare, &block)
@@ -625,7 +630,7 @@ module AMQP
     # @api public
     def redeclare(&block)
       nowait = block.nil?
-      @connection.send_frame(AMQ::Protocol::Exchange::Declare.encode(@channel.id, @name, @type.to_s, @passive, @durable, @auto_delete, false, nowait, @arguments))
+      @connection.send_frame(AMQ::Protocol::Exchange::Declare.encode(@channel.id, @name, @type.to_s, @passive, @durable, @auto_delete, @internal, nowait, @arguments))
 
       unless nowait
         self.define_callback(:declare, &block)
@@ -789,7 +794,7 @@ module AMQP
 
     # @private
     def self.add_default_options(type, name, opts, block)
-      { :exchange => name, :type => type, :nowait => block.nil? }.merge(opts)
+      { :exchange => name, :type => type, :nowait => block.nil?, :internal => false }.merge(opts)
     end
   end # Exchange
 end # AMQP
