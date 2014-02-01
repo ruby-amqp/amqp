@@ -472,6 +472,28 @@ describe AMQP::Channel do
       end # it
     end # context
 
+    context "when exchange is declared with or without :internal parameter" do
+      it "should create a public exchange by default" do
+        exchange = @channel.topic("a new public topic exchange")
+
+        exchange.should_not be_internal
+        done
+      end # it
+
+      it "should create a public exchange when :internal is false" do
+        exchange = @channel.topic("a new-public topic exchange", :internal => false)
+
+        exchange.should_not be_internal
+        done
+      end # it
+
+      it "should create an internal exchange when :internal is true" do
+        exchange = @channel.topic("a new internal topic exchange", :internal => true)
+
+        exchange.should be_internal
+        done
+      end # it
+    end # context
 
     context "when exchange is re-declared with parameters different from the original declaration" do
       amqp_after do
