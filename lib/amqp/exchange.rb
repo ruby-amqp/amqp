@@ -658,6 +658,111 @@ module AMQP
     end # delete(if_unused = false, nowait = false)
 
 
+    # @group Exchange to Exchange Bindings
+
+    # This method binds a source exchange to a destination exchange. Messages
+    # sent to the source exchange are forwarded to the destination exchange, provided
+    # the message routing key matches the routing key specified when binding the
+    # exchanges.
+    #
+    # A valid exchange name (or reference) must be passed as the first
+    # parameter.
+    # @example Binding two source exchanges to a destination exchange
+    #
+    #  ch          = AMQP::Channel.new(connection)
+    #  source1     = ch.fanout('backlog-events-datacenter-1')
+    #  source2     = ch.fanout('backlog-events-datacenter-2')
+    #  destination = ch.fanout('baklog-events')
+    #  destination.bind(source1).bind(source2)
+    #
+    #
+    # @param [Exchange] Exchange to bind to. May also be a string or any object that responds to #name.
+    #
+    # @option opts [String] :routing_key   Specifies the routing key for the binding. The routing key is
+    #                                      used for routing messages depending on the exchange configuration.
+    #                                      Not all exchanges use a routing key! Refer to the specific
+    #                                      exchange documentation.
+    #
+    # @option opts [Hash] :arguments (nil)  A hash of optional arguments with the declaration. Headers exchange type uses these metadata
+    #                                       attributes for routing matching.
+    #                                       In addition, brokers may implement AMQP extensions using x-prefixed declaration arguments.
+    #
+    # @option opts [Boolean] :nowait (true)  If set, the server will not respond to the method. The client should
+    #                                       not wait for a reply method.  If the server could not complete the
+    #                                       method it will raise a channel or connection exception.
+    # @return [Exchange] Self
+    #
+    #
+    # @yield [] Since exchange.bind-ok carries no attributes, no parameters are yielded to the block.
+    #
+
+    # @api public
+    def bind(source, opts = {}, &block)
+      source = source.name if source.respond_to?(:name)
+      routing_key = opts[:key] || opts[:routing_key] || AMQ::Protocol::EMPTY_STRING
+      arguments = opts[:arguments] || {}
+      nowait = opts[:nowait] || block.nil?
+      @channel.once_open do
+        @connection.send_frame(AMQ::Protocol::Exchange::Bind.encode(@channel.id, @name, source, routing_key, nowait, arguments))
+        unless nowait
+          self.define_callback(:bind, &block)
+          @channel.exchanges_awaiting_bind_ok.push(self)
+        end
+      end
+      self
+    end
+
+    # This method unbinds a source exchange from a previously bound destination exchange.
+    #
+    # A valid exchange name (or reference) must be passed as the first
+    # parameter.
+    # @example Binding and unbinding two exchanges
+    #
+    #  ch          = AMQP::Channel.new(connection)
+    #  source      = ch.fanout('backlog-events')
+    #  destination = ch.fanout('backlog-events-copy')
+    #  destination.bind(source)
+    #  ...
+    #  destination.unbind(source)
+    #
+    #
+    # @param [Exchange] Exchange to bind to. May also be a string or any object that responds to #name.
+    #
+    # @option opts [String] :routing_key   Specifies the routing key for the binding. The routing key is
+    #                                      used for routing messages depending on the exchange configuration.
+    #                                      Not all exchanges use a routing key! Refer to the specific
+    #                                      exchange documentation.
+    #
+    # @option opts [Hash] :arguments (nil)  A hash of optional arguments with the declaration. Headers exchange type uses these metadata
+    #                                       attributes for routing matching.
+    #                                       In addition, brokers may implement AMQP extensions using x-prefixed declaration arguments.
+    #
+    # @option opts [Boolean] :nowait (true)  If set, the server will not respond to the method. The client should
+    #                                       not wait for a reply method.  If the server could not complete the
+    #                                       method it will raise a channel or connection exception.
+    # @return [Exchange] Self
+    #
+    #
+    # @yield [] Since exchange.unbind-ok carries no attributes, no parameters are yielded to the block.
+    #
+
+    # @api public
+    def unbind(source, opts = {}, &block)
+      source = source.name if source.respond_to?(:name)
+      routing_key = opts[:key] || opts[:routing_key] || AMQ::Protocol::EMPTY_STRING
+      arguments = opts[:arguments] || {}
+      nowait = opts[:nowait] || block.nil?
+      @channel.once_open do
+        @connection.send_frame(AMQ::Protocol::Exchange::Unbind.encode(@channel.id, @name, source, routing_key, nowait, arguments))
+        unless nowait
+          self.define_callback(:unbind, &block)
+          @channel.exchanges_awaiting_unbind_ok.push(self)
+        end
+      end
+      self
+    end
+
+    # @endgroup
 
     # @group Publishing Messages
 
@@ -755,10 +860,17 @@ module AMQP
       self.exec_callback_once_yielding_self(:declare, method)
     end
 
+    def handle_bind_ok(method)
+      self.exec_callback_once(:bind, method)
+    end
+
+    def handle_unbind_ok(method)
+      self.exec_callback_once(:unbind, method)
+    end
+
     def handle_delete_ok(method)
       self.exec_callback_once(:delete, method)
-    end # handle_delete_ok(method)
-
+    end
 
 
     self.handle(AMQ::Protocol::Exchange::DeclareOk) do |connection, frame|
@@ -769,6 +881,21 @@ module AMQP
       exchange.handle_declare_ok(method)
     end # handle
 
+    self.handle(AMQ::Protocol::Exchange::BindOk) do |connection, frame|
+      method   = frame.decode_payload
+      channel  = connection.channels[frame.channel]
+      exchange = channel.exchanges_awaiting_bind_ok.shift
+
+      exchange.handle_bind_ok(method)
+    end # handle
+
+    self.handle(AMQ::Protocol::Exchange::UnbindOk) do |connection, frame|
+      method   = frame.decode_payload
+      channel  = connection.channels[frame.channel]
+      exchange = channel.exchanges_awaiting_unbind_ok.shift
+
+      exchange.handle_unbind_ok(method)
+    end # handle
 
     self.handle(AMQ::Protocol::Exchange::DeleteOk) do |connection, frame|
       channel  = connection.channels[frame.channel]
