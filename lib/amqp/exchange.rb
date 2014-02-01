@@ -365,9 +365,9 @@ module AMQP
                 end
               end
 
-              self.exchange_declare(@opts[:passive], @opts[:durable], @opts[:auto_delete], @opts[:nowait], @opts[:arguments], @opts[:internal], &shim)
+              self.exchange_declare(@opts[:passive], @opts[:durable], @opts[:auto_delete], @opts[:internal], @opts[:nowait], @opts[:arguments], &shim)
             else
-              self.exchange_declare(@opts[:passive], @opts[:durable], @opts[:auto_delete], @opts[:nowait], @opts[:arguments], @opts[:internal])
+              self.exchange_declare(@opts[:passive], @opts[:durable], @opts[:auto_delete], @opts[:internal], @opts[:nowait], @opts[:arguments])
             end
           end
         end
@@ -608,7 +608,7 @@ module AMQP
     # @group Declaration
 
     # @api public
-    def exchange_declare(passive = false, durable = false, auto_delete = false, nowait = false, arguments = nil, internal = false, &block)
+    def exchange_declare(passive = false, durable = false, auto_delete = false, internal = false, nowait = false, arguments = nil, &block)
       # for re-declaration
       @passive     = passive
       @durable     = durable
