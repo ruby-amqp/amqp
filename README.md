@@ -247,34 +247,6 @@ Special thanks to Dmitriy Samovskiy, Ben Hood and Tony Garnock-Jones.
 
 
 
-## (Very) Short FAQ ##
-
-### So, does amqp gem only work with RabbitMQ?
-
-This library is developed and tested primarily with [RabbitMQ](http://rabbitmq.com), although it should be compatible with any
-server implementing the [AMQP 0.9.1 spec](http://bit.ly/hw2ELX). For AMQP 0.8 brokers, use amqp gem version 0.7.x.
-
-### Why isn't Ruby 1.8.7-p249 supported? Will it be supported in the future?
-
-In order to make code like the following (pseudo-synchronous) work
-
-``` ruby
-conn = AMQP.connect
-ch   = AMQP::Channel.new(conn)
-
-ex   = ch.default_exchange
-ex.publish(some_data)
-```
-
-and not be affected by this [Ruby 1.8.7-p249-specific bug (super called outside of method)](http://bit.ly/iONBmH), we need to
-avoid any inheritance for key amqp gem classes: Channel, Queue, Exchange, Consumer. This will take a significant refactoring effort and
-we do not expect this to change at this time.
-
-
-### How does amqp gem relate to amq-client gem, amq-protocol and libraries like Bunny?
-
-See [this page about AMQP gems family](https://github.com/ruby-amqp/amq-client/blob/master/README.textile)
-
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/ruby-amqp/amqp/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
