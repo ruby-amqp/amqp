@@ -1,20 +1,26 @@
 # Ruby amqp gem: the asynchronous Ruby RabbitMQ client
 
-[Ruby amqp gem](http://rubyamqp.info) is a widely used, feature-rich, well-maintained asynchronous RabbitMQ client with batteries included.
-This library works with
+[Ruby amqp gem](http://rubyamqp.info) is a feature-rich,
+EventMachine-based RabbitMQ client with batteries included.
 
- * Ruby 2.1
- * Ruby 2.0
- * Ruby 1.9.3
- * [JRuby](http://jruby.org)
- * [Rubinius](http://rubini.us)
- * Ruby 1.9.2
- * Ruby 1.8.7
- * [REE](http://www.rubyenterpriseedition.com),
+It implement [AMQP
+0.9.1](http://www.rabbitmq.com/tutorials/amqp-concepts.html) and
+support [RabbitMQ extensions to AMQP
+0.9.1](http://www.rabbitmq.com/extensions.html).
 
-and is licensed under the [Ruby License](http://www.ruby-lang.org/en/LICENSE.txt)
 
-0.8.0 and later versions of amqp gem implement [AMQP 0.9.1](http://www.rabbitmq.com/tutorials/amqp-concepts.html) (see also [AMQP 0.9.1 spec document](http://bit.ly/amqp091spec)) and support [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq.com/extensions.html).
+## A Word of Warning: Use This Only If You Already Use EventMachine
+
+Unless you **already use EventMachine**, there is no real reason to
+use this client. Consider [Bunny](http://rubybunny.info) or [March Hare](http://rubymarchhare.info) instead.
+
+amqp gem brings in a fair share of EventMachine complexity which
+cannot be fully eliminated. Event loop blocking, writes that happen
+at the end of loop tick, uncaught exceptions in event loop silently killing it:
+it's not worth the pain unless you've already deeply invested in EventMachine
+and understand how it works.
+
+So, just use Bunny or March Hare. You will be much happier.
 
 
 ## I know what RabbitMQ is, how do I get started?
@@ -126,6 +132,20 @@ and is written in a form of a tutorial. See [AMQP 0.9.1 Model Explained](http://
 to learn more about RabbitMQ protocol principles & concepts.
 
 
+## Supported Ruby Versions
+
+This library works with
+
+ * Ruby 2.1
+ * Ruby 2.0
+ * Ruby 1.9.3
+ * [JRuby](http://jruby.org)
+ * [Rubinius](http://rubini.us)
+ * Ruby 1.9.2
+ * Ruby 1.8.7
+ * [REE](http://www.rubyenterpriseedition.com),
+
+
 
 ## Documentation: tutorials, guides & API reference
 
@@ -211,7 +231,7 @@ amqp gem is maintained by [Michael Klishin](http://twitter.com/michaelklishin).
 
 ## License ##
 
-AMQP gem is licensed under the [Ruby License](http://www.ruby-lang.org/en/LICENSE.txt).
+amqp gem is licensed under the [Ruby License](http://www.ruby-lang.org/en/LICENSE.txt).
 
 
 
