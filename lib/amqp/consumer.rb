@@ -113,13 +113,6 @@ module AMQP
       @channel.once_open do
         @queue.once_declared do
           @connection.send_frame(AMQ::Protocol::Basic::Cancel.encode(@channel.id, @consumer_tag, nowait))
-          self.clear_callbacks(:delivery)
-          self.clear_callbacks(:consume)
-          self.clear_callbacks(:scancel)
-
-          self.unregister_with_channel
-          self.unregister_with_queue
-
           if !nowait
             self.redefine_callback(:cancel, &block)
             @channel.consumers_awaiting_cancel_ok.push(self)
@@ -304,6 +297,11 @@ module AMQP
     end # handle_consume_ok(consume_ok)
 
     def handle_cancel_ok(cancel_ok)
+      self.exec_callback_once(:cancel, cancel_ok)
+
+      self.unregister_with_channel
+      self.unregister_with_queue
+
       @consumer_tag = nil
 
       # detach from object graph so that this object will be garbage-collected
@@ -311,7 +309,10 @@ module AMQP
       @channel      = nil
       @connection   = nil
 
-      self.exec_callback_once(:cancel, cancel_ok)
+      self.clear_callbacks(:delivery)
+      self.clear_callbacks(:consume)
+      self.clear_callbacks(:cancel)
+      self.clear_callbacks(:scancel)
     end # handle_cancel_ok(method)
 
 
