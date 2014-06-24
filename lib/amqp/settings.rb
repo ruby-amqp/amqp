@@ -51,9 +51,8 @@ module AMQP
         :consumer_cancel_notify       => true,
         :exchange_exchange_bindings   => true,
         :"basic.nack"                 => true,
-        :"connection.blocked"         => true
-        # TODO http://www.rabbitmq.com/auth-notification.html
-        # :authentication_failure_close => true
+        :"connection.blocked"         => true,
+        :authentication_failure_close => true
       }
     }
 
