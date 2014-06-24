@@ -396,6 +396,18 @@ module AMQP
     # @endgroup
 
 
+    # @group Blocked connection notifications
+
+    def on_blocked(&fn)
+      @on_blocked = fn
+    end
+
+    def on_unblocked(&fn)
+      @on_unblocked = fn
+    end
+
+    # @endgroup
+
 
     #
     # Implementation
@@ -1055,6 +1067,13 @@ module AMQP
     end # handle_close_ok(close_ok)
 
 
+    def handle_connection_blocked(connection_blocked)
+      @on_blocked.call(self, connection_blocked) if @on_blocked
+    end
+
+    def handle_connection_unblocked(connection_unblocked)
+      @on_unblocked.call(self, connection_unblocked) if @on_unblocked
+    end
 
     protected
 
@@ -1125,6 +1144,13 @@ module AMQP
       connection.handle_close_ok(frame.decode_payload)
     end
 
+    self.handle(AMQ::Protocol::Connection::Blocked) do |connection, frame|
+      connection.handle_connection_blocked(frame.decode_payload)
+    end
+
+    self.handle(AMQ::Protocol::Connection::Unblocked) do |connection, frame|
+      connection.handle_connection_unblocked(frame.decode_payload)
+    end
 
 
 
