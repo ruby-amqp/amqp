@@ -1,3 +1,11 @@
+## Changes Between 1.3.x and 1.4.0
+
+### connection.blocked Support
+
+[connection.blocked](https://www.rabbitmq.com/connection-blocked.html) notifications
+are now correctly supported by the library.
+
+
 ## Changes Between 1.2.x and 1.3.0
 
 ### Exchange-to-Exchange Bindings Support
