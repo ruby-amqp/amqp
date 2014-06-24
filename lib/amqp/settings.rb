@@ -45,7 +45,16 @@ module AMQP
       :platform    => ::RUBY_DESCRIPTION,
       :product     => "amqp gem",
       :information => "http://github.com/ruby-amqp/amqp",
-      :version     => AMQP::VERSION
+      :version     => AMQP::VERSION,
+      :capabilities => {
+        :publisher_confirms           => true,
+        :consumer_cancel_notify       => true,
+        :exchange_exchange_bindings   => true,
+        :"basic.nack"                 => true,
+        :"connection.blocked"         => true
+        # TODO http://www.rabbitmq.com/auth-notification.html
+        # :authentication_failure_close => true
+      }
     }
 
     def self.client_properties
