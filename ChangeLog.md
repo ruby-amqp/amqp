@@ -3,7 +3,21 @@
 ### connection.blocked Support
 
 [connection.blocked](https://www.rabbitmq.com/connection-blocked.html) notifications
-are now correctly supported by the library.
+are now correctly supported by the library:
+
+``` ruby
+EventMachine.run do
+  connection = AMQP.connect(:host => '127.0.0.1')
+
+  connection.on_blocked do |conn, conn_blocked|
+    puts "Connection blocked, reason: #{conn_blocked.reason}"
+  end
+
+  connection.on_unblocked do |conn, _|
+    puts "Connection unblocked"
+  end
+end
+```
 
 
 ## Changes Between 1.2.x and 1.3.0
