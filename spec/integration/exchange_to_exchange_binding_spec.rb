@@ -54,7 +54,7 @@ describe AMQP::Channel do
             source.publish("x")
           end
         end
-        done(0.1) { messages.should == ["x"] }
+        done(0.5) { messages.should == ["x"] }
       end
 
       it "can be unbound" do
@@ -82,7 +82,7 @@ describe AMQP::Channel do
         destination.bind(source, :nowait => true) do
           callback_called = true
         end
-        done(0.1) { callback_called.should be_false}
+        done(0.5) { callback_called.should be_false}
       end
 
     end #context
@@ -101,7 +101,7 @@ describe AMQP::Channel do
             source.publish("a", :routing_key => "lalalala")
           end
         end
-        done(0.1) { messages.should == ["a"] }
+        done(0.5) { messages.should == ["a"] }
       end
 
       it "using routing key 'foo'" do
@@ -117,7 +117,7 @@ describe AMQP::Channel do
             source.publish("b", :routing_key => "foo")
           end
         end
-        done(0.1) { messages.should == ["b"]}
+        done(0.5) { messages.should == ["b"]}
       end
     end #context
   end # describe
