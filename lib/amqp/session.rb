@@ -600,7 +600,7 @@ module AMQP
       # now we can set it. MK.
       @had_successfully_connected_before = true
       @reconnecting                      = false
-      @handling_skipped_hearbeats        = false
+      @handling_skipped_heartbeats       = false
       @last_server_heartbeat             = Time.now
 
       self.handshake
@@ -687,9 +687,9 @@ module AMQP
     # heartbeat interval set via :heartbeat_interval option on connection.
     #
     # @api plugin
-    def handle_skipped_hearbeats
-      if !@handling_skipped_hearbeats && @tcp_connection_established && !@intentionally_closing_connection
-        @handling_skipped_hearbeats = true
+    def handle_skipped_heartbeats
+      if !@handling_skipped_heartbeats && @tcp_connection_established && !@intentionally_closing_connection
+        @handling_skipped_heartbeats = true
         self.cancel_heartbeat_sender
 
         self.run_skipped_heartbeats_callbacks
@@ -963,10 +963,10 @@ module AMQP
     # Sends a heartbeat frame if connection is open.
     # @api plugin
     def send_heartbeat
-      if tcp_connection_established? && !@handling_skipped_hearbeats && @last_server_heartbeat
+      if tcp_connection_established? && !@handling_skipped_heartbeats && @last_server_heartbeat
         if @last_server_heartbeat < (Time.now - (self.heartbeat_interval * 2)) && !reconnecting?
           logger.error "[amqp] Detected missing server heartbeats"
-          self.handle_skipped_hearbeats
+          self.handle_skipped_heartbeats
         end
         send_frame(AMQ::Protocol::HeartbeatFrame)
       end
