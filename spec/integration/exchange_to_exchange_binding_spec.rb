@@ -92,14 +92,13 @@ describe AMQP::Channel do
         source = @channel.topic("topic-exchange-source")
         destination = @channel.topic("topic-exchange-destination")
         messages = []
-        destination.bind(source) do
+        destination.bind(source, :routing_key => "#") do
           queue = @channel.queue("ex-to-ex-default-key", :auto_delete => true)
-          queue.subscribe do |metadata, payload|
+          queue.bind(destination, :routing_key => "#").subscribe do |metadata, payload|
             messages << payload
           end
-          queue.bind(destination, :routing_key => "#") do
-            source.publish("a", :routing_key => "lalalala")
-          end
+
+          source.publish("a", :routing_key => "lalalala")
         end
         done(0.5) { messages.should == ["a"] }
       end
