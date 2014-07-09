@@ -12,7 +12,7 @@ puts "=> Example of automatic AMQP channel and queues recovery"
 puts
 AMQP.start(:host => ENV.fetch("BROKER_HOST", "localhost")) do |connection, open_ok|
   connection.on_error do |ch, connection_close|
-    raise connection_close.reply_text
+    puts "[connection closed] #{connection_close.reply_text}"
   end
 
   ch1 = AMQP::Channel.new(connection, :auto_recovery => true)
