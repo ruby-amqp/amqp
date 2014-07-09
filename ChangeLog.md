@@ -1,3 +1,13 @@
+## Changes Between 1.4.0 and 1.4.1
+
+### Server-Named Queue Recovery Fix
+
+Server-named queues are now correctly recovered again.
+
+Contributed by Jack C Hong.
+
+
+
 ## Changes Between 1.3.x and 1.4.0
 
 ### connection.blocked Support
