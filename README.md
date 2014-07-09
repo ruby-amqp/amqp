@@ -196,7 +196,7 @@ We cover Web application integration for multiple Ruby Web servers in [Connectin
 
 ## Community
 
- * Join also [RabbitMQ mailing list](https://lists.rabbitmq.com/cgi-bin/mailman/listinfo/rabbitmq-discuss) (the AMQP community epicenter).
+ * Join also [RabbitMQ mailing list](https://groups.google.com/forum/#!forum/rabbitmq-users) (the AMQP community epicenter).
  * Join [Ruby AMQP mailing list](http://groups.google.com/group/ruby-amqp)
  * Follow [@rubyamqp](https://twitter.com/rubyamqp) on Twitter for Ruby AMQP ecosystem updates.
  * Stop by #rabbitmq on irc.freenode.net. You can use [Web IRC client](http://webchat.freenode.net?channels=rabbitmq) if you don't have IRC client installed.

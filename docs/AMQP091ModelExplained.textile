@@ -313,7 +313,7 @@ be significantly easier.
 h2. Wrapping up
 
 This is the end of the AMQP 0.9.1 Model tutorial. Congratulations! Armed with this knowledge, you will find it easier to follow the rest of
-the amqp gem documentation as well as the rabbitmq.com documentation and the "rabbitmq-discuss mailing list":http://groups.google.com/group/rabbitmq-discuss
+the amqp gem documentation as well as the rabbitmq.com documentation and the "rabbitmq-discuss mailing list":https://groups.google.com/forum/#!forum/rabbitmq-users
 
 To stay up to date with amqp gem development, "follow @rubyamqp on Twitter":http://twitter.com/rubyamqp and "join our mailing list":http://groups.google.com/group/ruby-amqp.
 
