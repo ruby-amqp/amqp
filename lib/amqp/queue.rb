@@ -354,43 +354,6 @@ module AMQP
     end
 
 
-    # @group Error Handling and Recovery
-
-    # Used by automatic recovery machinery.
-    # @private
-    # @api plugin
-    def rebind(&block)
-      @bindings.each { |b| self.bind(b[:exchange], b) }
-    end
-
-    # Called by associated connection object when AMQP connection has been re-established
-    # (for example, after a network failure).
-    #
-    # @api plugin
-    def auto_recover
-      self.exec_callback_yielding_self(:before_recovery)
-
-      if self.server_named?
-        old_name = @name.dup
-        @name    = AMQ::Protocol::EMPTY_STRING
-
-        @channel.queues.delete(old_name)
-      end
-
-      self.redeclare do
-        self.rebind
-
-        @consumers.each { |tag, consumer| consumer.auto_recover }
-
-        self.exec_callback_yielding_self(:after_recovery)
-      end
-    end # auto_recover
-
-    # @endgroup
-
-
-
-
     # Remove the binding between the queue and exchange. The queue will
     # not receive any more messages until it is bound to another
     # exchange.
@@ -1223,8 +1186,37 @@ module AMQP
 
 
 
-
     # @group Error Handling & Recovery
+
+    # Used by automatic recovery machinery.
+    # @private
+    # @api api
+    def rebind(&block)
+      @bindings.each { |b| self.bind(b[:exchange], b) }
+    end
+
+    # Called by associated connection object when AMQP connection has been re-established
+    # (for example, after a network failure).
+    #
+    # @api api
+    def auto_recover
+      self.exec_callback_yielding_self(:before_recovery)
+
+      if self.server_named?
+        old_name = @name.dup
+        @name    = AMQ::Protocol::EMPTY_STRING
+
+        @channel.queues.delete(old_name)
+      end
+
+      self.redeclare do
+        self.rebind
+
+        @consumers.each { |tag, consumer| consumer.auto_recover }
+
+        self.exec_callback_yielding_self(:after_recovery)
+      end
+    end # auto_recover
 
     # Defines a callback that will be executed after TCP connection is interrupted (typically because of a network failure).
     # Only one callback can be defined (the one defined last replaces previously added ones).
@@ -1267,23 +1259,6 @@ module AMQP
 
       @consumers.each { |tag, c| c.run_after_recovery_callbacks }
     end
-
-
-
-    # Called by associated connection object when AMQP connection has been re-established
-    # (for example, after a network failure).
-    #
-    # @api plugin
-    def auto_recover
-      self.exec_callback_yielding_self(:before_recovery)
-      self.redeclare do
-        self.rebind
-
-        @consumers.each { |tag, consumer| consumer.auto_recover }
-
-        self.exec_callback_yielding_self(:after_recovery)
-      end
-    end # auto_recover
 
     # @endgroup
 
