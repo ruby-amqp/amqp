@@ -14,8 +14,8 @@ def custom_gem(name, options = Hash.new)
   end
 end
 
-custom_gem "eventmachine", ">= 1.0.0"
-custom_gem "amq-protocol", :git => "git://github.com/ruby-amqp/amq-protocol.git", :branch => "master"
+custom_gem "eventmachine", "~> 1.2.1"
+custom_gem "amq-protocol", :git => "https://github.com/ruby-amqp/amq-protocol.git", :branch => "master"
 
 group :development do
   gem "yard", ">= 0.7.2"
@@ -32,10 +32,10 @@ group :development do
 end
 
 group :test do
-  gem "rspec", "~> 2.6.0"
-  gem "rake",  "~> 10.0.0"
+  gem "rspec", "~> 2.14.1"
+  gem "rake",  "~> 11.3.0"
 
-  custom_gem "evented-spec", :git => "git://github.com/ruby-amqp/evented-spec.git", :branch => "master"
+  custom_gem "evented-spec", :git => "https://github.com/ruby-amqp/evented-spec.git", :branch => "master"
   gem "effin_utf8"
 
   gem "multi_json"
