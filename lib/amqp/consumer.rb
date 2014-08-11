@@ -77,9 +77,11 @@ module AMQP
       @channel.once_open do
         @queue.once_declared do
           @connection.send_frame(AMQ::Protocol::Basic::Consume.encode(@channel.id, @queue.name, @consumer_tag, @no_local, @no_ack, @exclusive, nowait, @arguments))
-          self.redefine_callback(:consume, &block)
 
-          @channel.consumers_awaiting_consume_ok.push(self)
+          if !nowait
+            self.redefine_callback(:consume, &block)
+            @channel.consumers_awaiting_consume_ok.push(self)
+          end
 
           self
         end
