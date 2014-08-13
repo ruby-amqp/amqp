@@ -1,3 +1,10 @@
+## Changes Between 1.4.1 and 1.4.2
+
+### Only Await basic.consume-ok If nowait is false
+
+Contributed by 
+
+
 ## Changes Between 1.4.0 and 1.4.1
 
 ### Server-Named Queue Recovery Fix
