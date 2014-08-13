@@ -1,5 +1,9 @@
 ## Changes Between 1.4.x and 1.5.0
 
+### Only Await basic.consume-ok If nowait is false
+
+Contributed by Rian McGuire.
+
 ### Server-Named Queue Recovery Fix
 
 Server-named queues are now correctly recovered again.
