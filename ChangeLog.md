@@ -2,7 +2,7 @@
 
 ### Only Await basic.consume-ok If nowait is false
 
-Contributed by 
+Contributed by Rian McGuire.
 
 
 ## Changes Between 1.4.0 and 1.4.1
