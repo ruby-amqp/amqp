@@ -1205,8 +1205,6 @@ module AMQP
       if self.server_named?
         old_name = @name.dup
         @name    = AMQ::Protocol::EMPTY_STRING
-
-        @channel.queues.delete(old_name)
       end
 
       self.redeclare do
