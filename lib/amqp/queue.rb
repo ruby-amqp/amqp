@@ -1203,7 +1203,6 @@ module AMQP
       self.exec_callback_yielding_self(:before_recovery)
 
       if self.server_named?
-        old_name = @name.dup
         @name    = AMQ::Protocol::EMPTY_STRING
       end
 
