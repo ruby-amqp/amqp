@@ -1271,7 +1271,6 @@ module AMQP
     def run_after_recovery_callbacks
       self.exec_callback_yielding_self(:after_recovery)
 
-      @queues.each    { |name, q| q.run_after_recovery_callbacks }
       @exchanges.each { |name, e| e.run_after_recovery_callbacks }
     end
 
