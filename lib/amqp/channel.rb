@@ -342,7 +342,7 @@ module AMQP
       old_id = @id
       # must release after we allocate a new id, otherwise we will end up
       # with the same value. MK.
-      @id    = self.class.next_channel_id
+      @id    = @connection.next_channel_id
       @connection.release_channel_id(old_id)
 
       @channel_is_open_deferrable.fail
