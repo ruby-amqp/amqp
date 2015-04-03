@@ -1414,7 +1414,7 @@ module AMQP
     end
 
 
-    RECOVERY_EVENTS = [:after_connection_interruption, :before_recovery, :after_recovery].freeze
+    RECOVERY_EVENTS = [:after_connection_interruption, :before_recovery, :after_recovery, :error].freeze
 
 
     # @api plugin
