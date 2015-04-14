@@ -1184,14 +1184,10 @@ module AMQP
       @consumers
     end # consumers
 
-    # @return  [Array<Queue>]   Collection of queues that were declared on this channel.
-    def queues
-      @queues.values
-    end
 
-    # @return  [Array<Exchange>]  Collection of exchanges that were declared on this channel.
+    # @return  [Hash<Exchange>]  Collection of exchanges that were declared on this channel.
     def exchanges
-      @exchanges.values
+      @exchanges
     end
 
 
