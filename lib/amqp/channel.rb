@@ -342,7 +342,7 @@ module AMQP
       old_id = @id
       # must release after we allocate a new id, otherwise we will end up
       # with the same value. MK.
-      @id    = self.class.next_channel_id
+      @id    = @connection.next_channel_id
       @connection.release_channel_id(old_id)
 
       @channel_is_open_deferrable.fail
@@ -1184,14 +1184,10 @@ module AMQP
       @consumers
     end # consumers
 
-    # @return  [Array<Queue>]   Collection of queues that were declared on this channel.
-    def queues
-      @queues.values
-    end
 
-    # @return  [Array<Exchange>]  Collection of exchanges that were declared on this channel.
+    # @return  [Hash<Exchange>]  Collection of exchanges that were declared on this channel.
     def exchanges
-      @exchanges.values
+      @exchanges
     end
 
 
@@ -1414,7 +1410,7 @@ module AMQP
     end
 
 
-    RECOVERY_EVENTS = [:after_connection_interruption, :before_recovery, :after_recovery].freeze
+    RECOVERY_EVENTS = [:after_connection_interruption, :before_recovery, :after_recovery, :error].freeze
 
 
     # @api plugin
