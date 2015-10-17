@@ -930,9 +930,12 @@ module AMQP
       @frames[frame.channel] << frame
 
       if frameset_complete?(@frames[frame.channel])
-        receive_frameset(@frames[frame.channel])
-        # for channel.close, frame.channel will be nil. MK.
-        clear_frames_on(frame.channel) if @frames[frame.channel]
+        begin
+          receive_frameset(@frames[frame.channel])
+        ensure # Ensure that frames always will be cleared
+          # for channel.close, frame.channel will be nil. MK.
+          clear_frames_on(frame.channel) if @frames[frame.channel]
+        end
       end
     end
 
