@@ -635,7 +635,7 @@ module AMQP
     def unbind(exception = nil)
       if !@tcp_connection_established && !@had_successfully_connected_before && !@intentionally_closing_connection
         @tcp_connection_failed = true
-        logger.error "[amqp] Detected TCP connection failure"
+        logger.error "[amqp] Detected TCP connection failure: #{exception}"
         self.tcp_connection_failed
       end
 
