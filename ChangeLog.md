@@ -1,6 +1,10 @@
-## Changes Between 1.5.2 and 1.5.3 (unreleased)
+## Changes Between 1.5.2 and 1.5.3 (Apr 4th, 2016)
 
-None to date.
+### Correct amq-protocol Dependency
+
+`1.5.2` was bumped to depend on `amq-protocol` 2.x, which
+has a different Ruby version support matrix. This change has been
+reverted in `1.5.3`.
 
 
 ## Changes Between 1.5.0 and 1.5.2 (Apr 4th, 2016)
