@@ -134,16 +134,17 @@ to learn more about RabbitMQ protocol principles & concepts.
 
 ## Supported Ruby Versions
 
-This library works with
+amqp gem `1.6.x` series supports
 
+ * Ruby 2.2
  * Ruby 2.1
  * Ruby 2.0
- * Ruby 1.9.3
- * [JRuby](http://jruby.org)
- * [Rubinius](http://rubini.us)
- * Ruby 1.9.2
- * Ruby 1.8.7
- * [REE](http://www.rubyenterpriseedition.com),
+
+amqp gem `1.5.x` series also supports
+
+ * Ruby 1.9
+
+JRuby users should use [March Hare](http://rubymarchhare.info/).
 
 
 
