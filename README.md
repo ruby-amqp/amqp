@@ -136,6 +136,7 @@ to learn more about RabbitMQ protocol principles & concepts.
 
 amqp gem `1.6.x` series supports
 
+ * Ruby 2.3
  * Ruby 2.2
  * Ruby 2.1
  * Ruby 2.0
