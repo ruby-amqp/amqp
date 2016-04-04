@@ -1,3 +1,40 @@
+## Changes Between 1.5.0 and 1.5.2 (Apr 4th, 2016)
+
+### Provide More Details in TCP Connection Failure Exception
+
+Contributed by Neil Hooey.
+
+GH issue: [#222](https://github.com/ruby-amqp/amqp/issues/222).
+
+
+### Upgrade amq-protocol to 2.0
+
+This library now depends on amq-protocol `~> 2.0`.
+
+
+### Ensures frameset is cleared after an unhandled exception
+
+Ensures frameset is cleared after an unhandled exception.
+This avoids confusing exceptions such as
+
+```
+undefined method `method_class' for #<AMQ::Protocol::BodyFrame:0x0000001e8a60b0>
+```
+
+Contributed by Michael Lutsiuk.
+
+GH issue: [#218](https://github.com/ruby-amqp/amqp/issues/218)
+
+
+## Changes Betweem 1.5.0 and 1.5.1 (Aug 26th, 2015)
+
+### Upgrade amq-protocol to 1.9
+
+This library now depends on amq-protocol `~> 1.9`.
+
+
+
+
 ## Changes Between 1.4.x and 1.5.0
 
 ### Only Await basic.consume-ok If nowait is false
