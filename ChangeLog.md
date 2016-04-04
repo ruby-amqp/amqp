@@ -1,3 +1,8 @@
+## Changes Between 1.6.0 and 1.6.1 (unreleased)
+
+None to date.
+
+
 ## Changes Between 1.5.x and 1.6.0 (Apr 4th, 2016)
 
 ### amq-protocol Update
