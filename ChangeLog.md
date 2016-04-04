@@ -7,11 +7,6 @@ Contributed by Neil Hooey.
 GH issue: [#222](https://github.com/ruby-amqp/amqp/issues/222).
 
 
-### Upgrade amq-protocol to 2.0
-
-This library now depends on amq-protocol `~> 2.0`.
-
-
 ### Ensures frameset is cleared after an unhandled exception
 
 Ensures frameset is cleared after an unhandled exception.
