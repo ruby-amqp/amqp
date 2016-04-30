@@ -242,20 +242,9 @@ Currently maintained by [ruby-amqp](https://github.com/ruby-amqp) group members
 Special thanks to Dmitriy Samovskiy, Ben Hood and Tony Garnock-Jones.
 
 
-## How can I learn more about AMQP and messaging in general? ##
+## How can I learn more about RabbitMQ and messaging in general?
 
-### AMQP resources ###
+### Documentation Resources
 
  * [AMQP 0.9.1 Model Explained](http://www.rabbitmq.com/tutorials/amqp-concepts.html)
  * [RabbitMQ tutorials](http://www.rabbitmq.com/getstarted.html) that demonstrate interoperability
- * [Wikipedia page on AMQP](http://en.wikipedia.org/wiki/Advanced_Message_Queuing_Protocol)
- * [AMQP quick reference](http://www.rabbitmq.com/amqp-0-9-1-quickref.html)
- * John O'Hara on the [history of AMQP](http://www.acmqueue.org/modules.php?name=Content&pa=showpage&pid=485)
-
-### Messaging and distributed systems resources ###
-
- * [Enterprise Integration Patterns](http://www.eaipatterns.com), a book about messaging and use of messaging in systems integration.
- * [A Critique of the Remote Procedure Call Paradigm](http://www.cs.vu.nl/~ast/publications/euteco-1988.pdf)
- * [A Note on Distributed Computing](http://research.sun.com/techrep/1994/smli_tr-94-29.pdf)
- * [Convenience Over Correctness](http://steve.vinoski.net/pdf/IEEE-Convenience_Over_Correctness.pdf)
- * Joe Armstrong on [Erlang messaging vs RPC](http://armstrongonsoftware.blogspot.com/2008/05/road-we-didnt-go-down.html)
