@@ -236,7 +236,7 @@ amqp gem is licensed under the [Ruby License](http://www.ruby-lang.org/en/LICENS
 * The Initial Developer of the Original Code is Aman Gupta.
 * Copyright (c) 2008 - 2010 [Aman Gupta](http://github.com/tmm1).
 * Contributions from [Jakub Stastny](http://github.com/botanicus) are Copyright (c) 2011-2012 VMware, Inc.
-* Copyright (c) 2010 — 2014 [ruby-amqp](https://github.com/ruby-amqp) group members.
+* Copyright (c) 2010 — 2016 [ruby-amqp](https://github.com/ruby-amqp) group members.
 
 Currently maintained by [ruby-amqp](https://github.com/ruby-amqp) group members
 Special thanks to Dmitriy Samovskiy, Ben Hood and Tony Garnock-Jones.
