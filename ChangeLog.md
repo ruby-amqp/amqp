@@ -1,3 +1,37 @@
+## Changes Between 1.6.0 and 1.7.0 (unreleased)
+
+None to date.
+
+
+
+## Changes Between 1.5.0 and 1.6.0 (Apr 4th, 2016)
+
+### amq-protocol Update
+
+Minimum `amq-protocol` version is now `2.0.1`.
+
+### Provide More Details in TCP Connection Failure Exception
+
+Contributed by Neil Hooey.
+
+GH issue: [#222](https://github.com/ruby-amqp/amqp/issues/222).
+
+
+### Ensures frameset is cleared after an unhandled exception
+
+Ensures frameset is cleared after an unhandled exception.
+This avoids confusing exceptions such as
+
+```
+undefined method `method_class' for #<AMQ::Protocol::BodyFrame:0x0000001e8a60b0>
+```
+
+Contributed by Michael Lutsiuk.
+
+GH issue: [#218](https://github.com/ruby-amqp/amqp/issues/218)
+
+
+
 ## Changes Between 1.4.x and 1.5.0
 
 ### Only Await basic.consume-ok If nowait is false

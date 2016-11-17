@@ -134,16 +134,18 @@ to learn more about RabbitMQ protocol principles & concepts.
 
 ## Supported Ruby Versions
 
-This library works with
+amqp gem `1.6.x` series supports
 
+ * Ruby 2.3
+ * Ruby 2.2
  * Ruby 2.1
  * Ruby 2.0
- * Ruby 1.9.3
- * [JRuby](http://jruby.org)
- * [Rubinius](http://rubini.us)
- * Ruby 1.9.2
- * Ruby 1.8.7
- * [REE](http://www.rubyenterpriseedition.com),
+
+amqp gem `1.5.x` series also supports
+
+ * Ruby 1.9
+
+JRuby users should use [March Hare](http://rubymarchhare.info/).
 
 
 
@@ -234,32 +236,15 @@ amqp gem is licensed under the [Ruby License](http://www.ruby-lang.org/en/LICENS
 * The Initial Developer of the Original Code is Aman Gupta.
 * Copyright (c) 2008 - 2010 [Aman Gupta](http://github.com/tmm1).
 * Contributions from [Jakub Stastny](http://github.com/botanicus) are Copyright (c) 2011-2012 VMware, Inc.
-* Copyright (c) 2010 — 2014 [ruby-amqp](https://github.com/ruby-amqp) group members.
+* Copyright (c) 2010 — 2016 [ruby-amqp](https://github.com/ruby-amqp) group members.
 
 Currently maintained by [ruby-amqp](https://github.com/ruby-amqp) group members
 Special thanks to Dmitriy Samovskiy, Ben Hood and Tony Garnock-Jones.
 
 
-## How can I learn more about AMQP and messaging in general? ##
+## How can I learn more about RabbitMQ and messaging in general?
 
-### AMQP resources ###
+### Documentation Resources
 
  * [AMQP 0.9.1 Model Explained](http://www.rabbitmq.com/tutorials/amqp-concepts.html)
  * [RabbitMQ tutorials](http://www.rabbitmq.com/getstarted.html) that demonstrate interoperability
- * [Wikipedia page on AMQP](http://en.wikipedia.org/wiki/Advanced_Message_Queuing_Protocol)
- * [AMQP quick reference](http://www.rabbitmq.com/amqp-0-9-1-quickref.html)
- * John O'Hara on the [history of AMQP](http://www.acmqueue.org/modules.php?name=Content&pa=showpage&pid=485)
-
-### Messaging and distributed systems resources ###
-
- * [Enterprise Integration Patterns](http://www.eaipatterns.com), a book about messaging and use of messaging in systems integration.
- * [A Critique of the Remote Procedure Call Paradigm](http://www.cs.vu.nl/~ast/publications/euteco-1988.pdf)
- * [A Note on Distributed Computing](http://research.sun.com/techrep/1994/smli_tr-94-29.pdf)
- * [Convenience Over Correctness](http://steve.vinoski.net/pdf/IEEE-Convenience_Over_Correctness.pdf)
- * Joe Armstrong on [Erlang messaging vs RPC](http://armstrongonsoftware.blogspot.com/2008/05/road-we-didnt-go-down.html)
-
-
-
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/ruby-amqp/amqp/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
