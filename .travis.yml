@@ -5,12 +5,10 @@ script: "bundle exec rake spec:ci"
 env:
   - CI=true
 rvm:
-  - 1.8.7
-  - jruby-19mode
-  - 1.9.2
-  - 1.9.3
-  - 2.0.0
-  - 2.1.0
+  - jruby
+  - 2.1
+  - 2.2
+  - 2.3  
 gemfile:
   - Gemfile
   - gemfiles/eventmachine-pre
@@ -20,30 +18,10 @@ notifications:
 branches:
   only:
     - master
-    - 1.2.x-stable
-    - 1.1.x-stable
-    - 1.0.x-stable
+    - 1.5.x-stable
 matrix:
   allow_failures:
-    - rvm: 1.8.7
-      gemfile: gemfiles/eventmachine-pre
-    - rvm: 1.9.3
-      gemfile: gemfiles/eventmachine-pre
-    - rvm: jruby-19mode
-      gemfile: gemfiles/eventmachine-pre
-    - rvm: jruby-head
-      gemfile: gemfiles/eventmachine-pre
-    - rvm: jruby-head
-      gemfile: Gemfile
-    - rvm: rbx-19mode
-      gemfile: gemfiles/eventmachine-pre
-    - rvm: rbx-19mode
-      gemfile: Gemfile
-    - rvm: 1.9.2
-      gemfile: gemfiles/eventmachine-pre
-    - rvm: 1.9.2
-      gemfile: Gemfile
-    - rvm: 2.0.0
+    - rvm: jruby
       gemfile: gemfiles/eventmachine-pre
 
 services:
