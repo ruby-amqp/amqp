@@ -1271,7 +1271,6 @@ module AMQP
     def run_after_recovery_callbacks
       self.exec_callback_yielding_self(:after_recovery)
 
-      @queues.each    { |name, q| q.run_after_recovery_callbacks }
       @exchanges.each { |name, e| e.run_after_recovery_callbacks }
     end
 
@@ -1403,6 +1402,13 @@ module AMQP
     # @private
     def register_queue(queue)
       raise ArgumentError, "argument is nil!" if queue.nil?
+      
+      # remove old names (server-named queues) from current queue
+      # this also purges '' from @queues which is the initial name
+      # of server-named queues
+      if @queues.has_value? queue then
+        @queues.delete @queues.index(queue)
+      end
 
       @queues[queue.name] = queue
     end # register_queue(queue)
