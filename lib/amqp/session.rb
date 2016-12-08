@@ -1112,7 +1112,15 @@ module AMQP
     def frameset_complete?(frames)
       return false if frames.empty?
       first_frame = frames[0]
-      first_frame.final? || (first_frame.method_class.has_content? && content_complete?(frames[1..-1]))
+      return true if first_frame.final?
+
+      if first_frame.respond_to?(:method_class)
+        first_frame.method_class.has_content? && content_complete?(frames[1..-1])
+      else
+        logger.error("[amqp] frameset can't start from #{first_frame.class}")
+        frames.delete_at(0)
+        return false
+      end
     end
 
     # Determines, whether given frame array contains full content body
