@@ -1,6 +1,13 @@
-## Changes Between 1.6.0 and 1.7.0 (unreleased)
+## Changes Between 1.6.0 and 1.7.0 (Feb 2nd, 2017)
 
-None to date.
+### Clear Framesets on Exception
+
+Unprocessed frames received on a connection are now correctly
+cleared when an exception occurs.
+
+Contributed by Michael Lutsiuk.
+
+GitHub issue: [#218](https://github.com/ruby-amqp/amqp/issues/218)
 
 
 
