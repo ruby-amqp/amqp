@@ -10,6 +10,10 @@ Contributed by Michael Lutsiuk.
 GitHub issue: [#218](https://github.com/ruby-amqp/amqp/issues/218)
 
 
+### amq-protocol Update
+
+Minimum `amq-protocol` version is now `2.1.0`.
+
 
 ## Changes Between 1.5.0 and 1.6.0 (Apr 4th, 2016)
 
