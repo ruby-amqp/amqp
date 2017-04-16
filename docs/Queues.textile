@@ -783,6 +783,17 @@ all subsequent messages were delivered to `consumer2`:
 The prefetching setting is ignored for consumers that do not use explicit acknowledgements.
 </span>
 
+Queue consumers must explicitly acknowledge message receipt before additional messages are consumed.  To send consumer
+acks, you have to create your consumer with the `ack` argument and call the `ack` method on `AMQP::Header` thusly:
+
+<pre>
+<code>
+queue.subscribe(ack: true) do |amqp_header, payload|
+  # ...
+  amqp_header.ack
+end
+</cpde>
+</pre>
 
 h2. How message acknowledgements relate to transactions and Publisher Confirms
 
