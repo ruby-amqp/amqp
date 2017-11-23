@@ -594,14 +594,16 @@ module AMQP
       # software that calls #post_init before #unbind even when TCP connection
       # fails. MK.
       @tcp_connection_established       = true
-      @periodic_reconnection_timer.cancel if @periodic_reconnection_timer
+      @periodic_reconnection_timer.cancel if 
+        defined?(@periodic_reconnection_timer) && @periodic_reconnection_timer
 
 
       # again, this is because #unbind is called in different situations
       # and there is no easy way to tell initial connection failure
       # from connection loss. Not in EventMachine 0.12.x, anyway. MK.
 
-      if @had_successfully_connected_before
+      if defined?(@had_successfully_connected_before) &&
+          @had_successfully_connected_before
         @recovered = true
 
 
@@ -771,7 +773,7 @@ module AMQP
     # Returns true if heartbeats are enabled (heartbeat interval is greater than 0)
     # @return [Boolean]
     def heartbeats_enabled?
-      @heartbeat_interval && (@heartbeat_interval > 0)
+      defined?(@heartbeat_interval) && @heartbeat_interval && (@heartbeat_interval > 0)
     end
 
 
