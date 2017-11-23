@@ -1118,9 +1118,9 @@ module AMQP
 
     def confirm_select(nowait = false, &block)
       self.once_open do
-              if nowait && block
-        raise ArgumentError, "confirm.select with nowait = true and a callback makes no sense"
-      end
+        if nowait && block
+          raise ArgumentError, "confirm.select with nowait = true and a callback makes no sense"
+        end
 
       @uses_publisher_confirmations = true
       reset_publisher_index!
