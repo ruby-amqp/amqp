@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require "amq/protocol/client"
+require "cgi"
 require "uri"
 
 module AMQP
@@ -146,14 +147,14 @@ module AMQP
       opts = {}
 
       opts[:scheme] = uri.scheme
-      opts[:user]   = URI.unescape(uri.user) if uri.user
-      opts[:pass]   = URI.unescape(uri.password) if uri.password
+      opts[:user]   = CGI.unescape(uri.user) if uri.user
+      opts[:pass]   = CGI.unescape(uri.password) if uri.password
       opts[:host]   = uri.host if uri.host
       opts[:port]   = uri.port || AMQP::Settings::AMQP_PORTS[uri.scheme]
       opts[:ssl]    = uri.scheme == AMQP::Settings::AMQPS
       if uri.path =~ %r{^/(.*)}
         raise ArgumentError.new("#{uri} has multiple-segment path; please percent-encode any slashes in the vhost name (e.g. /production => %2Fproduction). Learn more at http://rubyamqp.info") if $1.index('/')
-        opts[:vhost] = URI.unescape($1)
+        opts[:vhost] = CGI.unescape($1)
       end
 
       opts
