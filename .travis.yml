@@ -6,7 +6,7 @@ env:
   - CI=true
 rvm:
   - 2.3.3
-  - 2.4.0
+  - 2.4.1
 gemfile:
   - Gemfile
   - gemfiles/eventmachine-pre
@@ -16,7 +16,7 @@ notifications:
 branches:
   only:
     - master
-    - 1.5.x-stable
+    - 1.7.x-stable
 matrix:
   allow_failures:
     - rvm: jruby

@@ -1,7 +1,17 @@
 #!/bin/sh
 
-${RABBITMQCTL:="sudo rabbitmqctl"}
-${RABBITMQ_PLUGINS:="sudo rabbitmq-plugins"}
+$ctl      = ENV["AMQP_GEM_RABBITMQCTL"]      || ENV["RABBITMQCTL"]      || "sudo rabbitmqctl"
+$plugins  = ENV["AMQP_GEM_RABBITMQ_PLUGINS"] || ENV["RABBITMQ_PLUGINS"] || "sudo rabbitmq-plugins"
+
+def rabbit_control(args)
+  command = "#{$ctl} #{args}"
+  system command
+end
+
+def rabbit_plugins(args)
+  command = "#{$plugins} #{args}"
+  system command
+end
 
 # guest:guest has full access to /
 
@@ -25,3 +35,7 @@ $RABBITMQCTL set_permissions -p amqp_gem_testbed amqp_gem_reader "^---$" "^---$"
 
 # requires RabbitMQ 3.0+
 # $RABBITMQ_PLUGINS enable rabbitmq_consistent_hash_exchange
+
+# Reduce retention policy for faster publishing of stats
+rabbit_control "eval 'supervisor2:terminate_child(rabbit_mgmt_sup_sup, rabbit_mgmt_sup), application:set_env(rabbitmq_management,       sample_retention_policies, [{global, [{605, 1}]}, {basic, [{605, 1}]}, {detailed, [{10, 1}]}]), rabbit_mgmt_sup_sup:start_child().'"
+rabbit_control "eval 'supervisor2:terminate_child(rabbit_mgmt_agent_sup_sup, rabbit_mgmt_agent_sup), application:set_env(rabbitmq_management_agent, sample_retention_policies, [{global, [{605, 1}]}, {basic, [{605, 1}]}, {detailed, [{10, 1}]}]), rabbit_mgmt_agent_sup_sup:start_child().'"
