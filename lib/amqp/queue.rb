@@ -118,7 +118,7 @@ module AMQP
   #       persistence.
   #
   #
-  # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 2.1.1)
+  # @see https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf AMQP 0.9.1 specification (Section 2.1.1)
   # @see AMQP::Exchange
   class Queue
 
@@ -764,7 +764,7 @@ module AMQP
     end
 
     # @api public
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Sections 1.8.3.9)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Sections 1.8.3.9)
     def on_delivery(&block)
       @default_consumer.on_delivery(&block)
     end # on_delivery(&block)
@@ -939,7 +939,7 @@ module AMQP
     # @return [Queue]  self
     #
     # @api public
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.7.2.1.)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.7.2.1.)
     def queue_declare(passive = false, durable = false, exclusive = false, auto_delete = false, nowait = false, arguments = nil, &block)
       raise ArgumentError, "declaration with nowait does not make sense for server-named queues! Either specify name other than empty string or use #declare without nowait" if nowait && self.anonymous?
 
@@ -996,7 +996,7 @@ module AMQP
     # @return [Queue]  self
     #
     # @api public
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.7.2.9.)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.7.2.9.)
     def queue_delete(if_unused = false, if_empty = false, nowait = false, &block)
       nowait = true unless block
       @connection.send_frame(AMQ::Protocol::Queue::Delete.encode(@channel.id, @name, if_unused, if_empty, nowait))
@@ -1019,7 +1019,7 @@ module AMQP
     # @return [Queue]  self
     #
     # @api public
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.7.2.3.)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.7.2.3.)
     def queue_bind(exchange, routing_key = AMQ::Protocol::EMPTY_STRING, nowait = false, arguments = nil, &block)
       nowait = true unless block
       exchange_name = if exchange.respond_to?(:name)
@@ -1048,7 +1048,7 @@ module AMQP
     # @return [Queue]  self
     #
     # @api public
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.7.2.5.)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.7.2.5.)
     def queue_unbind(exchange, routing_key = AMQ::Protocol::EMPTY_STRING, arguments = nil, &block)
       exchange_name = if exchange.respond_to?(:name)
                         exchange.name
@@ -1079,7 +1079,7 @@ module AMQP
     # @return [Queue]  self
     #
     # @api public
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.8.3.3.)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.8.3.3.)
     def basic_consume(no_ack = false, exclusive = false, nowait = false, no_local = false, arguments = nil, &block)
       raise RuntimeError.new("This queue already has default consumer. Please instantiate AMQP::Consumer directly to register additional consumers.") if @default_consumer
 
@@ -1094,7 +1094,7 @@ module AMQP
     # @return [Queue]  self
     #
     # @api public
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.8.3.5.)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.8.3.5.)
     def cancel(nowait = false, &block)
       raise "There is no default consumer for this queue. This usually means that you are trying to unsubscribe a queue that never was subscribed for messages in the first place." if @default_consumer.nil?
 
@@ -1119,7 +1119,7 @@ module AMQP
     # @return [Queue]  self
     #
     # @api public
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.8.3.10.)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.8.3.10.)
     def get(no_ack = false, &block)
       @connection.send_frame(AMQ::Protocol::Basic::Get.encode(@channel.id, @name, no_ack))
 
@@ -1140,7 +1140,7 @@ module AMQP
     # @return [Queue]  self
     #
     # @api public
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.7.2.7.)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.7.2.7.)
     def queue_purge(nowait = false, &block)
       nowait = true unless block
       @connection.send_frame(AMQ::Protocol::Queue::Purge.encode(@channel.id, @name, nowait))
@@ -1164,7 +1164,7 @@ module AMQP
     # @return [Queue]  self
     #
     # @api public
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.8.3.13.)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.8.3.13.)
     def acknowledge(delivery_tag)
       @channel.acknowledge(delivery_tag)
 
@@ -1175,7 +1175,7 @@ module AMQP
     # @return [Queue]  self
     #
     # @api public
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.8.3.14.)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.8.3.14.)
     def reject(delivery_tag, requeue = true)
       @channel.reject(delivery_tag, requeue)
 
