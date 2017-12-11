@@ -70,21 +70,6 @@ module AMQP
     # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.4.2.2.1)
     attr_accessor :client_properties
 
-    # Server properties
-    #
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.4.2.1.3)
-    attr_reader :server_properties
-
-    # Server capabilities
-    #
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.4.2.1.3)
-    attr_reader :server_capabilities
-
-    # Locales server supports
-    #
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.4.2.1.3)
-    attr_reader :server_locales
-
     # Authentication mechanism used.
     #
     # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.4.2.2)
