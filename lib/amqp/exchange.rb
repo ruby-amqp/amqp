@@ -132,9 +132,9 @@ module AMQP
   # @see Channel#topic
   # @see Channel#headers
   # @see Queue
-  # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 2.1.1)
-  # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 2.1.5)
-  # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 3.1.3)
+  # @see https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf AMQP 0.9.1 specification (Section 2.1.1)
+  # @see https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf AMQP 0.9.1 specification (Section 2.1.5)
+  # @see https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf AMQP 0.9.1 specification (Section 3.1.3)
   class Exchange
 
 
@@ -170,7 +170,7 @@ module AMQP
     #   AMQP::Exchange.default(channel).publish("make clean", routing_key => "tasks")
     #
     # @see Exchange
-    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 2.1.2.4)
+    # @see https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf AMQP 0.9.1 specification (Section 2.1.2.4)
     # @note Do not confuse default exchange with amq.direct: amq.direct is a pre-defined direct
     #       exchange that doesn't have any special routing semantics.
     # @return [Exchange] An instance that corresponds to the default exchange (of type direct).
@@ -303,7 +303,7 @@ module AMQP
     # @see Channel#topic
     # @see Channel#headers
     # @see Queue
-    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification (Section 3.1.3)
+    # @see https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf AMQP 0.9.1 specification (Section 3.1.3)
     #
     # @return [Exchange]
     # @api public

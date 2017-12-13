@@ -62,22 +62,22 @@ module AMQP
 
     # The locale defines the language in which the server will send reply texts.
     #
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.4.2.2)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.4.2.2)
     attr_accessor :locale
 
     # Client capabilities
     #
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.4.2.2.1)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.4.2.2.1)
     attr_accessor :client_properties
 
     # Authentication mechanism used.
     #
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.4.2.2)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.4.2.2)
     attr_reader :mechanism
 
     # Authentication mechanisms broker supports.
     #
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.4.2.2)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.4.2.2)
     attr_reader :server_authentication_mechanisms
 
     # Channels within this connection.
@@ -89,12 +89,12 @@ module AMQP
     # Usable channel numbers are in the range 1..channel_max.
     # Zero indicates no specified limit.
     #
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Sections 1.4.2.5.1 and 1.4.2.6.1)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Sections 1.4.2.5.1 and 1.4.2.6.1)
     attr_accessor :channel_max
 
     # Maximum frame size that the server permits this connection to use.
     #
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Sections 1.4.2.5.2 and 1.4.2.6.2)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Sections 1.4.2.5.2 and 1.4.2.6.2)
     attr_accessor :frame_max
 
 
@@ -216,7 +216,7 @@ module AMQP
 
 
     # Properly close connection with AMQ broker, as described in
-    # section 2.2.4 of the {http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Specification.pdf AMQP 0.9.1 specification}.
+    # section 2.2.4 of the {https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf AMQP 0.9.1 specification}.
     #
     # @api  plugin
     # @see  #close_connection
@@ -248,19 +248,19 @@ module AMQP
     # Server properties (product information, platform, et cetera)
     #
     # @return [Hash]
-    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Reference.pdf AMQP 0.9.1 protocol documentation (Section 1.4.2.1.3)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol documentation (Section 1.4.2.1.3)
     attr_reader :server_properties
 
     # Server capabilities (usually used to detect AMQP 0.9.1 extensions like basic.nack, publisher
     # confirms and so on)
     #
     # @return [Hash]
-    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Reference.pdf AMQP 0.9.1 protocol documentation (Section 1.4.2.1.3)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol documentation (Section 1.4.2.1.3)
     attr_reader :server_capabilities
 
     # Locales server supports
     #
-    # @see http://files.travis-ci.org/docs/amqp/0.9.1/AMQP091Reference.pdf AMQP 0.9.1 protocol documentation (Section 1.4.2.1.3)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol documentation (Section 1.4.2.1.3)
     attr_reader :server_locales
 
     # @return [AMQP::Broker] Broker this connection is established with
@@ -748,7 +748,7 @@ module AMQP
     # Zero means the server does not want a heartbeat.
     #
     # @return  [Fixnum]  Heartbeat interval this client uses, in seconds.
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.4.2.6)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.4.2.6)
     def heartbeat_interval
       @heartbeat_interval
     end # heartbeat_interval
@@ -879,7 +879,7 @@ module AMQP
     # Sends connection.open to the server.
     #
     # @api plugin
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.4.2.7)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.4.2.7)
     def open(vhost = "/")
       self.send_frame(AMQ::Protocol::Connection::Open.encode(vhost))
     end
@@ -980,7 +980,7 @@ module AMQP
     # Handles connection.start.
     #
     # @api plugin
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.4.2.1.)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.4.2.1.)
     def handle_start(connection_start)
       @server_properties                = connection_start.server_properties
       @server_capabilities              = @server_properties["capabilities"]
@@ -1003,7 +1003,7 @@ module AMQP
     # Handles Connection.Tune-Ok.
     #
     # @api plugin
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.4.2.6)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.4.2.6)
     def handle_tune(connection_tune)
       @channel_max        = connection_tune.channel_max.freeze
       @frame_max          = connection_tune.frame_max.freeze
@@ -1020,7 +1020,7 @@ module AMQP
     # Handles Connection.Open-Ok.
     #
     # @api plugin
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.4.2.8.)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.4.2.8.)
     def handle_open_ok(open_ok)
       @known_hosts = open_ok.known_hosts.dup.freeze
 
@@ -1032,7 +1032,7 @@ module AMQP
     # Handles connection.close. When broker detects a connection level exception, this method is called.
     #
     # @api plugin
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.5.2.9)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.5.2.9)
     def handle_close(conn_close)
       closed!
       # getting connection.close during connection negotiation means authentication
@@ -1048,7 +1048,7 @@ module AMQP
     # Handles Connection.Close-Ok.
     #
     # @api plugin
-    # @see http://bit.ly/amqp091reference AMQP 0.9.1 protocol reference (Section 1.4.2.10)
+    # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Section 1.4.2.10)
     def handle_close_ok(close_ok)
       closed!
       self.disconnection_successful
