@@ -3,7 +3,7 @@
 [Ruby amqp gem](http://rubyamqp.info) is a feature-rich,
 EventMachine-based RabbitMQ client with batteries included.
 
-It's the original RabbitMQ client for Ruby. These days the are very
+It's the original RabbitMQ client for Ruby. These days there are very
 solid alternatives available: [Bunny](http://rubybunny.info) for MRI and [March Hare](http://rubymarchhare.info) for JRuby.
 
 It implement [AMQP
