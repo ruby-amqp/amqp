@@ -16,8 +16,8 @@ describe AMQP do
     s[:port].should == 5672
     s[:user].should == "guest"
     s[:pass].should == "guest"
-    s[:heartbeat].should == 0
-    s[:auth_mechanism].should == []
+    s[:heartbeat].should be_nil
+    s[:auth_mechanism].should eq([])
   end
 
   describe "connection to RabbitMQ with a connection string" do
