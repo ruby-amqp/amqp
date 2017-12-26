@@ -36,7 +36,7 @@ describe "AMQP queue redeclaration with different attributes" do
       channel.queue(name, options)
       expect {
         channel.queue(name, different_options)
-      }.to raise_error(AMQP::IncompatibleOptionsError)
+      }.to raise_error
 
       done(0.5) {
         @error_code.should == 406
@@ -62,7 +62,7 @@ describe "AMQP queue redeclaration with different attributes" do
       channel.queue(name, options)
       expect {
         channel.queue(name, different_options)
-      }.to_not raise_error(AMQP::IncompatibleOptionsError)
+      }.to_not raise_error
 
       done(0.5) {
         @error_code.should == 406
