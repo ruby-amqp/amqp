@@ -17,9 +17,26 @@ describe AMQP do
     s[:user].should == "guest"
     s[:pass].should == "guest"
     s[:heartbeat].should == 0
-    s[:auth_mechanism].should == "PLAIN"
+    s[:auth_mechanism].should == []
   end
 
+  describe "connection to RabbitMQ with a connection string" do
+    include EventedSpec::SpecHelper
+
+    em_before { AMQP.cleanup_state }
+    em_after { AMQP.cleanup_state }
+
+    it 'parses URI string' do
+      em do
+        AMQP.start("amqp://guest:guest@127.0.0.1?heartbeat=10&connection_timeout=100") do |session|
+          expect(session.heartbeat_interval).to eq(10)
+          expect(session.connection_timeout).to eq(100)
+          session.close
+        end
+        done(0.3)
+      end
+    end
+  end
 
   describe '.start' do
 

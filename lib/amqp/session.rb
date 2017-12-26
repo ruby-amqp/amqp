@@ -7,6 +7,7 @@ require "amqp/broker"
 
 require "amqp/channel"
 require "amqp/channel_id_allocator"
+require "amq/settings"
 
 module AMQP
   # AMQP session represents connection to the broker. Session objects let you define callbacks for
@@ -97,6 +98,7 @@ module AMQP
     # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Sections 1.4.2.5.2 and 1.4.2.6.2)
     attr_accessor :frame_max
 
+    attr_accessor :connection_timeout
 
     attr_reader :known_hosts
 
@@ -104,7 +106,7 @@ module AMQP
     class << self
       # Settings
       def settings
-        @settings ||= AMQP::Settings.default
+        @settings ||= AMQ::Settings.default
       end
 
       def logger
@@ -157,7 +159,7 @@ module AMQP
 
       # EventMachine::Connection's and Adapter's constructors arity
       # make it easier to use *args. MK.
-      @settings                           = Settings.configure(args.first)
+      @settings                           = AMQ::Settings.configure(args.first)
 
       @on_tcp_connection_failure          = Proc.new { |settings|
         closed!
@@ -171,15 +173,16 @@ module AMQP
       @on_possible_authentication_failure = @settings[:on_possible_authentication_failure] || Proc.new { |settings|
         raise self.class.authentication_failure_exception_class.new(settings)
       }
-
-      @mechanism         = @settings.fetch(:auth_mechanism, "PLAIN")
+      @mechanism         = normalize_auth_mechanism(@settings.fetch(:auth_mechanism, "PLAIN"))
       @locale            = @settings.fetch(:locale, "en_GB")
       @client_properties = Settings.client_properties.merge(@settings.fetch(:client_properties, Hash.new))
 
       @auto_recovery     = (!!@settings[:auto_recovery])
 
+      @connection_timeout = (@settings[:timeout] || @settings[:connection_timeout] || 3).to_f
+
       self.reset
-      self.set_pending_connect_timeout((@settings[:timeout] || 3).to_f) unless defined?(JRUBY_VERSION)
+      self.set_pending_connect_timeout(@connection_timeout) unless defined?(JRUBY_VERSION)
     end # initialize(*args, &block)
 
     # @return [Boolean] true if this AMQP connection is currently open
@@ -436,8 +439,9 @@ module AMQP
     # @option settings [Fixnum] :frame_max (131072) Maximum frame size to use. If broker cannot support frames this large, broker's maximum value will be used instead.
     #
     # @param [Hash] settings
-    def self.connect(settings = {}, &block)
-      @settings = Settings.configure(settings)
+    # def self.connect(settings = {}, &block)
+    def self.connect(connection_string_or_opts = ENV['RABBITMQ_URL'], other_options = {}, &block)
+      @settings = AMQ::Settings.configure(connection_string_or_opts)
 
       instance = EventMachine.connect(@settings[:host], @settings[:port], self, @settings)
       instance.register_connection_callback(&block)
@@ -470,14 +474,7 @@ module AMQP
     # @see #reconnect
     # @api public
     def reconnect_to(connection_string_or_options, period = 5)
-      settings = case connection_string_or_options
-                 when String then
-                   AMQP.parse_connection_uri(connection_string_or_options)
-                 when Hash then
-                   connection_string_or_options
-                 else
-                   Hash.new
-                 end
+      settings = AMQ::Settings.configure(connection_string_or_opts)
 
       if !@reconnecting
         @reconnecting = true
@@ -1170,5 +1167,18 @@ module AMQP
         start_tls
       end
     end # upgrade_to_tls_if_necessary
+
+    private
+
+    def normalize_auth_mechanism(value)
+      case value
+      when [] then
+        "PLAIN"
+      when nil then
+        "PLAIN"
+      else
+        value
+      end
+    end
   end # Session
 end # AMQP

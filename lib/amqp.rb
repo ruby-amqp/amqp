@@ -229,22 +229,13 @@ module AMQP
   #       It takes exactly the same parameters.
   # @return [AMQP::Session]
   # @api public
-  def self.connect(connection_options_or_string = {}, other_options = {}, &block)
-    opts = case connection_options_or_string
-           when String then
-             AMQP::Settings.parse_connection_uri(connection_options_or_string)
-           when Hash then
-             connection_options_or_string
-           else
-             Hash.new
-           end
-
-    AMQP::Session.connect(opts.merge(other_options), &block)
+  def self.connect(connection_options_or_string = ENV['RABBITMQ_URL'], other_options = {}, &block)
+    AMQP::Session.connect(connection_options_or_string, other_options, &block)
   end
 
   # @return [Hash] Default AMQP connection settings. This hash may be modified.
   # @api public
   def self.settings
-    @settings ||= AMQP::Settings.default
+    @settings ||= AMQ::Settings.default.merge(logging: false)
   end
 end # AMQP
