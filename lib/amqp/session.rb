@@ -98,6 +98,7 @@ module AMQP
     # @see https://www.rabbitmq.com/resources/specs/amqp-xml-doc0-9-1.pdf AMQP 0.9.1 protocol reference (Sections 1.4.2.5.2 and 1.4.2.6.2)
     attr_accessor :frame_max
 
+    attr_accessor :connection_timeout
 
     attr_reader :known_hosts
 
@@ -178,8 +179,10 @@ module AMQP
 
       @auto_recovery     = (!!@settings[:auto_recovery])
 
+      @connection_timeout = (@settings[:timeout] || @settings[:connection_timeout] || 3).to_f
+
       self.reset
-      self.set_pending_connect_timeout((@settings[:timeout] || 3).to_f) unless defined?(JRUBY_VERSION)
+      self.set_pending_connect_timeout(@connection_timeout) unless defined?(JRUBY_VERSION)
     end # initialize(*args, &block)
 
     # @return [Boolean] true if this AMQP connection is currently open
