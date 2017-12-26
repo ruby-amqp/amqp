@@ -142,6 +142,9 @@ module AMQP
     def initialize(*args, &block)
       super(*args)
 
+      connection_options_or_string = args.first
+      other_options                = args[1] || {}
+
       self.logger   = self.class.logger
 
       # channel => collected frames. MK.
@@ -156,9 +159,7 @@ module AMQP
       @tcp_connection_failed            = false
       @intentionally_closing_connection = false
 
-      # EventMachine::Connection's and Adapter's constructors arity
-      # make it easier to use *args. MK.
-      @settings                           = AMQ::Settings.configure(args.first)
+      @settings                           = AMQ::Settings.configure(connection_options_or_string).merge(other_options)
 
       @on_tcp_connection_failure          = Proc.new { |settings|
         closed!
@@ -180,7 +181,7 @@ module AMQP
 
       self.reset
       self.set_pending_connect_timeout((@settings[:timeout] || 3).to_f) unless defined?(JRUBY_VERSION)
-    end # initialize(*args, &block)
+    end # initialize
 
     # @return [Boolean] true if this AMQP connection is currently open
     # @api plugin
@@ -438,7 +439,7 @@ module AMQP
     # @param [Hash] settings
     # def self.connect(settings = {}, &block)
     def self.connect(connection_string_or_opts = ENV['RABBITMQ_URL'], other_options = {}, &block)
-      @settings = AMQ::Settings.configure(connection_string_or_opts)
+      @settings = AMQ::Settings.configure(connection_string_or_opts).merge(other_options)
 
       instance = EventMachine.connect(@settings[:host], @settings[:port], self, @settings)
       instance.register_connection_callback(&block)
