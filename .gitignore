@@ -17,3 +17,5 @@ tmp/*
 bin/*
 .AppleDouble/*
 debug/*
+
+.ruby-version
