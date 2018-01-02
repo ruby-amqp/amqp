@@ -911,16 +911,6 @@ module AMQP
     end
 
 
-    # @private
-    # @api plugin
-    def handle_connection_interruption(method = nil)
-      @consumers.each { |tag, consumer| consumer.handle_connection_interruption(method) }
-
-      self.exec_callback_yielding_self(:after_connection_interruption)
-
-      @declaration_deferrable = EventMachine::DefaultDeferrable.new
-    end
-
     def handle_declare_ok(method)
       @name = method.queue if @name.empty?
       @channel.register_queue(self)
@@ -1277,6 +1267,8 @@ module AMQP
     end
 
 
+    # @private
+    # @api plugin
     def handle_connection_interruption(method = nil)
       @consumers.each { |tag, c| c.handle_connection_interruption(method) }
     end # handle_connection_interruption(method = nil)
