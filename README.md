@@ -91,7 +91,7 @@ with are outdated even in recent (10.10) releases. Learn more in the [RabbitMQ v
 
 ### Install the gem
 
-On Microsoft Windows 7
+On Microsoft Windows
 
     gem install eventmachine
     gem install amqp
@@ -137,17 +137,13 @@ to learn more about RabbitMQ protocol principles & concepts.
 
 ## Supported Ruby Versions
 
-amqp gem `1.6.x` and `1.7.x` series support
+Modern amqp gem release series support
 
  * Ruby 2.4
  * Ruby 2.3
  * Ruby 2.2
- * Ruby 2.1
- * Ruby 2.0
 
-amqp gem `1.5.x` series also supports
-
- * Ruby 1.9
+The last series to support Ruby 1.9 was `1.5.x`.
 
 JRuby users should use [March Hare](http://rubymarchhare.info/).
 
