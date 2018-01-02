@@ -148,7 +148,11 @@ module AMQP
     # @return [Array<Hash>] All consumers on this queue.
     attr_reader :consumers
 
-    # @return [AMQP::Consumer] Default consumer (registered with {Queue#consume}).
+    # @return [AMQP::Consumer] Default consumer associated with this queue (if any), or nil
+    # @note Default consumer is the one registered with the convenience {AMQP::Queue#subscribe} method. It has no special properties of any kind.
+    # @see Queue#subscribe
+    # @see AMQP::Consumer
+    # @api public
     attr_reader :default_consumer
 
     # @return [Hash] Additional arguments given on queue declaration. Typically used by AMQP extensions.
@@ -782,15 +786,6 @@ module AMQP
         nil
       end
     end # consumer_tag
-
-    # @return [AMQP::Consumer] Default consumer associated with this queue (if any), or nil
-    # @note Default consumer is the one registered with the convenience {AMQP::Queue#subscribe} method. It has no special properties of any kind.
-    # @see Queue#subscribe
-    # @see AMQP::Consumer
-    # @api public
-    def default_consumer
-      @default_consumer
-    end
 
 
     # @return [Class]
