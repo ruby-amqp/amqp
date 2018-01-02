@@ -1,3 +1,25 @@
+## Changes Between 1.8.0 and 1.9.0 (unreleased)
+
+No changes yet.
+
+
+
+## Changes Between 1.7.0 and 1.8.0 (Jan 2nd, 2018)
+
+### Ruby 2.4 Warnings Squashed
+
+Contributed by utilum.
+
+GitHub issues: [#233](https://github.com/ruby-amqp/amqp/issues/233), [#229](https://github.com/ruby-amqp/amqp/pull/229).
+
+
+### amq-protocol Update
+
+Minimum `amq-protocol` version is now `2.2.0`.
+
+
+
+
 ## Changes Between 1.6.0 and 1.7.0 (Feb 2nd, 2017)
 
 ### Clear Framesets on Exception
