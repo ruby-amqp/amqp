@@ -1359,7 +1359,7 @@ module AMQP
       method  = frame.decode_payload
 
       header  = content_frames.shift
-      body    = content_frames.map {|frame| frame.payload }.join
+      body    = content_frames.map {|local_frame| local_frame.payload }.join
 
       queue.handle_get_ok(method, header, body) if queue
     end
