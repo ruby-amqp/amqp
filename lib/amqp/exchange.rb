@@ -910,7 +910,7 @@ module AMQP
       exchange = channel.find_exchange(method.exchange)
 
       header   = content_frames.shift
-      body     = content_frames.map { |frame| frame.payload }.join
+      body     = content_frames.map { |local_frame| local_frame.payload }.join
 
       exchange.exec_callback(:return, method, header, body)
     end
