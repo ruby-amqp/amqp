@@ -381,12 +381,6 @@ module AMQP
       @on_declare = block
     end
 
-    # @return [Channel]
-    # @api public
-    def channel
-      @channel
-    end
-
     # @return [Boolean] true if this exchange is of type `fanout`
     # @api public
     def fanout?
