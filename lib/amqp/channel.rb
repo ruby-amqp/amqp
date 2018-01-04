@@ -1542,7 +1542,7 @@ module AMQP
 
     protected
 
-    @private
+    # @private
     def validate_parameters_match!(entity, parameters, type)
       unless entity.opts.values_at(*@parameter_checks[type]) == parameters.values_at(*@parameter_checks[type]) || parameters[:passive]
         raise AMQP::IncompatibleOptionsError.new(entity.name, entity.opts, parameters)

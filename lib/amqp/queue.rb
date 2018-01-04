@@ -148,7 +148,11 @@ module AMQP
     # @return [Array<Hash>] All consumers on this queue.
     attr_reader :consumers
 
-    # @return [AMQP::Consumer] Default consumer (registered with {Queue#consume}).
+    # @return [AMQP::Consumer] Default consumer associated with this queue (if any), or nil
+    # @note Default consumer is the one registered with the convenience {AMQP::Queue#subscribe} method. It has no special properties of any kind.
+    # @see Queue#subscribe
+    # @see AMQP::Consumer
+    # @api public
     attr_reader :default_consumer
 
     # @return [Hash] Additional arguments given on queue declaration. Typically used by AMQP extensions.
@@ -783,15 +787,6 @@ module AMQP
       end
     end # consumer_tag
 
-    # @return [AMQP::Consumer] Default consumer associated with this queue (if any), or nil
-    # @note Default consumer is the one registered with the convenience {AMQP::Queue#subscribe} method. It has no special properties of any kind.
-    # @see Queue#subscribe
-    # @see AMQP::Consumer
-    # @api public
-    def default_consumer
-      @default_consumer
-    end
-
 
     # @return [Class]
     # @private
@@ -910,16 +905,6 @@ module AMQP
       initialize(@channel, @name, @opts)
     end
 
-
-    # @private
-    # @api plugin
-    def handle_connection_interruption(method = nil)
-      @consumers.each { |tag, consumer| consumer.handle_connection_interruption(method) }
-
-      self.exec_callback_yielding_self(:after_connection_interruption)
-
-      @declaration_deferrable = EventMachine::DefaultDeferrable.new
-    end
 
     def handle_declare_ok(method)
       @name = method.queue if @name.empty?
@@ -1277,6 +1262,8 @@ module AMQP
     end
 
 
+    # @private
+    # @api plugin
     def handle_connection_interruption(method = nil)
       @consumers.each { |tag, c| c.handle_connection_interruption(method) }
     end # handle_connection_interruption(method = nil)
@@ -1359,7 +1346,7 @@ module AMQP
       method  = frame.decode_payload
 
       header  = content_frames.shift
-      body    = content_frames.map {|frame| frame.payload }.join
+      body    = content_frames.map {|local_frame| local_frame.payload }.join
 
       queue.handle_get_ok(method, header, body) if queue
     end
