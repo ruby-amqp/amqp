@@ -3,12 +3,18 @@ module AMQP
 
     MAX_CHANNELS_PER_CONNECTION = (2**16) - 1
 
+    def initialize(*args, &block)
+      super
+      
+      @channel_id_mutex = Mutex.new
+    end
+    
     # Resets channel allocator. This method is thread safe.
     # @api public
     # @see Channel.next_channel_id
     # @see Channel.release_channel_id
     def reset_channel_id_allocator
-      channel_id_mutex.synchronize do
+      @channel_id_mutex.synchronize do
         int_allocator.reset
       end
     end
@@ -20,7 +26,7 @@ module AMQP
     # @see Channel.next_channel_id
     # @see Channel.reset_channel_id_allocator
     def release_channel_id(i)
-      channel_id_mutex.synchronize do
+      @channel_id_mutex.synchronize do
         int_allocator.release(i)
       end
     end
@@ -32,7 +38,7 @@ module AMQP
     # @see Channel.release_channel_id
     # @see Channel.reset_channel_id_allocator
     def next_channel_id
-      channel_id_mutex.synchronize do
+      @channel_id_mutex.synchronize do
         result = int_allocator.allocate
         raise "No further channels available. Please open a new connection." if result < 0
         result
@@ -40,12 +46,6 @@ module AMQP
     end
 
     private
-
-    # @private
-    # @api private
-    def channel_id_mutex
-      @channel_id_mutex ||= Mutex.new
-    end
 
     # @private
     def int_allocator
