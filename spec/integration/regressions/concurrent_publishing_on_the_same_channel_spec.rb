@@ -58,10 +58,10 @@ if mri?
 
     it "DOES NOT result in frames being delivered out of order (no UNEXPECTED_FRAME connection exceptions)" do
       received_messages = []
-      queue    = @channel.queue("amqpgem.tests.concurrent_publishing", :auto_delete => true)
+      queue    = @channel.queue("amqpgem.tests.concurrent_publishing", auto_delete: true)
       exchange = @channel.default_exchange
-      exchange.on_return do |method, header, body|
-        puts "Message was returned: #{method.reply_text}"
+      exchange.on_return do |return_info, props, _payload|
+        puts "Message was returned: #{return_info.reply_text}"
       end
 
       queue.subscribe do |metadata, payload|
@@ -73,7 +73,7 @@ if mri?
         20.times do
           Thread.new do
             messages.each do |message|
-              exchange.publish(message, :routing_key => queue.name, :mandatory => true)
+              exchange.publish(message, routing_key: queue.name, mandatory: true)
             end
           end
         end
