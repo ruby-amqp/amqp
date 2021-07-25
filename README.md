@@ -84,9 +84,8 @@ Specific examples:
 
 ### Install RabbitMQ
 
-Please refer to the [RabbitMQ installation guide](http://www.rabbitmq.com/install.html). Note that for Ubuntu and Debian we strongly advice that you
-use [RabbitMQ apt repository](http://www.rabbitmq.com/debian.html#apt) that has recent versions of RabbitMQ. RabbitMQ packages Ubuntu and Debian ship
-with are outdated even in recent (10.10) releases. Learn more in the [RabbitMQ versions guide](http://rubydoc.info/github/ruby-amqp/amqp/master/file/docs/RabbitMQVersions.textile).
+Please refer to the [RabbitMQ installation guides](http://www.rabbitmq.com/download.html). Note that for Ubuntu and Debian we strongly advice that you
+use the [Cloudsmith apt repository](http://www.rabbitmq.com/install-debian.html) that has recent versions of RabbitMQ.
 
 
 ### Install the gem
