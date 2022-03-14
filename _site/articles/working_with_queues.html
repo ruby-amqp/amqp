@@ -1,0 +1,1840 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang='en'>
+  <head>
+    <title>Working with queues</title>
+    <meta content='width=device-width, initial-scale=1.0' name='viewport' />
+    <meta content='A dead easy to use RabbitMQ Ruby client' name='description' />
+    <meta content='The Ruby RabbitMQ Client Maintainers Team' name='author' />
+    <link href='/assets/stylesheets/bootstrap.css' media='screen' rel='stylesheet' type='text/css' />
+    <link href='/assets/stylesheets/bootstrap-responsive.css' media='screen' rel='stylesheet' type='text/css' />
+    <link href='/assets/stylesheets/sass/styles.css' media='screen' rel='stylesheet' type='text/css' />
+    <link href='/assets/stylesheets/pygments.css' media='screen' rel='stylesheet' type='text/css' />
+    <link href='http://fonts.googleapis.com/css?family=Signika+Negative:300,400,600' rel='stylesheet' type='text/css' />
+    <script src='/assets/javascripts/jquery-1.7.min.js' type='text/javascript'></script>
+    <script src='/assets/javascripts/toc.js'></script>
+    <script src='/assets/javascripts/bootstrap-collapse.js'></script>
+    <meta content='text/html;charset=utf-8' http-equiv='Content-Type' />
+    <script type="text/javascript">
+      if(!(window.location.hostname === "localhost")) {
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-27153041-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+      }
+    </script>
+  </head>
+
+  <body>
+    <div class='navbar navbar-inverse navbar-fixed-top'>
+      <div class='navbar-inner'>
+        <div class='container-fluid'>
+          <a class='btn btn-navbar' data-target='.nav-collapse' data-toggle='collapse'>
+            <span class='icon-bar'></span>
+            <span class='icon-bar'></span>
+            <span class='icon-bar'></span>
+          </a>
+          <a class='brand' href='/'>Ruby amqp gem</a>
+          <div class='nav-collapse'>
+            <ul class='nav'>
+            <li>
+              <a href="/">Home</a>
+            </li>
+            <li>
+              <a href="/articles/guides.html">All guides</a>
+            </li>
+            <li>
+              <a href='/articles/community.html'>Community</a>
+            </li>
+            <li>
+              <a href='http://rubybunny.info'>Bunny, an alternative client</a>
+            </li>
+            <li>
+              <a href='https://github.com/ruby-amqp/amqp'>Code on Github</a>
+            </li>
+            <li>
+              <a href='http://github.com/ruby-amqp'>Other RabbitMQ Ruby clients</a>
+            </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class='container-fluid'>
+      <div class='row-fluid'>
+        <div class='span3'>
+          <div class='well sidebar-nav'></div>
+        </div>
+        <div class='span9'>
+          <h1>Working with queues</h1>
+          <h2 id="about-this-guide">About this guide</h2>
+
+<p>This guide covers everything related to queues in the AMQP v0.9.1
+specification, common usage scenarios and how to accomplish typical
+operations using the amqp gem. This work is licensed under a
+<a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative
+Commons Attribution 3.0 Unported License</a> (including images and
+stylesheets). The source is available <a href="https://github.com/ruby-amqp/rubyamqp.info">on
+Github</a>.</p>
+
+<h2 id="which-versions-of-the-amqp-gem-does-this-guide-cover">Which versions of the amqp gem does this guide cover?</h2>
+
+<p>This guide covers Ruby amqp gem 1.7.0 and later versions.</p>
+
+<h2 id="queues-in-amqp-0-9-1-overview">Queues in AMQP 0.9.1 - overview</h2>
+
+<h3 id="what-are-amqp-queues">What are AMQP queues?</h3>
+
+<p><span class="note">Queues</span> store and forward messages to
+consumers. They are similar to mailboxes in SMTP. Messages flow from
+producing applications to <a href="/articles/working_with_exchanges/">exchanges</a>
+that route them to queues and finally queues deliver the messages to
+consumer applications (or consumer applications fetch messages as
+needed).</p>
+
+<p>Note that unlike some other messaging protocols/systems, messages are
+not delivered directly to queues. They are delivered to exchanges that
+route messages to queues using rules known as
+<span class="note">bindings</span>.</p>
+
+<p>AMQP 0-9-1 is a programmable protocol, so queues and bindings alike are
+declared by applications.</p>
+
+<h3 id="concept-of-bindings">Concept of bindings</h3>
+
+<p>A <span class="note">binding</span> is an association between a queue
+and an exchange. Queues must be bound to at least one exchange in order
+to receive messages from publishers. Learn more about bindings in the
+<a href="/articles/bindings/">Bindings guide</a>.</p>
+
+<h3 id="queue-attributes">Queue attributes</h3>
+
+<p>Queues have several attributes associated with them:</p>
+
+<ul>
+<li>Name</li>
+<li>Exclusivity</li>
+<li>Durability</li>
+<li>Whether the queue is auto-deleted when no longer used</li>
+<li>Other metadata (sometimes called <span class="note">X-arguments</span>)</li>
+</ul>
+
+<p>These attributes define how queues can be used, what their life-cycle is
+like and other aspects of queue behavior.</p>
+
+<p>The amqp gem represents queues as instances of <code>AMQP::Queue</code>.</p>
+
+<h2 id="queue-names-and-declaring-queues">Queue names and declaring queues</h2>
+
+<p>Every AMQP queue has a name that identifies it. Queue names often
+contain several segments separated by a dot “.”, in a similar fashion to
+URI path segments being separated by a slash “/”, although almost any
+string can represent a segment (with some limitations - see below).</p>
+
+<p>Before a queue can be used, it has to be <strong>declared</strong>. Declaring a queue
+will cause it to be created if it does not already exist. The
+declaration will have no effect if the queue does already exist and its
+attributes are the <strong>same as those in the declaration</strong>. When the
+existing queue attributes are not the same as those in the declaration a
+channel-level exception is raised. This case is explained later in this
+guide.</p>
+
+<h3 id="explicitly-named-queues">Explicitly named queues</h3>
+
+<p>Applications may pick queue names or ask the broker to generate a name
+for them.</p>
+
+<p>To declare a queue with a particular name, for example, “images.resize”,
+pass it to the Queue class constructor:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Queue</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="s2">"images.resize"</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="c1"># Declaring a queue with explicitly given name using AMQP::Queue constructor</span>
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="s2">"amqp://guest:guest@dev.rabbitmq.com"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="n">channel</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+  <span class="n">queue</span>   <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Queue</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="s2">"images.resize"</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+
+  <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> is ready to go."</span>
+
+  <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span>
+    <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">{</span> <span class="nb">exit</span> <span class="p">}</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3 id="server-named-queues">Server-named queues</h3>
+
+<p>To ask an AMQP broker to generate a unique queue name for you, pass an
+<strong>empty string</strong> as the queue name argument:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="no">AMQP</span><span class="o">::</span><span class="no">Queue</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">queue</span><span class="p">,</span> <span class="n">declare_ok</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> is ready to go. AMQP method: </span><span class="si">#{</span><span class="n">declare_ok</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="c1"># Declaring a queue with server-generated name using AMQP::Queue constructor</span>
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="s2">"amqp://guest:guest@dev.rabbitmq.com"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="n">channel</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+  <span class="no">AMQP</span><span class="o">::</span><span class="no">Queue</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">queue</span><span class="o">|</span>
+    <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> is ready to go."</span>
+
+    <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span>
+      <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">{</span> <span class="nb">exit</span> <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>The amqp gem allows server-named queues to be declared without
+callbacks:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Queue</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+</code></pre></div>
+<p>In this case, as soon as the AMQP broker reply (<code>queue.declare-ok</code>
+AMQP method) arrives, the queue object name will be assigned to the
+value that the broker generated. Many AMQP operations require a queue
+name, so before an <code>AMQP::Queue</code> instance receives its
+name, those operations are delayed. This example demonstrates this:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+<span class="n">queue</span><span class="p">.</span><span class="nf">bind</span><span class="p">(</span><span class="s2">"builds"</span><span class="p">).</span><span class="nf">subscribe</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+  <span class="c1"># message handling implementation...</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>In this example, binding will be performed as soon as the queue has
+received its name generated by the broker.</p>
+
+<p>If a particular piece of code relies on the queue name being available
+immediately a callback should be used.</p>
+
+<h3 id="reserved-queue-name-prefix">Reserved queue name prefix</h3>
+
+<p>Queue names starting with “amq.” are reserved for internal use by the
+broker. Attempts to declare a queue with a name that violates this rule
+will result in a channel-level exception with reply code 403
+(<code>ACCESS_REFUSED</code>) and a reply message similar to this:</p>
+<div class="highlight"><pre><code class="language-" data-lang="">ACCESS_REFUSED - queue name ‘amq.queue’ contains reserved prefix
+’amq.**‘
+</code></pre></div>
+<h3 id="queue-re-declaration-with-different-attributes">Queue re-declaration with different attributes</h3>
+
+<p>When queue declaration attributes are different from those that the
+queue already has, a channel-level exception with code 406
+(<code>PRECONDITION_FAILED</code>) will be raised. The reply text will be similar to
+this:</p>
+<div class="highlight"><pre><code class="language-" data-lang="">PRECONDITION_FAILED - parameters for queue
+’amqpgem.examples.channel_exception’ in vhost ‘/’ not equivalent
+</code></pre></div>
+<h2 id="queue-life-cycle-patterns">Queue life-cycle patterns</h2>
+
+<p>According to the AMQP 0.9.1 specification, there are two common message
+queue life-cycle patterns:</p>
+
+<ul>
+<li>Durable message queues that are shared by many consumers and have an
+independent existence: i.e. they will continue to exist and collect
+messages whether or not there are consumers to receive them.</li>
+<li>Temporary message queues that are private to one consumer and are
+tied to that consumer. When the consumer disconnects, the message queue
+is deleted.</li>
+</ul>
+
+<p>There are some variations of these, such as shared message queues that
+are deleted when the last of many consumers disconnects.</p>
+
+<p>Let us examine the example of a well-known service like an event
+collector (event logger). A logger is usually up and running regardless
+of the existence of services that want to log anything at a particular
+point in time. Other applications know which queues to use in order to
+communicate with the logger and can rely on those queues being available
+and able to survive broker restarts. In this case, explicitly named
+durable queues are optimal and the coupling that is created between
+applications is not an issue.</p>
+
+<p>Another example of a well-known long-lived service is a distributed
+metadata/directory/locking server like <a href="http://zookeeper.apache.org">Apache
+Zookeeper</a>, <a href="https://github.com/coreos/etcd">etcd</a> or DNS. Services like
+this benefit from using well-known, not server-generated, queue names
+and so do any other applications that use them.</p>
+
+<p>A different sort of scenario is in “a cloud setting” when some kind of
+worker/instance might start and stop at any time so that other
+applications cannot rely on it being available. In this case, it is
+possible to use well-known queue names, but a much better solution is to
+use server-generated, short-lived queues that are bound to topic or
+fanout exchanges in order to receive relevant messages.</p>
+
+<p>Imagine a service that processes an endless stream of events - Twitter
+is one example. When traffic increases, development operations may start
+additional application instances in the cloud to handle the load. Those
+new instances want to subscribe to receive messages to process, but the
+rest of the system does not know anything about them and cannot rely on
+them being online or try to address them directly. The new instances
+process events from a shared stream and are the same as their peers. In
+a case like this, there is no reason for message consumers not to use
+queue names generated by the broker.</p>
+
+<p>In general, use of explicitly named or server-named queues depends on
+the messaging pattern that your application needs.
+<a href="http://www.eaipatterns.com/">Enterprise Integration Patterns</a> discusses
+many messaging patterns in depth and the RabbitMQ FAQ also has a section
+on <a href="http://www.rabbitmq.com/faq.html#scenarios">use cases</a>.</p>
+
+<h2 id="declaring-a-durable-shared-queue">Declaring a durable shared queue</h2>
+
+<p>To declare a durable shared queue, you pass a queue name that is a
+non-blank string and use the <code>:durable</code> option:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Queue</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="s2">"images.resize"</span><span class="p">,</span> <span class="ss">:durable</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="c1"># Declaring a durable shared queue</span>
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="s2">"amqp://guest:guest@dev.rabbitmq.com"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="n">channel</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+  <span class="n">queue</span>   <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Queue</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="s2">"images.resize"</span><span class="p">,</span> <span class="ss">:durable</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+
+  <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span>
+    <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">{</span> <span class="nb">exit</span> <span class="p">}</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>the same example rewritten to use <code>AMQP::Channel#queue</code>:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">"images.resize"</span><span class="p">,</span> <span class="ss">:durable</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">queue</span><span class="p">,</span> <span class="n">declare_ok</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> is ready to go."</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="c1"># Declaring a durable shared queue using AMQP::Channel#queue method</span>
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="s2">"amqp://guest:guest@dev.rabbitmq.com"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="n">channel</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+  <span class="n">queue</span>   <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">"images.resize"</span><span class="p">,</span> <span class="ss">:durable</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+
+  <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span>
+    <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">{</span> <span class="nb">exit</span> <span class="p">}</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div>
+<h2 id="declaring-a-temporary-exclusive-queue">Declaring a temporary exclusive queue</h2>
+
+<p>To declare a server-named, exclusive, auto-deleted queue, pass <code>&quot;&quot;</code> (an empty
+string) as the queue name and use the ](exclusive&quot;) and <code>:auto_delete</code>
+options:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="no">AMQP</span><span class="o">::</span><span class="no">Queue</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">queue</span><span class="p">,</span> <span class="n">declare_ok</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> is ready to go."</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="c1"># Declaring a temporary exclusive queue</span>
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="s2">"amqp://guest:guest@dev.rabbitmq.com"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="n">channel</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+
+  <span class="no">AMQP</span><span class="o">::</span><span class="no">Queue</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">queue</span><span class="p">,</span> <span class="n">declare_ok</span><span class="o">|</span>
+    <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> is ready to go."</span>
+
+    <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span>
+      <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">{</span> <span class="nb">exit</span> <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>The same example can be rewritten to use
+<code>AMQP::Channel#queue</code>:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">queue</span><span class="p">,</span> <span class="n">declare_ok</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> is ready to go."</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="c1"># Declaring a temporary exclusive queue</span>
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="s2">"amqp://guest:guest@dev.rabbitmq.com"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span> <span class="k">do</span> <span class="o">|</span><span class="n">channel</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+    <span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">queue</span><span class="p">,</span> <span class="n">declare_ok</span><span class="o">|</span>
+      <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> is ready to go."</span>
+
+      <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span>
+        <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">{</span> <span class="nb">exit</span> <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Exclusive queues may only be accessed by the current connection and are
+deleted when that connection closes. The declaration of an exclusive
+queue by other connections is not allowed and will result in a
+channel-level exception with the code <code>405 (RESOURCE_LOCKED)</code> and a reply
+message similar to</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s1">'amqp'</span>
+
+
+<span class="nb">puts</span> <span class="s2">"=&gt; Queue exclusivity violation results "</span>
+<span class="nb">puts</span>
+<span class="no">EventMachine</span><span class="p">.</span><span class="nf">run</span> <span class="k">do</span>
+  <span class="n">connection1</span> <span class="o">=</span> <span class="no">AMQP</span><span class="p">.</span><span class="nf">connect</span><span class="p">(</span><span class="s2">"amqp://guest:guest@dev.rabbitmq.com"</span><span class="p">)</span>
+  <span class="n">channel1</span>    <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection1</span><span class="p">)</span>
+
+  <span class="n">connection2</span> <span class="o">=</span> <span class="no">AMQP</span><span class="p">.</span><span class="nf">connect</span><span class="p">(</span><span class="s2">"amqp://guest:guest@dev.rabbitmq.com"</span><span class="p">)</span>
+  <span class="n">channel2</span>    <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection2</span><span class="p">)</span>
+
+  <span class="n">channel1</span><span class="p">.</span><span class="nf">on_error</span> <span class="k">do</span> <span class="o">|</span><span class="n">ch</span><span class="p">,</span> <span class="n">close</span><span class="o">|</span>
+    <span class="nb">puts</span> <span class="s2">"Handling a channel-level exception on channel1: </span><span class="si">#{</span><span class="n">close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="s2">, </span><span class="si">#{</span><span class="n">close</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+  <span class="n">channel2</span><span class="p">.</span><span class="nf">on_error</span> <span class="k">do</span> <span class="o">|</span><span class="n">ch</span><span class="p">,</span> <span class="n">close</span><span class="o">|</span>
+    <span class="nb">puts</span> <span class="s2">"Handling a channel-level exception on channel2: </span><span class="si">#{</span><span class="n">close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="s2">, </span><span class="si">#{</span><span class="n">close</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+
+  <span class="nb">name</span> <span class="o">=</span> <span class="s2">"amqpgem.examples.queue"</span>
+  <span class="n">channel1</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="nb">name</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+  <span class="c1"># declare a queue with the same name on a different connection</span>
+  <span class="n">channel2</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="nb">name</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+
+
+  <span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_timer</span><span class="p">(</span><span class="mf">3.5</span><span class="p">)</span> <span class="k">do</span>
+    <span class="n">connection1</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span>
+      <span class="n">connection2</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span>
+        <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">{</span> <span class="nb">exit</span> <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h2 id="binding-queues-to-exchanges">Binding queues to exchanges</h2>
+
+<p>In order to receive messages, a queue needs to be bound to at least one
+exchange. Most of the time binding is explcit (done by applications). To
+bind a queue to an exchange, use <code>AMQP::Queue#bind</code> where
+the argument passed can be either an <code>AMQP::Exchange</code>
+instance or a string.</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span><span class="p">.</span><span class="nf">bind</span><span class="p">(</span><span class="n">exchange</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">bind_ok</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">"Just bound </span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> to </span><span class="si">#{</span><span class="n">exchange</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="c1"># Binding a queue to an exchange</span>
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="s2">"amqp://guest:guest@dev.rabbitmq.com"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="n">channel</span>  <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+  <span class="n">exchange</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="nf">fanout</span><span class="p">(</span><span class="s2">"amq.fanout"</span><span class="p">)</span>
+
+  <span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">queue</span><span class="p">,</span> <span class="n">declare_ok</span><span class="o">|</span>
+    <span class="n">queue</span><span class="p">.</span><span class="nf">bind</span><span class="p">(</span><span class="n">exchange</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">bind_ok</span><span class="o">|</span>
+      <span class="nb">puts</span> <span class="s2">"Just bound </span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> to </span><span class="si">#{</span><span class="n">exchange</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">end</span>
+
+    <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span>
+      <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">{</span> <span class="nb">exit</span> <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>The same example using a string without callback:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span><span class="p">.</span><span class="nf">bind</span><span class="p">(</span><span class="s2">"amq.fanout"</span><span class="p">)</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="c1"># Binding a queue to an exchange</span>
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="s2">"amqp://guest:guest@dev.rabbitmq.com"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="n">channel</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+  <span class="n">exchange_name</span> <span class="o">=</span> <span class="s2">"amq.fanout"</span>
+
+  <span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">queue</span><span class="p">,</span> <span class="n">declare_ok</span><span class="o">|</span>
+    <span class="n">queue</span><span class="p">.</span><span class="nf">bind</span><span class="p">(</span><span class="n">exchange_name</span><span class="p">)</span>
+    <span class="nb">puts</span> <span class="s2">"Bound </span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> to </span><span class="si">#{</span><span class="n">exchange_name</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span>
+      <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">{</span> <span class="nb">exit</span> <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h2 id="subscribing-to-receive-messages-push-api">Subscribing to receive messages (“push API”)</h2>
+
+<p>To set up a queue subscription to enable an application to receive
+messages as they arrive in a queue, one uses the
+<code>AMQP::Queue#subscribe</code> method. Then when a message
+arrives, the message header (metadata) and body (payload) are passed to
+the handler:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span><span class="p">.</span><span class="nf">subscribe</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">"Received a message: </span><span class="si">#{</span><span class="n">payload</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">."</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="s2">"amqp://guest:guest@dev.rabbitmq.com"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="n">channel</span>  <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+  <span class="n">exchange</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="nf">fanout</span><span class="p">(</span><span class="s2">"amq.fanout"</span><span class="p">)</span>
+
+  <span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">queue</span><span class="o">|</span>
+    <span class="n">queue</span><span class="p">.</span><span class="nf">bind</span><span class="p">(</span><span class="n">exchange</span><span class="p">).</span><span class="nf">subscribe</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+      <span class="nb">puts</span> <span class="s2">"Received a message: </span><span class="si">#{</span><span class="n">payload</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">. Shutting down..."</span>
+
+      <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span>
+    <span class="k">end</span>
+
+    <span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_timer</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span> <span class="k">do</span>
+      <span class="nb">puts</span> <span class="s2">"=&gt; Publishing..."</span>
+      <span class="n">exchange</span><span class="p">.</span><span class="nf">publish</span><span class="p">(</span><span class="s2">"Ohai!"</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Subscriptions for message delivery are usually referred to as
+<span class="note">consumers</span> in the AMQP 0.9.1 specification,
+client library documentation and books. Consumers last as long as the
+channel that they were declared on, or until client cancels them
+(unsubscribes).</p>
+
+<p>Consumers are identified by <span class="note">consumer tags</span>. If
+you need to obtain the consumer tag of a subscribed queue then use
+<code>AMQP::Queue#consumer_tag</code>.</p>
+
+<h3 id="accessing-message-metadata">Accessing message metadata</h3>
+
+<p>The <span class="note">header</span> object in the example above
+provides access to message metadata and delivery information:</p>
+
+<ul>
+<li>Message content type</li>
+<li>Message content encoding</li>
+<li>Message routing key</li>
+<li>Message delivery mode (persistent or not)</li>
+<li>Consumer tag this delivery is for</li>
+<li>Delivery tag</li>
+<li>Message priority</li>
+<li>Whether or not message is redelivered</li>
+<li>Producer application id</li>
+</ul>
+
+<p>and so on. An example to demonstrate how to access some of those
+attributes:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1"># producer</span>
+<span class="n">exchange</span><span class="p">.</span><span class="nf">publish</span><span class="p">(</span><span class="s2">"Hello, world!"</span><span class="p">,</span>
+                 <span class="ss">:app_id</span>      <span class="o">=&gt;</span> <span class="s2">"amqpgem.example"</span><span class="p">,</span>
+                 <span class="ss">:priority</span>    <span class="o">=&gt;</span> <span class="mi">8</span><span class="p">,</span>
+                 <span class="ss">:type</span>        <span class="o">=&gt;</span> <span class="s2">"kinda.checkin"</span><span class="p">,</span>
+                 <span class="c1"># headers table keys can be anything</span>
+                 <span class="ss">:headers</span>     <span class="o">=&gt;</span> <span class="p">{</span>
+                   <span class="ss">:coordinates</span> <span class="o">=&gt;</span> <span class="p">{</span>
+                     <span class="ss">:latitude</span>  <span class="o">=&gt;</span> <span class="mf">59.35</span><span class="p">,</span>
+                     <span class="ss">:longitude</span> <span class="o">=&gt;</span> <span class="mf">18.066667</span>
+                   <span class="p">},</span>
+                   <span class="ss">:participants</span> <span class="o">=&gt;</span> <span class="mi">11</span><span class="p">,</span>
+                   <span class="ss">:venue</span>        <span class="o">=&gt;</span> <span class="s2">"Stockholm"</span>
+                 <span class="p">},</span>
+                 <span class="ss">:timestamp</span>   <span class="o">=&gt;</span> <span class="no">Time</span><span class="p">.</span><span class="nf">now</span><span class="p">.</span><span class="nf">to_i</span><span class="p">)</span>
+
+<span class="c1"># consumer</span>
+<span class="n">queue</span><span class="p">.</span><span class="nf">subscribe</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">"metadata.routing_key : </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">routing_key</span><span class="si">}</span><span class="s2">"</span>
+  <span class="nb">puts</span> <span class="s2">"metadata.content_type: </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">content_type</span><span class="si">}</span><span class="s2">"</span>
+  <span class="nb">puts</span> <span class="s2">"metadata.priority    : </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">priority</span><span class="si">}</span><span class="s2">"</span>
+  <span class="nb">puts</span> <span class="s2">"metadata.headers     : </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">headers</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">"</span>
+  <span class="nb">puts</span> <span class="s2">"metadata.timestamp   : </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">timestamp</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">"</span>
+  <span class="nb">puts</span> <span class="s2">"metadata.type        : </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">type</span><span class="si">}</span><span class="s2">"</span>
+  <span class="nb">puts</span> <span class="s2">"metadata.delivery_tag: </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">delivery_tag</span><span class="si">}</span><span class="s2">"</span>
+  <span class="nb">puts</span> <span class="s2">"metadata.redelivered : </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">redelivered?</span><span class="si">}</span><span class="s2">"</span>
+
+  <span class="nb">puts</span> <span class="s2">"metadata.app_id      : </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">app_id</span><span class="si">}</span><span class="s2">"</span>
+  <span class="nb">puts</span> <span class="s2">"metadata.exchange    : </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">exchange</span><span class="si">}</span><span class="s2">"</span>
+  <span class="nb">puts</span>
+  <span class="nb">puts</span> <span class="s2">"Received a message: </span><span class="si">#{</span><span class="n">payload</span><span class="si">}</span><span class="s2">."</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"bundler"</span>
+<span class="no">Bundler</span><span class="p">.</span><span class="nf">setup</span>
+
+<span class="vg">$:</span><span class="p">.</span><span class="nf">unshift</span><span class="p">(</span><span class="no">File</span><span class="p">.</span><span class="nf">expand_path</span><span class="p">(</span><span class="s2">"../../../lib"</span><span class="p">,</span> <span class="kp">__FILE__</span><span class="p">))</span>
+
+<span class="nb">require</span> <span class="s1">'amqp'</span>
+
+<span class="no">EventMachine</span><span class="p">.</span><span class="nf">run</span> <span class="k">do</span>
+  <span class="n">connection</span> <span class="o">=</span> <span class="no">AMQP</span><span class="p">.</span><span class="nf">connect</span><span class="p">(</span><span class="ss">:host</span> <span class="o">=&gt;</span> <span class="s1">'127.0.0.1'</span><span class="p">)</span>
+  <span class="nb">puts</span> <span class="s2">"Connected to AMQP broker. Running </span><span class="si">#{</span><span class="no">AMQP</span><span class="o">::</span><span class="no">VERSION</span><span class="si">}</span><span class="s2"> version of the gem..."</span>
+
+  <span class="n">channel</span>  <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+  <span class="n">queue</span>    <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">"amqpgem.examples.hello_world"</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+  <span class="n">exchange</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="nf">direct</span><span class="p">(</span><span class="s2">"amq.direct"</span><span class="p">)</span>
+
+  <span class="n">queue</span><span class="p">.</span><span class="nf">bind</span><span class="p">(</span><span class="n">exchange</span><span class="p">)</span>
+
+  <span class="n">channel</span><span class="p">.</span><span class="nf">on_error</span> <span class="k">do</span> <span class="o">|</span><span class="n">ch</span><span class="p">,</span> <span class="n">channel_close</span><span class="o">|</span>
+    <span class="nb">puts</span> <span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_text</span>
+    <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="n">queue</span><span class="p">.</span><span class="nf">subscribe</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+    <span class="nb">puts</span> <span class="s2">"metadata.routing_key : </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">routing_key</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">puts</span> <span class="s2">"metadata.content_type: </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">content_type</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">puts</span> <span class="s2">"metadata.priority    : </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">priority</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">puts</span> <span class="s2">"metadata.headers     : </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">headers</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">puts</span> <span class="s2">"metadata.timestamp   : </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">timestamp</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">puts</span> <span class="s2">"metadata.type        : </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">type</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">puts</span> <span class="s2">"metadata.delivery_tag: </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">delivery_tag</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">puts</span> <span class="s2">"metadata.redelivered : </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">redelivered</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="nb">puts</span> <span class="s2">"metadata.app_id      : </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">app_id</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">puts</span> <span class="s2">"metadata.exchange    : </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">exchange</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">puts</span>
+    <span class="nb">puts</span> <span class="s2">"Received a message: </span><span class="si">#{</span><span class="n">payload</span><span class="si">}</span><span class="s2">. Disconnecting..."</span>
+
+    <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span>
+      <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">{</span> <span class="nb">exit</span> <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="n">exchange</span><span class="p">.</span><span class="nf">publish</span><span class="p">(</span><span class="s2">"Hello, world!"</span><span class="p">,</span>
+                   <span class="ss">:app_id</span>      <span class="o">=&gt;</span> <span class="s2">"amqpgem.example"</span><span class="p">,</span>
+                   <span class="ss">:priority</span>    <span class="o">=&gt;</span> <span class="mi">8</span><span class="p">,</span>
+                   <span class="ss">:type</span>        <span class="o">=&gt;</span> <span class="s2">"kinda.checkin"</span><span class="p">,</span>
+                   <span class="c1"># headers table keys can be anything</span>
+                   <span class="ss">:headers</span>     <span class="o">=&gt;</span> <span class="p">{</span>
+                     <span class="ss">:coordinates</span> <span class="o">=&gt;</span> <span class="p">{</span>
+                       <span class="ss">:latitude</span>  <span class="o">=&gt;</span> <span class="mf">59.35</span><span class="p">,</span>
+                       <span class="ss">:longitude</span> <span class="o">=&gt;</span> <span class="mf">18.066667</span>
+                     <span class="p">},</span>
+                     <span class="ss">:participants</span> <span class="o">=&gt;</span> <span class="mi">11</span><span class="p">,</span>
+                     <span class="ss">:venue</span>        <span class="o">=&gt;</span> <span class="s2">"Stockholm"</span>
+                   <span class="p">},</span>
+                   <span class="ss">:timestamp</span>   <span class="o">=&gt;</span> <span class="no">Time</span><span class="p">.</span><span class="nf">now</span><span class="p">.</span><span class="nf">to_i</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3 id="exclusive-consumers">Exclusive consumers</h3>
+
+<p>Consumers can request exclusive access to the queue (meaning only this
+consumer can access the queue). This is useful when you want a
+long-lived shared queue to be temporarily accessible by just one
+application (or thread, or process). If the application employing the
+exclusive consumer crashes or loses the TCP connection to the broker,
+then the channel is closed and the exclusive consumer is cancelled.</p>
+
+<p>To exclusively receive messages from the queue, pass the “:exclusive”
+option to <code>AMQP::Queue#subscribe</code>:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span><span class="p">.</span><span class="nf">subscribe</span><span class="p">(</span><span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+  <span class="c1"># message handling logic...</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>TBD: describe what happens when exclusivity property is violated and how
+to handle it.</p>
+
+<h3 id="using-multiple-consumers-per-queue">Using multiple consumers per queue</h3>
+
+<p>Historically, amqp gem versions before 0.8.0.RC14 (current master branch
+in the repository) have had a “one consumer per Queue instance”
+limitation. Previously, to work around this problem, application
+developers had to open multiple channels and work with multiple queue
+instances on different channels. This is not very convenient and is
+surprising for developers familiar with AMQP clients for other
+languages.</p>
+
+<p>With more and more Ruby implementations dropping the
+<a href="http://en.wikipedia.org/wiki/Global_Interpreter_Lock">GIL</a>, load
+balancing between multiple consumers in the same queue in the same OS
+process has become more and more common. In certain cases, even
+applications that do not need any concurrency benefit from having
+multiple consumers on the same queue in the same process.</p>
+
+<p>Starting from amqp gem 0.8.0, it is possible to add any number of
+consumers by instantiating <code>AMQP::Consumer</code> directly:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1"># non-exclusive consumer, consumer tag is generated</span>
+<span class="n">consumer1</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Consumer</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">queue</span><span class="p">)</span>
+
+<span class="c1"># non-exclusive consumer, consumer tag is explicitly given</span>
+<span class="n">consumer2</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Consumer</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">queue</span><span class="p">,</span> <span class="s2">"</span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">-consumer-</span><span class="si">#{</span><span class="nb">rand</span><span class="si">}</span><span class="s2">-</span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">now</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="c1"># exclusive consumer, consumer tag is generated</span>
+<span class="n">consumer3</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Consumer</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">queue</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="kp">true</span><span class="p">)</span>
+</code></pre></div>
+<p>Instantiated consumers do not begin consuming messages immediately. This
+is because in certain cases, it is useful to add a consumer but make it
+active at a later time. To consume messages, use the
+<code>AMQP::Consumer#consume</code> method in combination with
+<code>AMQP::Consumer#on_delivery</code>:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">consumer1</span><span class="p">.</span><span class="nf">consume</span><span class="p">.</span><span class="nf">on_delivery</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+  <span class="vi">@consumer1_mailbox</span> <span class="o">&lt;&lt;</span> <span class="n">payload</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><code>AMQP::Consumer#on_delivery</code> takes a block that is used
+exactly like the block passed to <code>AMQP::Queue#subscribe</code>.
+In fact, <code>AMQP::Queue#subscribe</code> uses
+<code>AMQP::Consumer</code> under the hood, adding a
+<span class="note">default consumer</span> to the queue.</p>
+
+<p class="alert alert-error">
+Default consumers do not have any special properties, they just provide
+a convenient way for application developers to register multiple
+consumers and a means of preserving backwards compatibility. Application
+developers are always free to use `AMQP::Consumer` instances directly, or
+intermix them with `AMQP::Queue#subscribe`.
+</p>
+
+<p>Most of the public API methods on <code>AMQP::Consumer</code> return
+self, so it is possible to use method chaining extensively. An example
+from <a href="https://github.com/ruby-amqp/amqp/tree/master/spec">amqp gem spec
+suite</a>:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">consumer1</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Consumer</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="vi">@channel</span><span class="p">,</span> <span class="vi">@queue</span><span class="p">).</span><span class="nf">consume</span><span class="p">.</span><span class="nf">on_delivery</span> <span class="p">{</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span> <span class="n">mailbox1</span> <span class="o">&lt;&lt;</span> <span class="n">payload</span> <span class="p">}</span>
+<span class="n">consumer2</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Consumer</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="vi">@channel</span><span class="p">,</span> <span class="vi">@queue</span><span class="p">).</span><span class="nf">consume</span><span class="p">.</span><span class="nf">on_delivery</span> <span class="p">{</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span> <span class="n">mailbox2</span> <span class="o">&lt;&lt;</span> <span class="n">payload</span> <span class="p">}</span>
+</code></pre></div>
+<p>To cancel a particular consumer, use
+<code>AMQP::Consumer#cancel</code> method. To cancel a default queue
+consumer, use <code>AMQP::Queue#unsubscribe</code>.</p>
+
+<h3 id="message-acknowledgements">Message acknowledgements</h3>
+
+<p>Consumer applications - applications that receive and process messages -
+may occasionally fail to process individual messages, or will just
+crash. There is also the possibility of network issues causing problems.
+This raises a question - “When should the AMQP broker remove messages
+from queues?” The AMQP 0.9.1 specification proposes two choices:</p>
+
+<ul>
+<li>After broker sends a message to an application (using either
+basic.deliver or basic.get-ok methods).</li>
+<li>After the application sends back an acknowledgement (using basic.ack
+AMQP method).</li>
+</ul>
+
+<p>The former choice is called the <strong>automatic acknowledgement model</strong>,
+while the latter is called the <strong>explicit acknowledgement model</strong>. With
+the explicit model, the application chooses when it is time to send an
+acknowledgement. It can be right after receiving a message, or after
+persisting it to a data store before processing, or after fully
+processing the message (for example, successfully fetching a Web page,
+processing and storing it into some persistent data store).</p>
+
+<p><img src="https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/006_amqp_091_message_acknowledgements.png" alt=""></p>
+
+<p>If a consumer dies without sending an acknowledgement, the AMQP broker
+will redeliver it to another consumer, or, if none are available at the
+time, the broker will wait until at least one consumer is registered for
+the same queue before attempting redelivery.</p>
+
+<p>The acknowledgement model is chosen when a new consumer is registered
+for a queue. By default, <code>AMQP::Queue#subscribe</code> will use
+the <strong>automatic</strong> model. To switch to the <strong>explicit</strong> model, the “:ack”
+(for &quot;manual ack&quot;) option should be used:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span><span class="p">.</span><span class="nf">subscribe</span><span class="p">(</span><span class="ss">:ack</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+  <span class="c1"># message handling logic...</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>To demonstrate how redelivery works, let us have a look at the following
+code example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"bundler"</span>
+<span class="no">Bundler</span><span class="p">.</span><span class="nf">setup</span>
+
+<span class="vg">$:</span><span class="p">.</span><span class="nf">unshift</span><span class="p">(</span><span class="no">File</span><span class="p">.</span><span class="nf">expand_path</span><span class="p">(</span><span class="s2">"../../../lib"</span><span class="p">,</span> <span class="kp">__FILE__</span><span class="p">))</span>
+
+<span class="nb">require</span> <span class="s1">'amqp'</span>
+
+<span class="nb">puts</span> <span class="s2">"=&gt; Subscribing for messages using explicit acknowledgements model"</span>
+<span class="nb">puts</span>
+
+<span class="c1"># this example uses Kernel#sleep and thus we must run EventMachine reactor in</span>
+<span class="c1"># a separate thread, or nothing will be sent/received while we sleep() on the current thread.</span>
+<span class="n">t</span> <span class="o">=</span> <span class="no">Thread</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">run</span> <span class="p">}</span>
+<span class="nb">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+
+<span class="c1"># open two connections to imitate two apps</span>
+<span class="n">connection1</span> <span class="o">=</span> <span class="no">AMQP</span><span class="p">.</span><span class="nf">connect</span>
+<span class="n">connection2</span> <span class="o">=</span> <span class="no">AMQP</span><span class="p">.</span><span class="nf">connect</span>
+<span class="n">connection3</span> <span class="o">=</span> <span class="no">AMQP</span><span class="p">.</span><span class="nf">connect</span>
+
+<span class="n">channel_exception_handler</span> <span class="o">=</span> <span class="no">Proc</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span> <span class="o">|</span><span class="n">ch</span><span class="p">,</span> <span class="n">channel_close</span><span class="o">|</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span><span class="p">;</span> <span class="k">raise</span> <span class="s2">"channel error: </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="s2">"</span> <span class="p">}</span>
+
+<span class="c1"># open two channels</span>
+
+<span class="c1"># first app will be given up to 3 messages at a time. If it doesn't</span>
+<span class="c1"># ack any messages after it was delivered 3, messages will be routed to</span>
+<span class="c1"># the app #2.</span>
+<span class="n">channel1</span>    <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection1</span><span class="p">,</span> <span class="ss">:prefetch</span> <span class="o">=&gt;</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">channel1</span><span class="p">.</span><span class="nf">on_error</span><span class="p">(</span><span class="o">&amp;</span><span class="n">channel_exception_handler</span><span class="p">)</span>
+
+<span class="c1"># app #2 processes messages one-by-one and has to send and ack every time</span>
+<span class="n">channel2</span>    <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection2</span><span class="p">,</span> <span class="ss">:prefetch</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">channel2</span><span class="p">.</span><span class="nf">on_error</span><span class="p">(</span><span class="o">&amp;</span><span class="n">channel_exception_handler</span><span class="p">)</span>
+
+<span class="c1"># app 3 will just publish messages</span>
+<span class="n">channel3</span>    <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection3</span><span class="p">)</span>
+<span class="n">channel3</span><span class="p">.</span><span class="nf">on_error</span><span class="p">(</span><span class="o">&amp;</span><span class="n">channel_exception_handler</span><span class="p">)</span>
+
+<span class="n">exchange</span> <span class="o">=</span> <span class="n">channel3</span><span class="p">.</span><span class="nf">direct</span><span class="p">(</span><span class="s2">"amq.direct"</span><span class="p">)</span>
+
+<span class="n">queue1</span>    <span class="o">=</span> <span class="n">channel1</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">"amqpgem.examples.acknowledgements.explicit"</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">false</span><span class="p">)</span>
+<span class="c1"># purge the queue so that we don't get any redeliveries from previous runs</span>
+<span class="n">queue1</span><span class="p">.</span><span class="nf">purge</span>
+<span class="n">queue1</span><span class="p">.</span><span class="nf">bind</span><span class="p">(</span><span class="n">exchange</span><span class="p">).</span><span class="nf">subscribe</span><span class="p">(</span><span class="ss">:ack</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+  <span class="c1"># do some work</span>
+  <span class="nb">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+
+  <span class="c1"># acknowledge some messages, they will be removed from the queue</span>
+  <span class="k">if</span> <span class="nb">rand</span> <span class="o">&gt;</span> <span class="mf">0.5</span>
+    <span class="c1"># FYI: there is a shortcut, metadata.ack</span>
+    <span class="n">channel1</span><span class="p">.</span><span class="nf">acknowledge</span><span class="p">(</span><span class="n">metadata</span><span class="p">.</span><span class="nf">delivery_tag</span><span class="p">,</span> <span class="kp">false</span><span class="p">)</span>
+    <span class="nb">puts</span> <span class="s2">"[consumer1] Got message #</span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">headers</span><span class="p">[</span><span class="s1">'i'</span><span class="p">]</span><span class="si">}</span><span class="s2">, ack-ed"</span>
+  <span class="k">else</span>
+    <span class="c1"># some messages are not ack-ed and will remain in the queue for redelivery</span>
+    <span class="c1"># when app #1 connection is closed (either properly or due to a crash)</span>
+    <span class="nb">puts</span> <span class="s2">"[consumer1] Got message #</span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">headers</span><span class="p">[</span><span class="s1">'i'</span><span class="p">]</span><span class="si">}</span><span class="s2">, SKIPPPED"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="n">queue2</span>    <span class="o">=</span> <span class="n">channel2</span><span class="p">.</span><span class="nf">queue!</span><span class="p">(</span><span class="s2">"amqpgem.examples.acknowledgements.explicit"</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">false</span><span class="p">)</span>
+<span class="n">queue2</span><span class="p">.</span><span class="nf">subscribe</span><span class="p">(</span><span class="ss">:ack</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+  <span class="n">metadata</span><span class="p">.</span><span class="nf">ack</span>
+  <span class="c1"># app 2 always acks messages</span>
+  <span class="nb">puts</span> <span class="s2">"[consumer2] Received </span><span class="si">#{</span><span class="n">payload</span><span class="si">}</span><span class="s2">, redelivered = </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">redelivered</span><span class="si">}</span><span class="s2">, ack-ed"</span>
+<span class="k">end</span>
+
+<span class="c1"># after 2.5 seconds one of the consumers dies</span>
+<span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_timer</span><span class="p">(</span><span class="mf">4.0</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">connection1</span><span class="p">.</span><span class="nf">close</span>
+  <span class="nb">puts</span> <span class="s2">"----- Connection 1 is now closed (we pretend that it has crashed) -----"</span>
+<span class="p">}</span>
+
+<span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_timer</span><span class="p">(</span><span class="mf">10.0</span><span class="p">)</span> <span class="k">do</span>
+  <span class="c1"># purge the queue so that we don't get any redeliveries on the next run</span>
+  <span class="n">queue2</span><span class="p">.</span><span class="nf">purge</span> <span class="p">{</span>
+    <span class="n">connection2</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span>
+      <span class="n">connection3</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+
+
+<span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_periodic_timer</span><span class="p">(</span><span class="mf">0.8</span><span class="p">)</span> <span class="p">{</span>
+  <span class="mi">3</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span>
+    <span class="n">exchange</span><span class="p">.</span><span class="nf">publish</span><span class="p">(</span><span class="s2">"Message #</span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="ss">:headers</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">:i</span> <span class="o">=&gt;</span> <span class="n">i</span> <span class="p">})</span>
+    <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+  <span class="k">end</span>
+<span class="p">}</span>
+
+
+<span class="n">t</span><span class="p">.</span><span class="nf">join</span>
+</code></pre></div>
+<p>So what is going on here? This example uses three AMQP connections to
+imitate three applications, one producer and two consumers. Each AMQP
+connection opens a single channel:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1"># open multiple connections to imitate three apps</span>
+<span class="n">connection1</span> <span class="o">=</span> <span class="no">AMQP</span><span class="p">.</span><span class="nf">connect</span>
+<span class="n">connection2</span> <span class="o">=</span> <span class="no">AMQP</span><span class="p">.</span><span class="nf">connect</span>
+<span class="n">connection3</span> <span class="o">=</span> <span class="no">AMQP</span><span class="p">.</span><span class="nf">connect</span>
+
+<span class="n">channel_exception_handler</span> <span class="o">=</span> <span class="no">Proc</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span> <span class="o">|</span><span class="n">ch</span><span class="p">,</span> <span class="n">channel_close</span><span class="o">|</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span><span class="p">;</span> <span class="k">raise</span> <span class="s2">"channel error: </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="s2">"</span> <span class="p">}</span>
+
+<span class="c1"># open several channels</span>
+<span class="n">channel1</span>    <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection1</span><span class="p">)</span>
+<span class="n">channel1</span><span class="p">.</span><span class="nf">on_error</span><span class="p">(</span><span class="o">&amp;</span><span class="n">channel_exception_handler</span><span class="p">)</span>
+<span class="c1"># ...</span>
+
+<span class="n">channel2</span>    <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection2</span><span class="p">)</span>
+<span class="n">channel2</span><span class="p">.</span><span class="nf">on_error</span><span class="p">(</span><span class="o">&amp;</span><span class="n">channel_exception_handler</span><span class="p">)</span>
+<span class="c1"># ...</span>
+
+<span class="c1"># app 3 will just publish messages</span>
+<span class="n">channel3</span>    <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection3</span><span class="p">)</span>
+<span class="n">channel3</span><span class="p">.</span><span class="nf">on_error</span><span class="p">(</span><span class="o">&amp;</span><span class="n">channel_exception_handler</span><span class="p">)</span>
+</code></pre></div>
+<p>The consumers share a queue and the producer publishes messages to the
+queue periodically using an <span class="note"><code>amq.direct</code></span>
+exchange. Both “applications” subscribe to receive messages using the
+explicit acknowledgement model. The AMQP broker by default will send
+each message to the next consumer in sequence (this kind of load
+balancing is known as <strong>round-robin</strong>). This means that some messages
+will be delivered to consumer #1 and some to consumer #2.</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">exchange</span> <span class="o">=</span> <span class="n">channel3</span><span class="p">.</span><span class="nf">direct</span><span class="p">(</span><span class="s2">"amq.direct"</span><span class="p">)</span>
+
+<span class="c1"># ...</span>
+
+<span class="n">queue1</span>    <span class="o">=</span> <span class="n">channel1</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">"amqpgem.examples.acknowledgements.explicit"</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">false</span><span class="p">)</span>
+<span class="c1"># purge the queue so that we do not get any redeliveries from previous runs</span>
+<span class="n">queue1</span><span class="p">.</span><span class="nf">purge</span>
+<span class="n">queue1</span><span class="p">.</span><span class="nf">bind</span><span class="p">(</span><span class="n">exchange</span><span class="p">).</span><span class="nf">subscribe</span><span class="p">(</span><span class="ss">:ack</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+  <span class="c1"># do some work</span>
+  <span class="nb">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+
+  <span class="c1"># acknowledge some messages, they will be removed from the queue</span>
+  <span class="k">if</span> <span class="nb">rand</span> <span class="o">&gt;</span> <span class="mf">0.5</span>
+    <span class="c1"># FYI: there is a shortcut, metadata.ack</span>
+    <span class="n">channel1</span><span class="p">.</span><span class="nf">acknowledge</span><span class="p">(</span><span class="n">metadata</span><span class="p">.</span><span class="nf">delivery_tag</span><span class="p">,</span> <span class="kp">false</span><span class="p">)</span>
+    <span class="nb">puts</span> <span class="s2">"[consumer1] Got message #</span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">headers</span><span class="p">[</span><span class="s1">'i'</span><span class="p">]</span><span class="si">}</span><span class="s2">, ack-ed"</span>
+  <span class="k">else</span>
+    <span class="c1"># odd messages are not ack-ed and will remain in the queue for redelivery</span>
+    <span class="c1"># when app #1 connection is closed (either properly or due to a crash)</span>
+    <span class="nb">puts</span> <span class="s2">"[consumer1] Got message #</span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">headers</span><span class="p">[</span><span class="s1">'i'</span><span class="p">]</span><span class="si">}</span><span class="s2">, SKIPPED"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="n">queue2</span>    <span class="o">=</span> <span class="n">channel2</span><span class="p">.</span><span class="nf">queue!</span><span class="p">(</span><span class="s2">"amqpgem.examples.acknowledgements.explicit"</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">false</span><span class="p">)</span>
+<span class="n">queue2</span><span class="p">.</span><span class="nf">subscribe</span><span class="p">(</span><span class="ss">:ack</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+  <span class="n">metadata</span><span class="p">.</span><span class="nf">ack</span>
+  <span class="c1"># app 2 always acks messages</span>
+  <span class="nb">puts</span> <span class="s2">"[consumer2] Received </span><span class="si">#{</span><span class="n">payload</span><span class="si">}</span><span class="s2">, redelivered = </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">redelivered</span><span class="si">}</span><span class="s2">, ack-ed"</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>To demonstrate message redelivery we make consumer #1 randomly select
+which messages to acknowledge. After 4 seconds we disconnect it (to
+imitate a crash). When that happens, the AMQP broker redelivers
+unacknowledged messages to consumer #2 which acknowledges them
+unconditionally. After 10 seconds, this example closes all outstanding
+connections and exits.</p>
+
+<p>An extract of output produced by this example:</p>
+<div class="highlight"><pre><code class="language-" data-lang=""><span class="p">=&gt;</span> <span class="n">Subscribing</span> <span class="n">for</span> <span class="n">messages</span> <span class="n">using</span> <span class="n">explicit</span> <span class="n">acknowledgements</span>
+<span class="k">model</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">0</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer1</span><span class="p">]</span> <span class="n">Got</span> <span class="n">message</span> <span class="p">#</span><span class="m">1</span><span class="p">,</span> <span class="n">SKIPPED</span>
+<span class="p">[</span><span class="n">consumer1</span><span class="p">]</span> <span class="n">Got</span> <span class="n">message</span> <span class="p">#</span><span class="m">2</span><span class="p">,</span> <span class="n">SKIPPED</span>
+<span class="p">[</span><span class="n">consumer1</span><span class="p">]</span> <span class="n">Got</span> <span class="n">message</span> <span class="p">#</span><span class="m">3</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">4</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer1</span><span class="p">]</span> <span class="n">Got</span> <span class="n">message</span> <span class="p">#</span><span class="m">5</span><span class="p">,</span> <span class="n">SKIPPED</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">6</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">7</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">8</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">9</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">10</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">11</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="err">——</span> <span class="n">Connection</span> <span class="m">1</span> <span class="n">is</span> <span class="n">now</span> <span class="n">closed</span> <span class="p">(</span><span class="n">we</span> <span class="n">pretend</span> <span class="n">that</span> <span class="n">it</span> <span class="n">has</span> <span class="n">crashed</span><span class="p">)</span> <span class="err">——</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">5</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">true</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">1</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">true</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">2</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">true</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">12</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">13</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">14</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">15</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">16</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">17</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">18</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">19</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">20</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">21</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">22</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">23</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">24</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">25</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">26</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">27</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">28</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">29</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">30</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">31</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">32</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">33</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">34</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+<span class="p">[</span><span class="n">consumer2</span><span class="p">]</span> <span class="n">Received</span> <span class="n">Message</span> <span class="p">#</span><span class="m">35</span><span class="p">,</span> <span class="n">redelivered</span> <span class="p">=</span> <span class="nb">false</span><span class="p">,</span> <span class="n">ack</span><span class="p">-</span><span class="n">ed</span>
+</code></pre></div>
+<p>As we can see, consumer #1 did not acknowledge three messages (labelled
+1, 2 and 5):</p>
+<div class="highlight"><pre><code class="language-" data-lang="">[consumer1] Got message #1, SKIPPED
+[consumer1] Got message #2, SKIPPED
+…
+[consumer1] Got message #5, SKIPPED
+</code></pre></div>
+<p>and then, once consumer #1 had “crashed”, those messages were
+immediately redelivered to the consumer #2:</p>
+<div class="highlight"><pre><code class="language-" data-lang="">—— Connection 1 is now closed (we pretend that it has crashed) ——
+[consumer2] Received Message #5, redelivered = true, ack-ed
+[consumer2] Received Message #1, redelivered = true, ack-ed
+[consumer2] Received Message #2, redelivered = true, ack-ed
+</code></pre></div>
+<p>To acknowledge a message use <code>AMQP::Channel#acknowledge</code>:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">channel1</span><span class="p">.</span><span class="nf">acknowledge</span><span class="p">(</span><span class="n">metadata</span><span class="p">.</span><span class="nf">delivery_tag</span><span class="p">,</span> <span class="kp">false</span><span class="p">)</span>
+</code></pre></div>
+<p><code>AMQP::Channel#acknowledge</code> takes two arguments: message
+<strong>delivery tag</strong> and a flag that indicates whether or not we want to
+acknowledge multiple messages at once. Delivery tag is simply a
+channel-specific increasing number that the server uses to identify
+deliveries.</p>
+
+<p>When acknowledging multiple messages at once, the delivery tag is
+treated as “up to and including”. For example, if delivery tag = 5 that
+would mean “acknowledge messages 1, 2, 3, 4 and 5”.</p>
+
+<p>As a shortcut, it is possible to acknowledge messages using the
+<code>AMQP::Header#ack</code> method:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue2</span><span class="p">.</span><span class="nf">subscribe</span><span class="p">(</span><span class="ss">:ack</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+  <span class="n">metadata</span><span class="p">.</span><span class="nf">ack</span>
+<span class="k">end</span>
+</code></pre></div>
+<p class="alert alert-error">
+Acknowledgements are channel-specific. Applications must not receive
+messages on one channel and acknowledge them on another.
+
+</p>
+
+<p class="alert alert-error">
+A message MUST not be acknowledged more than once. Doing so will result
+in a channel-level exception (PRECONDITION_FAILED) with an error
+message like this: “PRECONDITION_FAILED - unknown delivery tag”
+</p>
+
+<h3 id="rejecting-messages">Rejecting messages</h3>
+
+<p>When a consumer application receives a message, processing of that
+message may or may not succeed. An application can indicate to the
+broker that message processing has failed (or cannot be accomplished at
+the time) by rejecting a message. When rejecting a message, an
+application can ask the broker to discard or requeue it.</p>
+
+<p>To reject a message use the <code>AMQP::Channel#reject</code> method:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span><span class="p">.</span><span class="nf">bind</span><span class="p">(</span><span class="n">exchange</span><span class="p">).</span><span class="nf">subscribe</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+  <span class="c1"># reject but do not requeue (simply discard)</span>
+  <span class="n">channel</span><span class="p">.</span><span class="nf">reject</span><span class="p">(</span><span class="n">metadata</span><span class="p">.</span><span class="nf">delivery_tag</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>in the example above, messages are rejected without requeueing (broker
+will simply discard them). To requeue a rejected message, use the second
+argument that <code>AMQP::Channel#reject</code> takes:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span><span class="p">.</span><span class="nf">bind</span><span class="p">(</span><span class="n">exchange</span><span class="p">).</span><span class="nf">subscribe</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+  <span class="c1"># reject and requeue</span>
+  <span class="n">channel</span><span class="p">.</span><span class="nf">reject</span><span class="p">(</span><span class="n">metadata</span><span class="p">.</span><span class="nf">delivery_tag</span><span class="p">,</span> <span class="kp">true</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div>
+<p class="alert alert-error">
+When there is only one consumer on a queue, make sure you do not create
+infinite message delivery loops by rejecting and requeueing a message
+from the same consumer over and over again.
+</p>
+
+<p>Another way to reject a message is by using <code>AMQP::Header#reject</code>:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span><span class="p">.</span><span class="nf">bind</span><span class="p">(</span><span class="n">exchange</span><span class="p">).</span><span class="nf">subscribe</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+  <span class="c1"># reject but do not requeue (simply discard)</span>
+  <span class="n">metadata</span><span class="p">.</span><span class="nf">reject</span>
+<span class="k">end</span>
+
+<span class="n">queue</span><span class="p">.</span><span class="nf">bind</span><span class="p">(</span><span class="n">exchange</span><span class="p">).</span><span class="nf">subscribe</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+  <span class="c1"># reject and requeue</span>
+  <span class="n">metadata</span><span class="p">.</span><span class="nf">reject</span><span class="p">(</span><span class="ss">:requeue</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3 id="negative-acknowledgements">Negative acknowledgements</h3>
+
+<p>Messages are rejected with the
+<code>basic.reject</code> AMQP method. There is one
+limitation that <code>basic.reject</code> has: there is
+no way to reject multiple messages, as you can do with acknowledgements.
+However, if you are using <a href="http://rabbitmq.com">RabbitMQ</a>, then there is
+a solution. RabbitMQ provides an AMQP 0.9.1 extension known as <a href="http://www.rabbitmq.com/extensions.html#negative-acknowledgements">negative
+acknowledgements</a>
+(nacks) and the amqp gem supports this extension. For more information,
+please refer to the <a href="/articles/broker_specific_extensions/">Vendor-specific Extensions
+guide</a>.</p>
+
+<h3 id="qos-prefetching-messages">QoS - Prefetching messages</h3>
+
+<p>For cases when multiple consumers share a queue, it is useful to be able
+to specify how many messages each consumer can be sent at once before
+sending the next acknowledgement. This can be used as a simple load
+balancing technique to improve throughput if messages tend to be
+published in batches. For example, if a producing application sends
+messages every minute because of the nature of the work it is doing.</p>
+
+<p>Imagine a website that takes data from social media sources like Twitter
+or Facebook during the Champions League final (or the Superbowl), and
+then calculates how many tweets mention a particular team during the
+last minute. The site could be structured as 3 applications:</p>
+
+<ul>
+<li>A crawler that uses streaming APIs to fetch tweets/statuses,
+normalizes them and sends them in JSON for processing by other
+applications (“app A”).
+
+<ul>
+<li>A calculator that detects what team is mentioned in a message,
+updates statistics and pushes an update to the Web UI once a minute
+(“app B”).</li>
+<li>A Web UI that fans visit to see the stats (“app C”).</li>
+</ul></li>
+</ul>
+
+<p>In this imaginary example, the “tweets per second” rate will vary, but
+to improve the throughput of the system and to decrease the maximum
+number of messages that the AMQP broker has to hold in memory at once,
+applications can be designed in such a way that application “app B”, the
+“calculator”, receives 5000 messages and then acknowledges them all at
+once. The broker will not send message 5001 unless it receives an
+acknowledgement.</p>
+
+<p>In AMQP 0.9.1 parlance this is know as <strong>QoS</strong> or <strong>message prefetching</strong>.
+Prefetching is configured on a per-channel (typically) or per-connection
+(rarely used) basis. To configure prefetching per channel, pass the
+<code>:prefetch</code> option to the Channel constructor. Let us return to the example
+we used in the “Message acknowledgements” section:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1"># app #1 will be given up to 3 messages at a time. If it does not</span>
+<span class="c1"># send an ack after receiving the messages, then the messages will</span>
+<span class="c1"># be routed to app #2.</span>
+<span class="n">channel1</span>    <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection1</span><span class="p">,</span> <span class="ss">:prefetch</span> <span class="o">=&gt;</span> <span class="mi">3</span><span class="p">)</span>
+
+<span class="c1"># app #2 processes messages one-by-one and has to send an ack after receiving each message</span>
+<span class="n">channel2</span>    <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection2</span><span class="p">,</span> <span class="ss">:prefetch</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">)</span>
+</code></pre></div>
+<p>In that example, one consumer prefetches three messages and another
+consumer prefetches just one. If we take a look at the output that the
+example produces, we will see that <code>consumer1</code> fetched four messages
+and acknowledged one. After that, all subsequent messages were delivered
+to <code>consumer2</code>:</p>
+<div class="highlight"><pre><code class="language-" data-lang="">[consumer2] Received Message #0, redelivered = false, ack-ed
+[consumer1] Got message #1, SKIPPED
+[consumer1] Got message #2, SKIPPED
+[consumer1] Got message #3, ack-ed
+[consumer2] Received Message #4, redelivered = false, ack-ed
+[consumer1] Got message #5, SKIPPED
+—
+ by now consumer 1 has received three messages it did not acknowledge.
+ With :prefetch =&gt; 3, AMQP broker will not send it any more messages until
+consumer 1 sends an ack
+—
+[consumer2] Received Message #6, redelivered = false, ack-ed
+[consumer2] Received Message #7, redelivered = false, ack-ed
+[consumer2] Received Message #8, redelivered = false, ack-ed
+[consumer2] Received Message #9, redelivered = false, ack-ed
+[consumer2] Received Message #10, redelivered = false, ack-ed
+[consumer2] Received Message #11, redelivered = false, ack-ed
+</code></pre></div>
+<p><span class="alert alert-error">The prefetching setting is ignored for
+consumers that do not use explicit acknowledgements.</span></p>
+
+<h2 id="how-message-acknowledgements-relate-to-transactions-and-publisher-confirms">How message acknowledgements relate to transactions and Publisher Confirms</h2>
+
+<p>In cases where you cannot afford to lose a single message, AMQP 0.9.1
+applications can use one or a combination of the following protocol
+features:</p>
+
+<ul>
+<li>Publisher confirms (a RabbitMQ-specific extension to AMQP 0.9.1)</li>
+<li>Publishing messages as immediate</li>
+<li>Transactions (noticeable overhead)</li>
+</ul>
+
+<p>This topic is covered in depth in the <a href="/articles/working_with_exchanges/">Working With
+Exchanges</a> guide. In this guide, we
+will only mention how message acknowledgements are related to AMQP
+transactions and the Publisher Confirms extension.</p>
+
+<p>Let us consider a publisher application (P) that communications with a
+consumer (C) using AMQP 0.9.1. Their communication can be graphically
+represented like this:</p>
+<div class="highlight"><pre><code class="language-" data-lang="">-----       -----       -----
+|   |   S1  |   |   S2  |   |
+| P | ====&gt; | B | ====&gt; | C |
+|   |       |   |       |   |
+-----       -----       -----
+</code></pre></div>
+<p>We have two network segments, S1 and S2. Each of them may fail. P is
+concerned with making sure that messages cross S1, while broker (B) and
+C are concerned with ensuring that messages cross S2 and are only
+removed from the queue when they are processed successfully.</p>
+
+<p>Message acknowledgements cover reliable delivery over S2 as well as
+successful processing. For S1, P has to use transactions (a heavyweight
+solution) or the more lightweight Publisher Confirms RabbitMQ extension.</p>
+
+<h2 id="fetching-messages-when-needed-pull-api">Fetching messages when needed (“pull API”)</h2>
+
+<p>The AMQP 0.9.1 specification also provides a way for applications to
+fetch (pull) messages from the queue only when necessary. For that, use
+<code>AMQP::Queue#pop</code>:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span><span class="p">.</span><span class="nf">pop</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+  <span class="k">if</span> <span class="n">payload</span>
+    <span class="nb">puts</span> <span class="s2">"Fetched a message: </span><span class="si">#{</span><span class="n">payload</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">, content_type: </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">content_type</span><span class="si">}</span><span class="s2">. Shutting down..."</span>
+  <span class="k">else</span>
+    <span class="nb">puts</span> <span class="s2">"No messages in the queue"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="s2">"amqp://guest:guest@dev.rabbitmq.com"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="n">channel</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+  <span class="n">exchange</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="nf">fanout</span><span class="p">(</span><span class="s2">"amq.fanout"</span><span class="p">)</span>
+
+  <span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">queue</span><span class="p">,</span> <span class="n">declare_ok</span><span class="o">|</span>
+    <span class="n">queue</span><span class="p">.</span><span class="nf">bind</span><span class="p">(</span><span class="n">exchange</span><span class="p">)</span>
+    <span class="nb">puts</span> <span class="s2">"Bound. Publishing a message..."</span>
+    <span class="n">exchange</span><span class="p">.</span><span class="nf">publish</span><span class="p">(</span><span class="s2">"Ohai!"</span><span class="p">)</span>
+
+    <span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_timer</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span> <span class="k">do</span>
+      <span class="n">queue</span><span class="p">.</span><span class="nf">pop</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+        <span class="k">if</span> <span class="n">payload</span>
+          <span class="nb">puts</span> <span class="s2">"Fetched a message: </span><span class="si">#{</span><span class="n">payload</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">, content_type: </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">content_type</span><span class="si">}</span><span class="s2">. Shutting down..."</span>
+        <span class="k">else</span>
+          <span class="nb">puts</span> <span class="s2">"No messages in the queue"</span>
+        <span class="k">end</span>
+
+        <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>If the queue is empty, then the <code>payload</code> argument will be nil,
+otherwise arguments are identical to those of the
+<code>AMQP::Queue#subscribe</code> callback.</p>
+
+<h2 id="unsubscribing-from-messages">Unsubscribing from messages</h2>
+
+<p>Sometimes it is necessary to unsubscribe from messages without deleting
+a queue. To do that, use the <code>AMQP::Queue#unsubscribe</code>
+method:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span><span class="p">.</span><span class="nf">unsubscribe</span>
+</code></pre></div>
+<p>By default <code>AMQP::Queue#unsubscribe</code> uses the “:noack”
+option to inform the broker that there is no need to send a
+confirmation. In other words, it does not expect you to pass in a
+callback, because the consumer tag on the instance and the registered
+callback for messages are cleared immediately.</p>
+
+<p>If an application needs to execute a piece of code after the broker
+response arrives, <code>AMQP::Queue#unsubscribe</code> takes an optional callback:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span><span class="p">.</span><span class="nf">unsubscribe</span> <span class="k">do</span> <span class="o">|</span><span class="n">unbind_ok</span><span class="o">|</span>
+  <span class="c1"># server response arrived, handle it if necessary...</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="s2">"amqp://guest:guest@dev.rabbitmq.com"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="n">channel</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+  <span class="n">exchange</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="nf">fanout</span><span class="p">(</span><span class="s2">"amq.fanout"</span><span class="p">)</span>
+
+  <span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">queue</span><span class="p">,</span> <span class="n">declare_ok</span><span class="o">|</span>
+    <span class="n">queue</span><span class="p">.</span><span class="nf">bind</span><span class="p">(</span><span class="n">exchange</span><span class="p">).</span><span class="nf">subscribe</span> <span class="k">do</span> <span class="o">|</span><span class="n">headers</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+      <span class="nb">puts</span> <span class="s2">"Received a new message"</span>
+    <span class="k">end</span>
+
+    <span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_timer</span><span class="p">(</span><span class="mf">0.3</span><span class="p">)</span> <span class="k">do</span>
+      <span class="n">queue</span><span class="p">.</span><span class="nf">unsubscribe</span>
+      <span class="nb">puts</span> <span class="s2">"Unsubscribed. Shutting down..."</span>
+
+      <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span>
+    <span class="k">end</span> <span class="c1"># EventMachine.add_timer</span>
+  <span class="k">end</span> <span class="c1"># channel.queue</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>In AMQP parlance, unsubscribing from messages is often referred to as
+“cancelling a consumer”. Once a consumer is cancelled, messages will no
+longer be delivered to it, however, due to the asynchronous nature of
+the protocol, it is possible for “in flight” messages to be received
+after this call completes.</p>
+
+<p>Fetching messages with <code>AMQP::Queue#pop</code> is still possible
+even after a consumer is cancelled.</p>
+
+<h2 id="unbinding-queues-from-exchanges">Unbinding queues from exchanges</h2>
+
+<p>To unbind a queue from an exchange use
+<code>AMQP::Queue#unbind</code>:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span><span class="p">.</span><span class="nf">unbind</span><span class="p">(</span><span class="n">exchange</span><span class="p">)</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="s2">"amqp://guest:guest@dev.rabbitmq.com"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="n">channel</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+  <span class="n">channel</span><span class="p">.</span><span class="nf">on_error</span> <span class="k">do</span> <span class="o">|</span><span class="n">ch</span><span class="p">,</span> <span class="n">channel_close</span><span class="o">|</span>
+    <span class="k">raise</span> <span class="s2">"Channel-level exception: </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+
+  <span class="n">exchange</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="nf">fanout</span><span class="p">(</span><span class="s2">"amq.fanout"</span><span class="p">)</span>
+
+  <span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">queue</span><span class="p">,</span> <span class="n">declare_ok</span><span class="o">|</span>
+    <span class="n">queue</span><span class="p">.</span><span class="nf">bind</span><span class="p">(</span><span class="n">exchange</span><span class="p">)</span>
+
+    <span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_timer</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span> <span class="k">do</span>
+      <span class="n">queue</span><span class="p">.</span><span class="nf">unbind</span><span class="p">(</span><span class="n">exchange</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">_</span><span class="o">|</span>
+        <span class="nb">puts</span> <span class="s2">"Unbound. Shutting down..."</span>
+
+        <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span>
+      <span class="k">end</span>
+    <span class="k">end</span> <span class="c1"># EventMachine.add_timer</span>
+  <span class="k">end</span> <span class="c1"># channel.queue</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Note that trying to unbind a queue from an exchange that the queue was
+never bound to will result in a channel-level exception.</p>
+
+<h2 id="querying-the-number-of-messages-in-a-queue">Querying the number of messages in a queue</h2>
+
+<p>It is possible to query the number of messages sitting in the queue by
+declaring the queue with the <code>:passive</code> attribute set. The response
+(<code>queue.declare-ok</code> AMQP method) will include the number of messages
+along with other attributes. However, the amqp gem provides a
+convenience method, <code>AMQP::Queue#status</code>:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span><span class="p">.</span><span class="nf">status</span> <span class="k">do</span> <span class="o">|</span><span class="n">number_of_messages</span><span class="p">,</span> <span class="n">number_of_consumers</span><span class="o">|</span>
+  <span class="nb">puts</span>
+  <span class="nb">puts</span> <span class="s2">"# of messages in the queue </span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> = </span><span class="si">#{</span><span class="n">number_of_messages</span><span class="si">}</span><span class="s2">"</span>
+  <span class="nb">puts</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="nb">require</span> <span class="s1">'rubygems'</span>
+<span class="nb">require</span> <span class="s1">'amqp'</span>
+
+<span class="nb">puts</span> <span class="s2">"=&gt; Queue#status example"</span>
+<span class="nb">puts</span>
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="ss">:host</span> <span class="o">=&gt;</span> <span class="s1">'localhost'</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="o">|</span>
+  <span class="n">channel</span>   <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+
+  <span class="n">queue_name</span> <span class="o">=</span> <span class="s2">"amqpgem.integration.queue.status.queue"</span>
+  <span class="n">exchange</span>   <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="nf">fanout</span><span class="p">(</span><span class="s2">"amqpgem.integration.queue.status.fanout"</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+  <span class="n">queue</span>      <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="n">queue_name</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">).</span><span class="nf">bind</span><span class="p">(</span><span class="n">exchange</span><span class="p">)</span>
+
+  <span class="mi">100</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+    <span class="nb">print</span> <span class="s2">"."</span>
+    <span class="n">exchange</span><span class="p">.</span><span class="nf">publish</span><span class="p">(</span><span class="no">Time</span><span class="p">.</span><span class="nf">now</span><span class="p">.</span><span class="nf">to_i</span><span class="p">.</span><span class="nf">to_s</span> <span class="o">+</span> <span class="s2">"_</span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="ss">:key</span> <span class="o">=&gt;</span> <span class="n">queue_name</span><span class="p">)</span>
+  <span class="k">end</span>
+  <span class="vg">$stdout</span><span class="p">.</span><span class="nf">flush</span>
+
+  <span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_timer</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span> <span class="k">do</span>
+    <span class="n">queue</span><span class="p">.</span><span class="nf">status</span> <span class="k">do</span> <span class="o">|</span><span class="n">number_of_messages</span><span class="p">,</span> <span class="n">number_of_consumers</span><span class="o">|</span>
+      <span class="nb">puts</span>
+      <span class="nb">puts</span> <span class="s2">"# of messages in the queue </span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> = </span><span class="si">#{</span><span class="n">number_of_messages</span><span class="si">}</span><span class="s2">"</span>
+      <span class="nb">puts</span>
+      <span class="n">queue</span><span class="p">.</span><span class="nf">purge</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+
+  <span class="n">show_stopper</span> <span class="o">=</span> <span class="no">Proc</span><span class="p">.</span><span class="nf">new</span> <span class="k">do</span>
+    <span class="vg">$stdout</span><span class="p">.</span><span class="nf">puts</span> <span class="s2">"Stopping..."</span>
+    <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="no">Signal</span><span class="p">.</span><span class="nf">trap</span> <span class="s2">"INT"</span><span class="p">,</span> <span class="n">show_stopper</span>
+  <span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_timer</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">show_stopper</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div>
+<h2 id="querying-the-number-of-consumers-on-a-queue">Querying the number of consumers on a queue</h2>
+
+<p>It is possible to query the number of consumers on a queue by declaring
+the queue with the <code>:passive</code> attribute set. The response
+(<code>queue.declare-ok</code> AMQP method) will include the number of consumers
+along with other attributes. However, the amqp gem provides a
+convenience method, <code>AMQP::Queue#status</code>:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span><span class="p">.</span><span class="nf">status</span> <span class="k">do</span> <span class="o">|</span><span class="n">number_of_messages</span><span class="p">,</span> <span class="n">number_of_consumers</span><span class="o">|</span>
+  <span class="nb">puts</span>
+  <span class="nb">puts</span> <span class="s2">"# of consumers on the queue </span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> = </span><span class="si">#{</span><span class="n">number_of_consumers</span><span class="si">}</span><span class="s2">"</span>
+  <span class="nb">puts</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="nb">require</span> <span class="s1">'rubygems'</span>
+<span class="nb">require</span> <span class="s1">'amqp'</span>
+
+<span class="nb">puts</span> <span class="s2">"=&gt; Queue#status example"</span>
+<span class="nb">puts</span>
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="ss">:host</span> <span class="o">=&gt;</span> <span class="s1">'localhost'</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="o">|</span>
+  <span class="n">channel</span>   <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+
+  <span class="n">queue_name</span> <span class="o">=</span> <span class="s2">"amqpgem.integration.queue.status.queue"</span>
+  <span class="n">exchange</span>   <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="nf">fanout</span><span class="p">(</span><span class="s2">"amqpgem.integration.queue.status.fanout"</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+  <span class="n">queue</span>      <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="n">queue_name</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">).</span><span class="nf">bind</span><span class="p">(</span><span class="n">exchange</span><span class="p">)</span>
+
+  <span class="mi">100</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+    <span class="nb">print</span> <span class="s2">"."</span>
+    <span class="n">exchange</span><span class="p">.</span><span class="nf">publish</span><span class="p">(</span><span class="no">Time</span><span class="p">.</span><span class="nf">now</span><span class="p">.</span><span class="nf">to_i</span><span class="p">.</span><span class="nf">to_s</span> <span class="o">+</span> <span class="s2">"_</span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="ss">:key</span> <span class="o">=&gt;</span> <span class="n">queue_name</span><span class="p">)</span>
+  <span class="k">end</span>
+  <span class="vg">$stdout</span><span class="p">.</span><span class="nf">flush</span>
+
+  <span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_timer</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span> <span class="k">do</span>
+    <span class="n">queue</span><span class="p">.</span><span class="nf">status</span> <span class="k">do</span> <span class="o">|</span><span class="n">number_of_messages</span><span class="p">,</span> <span class="n">number_of_consumers</span><span class="o">|</span>
+      <span class="nb">puts</span>
+      <span class="nb">puts</span> <span class="s2">"# of consumer on the queue </span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> = </span><span class="si">#{</span><span class="n">number_of_consumers</span><span class="si">}</span><span class="s2">"</span>
+      <span class="nb">puts</span>
+      <span class="n">queue</span><span class="p">.</span><span class="nf">purge</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+
+  <span class="n">show_stopper</span> <span class="o">=</span> <span class="no">Proc</span><span class="p">.</span><span class="nf">new</span> <span class="k">do</span>
+    <span class="vg">$stdout</span><span class="p">.</span><span class="nf">puts</span> <span class="s2">"Stopping..."</span>
+    <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="no">Signal</span><span class="p">.</span><span class="nf">trap</span> <span class="s2">"INT"</span><span class="p">,</span> <span class="n">show_stopper</span>
+  <span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_timer</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">show_stopper</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div>
+<h2 id="purging-queues">Purging queues</h2>
+
+<p>It is possible to purge a queue (remove all of the messages from it)
+using <code>AMQP::Queue#purge</code>:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span><span class="p">.</span><span class="nf">purge</span>
+</code></pre></div>
+<p>This method takes an optional callback. However, remember that this
+operation is performed asynchronously. To run a piece of code when the
+AMQP broker confirms that a queue has been purged, use a callback that
+<code>AMQP::Queue#purge</code> takes:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span><span class="p">.</span><span class="nf">purge</span> <span class="k">do</span> <span class="o">|</span><span class="n">_</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">"Purged </span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="s2">"amqp://guest:guest@dev.rabbitmq.com:5672"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="n">channel</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+  <span class="n">channel</span><span class="p">.</span><span class="nf">on_error</span> <span class="k">do</span> <span class="o">|</span><span class="n">ch</span><span class="p">,</span> <span class="n">channel_close</span><span class="o">|</span>
+    <span class="k">raise</span> <span class="s2">"Channel-level exception: </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+  <span class="n">exchange</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="nf">fanout</span><span class="p">(</span><span class="s2">"amq.fanout"</span><span class="p">)</span>
+
+  <span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">queue</span><span class="p">,</span> <span class="n">declare_ok</span><span class="o">|</span>
+    <span class="n">queue</span><span class="p">.</span><span class="nf">purge</span> <span class="k">do</span> <span class="o">|</span><span class="n">_</span><span class="o">|</span>
+      <span class="nb">puts</span> <span class="s2">"Purged </span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">end</span>
+
+    <span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_timer</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span> <span class="k">do</span>
+      <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span>
+    <span class="k">end</span> <span class="c1"># EventMachine.add_timer</span>
+  <span class="k">end</span> <span class="c1"># channel.queue</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Note that this example purges a newly declared queue with a unique
+server-generated name. When a queue is declared, it is empty, so for
+server-named queues, there is no need to purge them before they are
+used.</p>
+
+<h2 id="deleting-queues">Deleting queues</h2>
+
+<p>To delete a queue, use <code>AMQP::Queue#delete</code>. When a queue
+is deleted, all of the messages in it are deleted as well.</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span><span class="p">.</span><span class="nf">delete</span>
+</code></pre></div>
+<p>This method takes an optional callback. However, remember that this
+operation is performed asynchronously. To run a piece of code when the
+AMQP broker confirms that a queue has been deleted, use a callback that
+<code>AMQP::Queue#delete</code> takes:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span><span class="p">.</span><span class="nf">delete</span> <span class="k">do</span> <span class="o">|</span><span class="n">_</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">"Deleted </span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="s2">"amqp://guest:guest@dev.rabbitmq.com"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="n">channel</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+  <span class="n">channel</span><span class="p">.</span><span class="nf">on_error</span> <span class="k">do</span> <span class="o">|</span><span class="n">ch</span><span class="p">,</span> <span class="n">channel_close</span><span class="o">|</span>
+    <span class="k">raise</span> <span class="s2">"Channel-level exception: </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+  <span class="n">exchange</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="nf">fanout</span><span class="p">(</span><span class="s2">"amq.fanout"</span><span class="p">)</span>
+
+  <span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">queue</span><span class="p">,</span> <span class="n">declare_ok</span><span class="o">|</span>
+    <span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_timer</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span> <span class="k">do</span>
+      <span class="n">queue</span><span class="p">.</span><span class="nf">delete</span> <span class="k">do</span>
+        <span class="nb">puts</span> <span class="s2">"Deleted </span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span> <span class="nf">stop</span> <span class="p">}</span>
+      <span class="k">end</span>
+    <span class="k">end</span> <span class="c1"># EventMachine.add_timer</span>
+  <span class="k">end</span> <span class="c1"># channel.queue</span>
+<span class="k">end</span>
+</code></pre></div>
+<h2 id="objects-as-message-consumers-and-unit-testing-consumers-in-isolation">Objects as message consumers and unit testing consumers in isolation</h2>
+
+<p>Since Ruby is a genuine object-oriented language, it is important to
+demonstrate how the Ruby amqp gem can be integrated into rich
+object-oriented code. This part of the guide focuses on queues and the
+problems/solutions concerning consumer applications (applications that
+primarily receive and process messages, as opposed to producers that
+publish them).</p>
+
+<p>An <code>AMQP::Queue#subscribe</code> callback does not have to be a
+block. It can be any Ruby object that responds to the <code>call</code> method. A
+common technique is to combine
+<code>Object#method</code> and <code>Method#to_proc</code>
+and use object methods as message handlers.</p>
+
+<p>An example to demonstrate this technique:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">class</span> <span class="nc">Consumer</span>
+
+  <span class="c1">#</span>
+  <span class="c1"># API</span>
+  <span class="c1">#</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">queue_name</span> <span class="o">=</span> <span class="no">AMQ</span><span class="o">::</span><span class="no">Protocol</span><span class="o">::</span><span class="no">EMPTY_STRING</span><span class="p">)</span>
+    <span class="vi">@queue_name</span> <span class="o">=</span> <span class="n">queue_name</span>
+
+    <span class="vi">@channel</span>    <span class="o">=</span> <span class="n">channel</span>
+    <span class="c1"># Consumer#handle_channel_exception will handle channel</span>
+    <span class="c1"># exceptions. Keep in mind that you can only register one error handler,</span>
+    <span class="c1"># so the last one registered "wins".</span>
+    <span class="vi">@channel</span><span class="p">.</span><span class="nf">on_error</span><span class="p">(</span><span class="o">&amp;</span><span class="nb">method</span><span class="p">(</span><span class="ss">:handle_channel_exception</span><span class="p">))</span>
+  <span class="k">end</span> <span class="c1"># initialize</span>
+
+  <span class="k">def</span> <span class="nf">start</span>
+    <span class="vi">@queue</span> <span class="o">=</span> <span class="vi">@channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="vi">@queue_name</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+    <span class="c1"># #handle_message method will be handling messages routed to @queue</span>
+    <span class="vi">@queue</span><span class="p">.</span><span class="nf">subscribe</span><span class="p">(</span><span class="o">&amp;</span><span class="nb">method</span><span class="p">(</span><span class="ss">:handle_message</span><span class="p">))</span>
+  <span class="k">end</span> <span class="c1"># start</span>
+
+
+
+  <span class="c1">#</span>
+  <span class="c1"># Implementation</span>
+  <span class="c1">#</span>
+
+  <span class="k">def</span> <span class="nf">handle_message</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
+    <span class="nb">puts</span> <span class="s2">"Received a message: </span><span class="si">#{</span><span class="n">payload</span><span class="si">}</span><span class="s2">, content_type = </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">content_type</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span> <span class="c1"># handle_message(metadata, payload)</span>
+
+  <span class="k">def</span> <span class="nf">handle_channel_exception</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">channel_close</span><span class="p">)</span>
+    <span class="nb">puts</span> <span class="s2">"Oops... a channel-level exception: code = </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_code</span><span class="si">}</span><span class="s2">, message = </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span> <span class="c1"># handle_channel_exception(channel, channel_close)</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="k">class</span> <span class="nc">Consumer</span>
+
+  <span class="c1">#</span>
+  <span class="c1"># API</span>
+  <span class="c1">#</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">queue_name</span> <span class="o">=</span> <span class="no">AMQ</span><span class="o">::</span><span class="no">Protocol</span><span class="o">::</span><span class="no">EMPTY_STRING</span><span class="p">)</span>
+    <span class="vi">@queue_name</span> <span class="o">=</span> <span class="n">queue_name</span>
+
+    <span class="vi">@channel</span>    <span class="o">=</span> <span class="n">channel</span>
+    <span class="vi">@channel</span><span class="p">.</span><span class="nf">on_error</span><span class="p">(</span><span class="o">&amp;</span><span class="nb">method</span><span class="p">(</span><span class="ss">:handle_channel_exception</span><span class="p">))</span>
+  <span class="k">end</span> <span class="c1"># initialize</span>
+
+  <span class="k">def</span> <span class="nf">start</span>
+    <span class="vi">@queue</span> <span class="o">=</span> <span class="vi">@channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="vi">@queue_name</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+    <span class="vi">@queue</span><span class="p">.</span><span class="nf">subscribe</span><span class="p">(</span><span class="o">&amp;</span><span class="nb">method</span><span class="p">(</span><span class="ss">:handle_message</span><span class="p">))</span>
+  <span class="k">end</span> <span class="c1"># start</span>
+
+
+
+  <span class="c1">#</span>
+  <span class="c1"># Implementation</span>
+  <span class="c1">#</span>
+
+  <span class="k">def</span> <span class="nf">handle_message</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
+    <span class="nb">puts</span> <span class="s2">"Received a message: </span><span class="si">#{</span><span class="n">payload</span><span class="si">}</span><span class="s2">, content_type = </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">content_type</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span> <span class="c1"># handle_message(metadata, payload)</span>
+
+  <span class="k">def</span> <span class="nf">handle_channel_exception</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">channel_close</span><span class="p">)</span>
+    <span class="nb">puts</span> <span class="s2">"Oops... a channel-level exception: code = </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_code</span><span class="si">}</span><span class="s2">, message = </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span> <span class="c1"># handle_channel_exception(channel, channel_close)</span>
+<span class="k">end</span>
+
+
+<span class="k">class</span> <span class="nc">Producer</span>
+
+  <span class="c1">#</span>
+  <span class="c1"># API</span>
+  <span class="c1">#</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">exchange</span><span class="p">)</span>
+    <span class="vi">@channel</span>  <span class="o">=</span> <span class="n">channel</span>
+    <span class="vi">@exchange</span> <span class="o">=</span> <span class="n">exchange</span>
+  <span class="k">end</span> <span class="c1"># initialize(channel, exchange)</span>
+
+  <span class="k">def</span> <span class="nf">publish</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">options</span> <span class="o">=</span> <span class="p">{})</span>
+    <span class="vi">@exchange</span><span class="p">.</span><span class="nf">publish</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+  <span class="k">end</span> <span class="c1"># publish(message, options = {})</span>
+<span class="k">end</span>
+
+
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="s2">"amqp://guest:guest@dev.rabbitmq.com"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="n">channel</span>  <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+  <span class="n">worker</span>   <span class="o">=</span> <span class="no">Consumer</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="s2">"amqpgem.objects.integration"</span><span class="p">)</span>
+  <span class="n">worker</span><span class="p">.</span><span class="nf">start</span>
+
+  <span class="n">producer</span> <span class="o">=</span> <span class="no">Producer</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">channel</span><span class="p">.</span><span class="nf">default_exchange</span><span class="p">)</span>
+  <span class="nb">puts</span> <span class="s2">"Publishing..."</span>
+  <span class="n">producer</span><span class="p">.</span><span class="nf">publish</span><span class="p">(</span><span class="s2">"Hello, world"</span><span class="p">,</span> <span class="ss">:routing_key</span> <span class="o">=&gt;</span> <span class="s2">"amqpgem.objects.integration"</span><span class="p">)</span>
+
+  <span class="c1"># stop in 2 seconds</span>
+  <span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_timer</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span> <span class="p">{</span> <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span> <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>In this example, <code>Consumer</code> instances have to be
+instantiated with an <code>AMQP::Channel</code> instance. If the
+message handling was done by an aggregated object, it would completely
+separate the handling logic and would be make it easy to unit test in
+isolation:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">class</span> <span class="nc">Consumer</span>
+
+  <span class="c1">#</span>
+  <span class="c1"># API</span>
+  <span class="c1">#</span>
+
+  <span class="k">def</span> <span class="nf">handle_message</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
+    <span class="nb">puts</span> <span class="s2">"Received a message: </span><span class="si">#{</span><span class="n">payload</span><span class="si">}</span><span class="s2">, content_type = </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">content_type</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span> <span class="c1"># handle_message(metadata, payload)</span>
+<span class="k">end</span>
+
+
+<span class="k">class</span> <span class="nc">Worker</span>
+
+  <span class="c1">#</span>
+  <span class="c1"># API</span>
+  <span class="c1">#</span>
+
+
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">queue_name</span> <span class="o">=</span> <span class="no">AMQ</span><span class="o">::</span><span class="no">Protocol</span><span class="o">::</span><span class="no">EMPTY_STRING</span><span class="p">,</span> <span class="n">consumer</span> <span class="o">=</span> <span class="no">Consumer</span><span class="p">.</span><span class="nf">new</span><span class="p">)</span>
+    <span class="vi">@queue_name</span> <span class="o">=</span> <span class="n">queue_name</span>
+
+    <span class="vi">@channel</span>    <span class="o">=</span> <span class="n">channel</span>
+    <span class="vi">@channel</span><span class="p">.</span><span class="nf">on_error</span><span class="p">(</span><span class="o">&amp;</span><span class="nb">method</span><span class="p">(</span><span class="ss">:handle_channel_exception</span><span class="p">))</span>
+
+    <span class="vi">@consumer</span>   <span class="o">=</span> <span class="n">consumer</span>
+  <span class="k">end</span> <span class="c1"># initialize</span>
+
+  <span class="k">def</span> <span class="nf">start</span>
+    <span class="vi">@queue</span> <span class="o">=</span> <span class="vi">@channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="vi">@queue_name</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+    <span class="vi">@queue</span><span class="p">.</span><span class="nf">subscribe</span><span class="p">(</span><span class="o">&amp;</span><span class="vi">@consumer</span><span class="p">.</span><span class="nf">method</span><span class="p">(</span><span class="ss">:handle_message</span><span class="p">))</span>
+  <span class="k">end</span> <span class="c1"># start</span>
+
+
+  <span class="c1">#</span>
+  <span class="c1"># Implementation</span>
+  <span class="c1">#</span>
+
+  <span class="k">def</span> <span class="nf">handle_channel_exception</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">channel_close</span><span class="p">)</span>
+    <span class="nb">puts</span> <span class="s2">"Oops... a channel-level exception: code = </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_code</span><span class="si">}</span><span class="s2">, message = </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span> <span class="c1"># handle_channel_exception(channel, channel_close)</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="k">class</span> <span class="nc">Consumer</span>
+
+  <span class="c1">#</span>
+  <span class="c1"># API</span>
+  <span class="c1">#</span>
+
+  <span class="k">def</span> <span class="nf">handle_message</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
+    <span class="nb">puts</span> <span class="s2">"Received a message: </span><span class="si">#{</span><span class="n">payload</span><span class="si">}</span><span class="s2">, content_type = </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">content_type</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span> <span class="c1"># handle_message(metadata, payload)</span>
+<span class="k">end</span>
+
+
+<span class="k">class</span> <span class="nc">Worker</span>
+
+  <span class="c1">#</span>
+  <span class="c1"># API</span>
+  <span class="c1">#</span>
+
+
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">queue_name</span> <span class="o">=</span> <span class="no">AMQ</span><span class="o">::</span><span class="no">Protocol</span><span class="o">::</span><span class="no">EMPTY_STRING</span><span class="p">,</span> <span class="n">consumer</span> <span class="o">=</span> <span class="no">Consumer</span><span class="p">.</span><span class="nf">new</span><span class="p">)</span>
+    <span class="vi">@queue_name</span> <span class="o">=</span> <span class="n">queue_name</span>
+
+    <span class="vi">@channel</span>    <span class="o">=</span> <span class="n">channel</span>
+    <span class="vi">@channel</span><span class="p">.</span><span class="nf">on_error</span><span class="p">(</span><span class="o">&amp;</span><span class="nb">method</span><span class="p">(</span><span class="ss">:handle_channel_exception</span><span class="p">))</span>
+
+    <span class="vi">@consumer</span>   <span class="o">=</span> <span class="n">consumer</span>
+  <span class="k">end</span> <span class="c1"># initialize</span>
+
+  <span class="k">def</span> <span class="nf">start</span>
+    <span class="vi">@queue</span> <span class="o">=</span> <span class="vi">@channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="vi">@queue_name</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+    <span class="vi">@queue</span><span class="p">.</span><span class="nf">subscribe</span><span class="p">(</span><span class="o">&amp;</span><span class="vi">@consumer</span><span class="p">.</span><span class="nf">method</span><span class="p">(</span><span class="ss">:handle_message</span><span class="p">))</span>
+  <span class="k">end</span> <span class="c1"># start</span>
+
+
+
+  <span class="c1">#</span>
+  <span class="c1"># Implementation</span>
+  <span class="c1">#</span>
+
+  <span class="k">def</span> <span class="nf">handle_channel_exception</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">channel_close</span><span class="p">)</span>
+    <span class="nb">puts</span> <span class="s2">"Oops... a channel-level exception: code = </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_code</span><span class="si">}</span><span class="s2">, message = </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span> <span class="c1"># handle_channel_exception(channel, channel_close)</span>
+<span class="k">end</span>
+
+
+<span class="k">class</span> <span class="nc">Producer</span>
+
+  <span class="c1">#</span>
+  <span class="c1"># API</span>
+  <span class="c1">#</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">exchange</span><span class="p">)</span>
+    <span class="vi">@channel</span>  <span class="o">=</span> <span class="n">channel</span>
+    <span class="vi">@exchange</span> <span class="o">=</span> <span class="n">exchange</span>
+  <span class="k">end</span> <span class="c1"># initialize(channel, exchange)</span>
+
+  <span class="k">def</span> <span class="nf">publish</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">options</span> <span class="o">=</span> <span class="p">{})</span>
+    <span class="vi">@exchange</span><span class="p">.</span><span class="nf">publish</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+  <span class="k">end</span> <span class="c1"># publish(message, options = {})</span>
+
+
+  <span class="c1">#</span>
+  <span class="c1"># Implementation</span>
+  <span class="c1">#</span>
+
+  <span class="k">def</span> <span class="nf">handle_channel_exception</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">channel_close</span><span class="p">)</span>
+    <span class="nb">puts</span> <span class="s2">"Oops... a channel-level exception: code = </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_code</span><span class="si">}</span><span class="s2">, message = </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span> <span class="c1"># handle_channel_exception(channel, channel_close)</span>
+<span class="k">end</span>
+
+
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="s2">"amqp://guest:guest@dev.rabbitmq.com"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="n">channel</span>  <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+  <span class="n">worker</span>   <span class="o">=</span> <span class="no">Worker</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="s2">"amqpgem.objects.integration"</span><span class="p">)</span>
+  <span class="n">worker</span><span class="p">.</span><span class="nf">start</span>
+
+  <span class="n">producer</span> <span class="o">=</span> <span class="no">Producer</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">channel</span><span class="p">.</span><span class="nf">default_exchange</span><span class="p">)</span>
+  <span class="nb">puts</span> <span class="s2">"Publishing..."</span>
+  <span class="n">producer</span><span class="p">.</span><span class="nf">publish</span><span class="p">(</span><span class="s2">"Hello, world"</span><span class="p">,</span> <span class="ss">:routing_key</span> <span class="o">=&gt;</span> <span class="s2">"amqpgem.objects.integration"</span><span class="p">)</span>
+
+  <span class="c1"># stop in 2 seconds</span>
+  <span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_timer</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span> <span class="p">{</span> <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span> <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Note that the <span class="note">Consumer</span> class demonstrated
+above can be easily tested in isolation without spinning up any AMQP
+connections:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="nb">require</span> <span class="s2">"ostruct"</span>
+<span class="nb">require</span> <span class="s2">"json"</span>
+
+<span class="c1"># RSpec example</span>
+<span class="n">describe</span> <span class="no">Consumer</span> <span class="k">do</span>
+  <span class="n">describe</span> <span class="s2">"when a new message arrives"</span> <span class="k">do</span>
+    <span class="n">subject</span> <span class="p">{</span> <span class="n">described_class</span><span class="p">.</span><span class="nf">new</span> <span class="p">}</span>
+
+    <span class="n">let</span><span class="p">(</span><span class="ss">:metadata</span><span class="p">)</span> <span class="k">do</span>
+      <span class="n">o</span> <span class="o">=</span> <span class="no">OpenStruct</span><span class="p">.</span><span class="nf">new</span>
+
+      <span class="n">o</span><span class="p">.</span><span class="nf">content_type</span> <span class="o">=</span> <span class="s2">"application/json"</span>
+      <span class="n">o</span>
+    <span class="k">end</span>
+    <span class="n">let</span><span class="p">(</span><span class="ss">:payload</span><span class="p">)</span>  <span class="p">{</span> <span class="no">JSON</span><span class="p">.</span><span class="nf">encode</span><span class="p">({</span> <span class="ss">:command</span> <span class="o">=&gt;</span> <span class="s2">"reload_config"</span> <span class="p">})</span> <span class="p">}</span>
+
+    <span class="n">it</span> <span class="s2">"does some useful work"</span> <span class="k">do</span>
+      <span class="c1"># check preconditions here if necessary</span>
+
+      <span class="n">subject</span><span class="p">.</span><span class="nf">handle_message</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
+
+      <span class="c1"># add your code expectations here</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h2 id="queue-durability-vs-message-durability">Queue durability vs message durability</h2>
+
+<p>See <a href="/articles/durability/">Durability guide</a></p>
+
+<h2 id="error-handling-and-recovery">Error handling and recovery</h2>
+
+<p>See <a href="/articles/error_handling/">Error handling and recovery guide</a></p>
+
+<h2 id="vendor-specific-extensions-related-to-queues">Vendor-specific extensions related to queues</h2>
+
+<p>See <a href="/articles/broker_specific_extensions/">Vendor-specific Extensions
+guide</a></p>
+
+<h2 id="what-to-read-next">What to read next</h2>
+
+<p>The documentation is organized as several <a href="/">documentation guides</a>,
+covering all kinds of topics. Guides related to this one are:</p>
+
+<ul>
+<li><a href="/articles/working_with_exchanges/">Working With Exchanges</a></li>
+<li><a href="/articles/bindings/">Bindings</a></li>
+<li><a href="/articles/error_handling/">Error handling and recovery</a></li>
+</ul>
+
+<p>RabbitMQ implements a number of extensions to AMQP 0.9.1 functionality
+that are covered in the <a href="/articles/broker_specific_extensions/">Vendor-specific Extensions
+guide</a>. At least one extension,
+per-queue messages time-to-live (TTL), is related to this guide and can
+be used with the amqp gem 0.8.0 and later.</p>
+
+        </div>
+      </div>
+    <footer class='footer'>
+      <div class='container'>
+        <p>This website was developed by the
+          &nbsp;<a href='http://github.com/ruby-amqp'>Ruby RabbitMQ Client Maintainers Team</a>.</p>
+        <p>Follow us on Twitter:
+          &nbsp;<a href='http://twitter.com/rubyamqp'>rubyamqp</a>,&nbsp;<a href='http://twitter.com/michaelklishin'>Michael Klishin</a>,&nbsp;<a href='http://twitter.com/celldee'>Chris Duncan</a></p>
+      </div>
+    </footer>
+  </body>
+</html>

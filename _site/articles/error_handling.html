@@ -1,0 +1,1027 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang='en'>
+  <head>
+    <title>Error handling and recovery</title>
+    <meta content='width=device-width, initial-scale=1.0' name='viewport' />
+    <meta content='A dead easy to use RabbitMQ Ruby client' name='description' />
+    <meta content='The Ruby RabbitMQ Client Maintainers Team' name='author' />
+    <link href='/assets/stylesheets/bootstrap.css' media='screen' rel='stylesheet' type='text/css' />
+    <link href='/assets/stylesheets/bootstrap-responsive.css' media='screen' rel='stylesheet' type='text/css' />
+    <link href='/assets/stylesheets/sass/styles.css' media='screen' rel='stylesheet' type='text/css' />
+    <link href='/assets/stylesheets/pygments.css' media='screen' rel='stylesheet' type='text/css' />
+    <link href='http://fonts.googleapis.com/css?family=Signika+Negative:300,400,600' rel='stylesheet' type='text/css' />
+    <script src='/assets/javascripts/jquery-1.7.min.js' type='text/javascript'></script>
+    <script src='/assets/javascripts/toc.js'></script>
+    <script src='/assets/javascripts/bootstrap-collapse.js'></script>
+    <meta content='text/html;charset=utf-8' http-equiv='Content-Type' />
+    <script type="text/javascript">
+      if(!(window.location.hostname === "localhost")) {
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-27153041-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+      }
+    </script>
+  </head>
+
+  <body>
+    <div class='navbar navbar-inverse navbar-fixed-top'>
+      <div class='navbar-inner'>
+        <div class='container-fluid'>
+          <a class='btn btn-navbar' data-target='.nav-collapse' data-toggle='collapse'>
+            <span class='icon-bar'></span>
+            <span class='icon-bar'></span>
+            <span class='icon-bar'></span>
+          </a>
+          <a class='brand' href='/'>Ruby amqp gem</a>
+          <div class='nav-collapse'>
+            <ul class='nav'>
+            <li>
+              <a href="/">Home</a>
+            </li>
+            <li>
+              <a href="/articles/guides.html">All guides</a>
+            </li>
+            <li>
+              <a href='/articles/community.html'>Community</a>
+            </li>
+            <li>
+              <a href='http://rubybunny.info'>Bunny, an alternative client</a>
+            </li>
+            <li>
+              <a href='https://github.com/ruby-amqp/amqp'>Code on Github</a>
+            </li>
+            <li>
+              <a href='http://github.com/ruby-amqp'>Other RabbitMQ Ruby clients</a>
+            </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class='container-fluid'>
+      <div class='row-fluid'>
+        <div class='span3'>
+          <div class='well sidebar-nav'></div>
+        </div>
+        <div class='span9'>
+          <h1>Error handling and recovery</h1>
+          <h2 id="about-this-guide">About this guide</h2>
+
+<p>Development of a robust application, be it message publisher or message
+consumer, involves dealing with multiple kinds of failures: protocol
+exceptions, network failures, broker failures and so on. Correct error
+handling and recovery is not easy. This guide explains how the amqp gem
+helps you in dealing with issues like</p>
+
+<ul>
+<li>Initial RabbitMQ connection failures</li>
+<li>Network connection interruption</li>
+<li>Connection-level exceptions</li>
+<li>Channel-level exceptions</li>
+<li>RabbitMQ node failure</li>
+<li>TLS (SSL) related issues</li>
+</ul>
+
+<p>as well as</p>
+
+<ul>
+<li>How to recover after a network failure</li>
+<li>What is automatic recovery mode and when you should/should not use
+it</li>
+</ul>
+
+<p>This work is licensed under a
+<a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative
+Commons Attribution 3.0 Unported License</a> (including images and
+stylesheets). The source is available <a href="https://github.com/ruby-amqp/rubyamqp.info">on
+Github</a>.</p>
+
+<h2 id="covered-versions">Covered versions</h2>
+
+<p>This guide covers Ruby amqp gem 1.7.0 and later versions.</p>
+
+<h2 id="code-examples">Code examples</h2>
+
+<p>There are several
+<a href="https://github.com/ruby-amqp/amqp/tree/master/examples/error_handling">examples</a>
+in the git repository dedicated to the topic of error handling and
+recovery. Feel free to contribute new examples.</p>
+
+<h3 id="initial-broker-connection-failures">Initial broker connection failures</h3>
+
+<p>When applications connect to the broker, they need to handle connection
+failures. Networks are not
+100% reliable, even with modern system configuration tools like Chef or Puppet misconfigurations happen and the broker might also be down. Error detection should happen as early as possible. There are two ways of detecting TCP connection failure, the first one is to catch an exception:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">begin</span>
+  <span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="n">connection_settings</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+    <span class="k">raise</span> <span class="s2">"This should not be reachable"</span>
+  <span class="k">end</span>
+<span class="k">rescue</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">TCPConnectionFailed</span> <span class="o">=&gt;</span> <span class="n">e</span>
+  <span class="nb">puts</span> <span class="s2">"Caught AMQP::TCPConnectionFailed =&gt; TCP connection failed, as expected."</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+
+<span class="nb">puts</span> <span class="s2">"=&gt; TCP connection failure handling with a rescue statement"</span>
+<span class="nb">puts</span>
+
+<span class="n">connection_settings</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="ss">:port</span>     <span class="o">=&gt;</span> <span class="mi">9689</span><span class="p">,</span>
+  <span class="ss">:vhost</span>    <span class="o">=&gt;</span> <span class="s2">"/amq_client_testbed"</span><span class="p">,</span>
+  <span class="ss">:user</span>     <span class="o">=&gt;</span> <span class="s2">"amq_client_gem"</span><span class="p">,</span>
+  <span class="ss">:password</span> <span class="o">=&gt;</span> <span class="s2">"amq_client_gem_password"</span><span class="p">,</span>
+  <span class="ss">:timeout</span>        <span class="o">=&gt;</span> <span class="mf">0.3</span>
+<span class="p">}</span>
+
+<span class="k">begin</span>
+  <span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="n">connection_settings</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+    <span class="k">raise</span> <span class="s2">"This should not be reachable"</span>
+  <span class="k">end</span>
+<span class="k">rescue</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">TCPConnectionFailed</span> <span class="o">=&gt;</span> <span class="n">e</span>
+  <span class="nb">puts</span> <span class="s2">"Caught AMQP::TCPConnectionFailed =&gt; TCP connection failed, as expected."</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><code>AMQP.connect</code> (and <code>AMQP.start</code>) will raise
+<code>AMQP::TCPConnectionFailed</code> if a connection fails. Code that catches
+it can write to a log about the issue or use retry to execute the
+begin block one more time. Because initial connection failures are due
+to misconfiguration or network outage, reconnection to the same
+endpoint (hostname, port, vhost combination) will result in the same
+issue over and over. TBD: failover, connection to the cluster.</p>
+
+<p>An alternative way of handling connection failure is with an errback
+(a callback for specific kind of error):</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">handler</span>             <span class="o">=</span> <span class="no">Proc</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span> <span class="o">|</span><span class="n">settings</span><span class="o">|</span> <span class="nb">puts</span> <span class="s2">"Failed to connect, as expected"</span><span class="p">;</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span>
+<span class="n">connection_settings</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="ss">:port</span>     <span class="o">=&gt;</span> <span class="mi">9689</span><span class="p">,</span>
+  <span class="ss">:vhost</span>    <span class="o">=&gt;</span> <span class="s2">"/amq_client_testbed"</span><span class="p">,</span>
+  <span class="ss">:user</span>     <span class="o">=&gt;</span> <span class="s2">"amq_client_gem"</span><span class="p">,</span>
+  <span class="ss">:password</span> <span class="o">=&gt;</span> <span class="s2">"amq_client_gem_password"</span><span class="p">,</span>
+  <span class="ss">:timeout</span>        <span class="o">=&gt;</span> <span class="mf">0.3</span><span class="p">,</span>
+  <span class="ss">:on_tcp_connection_failure</span> <span class="o">=&gt;</span> <span class="n">handler</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="nb">puts</span> <span class="s2">"=&gt; TCP connection failure handling with a callback"</span>
+<span class="nb">puts</span>
+
+<span class="n">handler</span>             <span class="o">=</span> <span class="no">Proc</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span> <span class="o">|</span><span class="n">settings</span><span class="o">|</span> <span class="nb">puts</span> <span class="s2">"Failed to connect, as expected"</span><span class="p">;</span> <span class="no">EM</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span>
+<span class="n">connection_settings</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="ss">:port</span>     <span class="o">=&gt;</span> <span class="mi">9689</span><span class="p">,</span>
+  <span class="ss">:vhost</span>    <span class="o">=&gt;</span> <span class="s2">"/amq_client_testbed"</span><span class="p">,</span>
+  <span class="ss">:user</span>     <span class="o">=&gt;</span> <span class="s2">"amq_client_gem"</span><span class="p">,</span>
+  <span class="ss">:password</span> <span class="o">=&gt;</span> <span class="s2">"amq_client_gem_password"</span><span class="p">,</span>
+  <span class="ss">:timeout</span>        <span class="o">=&gt;</span> <span class="mf">0.3</span><span class="p">,</span>
+  <span class="ss">:on_tcp_connection_failure</span> <span class="o">=&gt;</span> <span class="n">handler</span>
+<span class="p">}</span>
+
+
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="n">connection_settings</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="k">raise</span> <span class="s2">"This should not be reachable"</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><code>:on_tcp_connection_failure</code> option accepts any object that responds to
+<code>#call</code>.</p>
+
+<p>If you connect to the broker from code in a class (as opposed to
+top-level scope in a script), <code>Object#method</code> can be used to pass object
+method as a handler instead of a Proc.</p>
+
+<h3 id="authentication-failures">Authentication failures</h3>
+
+<p>Another reason why a connection may fail is authentication failure.
+Handling authentication failure is very similar to handling initial TCP
+connection failure:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="nb">puts</span> <span class="s2">"=&gt; Authentication failure handling with a callback"</span>
+<span class="nb">puts</span>
+
+<span class="n">handler</span>             <span class="o">=</span> <span class="no">Proc</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span> <span class="o">|</span><span class="n">settings</span><span class="o">|</span> <span class="nb">puts</span> <span class="s2">"Failed to connect, as expected"</span><span class="p">;</span> <span class="no">EM</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span>
+<span class="n">connection_settings</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="ss">:port</span>     <span class="o">=&gt;</span> <span class="mi">5672</span><span class="p">,</span>
+  <span class="ss">:vhost</span>    <span class="o">=&gt;</span> <span class="s2">"/amq_client_testbed"</span><span class="p">,</span>
+  <span class="ss">:user</span>     <span class="o">=&gt;</span> <span class="s2">"amq_client_gem"</span><span class="p">,</span>
+  <span class="ss">:password</span> <span class="o">=&gt;</span> <span class="s2">"amq_client_gem_password_that_is_incorrect </span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">now</span><span class="p">.</span><span class="nf">to_i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+  <span class="ss">:timeout</span>        <span class="o">=&gt;</span> <span class="mf">0.3</span><span class="p">,</span>
+  <span class="ss">:on_tcp_connection_failure</span> <span class="o">=&gt;</span> <span class="n">handler</span><span class="p">,</span>
+  <span class="ss">:on_possible_authentication_failure</span> <span class="o">=&gt;</span> <span class="no">Proc</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span> <span class="o">|</span><span class="n">settings</span><span class="o">|</span>
+                                            <span class="nb">puts</span> <span class="s2">"Authentication failed, as expected, settings are: </span><span class="si">#{</span><span class="n">settings</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">"</span>
+
+                                            <span class="no">EM</span><span class="p">.</span><span class="nf">stop</span>
+                                          <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="n">connection_settings</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="k">raise</span> <span class="s2">"This should not be reachable"</span>
+<span class="k">end</span>
+</code></pre></div>
+<h4 id="default-handler">Default handler</h4>
+
+<p>default handler raises <code>AMQP::PossibleAuthenticationFailureError</code>:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="nb">puts</span> <span class="s2">"=&gt; Authentication failure handling with a rescue block"</span>
+<span class="nb">puts</span>
+
+<span class="n">handler</span>             <span class="o">=</span> <span class="no">Proc</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span> <span class="o">|</span><span class="n">settings</span><span class="o">|</span> <span class="nb">puts</span> <span class="s2">"Failed to connect, as expected"</span><span class="p">;</span> <span class="no">EM</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span>
+<span class="n">connection_settings</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="ss">:port</span>     <span class="o">=&gt;</span> <span class="mi">5672</span><span class="p">,</span>
+  <span class="ss">:vhost</span>    <span class="o">=&gt;</span> <span class="s2">"/amq_client_testbed"</span><span class="p">,</span>
+  <span class="ss">:user</span>     <span class="o">=&gt;</span> <span class="s2">"amq_client_gem"</span><span class="p">,</span>
+  <span class="ss">:password</span> <span class="o">=&gt;</span> <span class="s2">"amq_client_gem_password_that_is_incorrect </span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">now</span><span class="p">.</span><span class="nf">to_i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+  <span class="ss">:timeout</span>        <span class="o">=&gt;</span> <span class="mf">0.3</span><span class="p">,</span>
+  <span class="ss">:on_tcp_connection_failure</span> <span class="o">=&gt;</span> <span class="n">handler</span>
+<span class="p">}</span>
+
+
+<span class="k">begin</span>
+  <span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="n">connection_settings</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+    <span class="k">raise</span> <span class="s2">"This should not be reachable"</span>
+  <span class="k">end</span>
+<span class="k">rescue</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">PossibleAuthenticationFailureError</span> <span class="o">=&gt;</span> <span class="n">afe</span>
+  <span class="nb">puts</span> <span class="s2">"Authentication failed, as expected, caught </span><span class="si">#{</span><span class="n">afe</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">"</span>
+  <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="k">if</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">reactor_running?</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>In case you are wondering why callback name has &quot;possible” in it: <a href="https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf">AMQP
+0.9.1 spec</a> requires broker implementations
+to simply close TCP connection without sending any more data when an
+exception (such as authentication failure) occurs before AMQP connection
+is open. In practice, however, when broker closes TCP connection between
+successful TCP connection and before AMQP connection is open, it means
+that authentication has failed.</p>
+
+<h2 id="handling-network-connection-interruptions">Handling network connection interruptions</h2>
+
+<p>Network connectivity issues are a sad fact of life in modern software
+systems. Even small products and projects these days consist of multiple
+applications, often running on more than one machine. The Ruby amqp gem
+detects TCP connection failures and lets you handle them by defining a
+callback using
+<code>AMQP::Session#on_tcp_connection_loss</code>.
+That callback will be run when TCP connection fails, and will be passed
+two parameters: connection object and settings of the last successful
+connection.</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby">    <span class="n">connection</span><span class="p">.</span><span class="nf">on_tcp_connection_loss</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">settings</span><span class="o">|</span>
+      <span class="c1"># reconnect in 10 seconds, without enforcement</span>
+      <span class="n">connection</span><span class="p">.</span><span class="nf">reconnect</span><span class="p">(</span><span class="kp">false</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="k">end</span>
+</code></pre></div>
+<p>Sometimes it is necessary for other entities in an application to
+react to network failures. amqp gem 0.8.0 and later provides a number
+of event handlers to make this task easier for developers. This set of
+features is known as the &quot;shutdown protocol” (the word &quot;protocol” here
+means &quot;API interface” or &quot;behavior”, not network protocol).</p>
+
+<p><code>AMQP::Session</code>, <code>AMQP::Channel</code>, <code>AMQP::Exchange</code>, <code>AMQP::Queue</code> and
+<code>AMQP::Consumer</code> all implement shutdown protocol and thus
+errorhandling API is consistent for all classes, with <code>AMQP::Session</code>
+and <code>AMQP::Channel</code> have a few methods that other entities do not
+have.</p>
+
+<p>The Shutdown protocol revolves around two events:</p>
+
+<ul>
+<li>Network connection fails</li>
+<li>Broker closes AMQP connection (or channel)</li>
+</ul>
+
+<p>In this section, we will concentrate on the former. When a network
+connection fails, the underlying networking library detects it and runs
+a piece of code on <code>AMQP::Session</code> to handle it. That, in
+turn, propagates this event to channels, channels propagate it to
+exchanges and queues, queues propagate it to their consumers (if any).
+Each of these entities in the object graph can react to network
+interruption by executing application-defined callbacks.</p>
+
+<h3 id="shutdown-protocol-methods-on-amqp-session">Shutdown Protocol methods on AMQP::Session</h3>
+
+<ul>
+<li><code>AMQP::Session#on_tcp_connection_loss</code></li>
+<li><code>AMQP::Session#on_connection_interruption</code></li>
+</ul>
+
+<p>The difference between these methods is that
+<code>AMQP::Session#on_tcp_connection_loss</code>
+is used to define a callback that will be executed <strong>once</strong> when TCP
+connection fails. It is possible that reconnection attempts will not
+succeed immediately, so there will be subsequent failures. To react to
+those, <code>AMQP::Session#on_connection_interruption</code> method is used.</p>
+
+<p>The first argument that both of these methods yield to the handler that
+your application defines is the connection itself. This is done to make
+sure that you can register Ruby objects as handlers, and they do not
+have to keep any state around (for example, connection instances):</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">connection</span><span class="p">.</span><span class="nf">on_connection_interruption</span> <span class="k">do</span> <span class="o">|</span><span class="n">conn</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">"Connection detected connection interruption"</span>
+<span class="k">end</span>
+
+<span class="c1"># or</span>
+
+<span class="k">class</span> <span class="nc">ConnectionInterruptionHandler</span>
+
+  <span class="c1">#</span>
+  <span class="c1"># API</span>
+  <span class="c1">#</span>
+
+  <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+    <span class="c1"># handling logic</span>
+  <span class="k">end</span>
+
+<span class="k">end</span>
+
+<span class="n">handler</span> <span class="o">=</span> <span class="no">ConnectionInterruptionHandler</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">connection</span><span class="p">.</span><span class="nf">on_connection_interruption</span><span class="p">(</span><span class="o">&amp;</span><span class="n">handler</span><span class="p">.</span><span class="nf">method</span><span class="p">(</span><span class="ss">:handle</span><span class="p">))</span>
+</code></pre></div>
+<p>Note that <code>AMQP::Session#on_connection_interruption</code>
+callback is called <strong>before</strong> this event is propagated to channels,
+queues and so on.</p>
+
+<p>Different applications handle connection failures differently. It is
+very common to use
+<code>AMQP::Session#reconnect</code> method to
+schedule a reconnection to the same host, or use
+<code>AMQP::Session#reconnect_to</code> to connect to a different
+one.
+For some applications it is OK to simply exit and wait to be restarted
+at a later point in time, for example, by a process monitoring system
+like Nagios or Monit.</p>
+
+<h3 id="shutdown-protocol-methods-on-amqp-channel">Shutdown Protocol methods on AMQP::Channel</h3>
+
+<p><code>AMQP::Channel</code> provides only one method:
+<code>AMQP::Channel#on_connection_interruption</code>,
+that registers a callback similar to the one seen in the previous
+section:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">channel</span><span class="p">.</span><span class="nf">on_connection_interruption</span> <span class="k">do</span> <span class="o">|</span><span class="n">ch</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">"Channel </span><span class="si">#{</span><span class="n">ch</span><span class="p">.</span><span class="nf">id</span><span class="si">}</span><span class="s2"> detected connection interruption"</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Note that
+<code>AMQP::Channel#on_connection_interruption</code>
+callback is called <strong>after</strong> this event is propagated to exchanges,
+queues and so on. Right after that channel state is reset, except for
+error handling/recovery-related callbacks.</p>
+
+<p><span class="note">
+Many applications do not need per-channel network
+failure handling.
+</span></p>
+
+<h3 id="shutdown-protocol-methods-on-amqp-exchange">Shutdown Protocol methods on AMQP::Exchange</h3>
+
+<p><code>AMQP::Exchange</code> provides only one method:
+<code>AMQP::Exchange#on_connection_interruption</code>,
+that registers a callback similar to the one seen in the previous
+section:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">exchange</span><span class="p">.</span><span class="nf">on_connection_interruption</span> <span class="k">do</span> <span class="o">|</span><span class="n">ex</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">"Exchange </span><span class="si">#{</span><span class="n">ex</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> detected connection interruption"</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><span class="note">
+Many applications do not need per-exchange network
+failure handling.
+</span></p>
+
+<h3 id="shutdown-protocol-methods-on-amqp-queue">Shutdown Protocol methods on AMQP::Queue</h3>
+
+<p><code>AMQP::Queue</code> provides only one method:
+<code>AMQP::Queue#on_connection_interruption</code>,
+that registers a callback similar tothe one seen in the previous
+section:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">queue</span><span class="p">.</span><span class="nf">on_connection_interruption</span> <span class="k">do</span> <span class="o">|</span><span class="n">q</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">"Queue </span><span class="si">#{</span><span class="n">q</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> detected connection interruption"</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Note that AMQP::Queue#on_connection_interruption callback is called
+<strong>after</strong> this event is propagated to consumers.</p>
+
+<p><span class="note">Many applications do not need per-queue network
+failure handling.`</p>
+
+<h3 id="shutdown-protocol-methods-on-amqp-consumer">Shutdown Protocol methods on AMQP::Consumer</h3>
+
+<p><code>AMQP::Consumer</code> provides only one method:
+<code>AMQP::Consumer#on_connection_interruption</code>,
+that registers a callback similar to the one seen in the previous
+section:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">consumer</span><span class="p">.</span><span class="nf">on_connection_interruption</span> <span class="k">do</span> <span class="o">|</span><span class="n">c</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">"Consumer with consumer tag </span><span class="si">#{</span><span class="n">c</span><span class="p">.</span><span class="nf">consumer_tag</span><span class="si">}</span><span class="s2"> detected connection interruption"</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><span class="note">Many applications do not need per-consumer network
+failure handling.`</p>
+
+<h2 id="recovering-from-network-connection-failures">Recovering from network connection failures</h2>
+
+<p>Detecting network connections is nearly useless if an AMQP-based
+application cannot recover from them. Recovery is the hard part in
+&quot;error handling and recovery”. Fortunately, the recovery process for
+many applications follows one simple scheme that the amqp gem can
+perform automatically for you.</p>
+
+<p><span class="note">The recovery process, both manual and automatic,
+always begins with re-opening an AMQP connection and then all the
+channels on that connection.`</p>
+
+<h3 id="manual-recovery">Manual recovery</h3>
+
+<p>Similarly to the Shutdown Protocol, the amqp gem entities implement a
+Recovery Protocol. The Recovery Protocol consists of three methods that
+connections, channels, queues, consumers and exchanges all implement:</p>
+
+<ul>
+<li><code>AMQP::Session#before_recovery</code></li>
+<li><code>AMQP::Session#auto_recover</code></li>
+<li><code>AMQP::Session#after_recovery</code></li>
+</ul>
+
+<p><code>AMQP::Session#before_recovery</code> lets application developers register a
+callback that will be executed <strong>after TCP connection is re-established
+but before AMQP connection is reopened</strong>.
+<code>AMQP::Session#after_recovery</code> is similar except that the callback is
+run <strong>after AMQP connection is reopened</strong>.</p>
+
+<p><code>AMQP::Channel</code>, <code>AMQP::Queue</code>, <code>AMQP::Consumer</code>, and <code>AMQP::Exchange</code>
+method&#39;s behavior is identical.</p>
+
+<p>Recovery process for AMQP applications usually involves the following
+steps:</p>
+
+<ol>
+<li>Re-open AMQP connection.</li>
+<li>Once connection is open again, re-open all AMQP channels on that
+connection.</li>
+<li>For each channel, re-declare all exchanges.</li>
+<li>For each channel, re-declare all queues.</li>
+<li>Once queue is declared, for each queue, re-register all bindings.</li>
+<li>Once queue is declared, for each queue, re-register all consumers.</li>
+</ol>
+
+<h3 id="automatic-recovery">Automatic recovery</h3>
+
+<p>Many applications use the same recovery strategy that consists of the
+following steps:</p>
+
+<ol>
+<li>Re-open channels.</li>
+<li>For each channel, re-declare exchanges (except for predefined ones).</li>
+<li>For each channel, re-declare queues.</li>
+<li>For each queue, recover all bindings.</li>
+<li>For each queue, recover all consumers.</li>
+</ol>
+
+<p>The amqp gem provides a feature known as &quot;automatic recovery” that is
+<strong>opt-in</strong> (not opt-out, not used by default) and lets application
+developers get the aforementioned recovery strategy by setting one
+additional attribute on <code>AMQP::Channel</code> instance:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">ch</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+<span class="n">ch</span><span class="p">.</span><span class="nf">auto_recovery</span> <span class="o">=</span> <span class="kp">true</span>
+</code></pre></div>
+<p>A more verbose way to do the same thing:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">ch</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">next_channel_id</span><span class="p">,</span> <span class="ss">:auto_recovery</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+</code></pre></div>
+<p>Note that if you do not want to pass any options, the second argument
+can be left out as well, then it will default to
+<code>AMQP::Channel.next_channel_id</code>.</p>
+
+<p>To find out whether a channel uses automatic recovery mode or not, use
+<code>AMQP::Channel#auto_recovering?</code>.</p>
+
+<p>Auto recovery mode can be turned on and off any number of times during
+channel life cycle, although a very small percentage of applications
+actually do this. Typically you decide what channels should be using
+automatic recovery during the application design stage.</p>
+
+<p>Full example (run it, then shut down AMQP broker running on localhost,
+then bring it back up and use management tools such as <code>rabbitmqctl</code> to
+see that queues, bindings and consumers have all recovered):</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span> <span class="c1"># requires version &gt;= 0.8.0.RC14</span>
+
+<span class="nb">puts</span> <span class="s2">"=&gt; Example of automatic AMQP channel and queues recovery"</span>
+<span class="nb">puts</span>
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="ss">:host</span> <span class="o">=&gt;</span> <span class="s2">"localhost"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="n">connection</span><span class="p">.</span><span class="nf">on_error</span> <span class="k">do</span> <span class="o">|</span><span class="n">ch</span><span class="p">,</span> <span class="n">connection_close</span><span class="o">|</span>
+    <span class="k">raise</span> <span class="n">connection_close</span><span class="p">.</span><span class="nf">reply_text</span>
+  <span class="k">end</span>
+
+  <span class="n">ch1</span> <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+  <span class="n">ch1</span><span class="p">.</span><span class="nf">auto_recovery</span> <span class="o">=</span> <span class="kp">true</span>
+  <span class="n">ch1</span><span class="p">.</span><span class="nf">on_error</span> <span class="k">do</span> <span class="o">|</span><span class="n">ch</span><span class="p">,</span> <span class="n">channel_close</span><span class="o">|</span>
+    <span class="k">raise</span> <span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_text</span>
+  <span class="k">end</span>
+
+  <span class="k">if</span> <span class="n">ch1</span><span class="p">.</span><span class="nf">auto_recovering?</span>
+    <span class="nb">puts</span> <span class="s2">"Channel </span><span class="si">#{</span><span class="n">ch1</span><span class="p">.</span><span class="nf">id</span><span class="si">}</span><span class="s2"> IS auto-recovering"</span>
+  <span class="k">end</span>
+
+  <span class="n">connection</span><span class="p">.</span><span class="nf">on_tcp_connection_loss</span> <span class="k">do</span> <span class="o">|</span><span class="n">conn</span><span class="p">,</span> <span class="n">settings</span><span class="o">|</span>
+    <span class="nb">puts</span> <span class="s2">"[network failure] Trying to reconnect..."</span>
+    <span class="n">conn</span><span class="p">.</span><span class="nf">reconnect</span><span class="p">(</span><span class="kp">false</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+  <span class="k">end</span>
+
+
+  <span class="n">ch1</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">"amqpgem.examples.queue1"</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">).</span><span class="nf">bind</span><span class="p">(</span><span class="s2">"amq.fanout"</span><span class="p">)</span>
+  <span class="n">ch1</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">"amqpgem.examples.queue2"</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">).</span><span class="nf">bind</span><span class="p">(</span><span class="s2">"amq.fanout"</span><span class="p">)</span>
+  <span class="n">ch1</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">"amqpgem.examples.queue3"</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">).</span><span class="nf">bind</span><span class="p">(</span><span class="s2">"amq.fanout"</span><span class="p">).</span><span class="nf">subscribe</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+  <span class="k">end</span>
+
+
+  <span class="n">show_stopper</span> <span class="o">=</span> <span class="no">Proc</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span>
+    <span class="n">connection</span><span class="p">.</span><span class="nf">disconnect</span> <span class="p">{</span> <span class="nb">puts</span> <span class="s2">"Disconnected. Exiting…"</span><span class="p">;</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="no">Signal</span><span class="p">.</span><span class="nf">trap</span> <span class="s2">"TERM"</span><span class="p">,</span> <span class="n">show_stopper</span>
+  <span class="no">Signal</span><span class="p">.</span><span class="nf">trap</span> <span class="s2">"INT"</span><span class="p">,</span>  <span class="n">show_stopper</span>
+  <span class="no">EM</span><span class="p">.</span><span class="nf">add_timer</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="n">show_stopper</span><span class="p">)</span>
+
+
+  <span class="nb">puts</span> <span class="s2">"Connected, authenticated. To really exercise this example, shut AMQP broker down for a few seconds. If you don't it will exit gracefully in 30 seconds."</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Server-named queues, when recovered automatically, will get <strong>new
+server-generated names</strong> to guarantee there are no name collisions.</p>
+
+<p><span class="note">When in doubt, try using automatic recovery first. If
+it is not sufficient for your application, switch to manual recovery
+using events and callbacks introduced in the &quot;Manual recovery”
+section.
+</span></p>
+
+<h2 id="detecting-broker-failures">Detecting broker failures</h2>
+
+<p>AMQP applications see broker failure as TCP connection loss. There is no
+reliable way to know whether there is a network problem or a network
+peer is down.</p>
+
+<h2 id="amqp-connection-level-exceptions">AMQP connection-level exceptions</h2>
+
+<h3 id="handling-connection-level-exceptions">Handling connection-level exceptions</h3>
+
+<p>Connection-level exceptions are rare and may indicate a serious issue
+with a client library or in-flight data corruption. The AMQP 0.9.1
+specification mandates that a connection that has errored cannot be used
+any more and must be closed. In any case, your application should be
+prepared to handle this kind of error. To define a handler, use
+<code>AMQP::Session#on_error</code> method that
+takes a callback and yields two arguments to it when a connection-level
+exception happens:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">connection</span><span class="p">.</span><span class="nf">on_error</span> <span class="k">do</span> <span class="o">|</span><span class="n">conn</span><span class="p">,</span> <span class="n">connection_close</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">"Handling a connection-level exception."</span>
+  <span class="nb">puts</span>
+  <span class="nb">puts</span> <span class="s2">"AMQP class id : </span><span class="si">#{</span><span class="n">connection_close</span><span class="p">.</span><span class="nf">class_id</span><span class="si">}</span><span class="s2">"</span>
+  <span class="nb">puts</span> <span class="s2">"AMQP method id: </span><span class="si">#{</span><span class="n">connection_close</span><span class="p">.</span><span class="nf">method_id</span><span class="si">}</span><span class="s2">"</span>
+  <span class="nb">puts</span> <span class="s2">"Status code   : </span><span class="si">#{</span><span class="n">connection_close</span><span class="p">.</span><span class="nf">reply_code</span><span class="si">}</span><span class="s2">"</span>
+  <span class="nb">puts</span> <span class="s2">"Error message : </span><span class="si">#{</span><span class="n">connection_close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Status codes are similar to those of HTTP. For the full list of error
+codes and their meaning, consult <a href="http://www.rabbitmq.com/amqp-0-9-1-reference.html#constants">AMQP 0.9.1 constants
+reference</a>.</p>
+
+<p><span class="note">Only one connection-level exception handler can be
+defined per connection instance (the one added last replaces previously
+added ones).</p>
+
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"bundler"</span>
+<span class="no">Bundler</span><span class="p">.</span><span class="nf">setup</span>
+
+<span class="vg">$:</span><span class="p">.</span><span class="nf">unshift</span><span class="p">(</span><span class="no">File</span><span class="p">.</span><span class="nf">expand_path</span><span class="p">(</span><span class="s2">"../../../lib"</span><span class="p">,</span> <span class="kp">__FILE__</span><span class="p">))</span>
+
+<span class="nb">require</span> <span class="s1">'amqp'</span>
+
+<span class="no">EventMachine</span><span class="p">.</span><span class="nf">run</span> <span class="k">do</span>
+  <span class="no">AMQP</span><span class="p">.</span><span class="nf">connect</span><span class="p">(</span><span class="ss">:host</span> <span class="o">=&gt;</span> <span class="s1">'127.0.0.1'</span><span class="p">,</span> <span class="ss">:port</span> <span class="o">=&gt;</span> <span class="mi">5672</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="o">|</span>
+    <span class="nb">puts</span> <span class="s2">"Connected to AMQP broker. Running </span><span class="si">#{</span><span class="no">AMQP</span><span class="o">::</span><span class="no">VERSION</span><span class="si">}</span><span class="s2"> version of the gem..."</span>
+
+
+    <span class="n">connection</span><span class="p">.</span><span class="nf">on_error</span> <span class="k">do</span> <span class="o">|</span><span class="n">conn</span><span class="p">,</span> <span class="n">connection_close</span><span class="o">|</span>
+      <span class="nb">puts</span> <span class="o">&lt;&lt;-</span><span class="no">ERR</span><span class="sh">
+      Handling a connection-level exception.
+
+      AMQP class id : </span><span class="si">#{</span><span class="n">connection_close</span><span class="p">.</span><span class="nf">class_id</span><span class="si">}</span><span class="sh">,
+      AMQP method id: </span><span class="si">#{</span><span class="n">connection_close</span><span class="p">.</span><span class="nf">method_id</span><span class="si">}</span><span class="sh">,
+      Status code   : </span><span class="si">#{</span><span class="n">connection_close</span><span class="p">.</span><span class="nf">reply_code</span><span class="si">}</span><span class="sh">
+      Error message : </span><span class="si">#{</span><span class="n">connection_close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="sh">
+</span><span class="no">      ERR</span>
+
+      <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span>
+    <span class="k">end</span>
+
+    <span class="c1"># send_frame is NOT part of the public API, but it is public for entities like AMQ::Client::Channel</span>
+    <span class="c1"># and we use it here to trigger a connection-level exception. MK.</span>
+    <span class="n">connection</span><span class="p">.</span><span class="nf">send_frame</span><span class="p">(</span><span class="no">AMQ</span><span class="o">::</span><span class="no">Protocol</span><span class="o">::</span><span class="no">Connection</span><span class="o">::</span><span class="no">TuneOk</span><span class="p">.</span><span class="nf">encode</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">128</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h2 id="handling-graceful-broker-shutdown">Handling graceful broker shutdown</h2>
+
+<p>When an AMQP broker is shut down, it properly closes connections first.
+To do so, it uses <strong>connection.close</strong> AMQP method. AMQP clients then
+need to check if the reply code is equal to 320 (CONNECTION_FORCED) to
+distinguish graceful shutdown. With RabbitMQ, when broker is stopped
+using</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">rabbitmqctl stop
+</code></pre></div>
+<p>reply_text will be set to</p>
+<div class="highlight"><pre><code class="language-" data-lang="">CONNECTION_FORCED - broker forced connection closure with reason
+‘shutdown’
+</code></pre></div>
+<p>Each application chooses how to handle graceful broker shutdowns
+individually, so <strong>amqp gem’s automatic reconnection does not cover
+graceful broker shutdowns</strong>. Applications that want to reconnect when
+broker is stopped can use
+<code>AMQP::Session#periodically_reconnect</code>
+like so:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">connection</span><span class="p">.</span><span class="nf">on_error</span> <span class="k">do</span> <span class="o">|</span><span class="n">conn</span><span class="p">,</span> <span class="n">connection_close</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">"[connection.close] Reply code = </span><span class="si">#{</span><span class="n">connection_close</span><span class="p">.</span><span class="nf">reply_code</span><span class="si">}</span><span class="s2">, reply text = </span><span class="si">#{</span><span class="n">connection_close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">if</span> <span class="n">connection_close</span><span class="p">.</span><span class="nf">reply_code</span> <span class="o">==</span> <span class="mi">320</span>
+    <span class="nb">puts</span> <span class="s2">"[connection.close] Setting up a periodic reconnection timer..."</span>
+    <span class="c1"># every 30 seconds</span>
+    <span class="n">conn</span><span class="p">.</span><span class="nf">periodically_reconnect</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Once AMQP connection is re-opened, channels in automatic recovery mode
+will recover just like they do after network outages.</p>
+
+<h2 id="integrating-channel-level-exceptions-handling-with-object-oriented-ruby-code">Integrating channel-level exceptions handling with object-oriented Ruby code</h2>
+
+<p>Error handling can be easily integrated into object-oriented Ruby code
+(in fact, this is highly encouraged). A common technique is to combine
+<a href="http://rubydoc.info/stdlib/core/1.8.7/Object:method">Object#method</a>
+and
+<a href="http://rubydoc.info/stdlib/core/1.8.7/Method:to_proc">Method#to_proc</a>
+and use object methods as error handlers:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">class</span> <span class="nc">ConnectionManager</span>
+
+  <span class="c1">#</span>
+  <span class="c1"># API</span>
+  <span class="c1">#</span>
+
+  <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+    <span class="vi">@connection</span> <span class="o">=</span> <span class="no">AMQP</span><span class="p">.</span><span class="nf">connect</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+
+    <span class="c1"># combines Object#method and Method#to_proc to use object</span>
+    <span class="c1"># method as a callback</span>
+    <span class="vi">@connection</span><span class="p">.</span><span class="nf">on_error</span><span class="p">(</span><span class="o">&amp;</span><span class="nb">method</span><span class="p">(</span><span class="ss">:on_error</span><span class="p">))</span>
+  <span class="k">end</span> <span class="c1"># connect(*args, &amp;block)</span>
+
+
+  <span class="k">def</span> <span class="nf">on_error</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">connection_close</span><span class="p">)</span>
+    <span class="nb">puts</span> <span class="s2">"Handling a connection-level exception."</span>
+    <span class="nb">puts</span>
+    <span class="nb">puts</span> <span class="s2">"AMQP class id : </span><span class="si">#{</span><span class="n">connection_close</span><span class="p">.</span><span class="nf">class_id</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">puts</span> <span class="s2">"AMQP method id: </span><span class="si">#{</span><span class="n">connection_close</span><span class="p">.</span><span class="nf">method_id</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">puts</span> <span class="s2">"Status code   : </span><span class="si">#{</span><span class="n">connection_close</span><span class="p">.</span><span class="nf">reply_code</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">puts</span> <span class="s2">"Error message : </span><span class="si">#{</span><span class="n">connection_close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span> <span class="c1"># on_error(connection, connection_close)</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Full example that uses objects:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"bundler"</span>
+<span class="no">Bundler</span><span class="p">.</span><span class="nf">setup</span>
+
+<span class="vg">$:</span><span class="p">.</span><span class="nf">unshift</span><span class="p">(</span><span class="no">File</span><span class="p">.</span><span class="nf">expand_path</span><span class="p">(</span><span class="s2">"../../../lib"</span><span class="p">,</span> <span class="kp">__FILE__</span><span class="p">))</span>
+
+<span class="nb">require</span> <span class="s1">'amqp'</span>
+
+
+<span class="k">class</span> <span class="nc">ConnectionManager</span>
+
+  <span class="c1">#</span>
+  <span class="c1"># API</span>
+  <span class="c1">#</span>
+
+  <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+    <span class="vi">@connection</span> <span class="o">=</span> <span class="no">AMQP</span><span class="p">.</span><span class="nf">connect</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+
+    <span class="c1"># combines Object#method and Method#to_proc to use object</span>
+    <span class="c1"># method as a callback</span>
+    <span class="vi">@connection</span><span class="p">.</span><span class="nf">on_error</span><span class="p">(</span><span class="o">&amp;</span><span class="nb">method</span><span class="p">(</span><span class="ss">:on_error</span><span class="p">))</span>
+  <span class="k">end</span> <span class="c1"># connect(*args, &amp;block)</span>
+
+
+  <span class="k">def</span> <span class="nf">on_error</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">connection_close</span><span class="p">)</span>
+    <span class="nb">puts</span> <span class="s2">"Handling a connection-level exception."</span>
+    <span class="nb">puts</span>
+    <span class="nb">puts</span> <span class="s2">"AMQP class id : </span><span class="si">#{</span><span class="n">connection_close</span><span class="p">.</span><span class="nf">class_id</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">puts</span> <span class="s2">"AMQP method id: </span><span class="si">#{</span><span class="n">connection_close</span><span class="p">.</span><span class="nf">method_id</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">puts</span> <span class="s2">"Status code   : </span><span class="si">#{</span><span class="n">connection_close</span><span class="p">.</span><span class="nf">reply_code</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">puts</span> <span class="s2">"Error message : </span><span class="si">#{</span><span class="n">connection_close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span> <span class="c1"># on_error(connection, connection_close)</span>
+<span class="k">end</span>
+
+<span class="no">EventMachine</span><span class="p">.</span><span class="nf">run</span> <span class="k">do</span>
+  <span class="n">manager</span> <span class="o">=</span> <span class="no">ConnectionManager</span><span class="p">.</span><span class="nf">new</span>
+  <span class="n">manager</span><span class="p">.</span><span class="nf">connect</span><span class="p">(</span><span class="ss">:host</span> <span class="o">=&gt;</span> <span class="s1">'127.0.0.1'</span><span class="p">,</span> <span class="ss">:port</span> <span class="o">=&gt;</span> <span class="mi">5672</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="o">|</span>
+    <span class="nb">puts</span> <span class="s2">"Connected to AMQP broker. Running </span><span class="si">#{</span><span class="no">AMQP</span><span class="o">::</span><span class="no">VERSION</span><span class="si">}</span><span class="s2"> version of the gem..."</span>
+
+    <span class="c1"># send_frame is NOT part of the public API, but it is public for entities like AMQ::Client::Channel</span>
+    <span class="c1"># and we use it here to trigger a connection-level exception. MK.</span>
+    <span class="n">connection</span><span class="p">.</span><span class="nf">send_frame</span><span class="p">(</span><span class="no">AMQ</span><span class="o">::</span><span class="no">Protocol</span><span class="o">::</span><span class="no">Connection</span><span class="o">::</span><span class="no">TuneOk</span><span class="p">.</span><span class="nf">encode</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">128</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+  <span class="k">end</span>
+
+  <span class="c1"># shut down after 2 seconds</span>
+  <span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_timer</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div>
+<h2 id="amqp-channel-level-exceptions">AMQP channel-level exceptions</h2>
+
+<h3 id="handling-channel-level-exceptions">Handling channel-level exceptions</h3>
+
+<p>Channel-level exceptions are more common than connection-level ones.
+They are handled in a similar manner, by defining a callback with
+<code>AMQP::Channel#on_error</code> method that
+takes a callback and yields two arguments to it when a channel-level
+exception happens:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">channel</span><span class="p">.</span><span class="nf">on_error</span> <span class="k">do</span> <span class="o">|</span><span class="n">ch</span><span class="p">,</span> <span class="n">channel_close</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">"Handling a channel-level exception."</span>
+  <span class="nb">puts</span>
+  <span class="nb">puts</span> <span class="s2">"AMQP class id : </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">class_id</span><span class="si">}</span><span class="s2">"</span>
+  <span class="nb">puts</span> <span class="s2">"AMQP method id: </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">method_id</span><span class="si">}</span><span class="s2">"</span>
+  <span class="nb">puts</span> <span class="s2">"Status code   : </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_code</span><span class="si">}</span><span class="s2">"</span>
+  <span class="nb">puts</span> <span class="s2">"Error message : </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Status codes are similar to those of HTTP. For the full list of error
+codes and their meaning, consult <a href="http://www.rabbitmq.com/amqp-0-9-1-reference.html#constants">AMQP 0.9.1 constants
+reference</a>.</p>
+
+<p><span class="note">Only one channel-level exception handler can be
+defined per channel instance (the one added last replaces previously
+added ones).`</p>
+
+<p>Full example:</p>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#!/usr/bin/env ruby</span>
+<span class="c1"># encoding: utf-8</span>
+
+<span class="nb">require</span> <span class="s2">"bundler"</span>
+<span class="no">Bundler</span><span class="p">.</span><span class="nf">setup</span>
+
+<span class="vg">$:</span><span class="p">.</span><span class="nf">unshift</span><span class="p">(</span><span class="no">File</span><span class="p">.</span><span class="nf">expand_path</span><span class="p">(</span><span class="s2">"../../../lib"</span><span class="p">,</span> <span class="kp">__FILE__</span><span class="p">))</span>
+
+<span class="nb">require</span> <span class="s1">'amqp'</span>
+
+
+<span class="nb">puts</span> <span class="s2">"=&gt; Queue redeclaration with different attributes results in a channel exception that is handled"</span>
+<span class="nb">puts</span>
+<span class="no">AMQP</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="s2">"amqp://guest:guest@dev.rabbitmq.com:5672"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+  <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span> <span class="k">do</span> <span class="o">|</span><span class="n">channel</span><span class="p">,</span> <span class="n">open_ok</span><span class="o">|</span>
+    <span class="nb">puts</span> <span class="s2">"Channel #</span><span class="si">#{</span><span class="n">channel</span><span class="p">.</span><span class="nf">id</span><span class="si">}</span><span class="s2"> is now open!"</span>
+
+    <span class="n">channel</span><span class="p">.</span><span class="nf">on_error</span> <span class="k">do</span> <span class="o">|</span><span class="n">ch</span><span class="p">,</span> <span class="n">channel_close</span><span class="o">|</span>
+      <span class="nb">puts</span> <span class="o">&lt;&lt;-</span><span class="no">ERR</span><span class="sh">
+      Handling a channel-level exception.
+
+      AMQP class id : </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">class_id</span><span class="si">}</span><span class="sh">,
+      AMQP method id: </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">method_id</span><span class="si">}</span><span class="sh">,
+      Status code   : </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_code</span><span class="si">}</span><span class="sh">
+      Error message : </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="sh">
+</span><span class="no">      ERR</span>
+    <span class="k">end</span>
+
+    <span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_timer</span><span class="p">(</span><span class="mf">0.4</span><span class="p">)</span> <span class="k">do</span>
+      <span class="c1"># these two definitions result in a race condition. For sake of this example,</span>
+      <span class="c1"># however, it does not matter. Whatever definition succeeds first, 2nd one will</span>
+      <span class="c1"># cause a channel-level exception (because attributes are not identical)</span>
+      <span class="no">AMQP</span><span class="o">::</span><span class="no">Queue</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="s2">"amqpgem.examples.channel_exception"</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:durable</span> <span class="o">=&gt;</span> <span class="kp">false</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">queue</span><span class="o">|</span>
+        <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> is ready to go"</span>
+      <span class="k">end</span>
+
+      <span class="no">AMQP</span><span class="o">::</span><span class="no">Queue</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="s2">"amqpgem.examples.channel_exception"</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:durable</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">queue</span><span class="o">|</span>
+        <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> is ready to go"</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+
+  <span class="n">show_stopper</span> <span class="o">=</span> <span class="no">Proc</span><span class="p">.</span><span class="nf">new</span> <span class="k">do</span>
+    <span class="vg">$stdout</span><span class="p">.</span><span class="nf">puts</span> <span class="s2">"Stopping..."</span>
+    <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="no">Signal</span><span class="p">.</span><span class="nf">trap</span> <span class="s2">"INT"</span><span class="p">,</span> <span class="n">show_stopper</span>
+  <span class="no">EM</span><span class="p">.</span><span class="nf">add_timer</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">show_stopper</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3 id="integrating-channel-level-exceptions-handling-with-object-oriented-ruby-code">Integrating channel-level exceptions handling with object-oriented Ruby code</h3>
+
+<p>Error handling can be easily integrated into object-oriented Ruby code
+(in fact, this is highly encouraged).A common technique is to combine
+<a href="http://rubydoc.info/stdlib/core/1.8.7/Object:method">Object#method</a>
+and
+<a href="http://rubydoc.info/stdlib/core/1.8.7/Method:to_proc">Method#to_proc</a>
+and use object methods as error handlers. For example of this, see
+section on connection-level exceptions above.</p>
+
+<p><span class="note">
+Because channel-level exceptions may be raised
+because of multiple unrelated reasons and often indicate
+misconfigurations, how they are handled isvery specific to particular
+applications. A common strategy is to log an error and then open and use
+another channel.
+</span></p>
+
+<h3 id="common-channel-level-exceptions-and-what-they-mean">Common channel-level exceptions and what they mean</h3>
+
+<p>A few channel-level exceptions are common and deserve more attention.</p>
+
+<h4 id="406-precondition-failed">406 Precondition Failed</h4>
+
+<dl>
+
+<dt>
+Description
+</dt>
+
+<dd>
+The client requested a method that was not allowed because some
+precondition failed.
+</dd>
+
+<dt>
+What might cause it
+</dt>
+
+<dd>
+<ul>
+<li>
+AMQP entity (a queue or exchange) was re-declared with attributes
+different from original declaration. Maybe two applications or pieces of
+code declare the same entity with different attributes. Note that
+different AMQP client libraries historically use slightly different
+defaults for entities and this may cause attribute mismatches.
+</li>
+<li>
+`AMQP::Channel#tx_commit` or
+`AMQP::Channel#tx_rollback` might be run on a channel
+that wasn’t previously made transactional with
+`AMQP::Channel#tx_select`
+</li>
+</ul>
+</dd>
+
+<dt>
+Example RabbitMQ error message
+
+</dt>
+
+<dd>
+
+<ul>
+
+<li>
+PRECONDITION_FAILED - parameters for queue
+‘amqpgem.examples.channel_exception’ in vhost ‘/’ not equivalent
+
+</li>
+
+<li>
+PRECONDITION_FAILED - channel is not transactional
+</li>
+</ul>
+</dd>
+</dl>
+
+<h4 id="405-resource-locked">405 Resource Locked</h4>
+
+<dl>
+<dt>
+Description
+</dt>
+<dd>
+The client attempted to work with a server entity to which it has no
+access because another client is working with it.
+</dd>
+<dt>
+What might cause it
+</dt>
+<dd>
+<ul>
+<li>
+Multiple applications (or different pieces of
+code/threads/processes/routines within a single application) might try
+to declare queues with the same name as exclusive.
+</li>
+<li>
+Multiple consumer across multiple or single app might be registered as
+exclusive for the same queue.
+</li>
+</ul>
+</dd>
+<dt>
+Example RabbitMQ error message
+</dt>
+<dd>
+RESOURCE_LOCKED - cannot obtain exclusive access to locked queue
+‘amqpgem.examples.queue’ in vhost ‘/’
+
+</dd>
+</dl>
+
+<h4 id="403-access-refused">403 Access Refused</h4>
+
+<dl>
+<dt>
+Description
+</dt>
+<dd>
+The client attempted to work with a server entity to which it has no
+access due to security settings.
+</dd>
+<dt>
+What might cause it
+</dt>
+<dd>
+Application tries to access a queue or exchange it has no permissions
+for (or right kind of permissions, for example, write permissions)
+</dd>
+<dt>
+Example RabbitMQ error message
+</dt>
+<dd>
+ACCESS_REFUSED - access to queue ‘amqpgem.examples.channel_exception’
+in vhost ‘amqp_gem_testbed’ refused for user ‘amqp_gem_reader’
+</dd>
+</dl>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Distributed applications introduce a whole new class of failures
+developers need to be aware of. Many of them stem from unreliable
+networks. The famous <a href="http://en.wikipedia.org/wiki/Fallacies_of_Distributed_Computing">Fallacies of Distributed
+Computing</a>
+list common assumptions software engineers must not make:</p>
+
+<ul>
+<li>The network is reliable.</li>
+<li>Latency is zero.</li>
+<li>Bandwidth is infinite.</li>
+<li>The network is secure.</li>
+<li>Topology doesn’t change.</li>
+<li>There is one administrator.</li>
+<li>Transport cost is zero.</li>
+<li>The network is homogeneous.</li>
+</ul>
+
+<p>Unfortunately, applications that use Ruby and AMQP are not immune to
+these problems and developers need to always keep that in mind. This
+list is just as relevant today as it was in the 90s.</p>
+
+<p>Ruby amqp gem 0.8.x and later lets applications define handlers that
+handle connection-level exceptions, channel-level exceptions and TCP
+connection failures. Handling AMQP exceptions and network connection
+failures is relatively easy. Re-declaring AMQP instances that the
+application works with is where most of the complexity comes from. By
+using Ruby objects as error handlers, the declaration of AMQP entities
+can be done in one place, making code much easier to understand and
+maintain.</p>
+
+<p>amqp gem error and interruption handling is not a copy of RabbitMQ Java
+client’s <a href="http://www.rabbitmq.com/api-guide.html#shutdown">Shutdown
+Protocol</a>, but they
+turn out to be similar with respect to network failures and
+connection-level exceptions.</p>
+
+        </div>
+      </div>
+    <footer class='footer'>
+      <div class='container'>
+        <p>This website was developed by the
+          &nbsp;<a href='http://github.com/ruby-amqp'>Ruby RabbitMQ Client Maintainers Team</a>.</p>
+        <p>Follow us on Twitter:
+          &nbsp;<a href='http://twitter.com/rubyamqp'>rubyamqp</a>,&nbsp;<a href='http://twitter.com/michaelklishin'>Michael Klishin</a>,&nbsp;<a href='http://twitter.com/celldee'>Chris Duncan</a></p>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,570 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang='en'>
+  <head>
+    <title>Patterns and Use Cases</title>
+    <meta content='width=device-width, initial-scale=1.0' name='viewport' />
+    <meta content='A dead easy to use RabbitMQ Ruby client' name='description' />
+    <meta content='The Ruby RabbitMQ Client Maintainers Team' name='author' />
+    <link href='/assets/stylesheets/bootstrap.css' media='screen' rel='stylesheet' type='text/css' />
+    <link href='/assets/stylesheets/bootstrap-responsive.css' media='screen' rel='stylesheet' type='text/css' />
+    <link href='/assets/stylesheets/sass/styles.css' media='screen' rel='stylesheet' type='text/css' />
+    <link href='/assets/stylesheets/pygments.css' media='screen' rel='stylesheet' type='text/css' />
+    <link href='http://fonts.googleapis.com/css?family=Signika+Negative:300,400,600' rel='stylesheet' type='text/css' />
+    <script src='/assets/javascripts/jquery-1.7.min.js' type='text/javascript'></script>
+    <script src='/assets/javascripts/toc.js'></script>
+    <script src='/assets/javascripts/bootstrap-collapse.js'></script>
+    <meta content='text/html;charset=utf-8' http-equiv='Content-Type' />
+    <script type="text/javascript">
+      if(!(window.location.hostname === "localhost")) {
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-27153041-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+      }
+    </script>
+  </head>
+
+  <body>
+    <div class='navbar navbar-inverse navbar-fixed-top'>
+      <div class='navbar-inner'>
+        <div class='container-fluid'>
+          <a class='btn btn-navbar' data-target='.nav-collapse' data-toggle='collapse'>
+            <span class='icon-bar'></span>
+            <span class='icon-bar'></span>
+            <span class='icon-bar'></span>
+          </a>
+          <a class='brand' href='/'>Ruby amqp gem</a>
+          <div class='nav-collapse'>
+            <ul class='nav'>
+            <li>
+              <a href="/">Home</a>
+            </li>
+            <li>
+              <a href="/articles/guides.html">All guides</a>
+            </li>
+            <li>
+              <a href='/articles/community.html'>Community</a>
+            </li>
+            <li>
+              <a href='http://rubybunny.info'>Bunny, an alternative client</a>
+            </li>
+            <li>
+              <a href='https://github.com/ruby-amqp/amqp'>Code on Github</a>
+            </li>
+            <li>
+              <a href='http://github.com/ruby-amqp'>Other RabbitMQ Ruby clients</a>
+            </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class='container-fluid'>
+      <div class='row-fluid'>
+        <div class='span3'>
+          <div class='well sidebar-nav'></div>
+        </div>
+        <div class='span9'>
+          <h1>Patterns and Use Cases</h1>
+          <h2 id="about-this-guide">About this guide</h2>
+
+<p>This guide explains typical messaging patterns and use cases. It only
+covers the most common scenarios. For a comprehensive list of messaging
+patterns, consult books on this subject, for example, <a href="http://www.eaipatterns.com">Enterprise
+Integration Patterns</a>.</p>
+
+<p>This work is licensed under a
+<a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative
+Commons Attribution 3.0 Unported License</a> (including images and
+stylesheets). The source is available <a href="https://github.com/ruby-amqp/rubyamqp.info">on
+Github</a>.</p>
+
+<h2 id="covered-versions">Covered versions</h2>
+
+<p>This guide covers Ruby amqp gem 1.7.0 and later versions.</p>
+
+<h2 id="introduction">Introduction</h2>
+
+<p>Messaging patterns are a lot like object-oriented design patterns in
+that they are generalized reusable solutions to specific problems. They
+are not recipes, however, and their exact implementation may vary from
+application to application. Just like OO design patterns, they too can
+be classified:
+ * Message construction patterns describe form, content and purpose of
+messages.
+ * Message routing patterns outline how messages can be directed from
+producers to consumers.
+ * Message transformation patterns change message content or metadata.
+There are other, more specialized groups of messaging patterns that are
+out of the scope of this guide.
+This guide demonstrates the implementation of several common routing
+patterns and also explains how built-in AMQP 0.9.1 features can be used
+to implement message construction and message transformation patterns.
+Note that the guide is a work in progress. There are many messaging
+patterns and new variations are being discovered every year. This guide
+thus strives to be useful to the
+80 of developers instead of being &quot;complete&quot;.</p>
+
+<h2 id="request-reply-pattern">Request/Reply pattern</h2>
+
+<h3 id="description-and-use-cases">Description and Use cases</h3>
+
+<p>Request/Reply is a simple way of integration when one application issues a request and another application responds to it. This pattern is often referred to as &quot;Remote Procedure Call&quot;, even when it is not entirely correct. The Request/Reply pattern is a 1:1 communication pattern.
+Some examples of the Request/Reply pattern are:
+ * Application 1 requests a document that the Application 2 generates or loads and returns.
+ * An end-user application issues a search request and another application returns the results.
+ * One application requests a progress report from another application.</p>
+
+<h3 id="rabbitmq-based-implementation">RabbitMQ-based implementation</h3>
+
+<p>Implementation of Request/Reply pattern on top of AMQP 0.9.1 involves two messages: a request (Req) and a response (Res). A client app generates a request identifier and sets the :message_id attribute on Req. The client also uses a server-named exclusive queue to receive replies and thus sets the :reply_to Req attribute to the name of that queue.</p>
+
+<p>A server app uses a well-known queue name to receive requests and sets the :correlation_id to the :message_id of the original request message (Req) to make it possible for the client to identify which request a reply is for.</p>
+
+<h4 id="request-message-attributes">Request message attributes</h4>
+
+<dl>
+  <dt>:message_id</dt>
+  <dd>Unique message identifier</dd>
+  <dt>:reply_to</dt>
+  <dd>Queue name server should send the response to</dd>
+</dl>
+
+<h4 id="response-message-attributes">Response message attributes</h4>
+
+<dl>
+  <dt>:correlation_id</dt>
+  <dd>Identifier of the original request message (set to request's :correlation_id)</dd>
+  <dt>:routing_key</dt>
+  <dd>Client's replies queue name (set to request's :reply_to)</dd>
+</dl>
+
+<h3 id="code-example">Code example</h3>
+
+<h4 id="client-code">Client code</h4>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="no">EventMachine</span><span class="p">.</span><span class="nf">run</span> <span class="k">do</span>
+  <span class="n">connection</span> <span class="o">=</span> <span class="no">AMQP</span><span class="p">.</span><span class="nf">connect</span>
+  <span class="n">channel</span>    <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+
+  <span class="n">replies_queue</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+  <span class="n">replies_queue</span><span class="p">.</span><span class="nf">subscribe</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+    <span class="nb">puts</span> <span class="s2">"[response] Response for </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">correlation_id</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">payload</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+
+  <span class="c1"># request time from a peer every 3 seconds</span>
+  <span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_periodic_timer</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span> <span class="k">do</span>
+    <span class="nb">puts</span> <span class="s2">"[request] Sending a request..."</span>
+    <span class="n">channel</span><span class="p">.</span><span class="nf">default_exchange</span><span class="p">.</span><span class="nf">publish</span><span class="p">(</span><span class="s2">"get.time"</span><span class="p">,</span>
+                                     <span class="ss">:routing_key</span> <span class="o">=&gt;</span> <span class="s2">"amqpgem.examples.services.time"</span><span class="p">,</span>
+                                     <span class="ss">:message_id</span>  <span class="o">=&gt;</span> <span class="no">Kernel</span><span class="p">.</span><span class="nf">rand</span><span class="p">(</span><span class="mi">10101010</span><span class="p">).</span><span class="nf">to_s</span><span class="p">,</span>
+                                     <span class="ss">:reply_to</span>    <span class="o">=&gt;</span> <span class="n">replies_queue</span><span class="p">.</span><span class="nf">name</span><span class="p">)</span>
+  <span class="k">end</span>
+
+
+  <span class="no">Signal</span><span class="p">.</span><span class="nf">trap</span><span class="p">(</span><span class="s2">"INT"</span><span class="p">)</span> <span class="p">{</span> <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span> <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div>
+<h4 id="server-code">Server code</h4>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="nb">require</span> <span class="s2">"amqp"</span>
+
+<span class="no">EventMachine</span><span class="p">.</span><span class="nf">run</span> <span class="k">do</span>
+  <span class="n">connection</span> <span class="o">=</span> <span class="no">AMQP</span><span class="p">.</span><span class="nf">connect</span>
+  <span class="n">channel</span>    <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+
+  <span class="n">requests_queue</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">"amqpgem.examples.services.time"</span><span class="p">,</span> <span class="ss">:exclusive</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+  <span class="n">requests_queue</span><span class="p">.</span><span class="nf">subscribe</span><span class="p">(</span><span class="ss">:ack</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+    <span class="nb">puts</span> <span class="s2">"[requests] Got a request </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">message_id</span><span class="si">}</span><span class="s2">. Sending a reply..."</span>
+    <span class="n">channel</span><span class="p">.</span><span class="nf">default_exchange</span><span class="p">.</span><span class="nf">publish</span><span class="p">(</span><span class="no">Time</span><span class="p">.</span><span class="nf">now</span><span class="p">.</span><span class="nf">to_s</span><span class="p">,</span>
+                                     <span class="ss">:routing_key</span>    <span class="o">=&gt;</span> <span class="n">metadata</span><span class="p">.</span><span class="nf">reply_to</span><span class="p">,</span>
+                                     <span class="ss">:correlation_id</span> <span class="o">=&gt;</span> <span class="n">metadata</span><span class="p">.</span><span class="nf">message_id</span><span class="p">,</span>
+                                     <span class="ss">:mandatory</span>      <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+
+    <span class="n">metadata</span><span class="p">.</span><span class="nf">ack</span>
+  <span class="k">end</span>
+
+
+  <span class="no">Signal</span><span class="p">.</span><span class="nf">trap</span><span class="p">(</span><span class="s2">"INT"</span><span class="p">)</span> <span class="p">{</span> <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span> <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3 id="related-patterns">Related patterns</h3>
+
+<p>Request/Reply demonstrates two common techniques that are sometimes
+referred to as messaging patterns of its own:</p>
+
+<ul>
+<li><a href="http://www.eaipatterns.com/CorrelationIdentifier.html">Correlation Identifier</a> (for identifying what request incoming response is for)</li>
+<li><a href="http://www.eaipatterns.com/ReturnAddress.html">Return Address</a> (for identifying where replies should be sent)</li>
+</ul>
+
+<p>Other related patterns are
+  * Scatter/Gather
+  * Smart Proxy</p>
+
+<h2 id="command-pattern">Command pattern</h2>
+
+<h3 id="description-and-use-cases">Description and Use cases</h3>
+
+<p>The Command pattern is very similar to Request/Reply, except that there is no reply and messages are typed. For example, most modern Web applications have at least one &quot;background task processor&quot; that carries out a number of operations asynchronously, without sending any responses back. The Command pattern usually assumes 1:1 communication.</p>
+
+<p>Some specific examples of the Command pattern are:</p>
+
+<ul>
+<li>Account termination in a Web app triggers information archiving (or deletion) that is done by a separate app &quot;in the background&quot;.</li>
+<li>After a document or profile update, a Web app sends out commands to a search indexer application.</li>
+<li>Virtual machines control dashboard app sends virtual machine controller application a command to reboot.</li>
+</ul>
+
+<h3 id="rabbitmq-based-implementation">RabbitMQ-based implementation</h3>
+
+<p>Implementation of the Command pattern on top of AMQP 0.9.1 involves well-known durable queues. The application that issues the command then can use the default exchange to publish messages to well-known services directly. The Request message :type attribute then indicates the command type and the message body (or body and headers) carry any additional information that the consumer needs to carry out the command.</p>
+
+<h4 id="request-message-attributes">Request message attributes</h4>
+
+<dl>
+  <dt>:type</dt>
+  <dd>Message type as a string. For example: gems.install or commands.shutdown</dd>
+</dl>
+
+<h3 id="code-example">Code example</h3>
+
+<h4 id="consumer-recipient">Consumer (Recipient)</h4>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="nb">require</span> <span class="s2">"rubygems"</span>
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+<span class="nb">require</span> <span class="s2">"yaml"</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="no">Thread</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">run</span> <span class="p">}</span>
+<span class="nb">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+
+
+<span class="n">connection</span> <span class="o">=</span> <span class="no">AMQP</span><span class="p">.</span><span class="nf">connect</span>
+<span class="n">channel</span>    <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="ss">:auto_recovery</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+
+<span class="n">channel</span><span class="p">.</span><span class="nf">prefetch</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Acknowledgements are good for letting the server know</span>
+<span class="c1"># that the task is finished. If the consumer doesn't send</span>
+<span class="c1"># the acknowledgement, then the task is considered to be unfinished</span>
+<span class="c1"># and will be requeued when consumer closes AMQP connection (because of a crash, for example).</span>
+<span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">"amqpgem.examples.patterns.command"</span><span class="p">,</span> <span class="ss">:durable</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">false</span><span class="p">).</span><span class="nf">subscribe</span><span class="p">(</span><span class="ss">:ack</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+  <span class="k">case</span> <span class="n">metadata</span><span class="p">.</span><span class="nf">type</span>
+  <span class="k">when</span> <span class="s2">"gems.install"</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="no">YAML</span><span class="p">.</span><span class="nf">load</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+    <span class="nb">puts</span> <span class="s2">"[gems.install] Received a 'gems.install' request with </span><span class="si">#{</span><span class="n">data</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="c1"># just to demonstrate a realistic example</span>
+    <span class="n">shellout</span> <span class="o">=</span> <span class="s2">"gem install </span><span class="si">#{</span><span class="n">data</span><span class="p">[</span><span class="ss">:gem</span><span class="p">]</span><span class="si">}</span><span class="s2"> --version '</span><span class="si">#{</span><span class="n">data</span><span class="p">[</span><span class="ss">:version</span><span class="p">]</span><span class="si">}</span><span class="s2">'"</span>
+    <span class="nb">puts</span> <span class="s2">"[gems.install] Executing </span><span class="si">#{</span><span class="n">shellout</span><span class="si">}</span><span class="s2">"</span><span class="p">;</span> <span class="nb">system</span><span class="p">(</span><span class="n">shellout</span><span class="p">)</span>
+    <span class="nb">puts</span> <span class="s2">"[gems.install] Done"</span>
+    <span class="nb">puts</span>
+  <span class="k">else</span>
+    <span class="nb">puts</span> <span class="s2">"[commands] Unknown command: </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">type</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+
+  <span class="c1"># message is processed, acknowledge it so that broker discards it</span>
+  <span class="n">metadata</span><span class="p">.</span><span class="nf">ack</span>
+<span class="k">end</span>
+
+<span class="nb">puts</span> <span class="s2">"[boot] Ready. Will be publishing commands every 10 seconds."</span>
+<span class="no">Signal</span><span class="p">.</span><span class="nf">trap</span><span class="p">(</span><span class="s2">"INT"</span><span class="p">)</span> <span class="p">{</span> <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span> <span class="p">}</span>
+<span class="n">t</span><span class="p">.</span><span class="nf">join</span>
+</code></pre></div>
+<h4 id="producer-sender">Producer (Sender)</h4>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="nb">require</span> <span class="s2">"amqp"</span>
+<span class="nb">require</span> <span class="s2">"yaml"</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="no">Thread</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">run</span> <span class="p">}</span>
+<span class="nb">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+
+<span class="n">connection</span> <span class="o">=</span> <span class="no">AMQP</span><span class="p">.</span><span class="nf">connect</span>
+<span class="n">channel</span>    <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+
+<span class="c1"># publish new commands every 3 seconds</span>
+<span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_periodic_timer</span><span class="p">(</span><span class="mf">10.0</span><span class="p">)</span> <span class="k">do</span>
+  <span class="nb">puts</span> <span class="s2">"Publishing a command (gems.install)"</span>
+  <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">:gem</span> <span class="o">=&gt;</span> <span class="s2">"rack"</span><span class="p">,</span> <span class="ss">:version</span> <span class="o">=&gt;</span> <span class="s2">"~&gt; 1.3.0"</span> <span class="p">}.</span><span class="nf">to_yaml</span>
+
+  <span class="n">channel</span><span class="p">.</span><span class="nf">default_exchange</span><span class="p">.</span><span class="nf">publish</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span>
+                                   <span class="ss">:type</span>        <span class="o">=&gt;</span> <span class="s2">"gems.install"</span><span class="p">,</span>
+                                   <span class="ss">:routing_key</span> <span class="o">=&gt;</span> <span class="s2">"amqpgem.examples.patterns.command"</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="nb">puts</span> <span class="s2">"[boot] Ready"</span>
+<span class="no">Signal</span><span class="p">.</span><span class="nf">trap</span><span class="p">(</span><span class="s2">"INT"</span><span class="p">)</span> <span class="p">{</span> <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span> <span class="p">}</span>
+<span class="n">t</span><span class="p">.</span><span class="nf">join</span>
+</code></pre></div>
+<h3 id="related-patterns">Related patterns</h3>
+
+<ul>
+<li>Event</li>
+<li>Request/Reply</li>
+</ul>
+
+<h2 id="event-pattern">Event pattern</h2>
+
+<h3 id="description-and-use-cases">Description and Use cases</h3>
+
+<p>The Event pattern is a version of the Command pattern, but with one or more receivers (1:N communication). The world we live in is full of events, so applications of this pattern are endless.</p>
+
+<p>Some specific use cases of the Event pattern are</p>
+
+<ul>
+<li>Event logging (one application asks an event collector to record certain events and possibly take action)</li>
+<li>Event propagation in MMO games</li>
+<li>Live sport score updates</li>
+<li>Various &quot;push notifications&quot; for mobile applications</li>
+</ul>
+
+<p>The Event pattern is very similar to the Command pattern, however, there are typically certain differences between the two:</p>
+
+<ul>
+<li>Event listeners often do not respond to event producers</li>
+<li>Event listeners are often concerned with data collection: they update counters, persist event information and so on</li>
+<li>There may be more than one event listener in the system. Commands are often carried out by one particular application</li>
+</ul>
+
+<h3 id="rabbitmq-based-implementation">RabbitMQ-based implementation</h3>
+
+<p>Because the Event pattern is a 1:N communication pattern, it typically uses a fanout exchange. Event listeners then use server-named exclusive queues all bound to that exchange. Event messages use the :type message attribute to indicate the event type and the message body (plus, possibly, message headers) to pass event context information.</p>
+
+<h4 id="request-message-attributes">Request message attributes</h4>
+
+<dl>
+  <dt>:type</dt>
+  <dd>Message type as a string. For example: files.created, files.indexed or pages.viewed</dd>
+</dl>
+
+<p><span class="note">Due to misconfiguration or different upgrade time/policy, applications may receive events that they do not know how to handle. It is important for developers to handle such cases, otherwise it is likely that consumers will crash.</span></p>
+
+<p>More on fanout exchange type in the <a href="/articles/working_with_exchanges/">Working With Exchanges</a> guide.</p>
+
+<h3 id="code-example">Code example</h3>
+
+<h4 id="producer-sender">Producer (Sender)</h4>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1"># encoding: utf-8</span>
+
+<span class="vg">$LOAD_PATH</span><span class="p">.</span><span class="nf">unshift</span> <span class="no">File</span><span class="p">.</span><span class="nf">expand_path</span><span class="p">(</span><span class="s2">"../../../../lib"</span><span class="p">,</span> <span class="kp">__FILE__</span><span class="p">)</span>
+
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+<span class="nb">require</span> <span class="s2">"yaml"</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="no">Thread</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">run</span> <span class="p">}</span>
+<span class="nb">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+
+<span class="n">connection</span> <span class="o">=</span> <span class="no">AMQP</span><span class="p">.</span><span class="nf">connect</span>
+<span class="n">channel</span>    <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+<span class="n">exchange</span>   <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="nf">fanout</span><span class="p">(</span><span class="s2">"amqpgem.patterns.events"</span><span class="p">,</span> <span class="ss">:durable</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">false</span><span class="p">)</span>
+
+
+<span class="no">EVENTS</span>     <span class="o">=</span> <span class="p">{</span>
+  <span class="s2">"pages.show"</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="ss">:url</span>      <span class="o">=&gt;</span> <span class="s2">"https://mysite.local/widgets/81772"</span><span class="p">,</span>
+    <span class="ss">:referrer</span> <span class="o">=&gt;</span> <span class="s2">"http://www.google.com/search?client=safari&amp;rls=en&amp;q=widgets&amp;ie=UTF-8&amp;oe=UTF-8"</span>
+  <span class="p">},</span>
+  <span class="s2">"widgets.created"</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="ss">:id</span>       <span class="o">=&gt;</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="ss">:shape</span>    <span class="o">=&gt;</span> <span class="s2">"round"</span><span class="p">,</span>
+    <span class="ss">:owner_id</span> <span class="o">=&gt;</span> <span class="mi">1000</span>
+  <span class="p">},</span>
+  <span class="s2">"widgets.destroyed"</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="ss">:id</span>        <span class="o">=&gt;</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="ss">:person_id</span> <span class="o">=&gt;</span> <span class="mi">1000</span>
+  <span class="p">},</span>
+  <span class="s2">"files.created"</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="ss">:sha1</span>      <span class="o">=&gt;</span> <span class="s2">"1a62429f47bc8b405d17e84b648f2fbebc555ee5"</span><span class="p">,</span>
+    <span class="ss">:filename</span>  <span class="o">=&gt;</span> <span class="s2">"document.pdf"</span>
+  <span class="p">},</span>
+  <span class="s2">"files.indexed"</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="ss">:sha1</span>      <span class="o">=&gt;</span> <span class="s2">"1a62429f47bc8b405d17e84b648f2fbebc555ee5"</span><span class="p">,</span>
+    <span class="ss">:filename</span>  <span class="o">=&gt;</span> <span class="s2">"document.pdf"</span><span class="p">,</span>
+    <span class="ss">:runtime</span>   <span class="o">=&gt;</span> <span class="mf">1.7623</span><span class="p">,</span>
+    <span class="ss">:shared</span>    <span class="o">=&gt;</span> <span class="s2">"shard02"</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">def</span> <span class="nf">generate_event</span>
+  <span class="n">n</span>       <span class="o">=</span> <span class="p">(</span><span class="no">EVENTS</span><span class="p">.</span><span class="nf">size</span> <span class="o">*</span> <span class="no">Kernel</span><span class="p">.</span><span class="nf">rand</span><span class="p">).</span><span class="nf">floor</span>
+  <span class="n">type</span>    <span class="o">=</span> <span class="no">EVENTS</span><span class="p">.</span><span class="nf">keys</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+  <span class="n">payload</span> <span class="o">=</span> <span class="no">EVENTS</span><span class="p">[</span><span class="n">type</span><span class="p">]</span>
+
+  <span class="p">[</span><span class="n">type</span><span class="p">,</span> <span class="n">payload</span><span class="p">]</span>
+<span class="k">end</span>
+
+<span class="c1"># broadcast events</span>
+<span class="no">EventMachine</span><span class="p">.</span><span class="nf">add_periodic_timer</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span> <span class="k">do</span>
+  <span class="n">event_type</span><span class="p">,</span> <span class="n">payload</span> <span class="o">=</span> <span class="n">generate_event</span>
+
+  <span class="nb">puts</span> <span class="s2">"Publishing a new event of type </span><span class="si">#{</span><span class="n">event_type</span><span class="si">}</span><span class="s2">"</span>
+  <span class="n">exchange</span><span class="p">.</span><span class="nf">publish</span><span class="p">(</span><span class="n">payload</span><span class="p">.</span><span class="nf">to_yaml</span><span class="p">,</span> <span class="ss">:type</span> <span class="o">=&gt;</span> <span class="n">event_type</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="nb">puts</span> <span class="s2">"[boot] Ready. Will be publishing events every few seconds."</span>
+<span class="no">Signal</span><span class="p">.</span><span class="nf">trap</span><span class="p">(</span><span class="s2">"INT"</span><span class="p">)</span> <span class="p">{</span> <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span> <span class="p">}</span>
+<span class="n">t</span><span class="p">.</span><span class="nf">join</span>
+</code></pre></div>
+<h4 id="consumer-handler">Consumer (Handler)</h4>
+<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1"># encoding: utf-8</span>
+
+<span class="vg">$LOAD_PATH</span><span class="p">.</span><span class="nf">unshift</span> <span class="no">File</span><span class="p">.</span><span class="nf">expand_path</span><span class="p">(</span><span class="s2">"../../../../lib"</span><span class="p">,</span> <span class="kp">__FILE__</span><span class="p">)</span>
+
+<span class="nb">require</span> <span class="s2">"amqp"</span>
+<span class="nb">require</span> <span class="s2">"yaml"</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="no">Thread</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">run</span> <span class="p">}</span>
+<span class="nb">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+
+
+<span class="n">connection</span> <span class="o">=</span> <span class="no">AMQP</span><span class="p">.</span><span class="nf">connect</span>
+<span class="n">channel</span>    <span class="o">=</span> <span class="no">AMQP</span><span class="o">::</span><span class="no">Channel</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="ss">:auto_recovery</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+<span class="n">channel</span><span class="p">.</span><span class="nf">on_error</span> <span class="k">do</span> <span class="o">|</span><span class="n">ch</span><span class="p">,</span> <span class="n">channel_close</span><span class="o">|</span>
+  <span class="k">raise</span> <span class="s2">"Channel-level exception: </span><span class="si">#{</span><span class="n">channel_close</span><span class="p">.</span><span class="nf">reply_text</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">end</span>
+
+<span class="n">channel</span><span class="p">.</span><span class="nf">prefetch</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">channel</span><span class="p">.</span><span class="nf">queue</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="ss">:durable</span> <span class="o">=&gt;</span> <span class="kp">false</span><span class="p">,</span> <span class="ss">:auto_delete</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">).</span><span class="nf">bind</span><span class="p">(</span><span class="s2">"amqpgem.patterns.events"</span><span class="p">).</span><span class="nf">subscribe</span> <span class="k">do</span> <span class="o">|</span><span class="n">metadata</span><span class="p">,</span> <span class="n">payload</span><span class="o">|</span>
+  <span class="k">begin</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="no">YAML</span><span class="p">.</span><span class="nf">load</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+
+    <span class="k">case</span> <span class="n">metadata</span><span class="p">.</span><span class="nf">type</span>
+    <span class="k">when</span> <span class="s2">"widgets.created"</span>   <span class="k">then</span>
+      <span class="nb">puts</span> <span class="s2">"A widget </span><span class="si">#{</span><span class="n">body</span><span class="p">[</span><span class="ss">:id</span><span class="p">]</span><span class="si">}</span><span class="s2"> was created"</span>
+    <span class="k">when</span> <span class="s2">"widgets.destroyed"</span> <span class="k">then</span>
+      <span class="nb">puts</span> <span class="s2">"A widget </span><span class="si">#{</span><span class="n">body</span><span class="p">[</span><span class="ss">:id</span><span class="p">]</span><span class="si">}</span><span class="s2"> was destroyed"</span>
+    <span class="k">when</span> <span class="s2">"files.created"</span>     <span class="k">then</span>
+      <span class="nb">puts</span> <span class="s2">"A new file (</span><span class="si">#{</span><span class="n">body</span><span class="p">[</span><span class="ss">:filename</span><span class="p">]</span><span class="si">}</span><span class="s2">, </span><span class="si">#{</span><span class="n">body</span><span class="p">[</span><span class="ss">:sha1</span><span class="p">]</span><span class="si">}</span><span class="s2">) was uploaded"</span>
+    <span class="k">when</span> <span class="s2">"files.indexed"</span>     <span class="k">then</span>
+      <span class="nb">puts</span> <span class="s2">"A new file (</span><span class="si">#{</span><span class="n">body</span><span class="p">[</span><span class="ss">:filename</span><span class="p">]</span><span class="si">}</span><span class="s2">, </span><span class="si">#{</span><span class="n">body</span><span class="p">[</span><span class="ss">:sha1</span><span class="p">]</span><span class="si">}</span><span class="s2">) was indexed"</span>
+    <span class="k">else</span>
+      <span class="nb">puts</span> <span class="s2">"[warn] Do not know how to handle event of type </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">type</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">end</span>
+  <span class="k">rescue</span> <span class="no">Exception</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="nb">puts</span> <span class="s2">"[error] Could not handle event of type </span><span class="si">#{</span><span class="n">metadata</span><span class="p">.</span><span class="nf">type</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">e</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="nb">puts</span> <span class="s2">"[boot] Ready"</span>
+<span class="no">Signal</span><span class="p">.</span><span class="nf">trap</span><span class="p">(</span><span class="s2">"INT"</span><span class="p">)</span> <span class="p">{</span> <span class="n">connection</span><span class="p">.</span><span class="nf">close</span> <span class="p">{</span> <span class="no">EventMachine</span><span class="p">.</span><span class="nf">stop</span> <span class="p">}</span> <span class="p">}</span>
+<span class="n">t</span><span class="p">.</span><span class="nf">join</span>
+</code></pre></div>
+<h3 id="related-patterns">Related patterns</h3>
+
+<ul>
+<li>Command</li>
+<li>Publish/Subscribe</li>
+</ul>
+
+<h2 id="document-message-pattern">Document Message pattern</h2>
+
+<h3 id="description-and-use-cases">Description and Use cases</h3>
+
+<p>The Document Message pattern is very similar to the Command and Event
+patterns. The difference is in the intent. A Command message tells the
+receiver to invoke certain behavior, whereas a Document Message just
+passes data and lets the receiver decide what to do with the data.</p>
+
+<p>The message payload is a single logical entity, for example, one (or a
+group of closely related) database rows or documents.</p>
+
+<p>Use cases for the Document Message pattern often have something to do
+with processing of documents:</p>
+
+<ul>
+<li>Indexing</li>
+<li>Archiving</li>
+<li>Content extraction</li>
+<li>Transformation (translation, transcoding and so on) of document data</li>
+</ul>
+
+<h2 id="competing-consumers-pattern">Competing Consumers pattern</h2>
+
+<h3 id="description-and-use-cases">Description and Use cases</h3>
+
+<p><a href="http://www.eaipatterns.com/CompetingConsumers.html">Competing
+Consumers</a> are
+multiple consumers that process messages from a shared queue.</p>
+
+<p>TBD</p>
+
+<h3 id="rabbitmq-based-implementation">RabbitMQ-based implementation</h3>
+
+<p>TBD</p>
+
+<h3 id="code-example">Code example</h3>
+
+<p>TBD</p>
+
+<h2 id="publish-subscribe-pattern">Publish/Subscribe pattern</h2>
+
+<h3 id="description-and-use-cases">Description and Use cases</h3>
+
+<p>TBD</p>
+
+<h3 id="rabbitmq-based-implementation">RabbitMQ-based implementation</h3>
+
+<p>TBD</p>
+
+<h3 id="code-example">Code example</h3>
+
+<p>TBD</p>
+
+<h2 id="scatter-gather-pattern">Scatter/Gather pattern</h2>
+
+<h3 id="description-and-use-cases">Description and Use cases</h3>
+
+<p>TBD</p>
+
+<h3 id="rabbitmq-based-implementation">RabbitMQ-based implementation</h3>
+
+<p>TBD</p>
+
+<h3 id="code-example">Code example</h3>
+
+<p>TBD</p>
+
+<h2 id="smart-proxy-pattern">Smart Proxy pattern</h2>
+
+<h3 id="description-and-use-cases">Description and Use cases</h3>
+
+<p>TBD</p>
+
+<h3 id="rabbitmq-based-implementation">RabbitMQ-based implementation</h3>
+
+<p>TBD</p>
+
+<h3 id="code-example">Code example</h3>
+
+<p>TBD</p>
+
+<h2 id="multistep-processing-routing-slip-pattern">Multistep Processing (Routing Slip) pattern</h2>
+
+<h3 id="description-and-use-cases">Description and Use cases</h3>
+
+<p>TBD</p>
+
+<h3 id="rabbitmq-based-implementation">RabbitMQ-based implementation</h3>
+
+<p>TBD</p>
+
+<h3 id="code-example">Code example</h3>
+
+<p>TBD</p>
+
+        </div>
+      </div>
+    <footer class='footer'>
+      <div class='container'>
+        <p>This website was developed by the
+          &nbsp;<a href='http://github.com/ruby-amqp'>Ruby RabbitMQ Client Maintainers Team</a>.</p>
+        <p>Follow us on Twitter:
+          &nbsp;<a href='http://twitter.com/rubyamqp'>rubyamqp</a>,&nbsp;<a href='http://twitter.com/michaelklishin'>Michael Klishin</a>,&nbsp;<a href='http://twitter.com/celldee'>Chris Duncan</a></p>
+      </div>
+    </footer>
+  </body>
+</html>

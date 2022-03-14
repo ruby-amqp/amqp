@@ -1,0 +1,226 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang='en'>
+  <head>
+    <title>Ruby AMQP: all documentation guides</title>
+    <meta content='width=device-width, initial-scale=1.0' name='viewport' />
+    <meta content='A dead easy to use RabbitMQ Ruby client' name='description' />
+    <meta content='The Ruby RabbitMQ Client Maintainers Team' name='author' />
+    <link href='/assets/stylesheets/bootstrap.css' media='screen' rel='stylesheet' type='text/css' />
+    <link href='/assets/stylesheets/bootstrap-responsive.css' media='screen' rel='stylesheet' type='text/css' />
+    <link href='/assets/stylesheets/sass/styles.css' media='screen' rel='stylesheet' type='text/css' />
+    <link href='/assets/stylesheets/pygments.css' media='screen' rel='stylesheet' type='text/css' />
+    <link href='http://fonts.googleapis.com/css?family=Signika+Negative:300,400,600' rel='stylesheet' type='text/css' />
+    <script src='/assets/javascripts/jquery-1.7.min.js' type='text/javascript'></script>
+    <script src='/assets/javascripts/toc.js'></script>
+    <script src='/assets/javascripts/bootstrap-collapse.js'></script>
+    <meta content='text/html;charset=utf-8' http-equiv='Content-Type' />
+    <script type="text/javascript">
+      if(!(window.location.hostname === "localhost")) {
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-27153041-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+      }
+    </script>
+  </head>
+
+  <body>
+    <div class='navbar navbar-inverse navbar-fixed-top'>
+      <div class='navbar-inner'>
+        <div class='container-fluid'>
+          <a class='btn btn-navbar' data-target='.nav-collapse' data-toggle='collapse'>
+            <span class='icon-bar'></span>
+            <span class='icon-bar'></span>
+            <span class='icon-bar'></span>
+          </a>
+          <a class='brand' href='/'>Ruby amqp gem</a>
+          <div class='nav-collapse'>
+            <ul class='nav'>
+            <li>
+              <a href="/">Home</a>
+            </li>
+            <li>
+              <a href="/articles/guides.html">All guides</a>
+            </li>
+            <li>
+              <a href='/articles/community.html'>Community</a>
+            </li>
+            <li>
+              <a href='http://rubybunny.info'>Bunny, an alternative client</a>
+            </li>
+            <li>
+              <a href='https://github.com/ruby-amqp/amqp'>Code on Github</a>
+            </li>
+            <li>
+              <a href='http://github.com/ruby-amqp'>Other RabbitMQ Ruby clients</a>
+            </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class='container-fluid'>
+      <div class='row-fluid'>
+        <div class='span3'>
+          <div class='well sidebar-nav'></div>
+        </div>
+        <div class='span9'>
+          <h1>Ruby AMQP: all documentation guides</h1>
+          <h2 id="getting-started-with-ruby-amqp-gem-and-rabbitmq"><a href="/articles/getting_started/">Getting Started with Ruby amqp gem and RabbitMQ</a></h2>
+
+<p>An overview of amqp gem with a quick tutorial that helps you to get started with it. It should take about
+20 minutes to read and study the provided code examples.</p>
+
+<h2 id="amqp-0-9-1-model-explained"><a href="/articles/amqp_9_1_model_explained.html">AMQP 0.9.1 Model Explained</a></h2>
+
+<p>This guide covers:</p>
+
+<ul>
+<li>AMQP 0.9.1 model overview</li>
+<li>What are channels</li>
+<li>What are vhosts</li>
+<li>What are queues</li>
+<li>What are exchanges</li>
+<li>What are bindings</li>
+<li>What are AMQP 0.9.1 classes and methods</li>
+</ul>
+
+<h2 id="connecting-to-rabbitmq"><a href="/articles/connecting_to_broker.html">Connecting to RabbitMQ</a></h2>
+
+<p>This guide covers:</p>
+
+<ul>
+<li>How to connect to RabbitMQ with amqp gem</li>
+<li>How to use connection URI to connect to RabbitMQ (also: in PaaS environments such as Heroku and CloudFoundry)</li>
+<li>How to open a channel</li>
+<li>How to close a channel</li>
+<li>How to disconnect</li>
+</ul>
+
+<h2 id="working-with-queues"><a href="/articles/working_with_queues.html">Working With Queues</a></h2>
+
+<p>This guide covers:</p>
+
+<ul>
+<li>How to declare AMQP queues with amqp gem</li>
+<li>Queue properties</li>
+<li>How to declare server-named queues</li>
+<li>How to declare temporary exclusive queues</li>
+<li>How to consume messages (&quot;push API&quot;)</li>
+<li>How to fetch messages (&quot;pull API&quot;)</li>
+<li>Message and delivery properties</li>
+<li>Message acknowledgements</li>
+<li>How to purge queues</li>
+<li>How to delete queues</li>
+<li>Other topics related to queues</li>
+</ul>
+
+<h2 id="working-with-exchanges"><a href="/articles/working_with_exchanges.html">Working With Exchanges</a></h2>
+
+<p>This guide covers:</p>
+
+<ul>
+<li>Exchange types</li>
+<li>How to declare AMQP exchanges with amqp gem</li>
+<li>How to publish messages</li>
+<li>Exchange propreties</li>
+<li>Fanout exchanges</li>
+<li>Direct exchanges</li>
+<li>Topic exchanges</li>
+<li>Default exchange</li>
+<li>Message and delivery properties</li>
+<li>Message routing</li>
+<li>Bindings</li>
+<li>How to delete exchanges</li>
+<li>Other topics related to exchanges and publishing</li>
+</ul>
+
+<h2 id="working-with-bindings"><a href="/articles/bindings.html">Working with bindings</a></h2>
+
+<p>This guide covers:</p>
+
+<ul>
+<li>How to bind exchanges to queues</li>
+<li>How to unbind exchanges from queues</li>
+<li>Other topics related to bindings</li>
+</ul>
+
+<h2 id="durability-and-related-matters"><a href="/articles/durability.html">Durability and Related Matters</a></h2>
+
+<p>This guide covers:</p>
+
+<ul>
+<li>Topics related to durability of exchanges and queues</li>
+<li>Durability of messages</li>
+</ul>
+
+<h2 id="patterns-and-use-cases"><a href="/articles/patterns_and_use_cases.html">Patterns and Use Cases</a></h2>
+
+<p>This guide focuses implementation of common messaging patterns using
+AMQP Model features as building blocks.</p>
+
+<h2 id="error-handling-and-recovery"><a href="/articles/error_handling.html">Error Handling and Recovery</a></h2>
+
+<p>This guide covers:</p>
+
+<ul>
+<li>AMQP 0.9.1 protocol exceptions</li>
+<li>How to deal with network failures</li>
+<li>Other things that may go wrong</li>
+</ul>
+
+<h2 id="using-tls-ssl-connections"><a href="/articles/connection_encryption_with_tls.html">Using TLS (SSL) connections</a></h2>
+
+<p>This guide covers:</p>
+
+<ul>
+<li>How to use TLS (SSL) connections to RabbitMQ with amqp gem</li>
+</ul>
+
+<h2 id="rabbitmq-extensions"><a href="/articles/rabbitmq_extensions.html">RabbitMQ Extensions</a></h2>
+
+<p>This guide covers <a href="http://www.rabbitmq.com/extensions.html">RabbitMQ extensions</a> and how they are used in amqp gem:</p>
+
+<ul>
+<li>How to use Publishing Confirms with amqp gem</li>
+<li>How to use exchange-to-exchange bindings</li>
+<li>How to the alternate exchange extension</li>
+<li>How to set per-queue message TTL</li>
+<li>How to set per-message TTL</li>
+<li>What are consumer cancellation notifications and how to use them</li>
+<li>Message <em>dead lettering</em> and the dead letter exchange</li>
+<li>How to use sender-selected routing (<code>CC</code> and <code>BCC</code> headers)</li>
+</ul>
+
+<h2 id="troubleshooting-your-amqp-applications"><a href="/articles/troubleshooting.html">Troubleshooting your AMQP applications</a></h2>
+
+<p>Explains what to do when your AMQP applications using Ruby amqp gem
+and RabbitMQ misbehave.</p>
+
+<h2 id="amqp-gem-0-8-migration-guide"><a href="/articles/08_migration.html">amqp gem 0.8 migration guide</a></h2>
+
+<p>Learn how to migrate your amqp gem 0.6.x and 0.7.x applications to
+0.8.0 and later and why you should do it.</p>
+
+<h2 id="testing-amqp-applications-with-evented-spec"><a href="/articles/testing_with_evented_spec.html">Testing AMQP applications with Evented Spec</a></h2>
+
+<p>Learn about techniques of asynchronous testing for your messaging
+applications, and how to use Evented Spec.</p>
+
+        </div>
+      </div>
+    <footer class='footer'>
+      <div class='container'>
+        <p>This website was developed by the
+          &nbsp;<a href='http://github.com/ruby-amqp'>Ruby RabbitMQ Client Maintainers Team</a>.</p>
+        <p>Follow us on Twitter:
+          &nbsp;<a href='http://twitter.com/rubyamqp'>rubyamqp</a>,&nbsp;<a href='http://twitter.com/michaelklishin'>Michael Klishin</a>,&nbsp;<a href='http://twitter.com/celldee'>Chris Duncan</a></p>
+      </div>
+    </footer>
+  </body>
+</html>
